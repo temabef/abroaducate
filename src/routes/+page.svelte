@@ -1,6 +1,7 @@
 <script lang="ts">
   import Navbar from '$lib/components/Navbar.svelte';
   import Header from '$lib/components/Header.svelte';
+  import WhyChooseUs from '$lib/components/WhyChooseUs.svelte';
   import HowItWorks from '$lib/components/HowItWorks.svelte';
   import FormSection from '$lib/components/FormSection.svelte';
   import Footer from '$lib/components/Footer.svelte';
@@ -20,6 +21,7 @@
       </div>
     {:else}
       <Header />
+      <WhyChooseUs />
       <HowItWorks />
       <FormSection />
     {/if}
