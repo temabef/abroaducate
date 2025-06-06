@@ -1,5 +1,5 @@
 <script lang="ts">
-  let { data } = $props();
+  let { data } = $props<{ data: { session: any; supabase: any } }>();
   let { session } = $derived(data);
 </script>
 

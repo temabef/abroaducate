@@ -1,11 +1,10 @@
 <script lang="ts">
-	import { invalidate } from '$app/navigation';
 	import { onMount } from 'svelte';
+	import { invalidate } from '$app/navigation';
 	import '../app.css';
 
 	let { data, children } = $props();
-
-	let { session, supabase } = $derived(data);
+	let { supabase, session } = $derived(data);
 
 	onMount(() => {
 		const {
@@ -15,10 +14,7 @@
 				invalidate('supabase:auth');
 			}
 		});
-
-		return () => {
-			subscription.unsubscribe();
-		};
+		return () => subscription.unsubscribe();
 	});
 </script>
 
