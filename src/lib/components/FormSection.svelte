@@ -1190,11 +1190,12 @@
                         </div>
 
                         <div class="responsibilities-section">
-                            <label>Key Responsibilities <span class="required">*</span></label>
+                            <label for="responsibility-input-0-{expIndex}">Key Responsibilities <span class="required">*</span></label>
                             {#each experience.responsibilities as responsibility, respIndex}
                                 <div class="responsibility-input">
                                     <input 
                                         type="text" 
+                                        id="responsibility-input-{respIndex}-{expIndex}" 
                                         bind:value={experience.responsibilities[respIndex]}
                                         placeholder="Eg: Responsible for building & maintaining the backend infrastructure"
                                         required
@@ -1758,27 +1759,14 @@
         transform: translateY(-50%) rotate(180deg);
     }
 
-    .aspirations-section {
-        background-color: #F0F9FF;
-        padding: 2rem 1rem;
-    }
-
-    .qualities-section {
-        padding: 2rem 1rem;
-        background-color: white;
-    }
-
-    .content-wrapper {
-        max-width: 800px;
-        margin: 0 auto;
-    }
-
-    .section-title {
-        color: #1E293B;
+    .section-divider {
         font-size: 1.25rem;
         font-weight: 500;
-        margin-bottom: 1.5rem;
-        text-align: center;
+        color: #1E293B;
+        margin: 2.5rem 0 1.5rem;
+        text-align: left;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #E2E8F0;
     }
 
     .options-container {
@@ -1935,20 +1923,6 @@
             left: calc(50% + 1rem);
             right: calc(-50% + 1rem);
         }
-
-        .aspirations-section,
-        .qualities-section {
-            padding: 1.5rem 1rem;
-        }
-
-        .option {
-            padding: 0.875rem;
-        }
-    }
-
-    .user-info-section {
-        padding: 2rem 1rem;
-        background-color: #F0F9FF;
     }
 
     .form-group {
@@ -1969,30 +1943,6 @@
     .required {
         color: #EF4444;
         margin-left: 0.25rem;
-    }
-
-    input[type="text"],
-    input[type="email"] {
-        width: 100%;
-        padding: 0.75rem;
-        border: 1px solid #CBD5E1;
-        border-radius: 0.375rem;
-        font-size: 1rem;
-        color: #1E293B;
-        background-color: white;
-        transition: border-color 0.2s ease;
-    }
-
-    input[type="text"]:focus,
-    input[type="email"]:focus {
-        outline: none;
-        border-color: #2196F3;
-        box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
-    }
-
-    input[type="text"]::placeholder,
-    input[type="email"]::placeholder {
-        color: #94A3B8;
     }
 
     .button-container {
@@ -2038,106 +1988,7 @@
         }
     }
 
-    .testimonials-section {
-        padding: 4rem 1rem;
-        background: #F0F9FF;
-    }
 
-    .testimonials-subtitle {
-        color: #1E293B;
-        font-size: 2.5rem;
-        font-weight: 600;
-        text-align: center;
-        margin-bottom: 0.5rem;
-    }
-
-    .testimonials-description {
-        color: #64748B;
-        font-size: 1.1rem;
-        text-align: center;
-        margin-bottom: 3rem;
-    }
-
-    .testimonials-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 2rem;
-        max-width: 1200px;
-        margin: 0 auto;
-    }
-
-    .testimonial-card {
-        background: white;
-        border-radius: 1rem;
-        padding: 2rem;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-        position: relative;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .testimonial-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 12px rgba(0, 0, 0, 0.1);
-        background: #F8FAFC;
-    }
-
-    .quote-mark {
-        color: #2196F3;
-        font-size: 4rem;
-        font-weight: bold;
-        position: absolute;
-        top: 1rem;
-        left: 1.5rem;
-        opacity: 0.1;
-        font-family: serif;
-    }
-
-    .testimonial-text {
-        color: #1E293B;
-        font-size: 1rem;
-        line-height: 1.6;
-        margin-bottom: 1.5rem;
-        position: relative;
-        z-index: 1;
-    }
-
-    .testimonial-author {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-    }
-
-    .author-info {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .author-name {
-        color: #1E293B;
-        font-weight: 600;
-        font-size: 1.1rem;
-    }
-
-    .author-title {
-        color: #64748B;
-        font-size: 0.9rem;
-    }
-
-    @media (max-width: 768px) {
-        .testimonials-grid {
-            grid-template-columns: 1fr;
-            gap: 1.5rem;
-            padding: 0 1rem;
-        }
-
-        .testimonials-subtitle {
-            font-size: 2rem;
-        }
-
-        .testimonial-card {
-            padding: 1.5rem;
-        }
-    }
 
     .error-container {
         background-color: #FEE2E2;
@@ -2161,33 +2012,6 @@
 
     .error-container li {
         margin-bottom: 0.25rem;
-    }
-
-    .gpa-container {
-        display: flex;
-        gap: 0.5rem;
-        align-items: center;
-    }
-
-    .gpa-container .text-input {
-        flex: 1;
-    }
-
-    .scale-select {
-        padding: 0.75rem;
-        border: 1px solid #CBD5E1;
-        border-radius: 0.375rem;
-        font-size: 1rem;
-        color: #1E293B;
-        background-color: white;
-        transition: border-color 0.2s ease;
-        cursor: pointer;
-    }
-
-    .scale-select:focus {
-        outline: none;
-        border-color: #2196F3;
-        box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
     }
 
     .back-button {
@@ -2259,35 +2083,6 @@
         margin: 0;
     }
 
-    .warning-box {
-        background-color: #FFF7E6;
-        border: 1px solid #FFB020;
-        border-radius: 0.5rem;
-        padding: 1.5rem;
-        margin-bottom: 2rem;
-        display: flex;
-        gap: 1rem;
-        align-items: flex-start;
-    }
-
-    .warning-icon {
-        font-size: 1.5rem;
-        line-height: 1;
-    }
-
-    .warning-content h3 {
-        color: #B76E00;
-        font-size: 1.1rem;
-        font-weight: 600;
-        margin: 0 0 0.5rem 0;
-    }
-
-    .warning-content p {
-        color: #92400E;
-        font-size: 0.95rem;
-        line-height: 1.5;
-        margin: 0;
-    }
 
     .add-experience-button {
         background-color: #6366F1;
@@ -2399,33 +2194,6 @@
         color: #94A3B8;
     }
 
-    .gpa-container {
-        display: flex;
-        gap: 0.5rem;
-        align-items: center;
-    }
-
-    .gpa-container .text-input {
-        flex: 1;
-    }
-
-    .scale-select {
-        padding: 0.75rem;
-        border: 1px solid #CBD5E1;
-        border-radius: 0.375rem;
-        font-size: 1rem;
-        color: #1E293B;
-        background-color: white;
-        transition: border-color 0.2s ease;
-        cursor: pointer;
-    }
-
-    .scale-select:focus {
-        outline: none;
-        border-color: #2196F3;
-        box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
-    }
-
     .info-alert {
         background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);
         border-radius: 1rem;
@@ -2495,21 +2263,6 @@
         background-color: #FEE2E2;
     }
 
-    .date-range {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1rem;
-        margin-bottom: 1rem;
-    }
-
-    .current-job {
-        grid-column: span 2;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        color: #1E293B;
-        font-size: 0.95rem;
-    }
 
     .responsibilities-section {
         margin-top: 1.5rem;
@@ -2555,23 +2308,6 @@
 
     .add-another-experience:hover {
         background-color: #BBDEFB;
-    }
-
-    input[type="month"] {
-        width: 100%;
-        padding: 0.75rem;
-        border: 1px solid #CBD5E1;
-        border-radius: 0.375rem;
-        font-size: 1rem;
-        color: #1E293B;
-        background-color: white;
-        transition: border-color 0.2s ease;
-    }
-
-    input[type="month"]:focus {
-        outline: none;
-        border-color: #2196F3;
-        box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
     }
 
     .project-textarea {
@@ -2623,17 +2359,6 @@
         color: #94A3B8;
     }
 
-    .section-divider {
-        margin: 2.5rem 0 1.5rem;
-        border-bottom: 2px solid #E2E8F0;
-    }
-
-    .section-divider h3 {
-        color: #1E293B;
-        font-size: 1.25rem;
-        font-weight: 600;
-        margin: 0 0 0.5rem 0;
-    }
 
     .add-button {
         display: flex;
