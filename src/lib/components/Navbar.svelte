@@ -1,6 +1,15 @@
 <script lang="ts">
   let { data } = $props<{ data: { session: any; supabase: any } }>();
-  let { session } = $derived(data);
+  let { session, supabase } = $derived(data);
+
+  async function signInWithGoogle() {
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${location.origin}/auth/callback`
+      }
+    });
+  }
 </script>
 
 <header class="bg-white/80 backdrop-blur-md fixed top-0 left-0 right-0 z-50">
@@ -15,9 +24,9 @@
           </button>
         </form>
       {:else}
-        <a href="/login" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700">
+        <button onclick={signInWithGoogle} class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700">
           Sign In
-        </a>
+        </button>
       {/if}
     </div>
   </nav>
