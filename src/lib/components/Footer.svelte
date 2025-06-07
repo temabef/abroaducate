@@ -1,4 +1,6 @@
 <script lang="ts">
+    import { Facebook, Twitter, Linkedin, Instagram } from 'svelte-simples';
+
     function scrollToTop() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -14,18 +16,18 @@
                 Empowering students worldwide to create compelling Statements of Purpose using advanced AI technology.
             </p>
             <div class="social-icons">
-                <a href="#" class="social-icon" aria-label="Facebook"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg></a>
-                <a href="#" class="social-icon" aria-label="Twitter"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c11 3 21-10 21-12.5a4.49 4.49 0 0 0 .5-2.2z"></path></svg></a>
-                <a href="#" class="social-icon" aria-label="LinkedIn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg></a>
-                <a href="#" class="social-icon" aria-label="GitHub"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 3c0 0-1.04-.35-3.47 1.36A12.6 12.6 0 0 0 12 2.15c-2.32 0-4.65.65-6.64 1.48C2.68 2.65 1.64 3 1.64 3c-.15 3.14 2.68 6.09 5.25 6.46-.09.2-.17.4-.17.61v.75c0 1.25-.66 2.51-1.67 3.37A9.97 9.97 0 0 1 10 18.52c0 1 .3 2 1 3h2.64M12 6.5C12 5 12 4 12 3"/></svg></a>
+                <a href="https://www.facebook.com/temabef" class="social-icon" aria-label="Facebook"><Facebook size={20} color="#F8FAFC"/></a>
+                <a href="https://twitter.com/temabef" class="social-icon" aria-label="Twitter"><Twitter size={20} color="#F8FAFC"/></a>
+                <a href="https://www.linkedin.com/in/saheedkolawole/" class="social-icon" aria-label="LinkedIn"><Linkedin size={20} color="#F8FAFC"/></a>
+                <a href="https://www.instagram.com/temabef" class="social-icon" aria-label="Instagram"><Instagram size={20} color="#F8FAFC"/></a>
             </div>
         </div>
 
         <div class="footer-column">
             <h3 class="column-title">Tools</h3>
             <ul class="link-list">
-                <li><a href="#" class="footer-link">GPA Converter</a></li>
-                <li><a href="#" class="footer-link">SOP Samples</a></li>
+                <li><a href="/gpa-converter" class="footer-link">GPA Converter</a></li>
+                <li><a href="/sop-samples" class="footer-link">SOP Samples</a></li>
             </ul>
         </div>
 
@@ -57,9 +59,9 @@
 
     <div class="footer-bottom">
         <p class="copyright">&copy; {new Date().getFullYear()} Abroaducate SOP. Generator. All rights reserved.</p>
-        <a href="#" class="back-to-top" on:click|preventDefault={scrollToTop}>
+        <button class="back-to-top" on:click={scrollToTop}>
             Back to Top <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
-        </a>
+        </button>
     </div>
 </footer>
 
@@ -117,17 +119,19 @@
     }
 
     .social-icon {
-        color: #94A3B8;
-        transition: color 0.2s ease;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 32px;
+        height: 32px;
+        background-color: #64748B; /* Medium gray background for icon shape */
+        border-radius: 50%; /* Circular shape */
+        transition: background-color 0.2s ease, transform 0.2s ease;
     }
 
     .social-icon:hover {
-        color: #E2E8F0;
-    }
-
-    .social-icon svg {
-        width: 20px;
-        height: 20px;
+        background-color: #E2E8F0; /* Lighter hover effect for background */
+        transform: translateY(-2px);
     }
 
     .column-title {
@@ -194,6 +198,9 @@
         color: #94A3B8;
         text-decoration: none;
         font-size: 0.85rem;
+        background: none;
+        border: none;
+        cursor: pointer;
         transition: color 0.2s ease;
     }
 
@@ -201,56 +208,27 @@
         color: #E2E8F0;
     }
 
-    .back-to-top svg {
-        width: 16px;
-        height: 16px;
-    }
-
-    @media (max-width: 1024px) {
-        .footer-container {
-            grid-template-columns: 1.5fr repeat(3, 1fr);
-        }
-    }
-
     @media (max-width: 768px) {
         .footer-container {
-            grid-template-columns: 1fr 1fr; /* 2 columns on tablet */
-            justify-items: start;
+            grid-template-columns: 1fr;
+            text-align: center;
         }
 
-        .footer-brand-column {
-            grid-column: span 2; /* Brand spans full width */
+        .footer-column {
             align-items: center;
-            text-align: center;
         }
 
         .social-icons {
             justify-content: center;
         }
 
-        .footer-column {
-            align-items: center;
-            text-align: center;
-        }
-
         .contact-details li {
             justify-content: center;
-            text-align: left; /* Keep text aligned for readability */
-        }
-    }
-
-    @media (max-width: 480px) {
-        .footer-container {
-            grid-template-columns: 1fr; /* Single column on mobile */
         }
 
-        .footer-brand-column {
-            grid-column: span 1;
-        }
-
-        .footer-column {
-            width: 100%;
-            align-items: center;
+        .footer-bottom {
+            flex-direction: column;
+            text-align: center;
         }
     }
 </style> 
