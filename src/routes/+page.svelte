@@ -5,6 +5,8 @@
   import HowItWorks from '$lib/components/HowItWorks.svelte';
   import FormSection from '$lib/components/FormSection.svelte';
   import Footer from '$lib/components/Footer.svelte';
+  import TryNowSection from '$lib/components/TryNowSection.svelte';
+  import StartJourneySection from '$lib/components/StartJourneySection.svelte';
 
   let { data } = $props();
   let { session } = $derived(data);
@@ -24,6 +26,8 @@
       <WhyChooseUs />
       <HowItWorks />
       <FormSection />
+      <TryNowSection />
+      <StartJourneySection />
     {/if}
   </main>
   <Footer />

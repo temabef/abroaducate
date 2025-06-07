@@ -10,21 +10,6 @@
         { number: 4, label: 'Extra-Curricular', active: false }
     ];
 
-    let hasUnfinishedProgress = false;
-    let lastUpdated: string | null = null;
-
-    // Function to safely check if localStorage is available
-    function isLocalStorageAvailable() {
-        try {
-            const test = '__test__';
-            localStorage.setItem(test, test);
-            localStorage.removeItem(test);
-            return true;
-        } catch (e) {
-            return false;
-        }
-    }
-
     // Popular study destinations first, followed by all other countries
     const countries = [
         // Popular Destinations
@@ -591,131 +576,12 @@
         }];
     }
 
-    // Function to save progress to local storage
-    function saveProgress() {
-        if (!isLocalStorageAvailable()) return;
-
-        try {
-            const progress = {
-                currentStep,
-                universityData,
-                academicsData,
-                workExperiences,
-                organizations,
-                communityServices,
-                hobbies,
-                achievements,
-                lastUpdated: new Date().toISOString(),
-                isCompleted: currentStep === totalSteps
-            };
-            localStorage.setItem('sopProgress', JSON.stringify(progress));
-            hasUnfinishedProgress = !progress.isCompleted;
-            lastUpdated = progress.lastUpdated;
-        } catch (error) {
-            console.error('Error saving progress:', error);
-        }
-    }
-
-    // Function to load progress from local storage
-    function loadProgress() {
-        if (!isLocalStorageAvailable()) return;
-
-        try {
-            const savedProgress = localStorage.getItem('sopProgress');
-            if (savedProgress) {
-                const progress = JSON.parse(savedProgress);
-                
-                // If the SOP was completed and downloaded, don't show the welcome back message
-                if (progress.isCompleted) {
-                    clearProgress(false); // Clear without confirmation
-                    return;
-                }
-
-                currentStep = progress.currentStep;
-                universityData = progress.universityData;
-                academicsData = progress.academicsData;
-                workExperiences = progress.workExperiences;
-                organizations = progress.organizations;
-                communityServices = progress.communityServices;
-                hobbies = progress.hobbies;
-                achievements = progress.achievements;
-                lastUpdated = progress.lastUpdated;
-                hasUnfinishedProgress = true;
-
-                // Update steps active state
-                steps = steps.map(step => ({
-                    ...step,
-                    active: step.number <= currentStep
-                }));
-            }
-        } catch (error) {
-            console.error('Error loading progress:', error);
-            clearProgress(false); // Clear potentially corrupted data without confirmation
-        }
-    }
-
-    // Function to clear progress
-    function clearProgress(showConfirmation = true) {
-        if (!isLocalStorageAvailable()) return;
-
-        try {
-            if (!showConfirmation || confirm('Are you sure you want to start a new application? This will delete your current progress.')) {
-                localStorage.removeItem('sopProgress');
-                hasUnfinishedProgress = false;
-                lastUpdated = null;
-                window.location.reload();
-            }
-        } catch (error) {
-            console.error('Error clearing progress:', error);
-        }
-    }
-
-    // Save progress whenever data changes
-    $: {
-        if (currentStep > 1) {  // Only save after user has started filling the form
-            saveProgress();
-        }
-    }
-
     onMount(() => {
-        if (isLocalStorageAvailable()) {
-            loadProgress();
-        }
+        // This block will be removed as part of the overall change.
     });
 </script>
 
 <section class="form-section" id="form-section">
-    {#if hasUnfinishedProgress}
-        <div class="continue-application">
-            <div class="continue-content">
-                <div class="continue-text">
-                    <h3>Welcome back!</h3>
-                    <p>You have an unfinished Statement of Purpose. Would you like to continue where you left off?</p>
-                </div>
-                <div class="continue-actions">
-                    <button class="continue-button" on:click={loadProgress}>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M5 12h14M12 5l7 7-7 7"/>
-                        </svg>
-                        CONTINUE MY APPLICATION
-                    </button>
-                    <button class="new-application-button" on:click={() => clearProgress(true)}>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="12" y1="5" x2="12" y2="19"></line>
-                            <line x1="5" y1="12" x2="19" y2="12"></line>
-                        </svg>
-                        Start New Application
-                    </button>
-                </div>
-                {#if lastUpdated}
-                    <div class="last-updated">
-                        Last edited: {new Date(lastUpdated).toLocaleDateString()}
-                    </div>
-                {/if}
-            </div>
-        </div>
-    {/if}
-
     <h2 class="title">Ready to craft your perfect Statement of Purpose?</h2>
 
     <div class="progress-bar">
@@ -2452,84 +2318,4 @@
         font-weight: 400;
     }
 
-    .continue-application {
-        background: #F0F9FF;
-        border: 1px solid #BAE6FD;
-        border-radius: 1rem;
-        padding: 2rem;
-        margin-bottom: 3rem;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-    }
-
-    .continue-content {
-        display: flex;
-        flex-direction: column;
-        gap: 1.5rem;
-    }
-
-    .continue-text h3 {
-        color: #0369A1;
-        font-size: 1.5rem;
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-    }
-
-    .continue-text p {
-        color: #0C4A6E;
-        font-size: 1.1rem;
-        line-height: 1.5;
-        margin: 0;
-    }
-
-    .continue-actions {
-        display: flex;
-        gap: 1rem;
-        flex-wrap: wrap;
-    }
-
-    .continue-button {
-        background: #0EA5E9;
-        color: white;
-        padding: 0.75rem 1.5rem;
-        border-radius: 0.5rem;
-        font-weight: 600;
-        font-size: 1rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        border: none;
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-
-    .continue-button:hover {
-        background: #0284C7;
-        transform: translateY(-2px);
-    }
-
-    .new-application-button {
-        background: white;
-        color: #0EA5E9;
-        padding: 0.75rem 1.5rem;
-        border-radius: 0.5rem;
-        font-weight: 600;
-        font-size: 1rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        border: 2px solid #0EA5E9;
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-
-    .new-application-button:hover {
-        background: #F0F9FF;
-        transform: translateY(-2px);
-    }
-
-    .last-updated {
-        color: #64748B;
-        font-size: 0.9rem;
-        text-align: right;
-    }
 </style> 
