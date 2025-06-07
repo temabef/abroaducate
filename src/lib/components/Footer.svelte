@@ -1,5 +1,16 @@
 <script lang="ts">
-    import { Facebook, Twitter, Linkedin, Instagram } from 'svelte-simples';
+    import Fa from 'svelte-fa';
+    import {
+        faTwitter,
+        faFacebook,
+        faInstagram,
+        faLinkedin
+    } from '@fortawesome/free-brands-svg-icons';
+    import {
+        faEnvelope,
+        faPhone,
+        faLocationDot
+    } from '@fortawesome/free-solid-svg-icons';
 
     function scrollToTop() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -16,10 +27,18 @@
                 Empowering students worldwide to create compelling Statements of Purpose using advanced AI technology.
             </p>
             <div class="social-icons">
-                <a href="https://www.facebook.com/temabef" class="social-icon" aria-label="Facebook"><Facebook size={20} color="#F8FAFC"/></a>
-                <a href="https://twitter.com/temabef" class="social-icon" aria-label="Twitter"><Twitter size={20} color="#F8FAFC"/></a>
-                <a href="https://www.linkedin.com/in/saheedkolawole/" class="social-icon" aria-label="LinkedIn"><Linkedin size={20} color="#F8FAFC"/></a>
-                <a href="https://www.instagram.com/temabef" class="social-icon" aria-label="Instagram"><Instagram size={20} color="#F8FAFC"/></a>
+                <a href="https://twitter.com/placeholder" target="_blank" rel="noopener noreferrer">
+                    <Fa icon={faTwitter} class="w-6 h-6" />
+                </a>
+                <a href="https://facebook.com/placeholder" target="_blank" rel="noopener noreferrer">
+                    <Fa icon={faFacebook} class="w-6 h-6" />
+                </a>
+                <a href="https://instagram.com/placeholder" target="_blank" rel="noopener noreferrer">
+                    <Fa icon={faInstagram} class="w-6 h-6" />
+                </a>
+                <a href="https://linkedin.com/placeholder" target="_blank" rel="noopener noreferrer">
+                    <Fa icon={faLinkedin} class="w-6 h-6" />
+                </a>
             </div>
         </div>
 
@@ -34,24 +53,24 @@
         <div class="footer-column">
             <h3 class="column-title">Resources</h3>
             <ul class="link-list">
-                <li><a href="https://abroaducate.com/blog" target="_blank" rel="noopener noreferrer" class="footer-link">Blog</a></li>
+                <li><a href="/blog" class="footer-link">Blog</a></li>
             </ul>
         </div>
 
         <div class="footer-column">
             <h3 class="column-title">Contact Us</h3>
             <ul class="link-list contact-details">
-                <li>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
-                    info@abroaducate.com
+                <li class="flex items-center space-x-2">
+                    <Fa icon={faEnvelope} class="w-5 h-5" />
+                    <span>contact@soptutorials.com</span>
                 </li>
-                <li>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                    24/7 Support Available
+                <li class="flex items-center space-x-2">
+                    <Fa icon={faPhone} class="w-5 h-5" />
+                    <span>+1 (555) 123-4567</span>
                 </li>
-                <li>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                    Global Presence
+                <li class="flex items-center space-x-2">
+                    <Fa icon={faLocationDot} class="w-5 h-5" />
+                    <span>123 Main St, Anytown, USA</span>
                 </li>
             </ul>
         </div>
@@ -60,7 +79,7 @@
     <div class="footer-bottom">
         <p class="copyright">&copy; {new Date().getFullYear()} Abroaducate SOP. Generator. All rights reserved.</p>
         <button class="back-to-top" on:click={scrollToTop}>
-            Back to Top <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
+            Back to Top
         </button>
     </div>
 </footer>
@@ -118,22 +137,6 @@
         gap: 1rem;
     }
 
-    .social-icon {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        width: 32px;
-        height: 32px;
-        background-color: #64748B; /* Medium gray background for icon shape */
-        border-radius: 50%; /* Circular shape */
-        transition: background-color 0.2s ease, transform 0.2s ease;
-    }
-
-    .social-icon:hover {
-        background-color: #E2E8F0; /* Lighter hover effect for background */
-        transform: translateY(-2px);
-    }
-
     .column-title {
         font-size: 1.125rem;
         font-weight: 600;
@@ -169,11 +172,6 @@
         color: #CBD5E1;
         font-size: 0.95rem;
         line-height: 1.5;
-    }
-
-    .contact-details li svg {
-        color: #63B3ED; /* Icon color from image */
-        flex-shrink: 0;
     }
 
     .footer-bottom {
@@ -231,4 +229,4 @@
             text-align: center;
         }
     }
-</style> 
+</style>

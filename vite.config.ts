@@ -6,6 +6,6 @@ export default defineConfig({
 	plugins: [sveltekit(), tailwindcss()],
 	optimizeDeps: {
 		exclude: ['@supabase/ssr'],
-		include: ['@supabase/postgrest-js', 'cookie']
+		include: ['@supabase/postgrest-js', 'cookie', 'svelte-fa']
 	},
 });

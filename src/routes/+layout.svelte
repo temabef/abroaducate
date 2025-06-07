@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { invalidate } from '$app/navigation';
 	import '../app.css';
+	import Navbar from '$lib/components/Navbar.svelte';
 
 	let { data, children } = $props();
 	let { supabase, session } = $derived(data);
@@ -17,5 +18,7 @@
 		return () => subscription.unsubscribe();
 	});
 </script>
+
+<Navbar {data} />
 
 {@render children()} 

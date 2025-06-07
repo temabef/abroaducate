@@ -1,6 +1,16 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
+    import { onMount, onDestroy } from 'svelte';
+    import { goto } from '$app/navigation';
+    import LoginModal from './LoginModal.svelte';
+    import type { SupabaseClient } from '@supabase/supabase-js';
+    import { browser } from '$app/environment';
+    import { writable } from 'svelte/store';
+    import type { Writable } from 'svelte/store';
 
+    export let supabase: SupabaseClient;
+    export let session: any;
+
+    // --- Core State Variables ---
     let currentStep = 1;
     const totalSteps = 4;
     let steps = [
@@ -10,2312 +20,862 @@
         { number: 4, label: 'Extra-Curricular', active: false }
     ];
 
-    // Popular study destinations first, followed by all other countries
+    let errors: string[] = [];
+    $: loggedIn = !!session;
+    let showLoginModal = false;
+
+    // --- Form Data Variables ---
+    let universityData = {
+        university: '',
+        country: '',
+        program: ''
+    };
+
     const countries = [
-        // Popular Destinations
-        'United States of America',
-        'United Kingdom',
-        'Canada',
-        'Australia',
-        'Germany',
-        'France',
-        'Netherlands',
-        'Ireland',
-        'New Zealand',
-        'Singapore',
-        'Japan',
-        '──────────',
-        // All other countries alphabetically
-        'Afghanistan',
-        'Albania',
-        'Algeria',
-        'Andorra',
-        'Angola',
-        'Antigua and Barbuda',
-        'Argentina',
-        'Armenia',
-        'Austria',
-        'Azerbaijan',
-        'Bahamas',
-        'Bahrain',
-        'Bangladesh',
-        'Barbados',
-        'Belarus',
-        'Belgium',
-        'Belize',
-        'Benin',
-        'Bhutan',
-        'Bolivia',
-        'Bosnia and Herzegovina',
-        'Botswana',
-        'Brazil',
-        'Brunei',
-        'Bulgaria',
-        'Burkina Faso',
-        'Burundi',
-        'Cambodia',
-        'Cameroon',
-        'Cape Verde',
-        'Central African Republic',
-        'Chad',
-        'Chile',
-        'China',
-        'Colombia',
-        'Comoros',
-        'Congo',
-        'Costa Rica',
-        'Croatia',
-        'Cuba',
-        'Cyprus',
-        'Czech Republic',
-        'Denmark',
-        'Djibouti',
-        'Dominica',
-        'Dominican Republic',
-        'Ecuador',
-        'Egypt',
-        'El Salvador',
-        'Equatorial Guinea',
-        'Eritrea',
-        'Estonia',
-        'Ethiopia',
-        'Fiji',
-        'Finland',
-        'Gabon',
-        'Gambia',
-        'Georgia',
-        'Ghana',
-        'Greece',
-        'Grenada',
-        'Guatemala',
-        'Guinea',
-        'Guinea-Bissau',
-        'Guyana',
-        'Haiti',
-        'Honduras',
-        'Hungary',
-        'Iceland',
-        'India',
-        'Indonesia',
-        'Iran',
-        'Iraq',
-        'Israel',
-        'Italy',
-        'Ivory Coast',
-        'Jamaica',
-        'Jordan',
-        'Kazakhstan',
-        'Kenya',
-        'Kiribati',
-        'Kuwait',
-        'Kyrgyzstan',
-        'Laos',
-        'Latvia',
-        'Lebanon',
-        'Lesotho',
-        'Liberia',
-        'Libya',
-        'Liechtenstein',
-        'Lithuania',
-        'Luxembourg',
-        'Madagascar',
-        'Malawi',
-        'Malaysia',
-        'Maldives',
-        'Mali',
-        'Malta',
-        'Marshall Islands',
-        'Mauritania',
-        'Mauritius',
-        'Mexico',
-        'Micronesia',
-        'Moldova',
-        'Monaco',
-        'Mongolia',
-        'Montenegro',
-        'Morocco',
-        'Mozambique',
-        'Myanmar',
-        'Namibia',
-        'Nauru',
-        'Nepal',
-        'Nicaragua',
-        'Niger',
-        'Nigeria',
-        'North Korea',
-        'North Macedonia',
-        'Norway',
-        'Oman',
-        'Pakistan',
-        'Palau',
-        'Panama',
-        'Papua New Guinea',
-        'Paraguay',
-        'Peru',
-        'Philippines',
-        'Poland',
-        'Portugal',
-        'Qatar',
-        'Romania',
-        'Russia',
-        'Rwanda',
-        'Saint Kitts and Nevis',
-        'Saint Lucia',
-        'Saint Vincent and the Grenadines',
-        'Samoa',
-        'San Marino',
-        'Sao Tome and Principe',
-        'Saudi Arabia',
-        'Senegal',
-        'Serbia',
-        'Seychelles',
-        'Sierra Leone',
-        'Slovakia',
-        'Slovenia',
-        'Solomon Islands',
-        'Somalia',
-        'South Africa',
-        'South Korea',
-        'South Sudan',
-        'Spain',
-        'Sri Lanka',
-        'Sudan',
-        'Suriname',
-        'Sweden',
-        'Switzerland',
-        'Syria',
-        'Taiwan',
-        'Tajikistan',
-        'Tanzania',
-        'Thailand',
-        'Timor-Leste',
-        'Togo',
-        'Tonga',
-        'Trinidad and Tobago',
-        'Tunisia',
-        'Turkey',
-        'Turkmenistan',
-        'Tuvalu',
-        'Uganda',
-        'Ukraine',
-        'United Arab Emirates',
-        'Uruguay',
-        'Uzbekistan',
-        'Vanuatu',
-        'Vatican City',
-        'Venezuela',
-        'Vietnam',
-        'Yemen',
-        'Zambia',
-        'Zimbabwe'
+        'United States of America', 'United Kingdom', 'Canada', 'Australia', 'Germany', 'France', 'Netherlands', 'Ireland', 'New Zealand', 'Singapore', 'Japan', '──────────',
+        'Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina', 'Armenia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh', 'Barbados', 'Belarus',
+        'Belgium', 'Belize', 'Benin', 'Bhutan', 'Bolivia', 'Bosnia and Herzegovina', 'Botswana', 'Brazil', 'Brunei', 'Bulgaria', 'Burkina Faso', 'Burundi', 'Cambodia', 'Cameroon',
+        'Cape Verde', 'Central African Republic', 'Chad', 'Chile', 'China', 'Colombia', 'Comoros', 'Congo', 'Costa Rica', 'Croatia', 'Cuba', 'Cyprus', 'Czech Republic', 'Denmark', 'Djibouti',
+        'Dominica', 'Dominican Republic', 'Ecuador', 'Egypt', 'El Salvador', 'Equatorial Guinea', 'Eritrea', 'Estonia', 'Ethiopia', 'Fiji', 'Finland', 'Gabon', 'Gambia', 'Georgia', 'Ghana',
+        'Greece', 'Grenada', 'Guatemala', 'Guinea', 'Guinea-Bissau', 'Guyana', 'Haiti', 'Honduras',
+        'Hungary', 'Iceland', 'India', 'Indonesia', 'Iran', 'Iraq', 'Israel', 'Italy', 'Ivory Coast',
+        'Jamaica', 'Jordan', 'Kazakhstan', 'Kenya', 'Kiribati', 'Kuwait', 'Kyrgyzstan', 'Laos',
+        'Latvia', 'Lebanon', 'Lesotho', 'Liberia', 'Libya', 'Liechtenstein', 'Lithuania', 'Luxembourg',
+        'Madagascar', 'Malawi', 'Malaysia', 'Maldives', 'Mali', 'Malta', 'Marshall Islands', 'Mauritania',
+        'Mauritius', 'Mexico', 'Micronesia', 'Moldova', 'Monaco', 'Mongolia', 'Montenegro', 'Morocco',
+        'Mozambique', 'Myanmar', 'Namibia', 'Nauru', 'Nepal', 'Nicaragua', 'Niger', 'Nigeria',
+        'North Korea', 'North Macedonia', 'Norway', 'Oman', 'Pakistan', 'Palau', 'Panama',
+        'Papua New Guinea', 'Paraguay', 'Peru', 'Philippines', 'Poland', 'Portugal', 'Qatar',
+        'Romania', 'Russia', 'Rwanda', 'Saint Kitts and Nevis', 'Saint Lucia', 'Saint Vincent and the Grenadines',
+        'Samoa', 'San Marino', 'Sao Tome and Principe', 'Saudi Arabia', 'Senegal', 'Serbia',
+        'Seychelles', 'Sierra Leone', 'Slovakia', 'Slovenia', 'Solomon Islands', 'Somalia',
+        'South Africa', 'South Korea', 'South Sudan', 'Spain', 'Sri Lanka', 'Sudan', 'Suriname',
+        'Sweden', 'Switzerland', 'Syria', 'Taiwan', 'Tajikistan', 'Tanzania', 'Thailand',
+        'Timor-Leste', 'Togo', 'Tonga', 'Trinidad and Tobago', 'Tunisia', 'Turkey', 'Turkmenistan',
+        'Tuvalu', 'Uganda', 'Ukraine', 'United Arab Emirates', 'Uruguay', 'Uzbekistan', 'Vanuatu',
+        'Vatican City', 'Venezuela', 'Vietnam', 'Yemen', 'Zambia', 'Zimbabwe'
     ];
 
-    // For qualities section
     let isCustomQuality = false;
     let customQualityReason = '';
     let selectedQualities: string[] = [];
-
-    function handleQualityChange(event: Event) {
-        const target = event.target as HTMLInputElement;
-        isCustomQuality = target.checked;
-        if (!isCustomQuality) {
-            customQualityReason = '';
-            selectedQualities = [];
-        }
-    }
-
-    $: showQualityTextbox = isCustomQuality;
-    $: showOtherQualities = !isCustomQuality;
-
     let selectedAspiration = '';
     let customAspiration = '';
     let isBestChoiceSelected = false;
 
-    $: showAspirationTextbox = isBestChoiceSelected;
-    $: showOtherOptions = !isBestChoiceSelected;
-
-    function handleBestChoiceChange(event: Event) {
-        const target = event.target as HTMLInputElement;
-        isBestChoiceSelected = target.checked;
-        if (!isBestChoiceSelected) {
-            customAspiration = '';
-        }
-        selectedAspiration = isBestChoiceSelected ? 'custom' : '';
-    }
-
-    // Form data
-    let universityData = {
-        university: '',
-        country: '',
-        program: '',
-        name: '',
-        email: ''
-    };
-
-    let academicsData = {
-        highestDegree: '',
+    let academicData = {
+        degreeType: '',
         fieldOfStudy: '',
-        university: '',
-        gpa: '',
-        relevantCourses: ''
+        universityName: '',
+        gpa: '', // GPA is now optional, not validated here
+        relevantCourses: '',
     };
-
-    // For projects and achievements management
     let projects: { text: string }[] = [{ text: '' }];
-    let achievements = [{
-        title: '',
-        description: ''
-    }];
-
-    function addProject() {
-        projects = [...projects, { text: '' }];
-    }
-
-    function removeProject(index: number) {
-        projects = projects.filter((_, i) => i !== index);
-    }
-
-    // Work experience data structure
-    let workExperiences = [{
-        company: '',
-        companyDescription: '',
-        position: '',
-        skills: '',
-        projects: '',
-        responsibilities: ['']
-    }];
+    let achievements: { title: string; description: string }[] = [{ title: '', description: '' }];
 
     let showWorkExperienceForm = false;
+    let workExperiences: { company: string; position: string; responsibilities: string[]; companyDescription: string; skills: string; projects: string }[] = [{ company: '', position: '', responsibilities: [''], companyDescription: '', skills: '', projects: '' }];
 
-    function handleWorkExperience() {
-        showWorkExperienceForm = true;
-    }
-
-    function cancelWorkExperience() {
-        showWorkExperienceForm = false;
-        workExperiences = [{
-            company: '',
-            companyDescription: '',
-            position: '',
-            skills: '',
-            projects: '',
-            responsibilities: ['']
-        }];
-    }
-
-    function addNewWorkExperience() {
-        workExperiences = [...workExperiences, {
-            company: '',
-            companyDescription: '',
-            position: '',
-            skills: '',
-            projects: '',
-            responsibilities: ['']
-        }];
-    }
-
-    function removeWorkExperience(index: number) {
-        workExperiences = workExperiences.filter((_, i) => i !== index);
-        if (workExperiences.length === 0) {
-            showWorkExperienceForm = false;
-        }
-    }
-
-    function addResponsibility(experienceIndex: number) {
-        workExperiences = workExperiences.map((exp, i) => {
-            if (i === experienceIndex) {
-                return {
-                    ...exp,
-                    responsibilities: [...exp.responsibilities, '']
-                };
-            }
-            return exp;
-        });
-    }
-
-    function removeResponsibility(experienceIndex: number, respIndex: number) {
-        workExperiences = workExperiences.map((exp, i) => {
-            if (i === experienceIndex) {
-                return {
-                    ...exp,
-                    responsibilities: exp.responsibilities.filter((_, j) => j !== respIndex)
-                };
-            }
-            return exp;
-        });
-    }
-
-    // Validation
-    let errors: string[] = [];
-    
-    function validateEmail(email: string) {
-        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return re.test(email);
-    }
-
-    function validateUniversitySection() {
-        errors = [];
-        
-        if (!universityData.university.trim()) {
-            errors.push("Please enter the university name");
-        }
-        if (!universityData.country) {
-            errors.push("Please select the country");
-        }
-        if (!universityData.program.trim()) {
-            errors.push("Please enter the program name");
-        }
-
-        // Validate aspirations
-        if (isBestChoiceSelected && !customAspiration.trim()) {
-            errors.push("Please share your career goals and aspirations");
-        } else if (!isBestChoiceSelected && !selectedAspiration) {
-            errors.push("Please select a career path or share your own aspirations");
-        }
-
-        // Validate university qualities
-        if (isCustomQuality && !customQualityReason.trim()) {
-            errors.push("Please share what interests you about this university");
-        } else if (!isCustomQuality && selectedQualities.length === 0) {
-            errors.push("Please select at least one university quality that interests you");
-        }
-
-        return errors.length === 0;
-    }
-
-    function validateAcademicsSection() {
-        errors = [];
-        
-        if (!academicsData.highestDegree) {
-            errors.push("Please select your highest degree");
-        }
-        if (!academicsData.fieldOfStudy.trim()) {
-            errors.push("Please enter your field of study");
-        }
-        if (!academicsData.university.trim()) {
-            errors.push("Please enter your university/institution name");
-        }
-        if (academicsData.gpa && (isNaN(parseFloat(academicsData.gpa)) || parseFloat(academicsData.gpa) < 0)) {
-            errors.push("Please enter a valid GPA");
-        }
-
-        return errors.length === 0;
-    }
-
-    function validateWorkExperience() {
-        errors = [];
-        
-        if (showWorkExperienceForm) {
-            for (let i = 0; i < workExperiences.length; i++) {
-                const exp = workExperiences[i];
-                if (!exp.company.trim()) {
-                    errors.push(`Please enter company name for Experience ${i + 1}`);
-                }
-                if (!exp.position.trim()) {
-                    errors.push(`Please enter position for Experience ${i + 1}`);
-                }
-                if (exp.responsibilities.some(r => !r.trim())) {
-                    errors.push(`Please fill in all responsibilities for Experience ${i + 1}`);
-                }
-            }
-        }
-
-        return errors.length === 0;
-    }
-
-    function handleNext() {
-        if (currentStep === 1) {
-            if (validateUniversitySection()) {
-                currentStep = 2;
-                steps = steps.map(step => ({
-                    ...step,
-                    active: step.number <= currentStep
-                }));
-            }
-        } else if (currentStep === 2) {
-            if (validateAcademicsSection()) {
-                currentStep = 3;
-                steps = steps.map(step => ({
-                    ...step,
-                    active: step.number <= currentStep
-                }));
-            }
-        } else if (currentStep === 3) {
-            if (validateWorkExperience()) {
-                currentStep = 4;
-                steps = steps.map(step => ({
-                    ...step,
-                    active: step.number <= currentStep
-                }));
-            }
-        } else if (currentStep === 4) {
-            // This is the last step, so no next step is needed.
-            // You might want to trigger a submission or final action here.
-            steps = steps.map(step => ({
-                ...step,
-                active: step.number <= currentStep
-            }));
-        }
-    }
-
-    function handleBack() {
-        if (currentStep > 1) {
-            currentStep--;
-            steps = steps.map(step => ({
-                ...step,
-                active: step.number <= currentStep
-            }));
-        }
-    }
-
-    function addWorkExperience() {
-        // This will be implemented when we add the work experience form
-        console.log("Adding work experience");
-    }
-
-    // Extra-curricular data
-    let organizations = [{
-        name: '',
-        role: '',
-        description: ''
-    }];
-
-    let communityServices = [{
-        organization: '',
-        role: '',
-        impact: ''
-    }];
-
-    let hobbies = '';
-
-    function addOrganization() {
-        organizations = [...organizations, {
-            name: '',
-            role: '',
-            description: ''
-        }];
-    }
-
-    function removeOrganization(index: number) {
-        organizations = organizations.filter((_, i) => i !== index);
-    }
-
-    function addCommunityService() {
-        communityServices = [...communityServices, {
-            organization: '',
-            role: '',
-            impact: ''
-        }];
-    }
-
-    function removeCommunityService(index: number) {
-        communityServices = communityServices.filter((_, i) => i !== index);
-    }
-
-    function addAchievement() {
-        achievements = [...achievements, {
-            title: '',
-            description: ''
-        }];
-    }
-
-    function removeAchievement(index: number) {
-        achievements = achievements.filter((_, i) => i !== index);
-    }
-
-    // Extra-curricular state
     let showOrganizationsForm = false;
+    let organizations: { name: string; role: string; description: string }[] = [{ name: '', role: '', description: '' }];
     let showCommunityServiceForm = false;
+    let communityServices: { organization: string; role: string; impact: string }[] = [{ organization: '', role: '', impact: '' }];
     let showHobbiesForm = false;
+    let hobbies: string = '';
     let showAchievementsForm = false;
 
-    function handleOrganizations() {
-        showOrganizationsForm = true;
+    // --- Utility Functions ---
+    function updateActiveStep() {
+        steps = steps.map(step => ({
+            ...step,
+            active: step.number === currentStep
+        }));
     }
 
-    function cancelOrganizations() {
-        showOrganizationsForm = false;
-        organizations = [{
-            name: '',
-            role: '',
-            description: ''
-        }];
+    function isValidEmail(email: string): boolean {
+        // Basic email validation regex
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     }
 
-    function handleCommunityService() {
-        showCommunityServiceForm = true;
+    function validateStep(step: number): boolean {
+        errors = []; // Clear errors at the beginning of validation
+
+        if (step === 1) {
+            // University Data
+            if (!universityData.university.trim()) errors.push('University Name is required.');
+            if (!universityData.country.trim()) errors.push('Country is required.');
+            if (!universityData.program.trim()) errors.push('Program is required.');
+        } else if (step === 2) {
+            // Academics Data
+            if (!academicData.degreeType.trim()) errors.push('Degree Type is required.');
+            if (!academicData.fieldOfStudy.trim()) errors.push('Field of Study is required.');
+            if (!academicData.universityName.trim()) errors.push('University Name is required.');
+            // GPA is now optional.
+
+            // Aspirations and Qualities
+            if (!selectedAspiration.trim() && !customAspiration.trim()) {
+                errors.push('Please select an aspiration or provide a custom one.');
+            }
+            if (isBestChoiceSelected && !customAspiration.trim()) {
+                errors.push('Please provide your custom aspiration.');
+            }
+            if (!isCustomQuality && selectedQualities.length === 0) {
+                errors.push('Please select at least one quality.');
+            }
+            if (isCustomQuality && !customQualityReason.trim()) {
+                errors.push('Please provide a reason for your custom quality.');
+            }
+        } else if (step === 3) {
+            // Work Experience
+            if (showWorkExperienceForm) {
+                workExperiences.forEach((exp, index) => {
+                    if (!exp.company.trim()) errors.push(`Work Experience ${index + 1}: Company Name is required.`);
+                    if (!exp.position.trim()) errors.push(`Work Experience ${index + 1}: Position is required.`);
+                    if (exp.responsibilities.some(r => !r.trim())) errors.push(`Work Experience ${index + 1}: All responsibilities must be filled.`);
+                });
+            }
+        } else if (step === 4) {
+            // Extra-Curricular
+            if (showOrganizationsForm) {
+                organizations.forEach((org, index) => {
+                    if (!org.name.trim()) errors.push(`Organization ${index + 1}: Name is required.`);
+                    if (!org.role.trim()) errors.push(`Organization ${index + 1}: Role is required.`);
+                    if (!org.description.trim()) errors.push(`Organization ${index + 1}: Description is required.`);
+                });
+            }
+            if (showCommunityServiceForm) {
+                communityServices.forEach((service, index) => {
+                    if (!service.organization.trim()) errors.push(`Community Service ${index + 1}: Organization is required.`);
+                    if (!service.role.trim()) errors.push(`Community Service ${index + 1}: Role is required.`);
+                    if (!service.impact.trim()) errors.push(`Community Service ${index + 1}: Impact is required.`);
+                });
+            }
+            // Projects and Achievements are NOT mandatory for step 4, the HTML `required` attributes are handled in template.
+        }
+
+        return errors.length === 0;
     }
 
-    function cancelCommunityService() {
-        showCommunityServiceForm = false;
-        communityServices = [{
-            organization: '',
-            role: '',
-            impact: ''
-        }];
+    // --- Data Persistence (Session Storage) ---
+    function saveDataToSessionStorage() {
+        if (browser) {
+            console.log('saveDataToSessionStorage: Saving data. Current step:', currentStep);
+            sessionStorage.setItem('currentStep', String(currentStep));
+            sessionStorage.setItem('universityData', JSON.stringify(universityData));
+            sessionStorage.setItem('academicData', JSON.stringify(academicData));
+            sessionStorage.setItem('projects', JSON.stringify(projects));
+            sessionStorage.setItem('achievements', JSON.stringify(achievements));
+            sessionStorage.setItem('selectedQualities', JSON.stringify(selectedQualities));
+            sessionStorage.setItem('selectedAspiration', selectedAspiration);
+            sessionStorage.setItem('customAspiration', customAspiration);
+            sessionStorage.setItem('isBestChoiceSelected', String(isBestChoiceSelected));
+            sessionStorage.setItem('isCustomQuality', String(isCustomQuality));
+            sessionStorage.setItem('customQualityReason', customQualityReason);
+            sessionStorage.setItem('showWorkExperienceForm', String(showWorkExperienceForm));
+            sessionStorage.setItem('workExperiences', JSON.stringify(workExperiences));
+            sessionStorage.setItem('showOrganizationsForm', String(showOrganizationsForm));
+            sessionStorage.setItem('organizations', JSON.stringify(organizations));
+            sessionStorage.setItem('showCommunityServiceForm', String(showCommunityServiceForm));
+            sessionStorage.setItem('communityServices', JSON.stringify(communityServices));
+            sessionStorage.setItem('showHobbiesForm', String(showHobbiesForm));
+            sessionStorage.setItem('hobbies', hobbies);
+            sessionStorage.setItem('showAchievementsForm', String(showAchievementsForm));
+        }
     }
 
-    function handleHobbies() {
-        showHobbiesForm = true;
+    function loadDataFromSessionStorage() {
+        if (browser) {
+            console.log('loadDataFromSessionStorage: Attempting to load data from sessionStorage');
+            const savedCurrentStep = sessionStorage.getItem('currentStep');
+            if (savedCurrentStep) {
+                currentStep = parseInt(savedCurrentStep);
+                updateActiveStep();
+                console.log('loadDataFromSessionStorage: Loaded currentStep:', currentStep);
+            }
+
+            const savedUniversityData = sessionStorage.getItem('universityData');
+            if (savedUniversityData) {
+                universityData = JSON.parse(savedUniversityData);
+                console.log('loadDataFromSessionStorage: Loaded universityData:', universityData);
+            }
+
+            const savedAcademicData = sessionStorage.getItem('academicData');
+            if (savedAcademicData) {
+                academicData = JSON.parse(savedAcademicData);
+                console.log('loadDataFromSessionStorage: Loaded academicData:', academicData);
+            }
+
+            const savedProjects = sessionStorage.getItem('projects');
+            if (savedProjects) projects = JSON.parse(savedProjects);
+
+            const savedAchievements = sessionStorage.getItem('achievements');
+            if (savedAchievements) achievements = JSON.parse(savedAchievements);
+
+            const savedSelectedQualities = sessionStorage.getItem('selectedQualities');
+            if (savedSelectedQualities) selectedQualities = JSON.parse(savedSelectedQualities);
+
+            const savedSelectedAspiration = sessionStorage.getItem('selectedAspiration');
+            if (savedSelectedAspiration) selectedAspiration = savedSelectedAspiration;
+
+            const savedCustomAspiration = sessionStorage.getItem('customAspiration');
+            if (savedCustomAspiration) customAspiration = savedCustomAspiration;
+
+            const savedIsBestChoiceSelected = sessionStorage.getItem('isBestChoiceSelected');
+            if (savedIsBestChoiceSelected !== null) isBestChoiceSelected = savedIsBestChoiceSelected === 'true';
+
+            const savedIsCustomQuality = sessionStorage.getItem('isCustomQuality');
+            if (savedIsCustomQuality !== null) isCustomQuality = savedIsCustomQuality === 'true';
+
+            const savedCustomQualityReason = sessionStorage.getItem('customQualityReason');
+            if (savedCustomQualityReason) customQualityReason = savedCustomQualityReason;
+
+            const savedShowWorkExperienceForm = sessionStorage.getItem('showWorkExperienceForm');
+            if (savedShowWorkExperienceForm !== null) showWorkExperienceForm = savedShowWorkExperienceForm === 'true';
+
+            const savedWorkExperiences = sessionStorage.getItem('workExperiences');
+            if (savedWorkExperiences) workExperiences = JSON.parse(savedWorkExperiences);
+
+            const savedShowOrganizationsForm = sessionStorage.getItem('showOrganizationsForm');
+            if (savedShowOrganizationsForm !== null) showOrganizationsForm = savedShowOrganizationsForm === 'true';
+
+            const savedOrganizations = sessionStorage.getItem('organizations');
+            if (savedOrganizations) organizations = JSON.parse(savedOrganizations);
+
+            const savedShowCommunityServiceForm = sessionStorage.getItem('showCommunityServiceForm');
+            if (savedShowCommunityServiceForm !== null) showCommunityServiceForm = savedShowCommunityServiceForm === 'true';
+
+            const savedCommunityServices = sessionStorage.getItem('communityServices');
+            if (savedCommunityServices) communityServices = JSON.parse(savedCommunityServices);
+
+            const savedShowHobbiesForm = sessionStorage.getItem('showHobbiesForm');
+            if (savedShowHobbiesForm !== null) showHobbiesForm = savedShowHobbiesForm === 'true';
+
+            const savedHobbies = sessionStorage.getItem('hobbies');
+            if (savedHobbies) hobbies = savedHobbies;
+
+            const savedShowAchievementsForm = sessionStorage.getItem('showAchievementsForm');
+            if (savedShowAchievementsForm !== null) showAchievementsForm = savedShowAchievementsForm === 'true';
+
+            console.log('loadDataFromSessionStorage: Data loading complete.');
+        }
     }
 
-    function cancelHobbies() {
-        showHobbiesForm = false;
-        hobbies = '';
-    }
+    // --- Navigation and Form Control ---
+    const handleNext = () => {
+        if (validateStep(currentStep)) {
+            if (currentStep < totalSteps) {
+                currentStep++;
+                updateActiveStep();
+                saveDataToSessionStorage(); // Save data on navigation
+            }
+        }
+    };
 
-    function handleAchievements() {
-        showAchievementsForm = true;
-    }
+    const handleBack = () => {
+        if (currentStep > 1) {
+            currentStep--;
+            updateActiveStep();
+            saveDataToSessionStorage(); // Save data on navigation
+        }
+    };
 
-    function cancelAchievements() {
-        showAchievementsForm = false;
-        achievements = [{
-            title: '',
-            description: ''
-        }];
-    }
+    const handleLoginSuccess = async () => {
+        // This function simply closes the modal and relies on onAuthStateChange
+        // to handle the post-login SOP generation and redirection.
+        console.log('handleLoginSuccess (from LoginModal): Called. Closing modal.');
+        showLoginModal = false;
+    };
+
+    const handleLoginModalClose = () => {
+        console.log('handleLoginModalClose: Called. Closing modal.');
+        showLoginModal = false;
+    };
+
+    const handleSubmit = async () => {
+        console.log('handleSubmit: Called. currentStep:', currentStep, 'loggedIn:', loggedIn);
+        if (!validateStep(currentStep)) {
+            console.error('handleSubmit: Validation failed. Errors:', errors);
+            alert('Please correct the errors before generating SOP.');
+            return;
+        }
+
+        // Only show login modal if not logged in and on the last step (Generate SOP)
+        if (!loggedIn && currentStep === totalSteps) {
+            showLoginModal = true;
+            console.log('handleSubmit: Showing login modal as not logged in on last step.');
+            return; // Wait for login to complete before proceeding
+        }
+
+        if (currentStep === totalSteps && loggedIn) {
+            console.log('handleSubmit: Logged in on last step. Proceeding with SOP generation...');
+            // Ensure latest data is loaded and saved before submission
+            loadDataFromSessionStorage();
+            saveDataToSessionStorage();
+
+            const formData = {
+                universityData,
+                academicData: {
+                    ...academicData,
+                    selectedQualities: selectedQualities,
+                    selectedAspiration: selectedAspiration,
+                    customAspiration: customAspiration, // Corrected typo here, double check if your previous version had this typo.
+                    isCustomQuality: isCustomQuality,
+                    customQualityReason: customQualityReason,
+                    isBestChoiceSelected: isBestChoiceSelected
+                },
+                workExperience: {
+                    showWorkExperienceForm,
+                    workExperiences: workExperiences.filter(exp => exp.company.trim() || exp.position.trim() || exp.responsibilities.some(r => r.trim()))
+                },
+                extraCurricular: {
+                    showOrganizationsForm,
+                    organizations: organizations.filter(org => org.name.trim() || org.role.trim() || org.description.trim()),
+                    showCommunityServiceForm,
+                    communityServices: communityServices.filter(service => service.organization.trim() || service.role.trim() || service.impact.trim()),
+                    showHobbiesForm,
+                    hobbies: hobbies.trim(),
+                    showAchievementsForm,
+                    projects: projects.filter(p => p.text.trim()),
+                    achievements: achievements.filter(a => a.title.trim() || a.description.trim())
+                }
+            };
+
+            console.log('handleSubmit: Sending formData:', formData);
+
+            try {
+                const response = await fetch('/api/generate-sop', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData),
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    console.error('handleSubmit: OpenAI API error response:', errorData); // Log full error
+                    throw new Error(`HTTP error! Status: ${response.status}, Message: ${(errorData as any).error || 'Unknown error'}`);
+                }
+
+                const result = await response.json();
+                console.log('handleSubmit: SOP generated successfully:', result);
+
+                // This alert will be replaced later with a custom pop-up
+                alert('Your SOP has been successfully generated!');
+
+                // Redirect to dashboard with generated SOP
+                sessionStorage.clear(); // Clear session storage after successful SOP generation and redirection
+                goto(`/dashboard?sop=${encodeURIComponent(result.generatedSOP)}`);
+            } catch (error: any) {
+                console.error('handleSubmit: Failed to generate SOP:', error);
+                alert(`Failed to generate SOP: ${error.message}`);
+            }
+        }
+    };
 
     onMount(() => {
-        // This block will be removed as part of the overall change.
+        console.log('onMount: FormSection mounted. Initial session:', session, 'loggedIn:', loggedIn, 'currentStep:', currentStep);
+
+        // Always attempt to load data from sessionStorage on mount
+        loadDataFromSessionStorage();
+        console.log('onMount: currentStep after initial loadDataFromSessionStorage:', currentStep);
+
+        // Handle OAuth redirect scenario
+        if (browser && window.location.hash.includes('access_token')) {
+            console.log('onMount: OAuth access token detected in URL hash. Cleaning URL and ensuring data load for auto-submission.');
+            history.replaceState({}, '', '/'); // Clean the URL hash immediately
+
+            // After cleaning the URL, ensure data is re-loaded to get the most accurate state
+            // and rely on onAuthStateChange to trigger handleSubmit for first-time login auto-submission.
+            loadDataFromSessionStorage(); // Ensure data is current after redirect
+            console.log('onMount: currentStep after OAuth redirect and re-load:', currentStep);
+        }
+
+        // Listen for auth state changes to handle post-login logic
+        const { data: authListener } = supabase.auth.onAuthStateChange(
+            async (event, currentSession) => {
+                console.log('onAuthStateChange: Event:', event, 'currentSession:', currentSession, 'old session:', session);
+                
+                if (currentSession && !session) { // User just logged in
+                    session = currentSession; // Update local session state
+                    console.log('onAuthStateChange: User just logged in (SIGNED_IN event expected).');
+
+                    // Crucial: Ensure latest data (especially currentStep) is loaded from sessionStorage
+                    // BEFORE deciding whether to call handleSubmit.
+                    loadDataFromSessionStorage();
+                    console.log('onAuthStateChange: After loadDataFromSessionStorage, currentStep is:', currentStep);
+
+                    if (event === 'SIGNED_IN' && currentStep === totalSteps) {
+                        console.log('onAuthStateChange: SIGNED_IN event on last step. Triggering handleSubmit.');
+                        await handleSubmit();
+                    } else if (event === 'SIGNED_IN') {
+                        console.log('onAuthStateChange: SIGNED_IN event, but not on last step. Ensuring data loaded.');
+                        // If signed in but not on last step (e.g., direct visit after login, or session refresh not from form submit),
+                        // just ensure data is loaded. No auto-submit needed here.
+                        loadDataFromSessionStorage(); 
+                    }
+                } else if (!currentSession && session) { // User just logged out
+                    console.log('onAuthStateChange: User logged out (SIGNED_OUT event expected).');
+                    session = null; // Clear local session state
+                    // Optionally clear session storage here if you want a completely fresh start on logout.
+                    // sessionStorage.clear();
+                } else {
+                    console.log('onAuthStateChange: Other auth event or session refresh. currentStep:', currentStep);
+                    // For any other auth event (e.g., TOKEN_REFRESHED), ensure data is loaded
+                    loadDataFromSessionStorage();
+                }
+            }
+        );
+
+        // Clean up the auth listener on component unmount
+        onDestroy(() => {
+            console.log('onDestroy: Cleaning up auth listener.');
+            if (authListener && authListener.subscription) {
+                authListener.subscription.unsubscribe();
+            }
+        });
+
+        // Ensure data is saved when navigating away from the page (handles browser close/tab close)
+        const handleBeforeUnload = () => {
+            console.log('handleBeforeUnload: Saving data before unload.');
+            saveDataToSessionStorage();
+        };
+        if (browser) {
+            window.addEventListener('beforeunload', handleBeforeUnload);
+        }
+
+        onDestroy(() => {
+            if (browser) {
+                window.removeEventListener('beforeunload', handleBeforeUnload);
+            }
+        });
     });
+
+    // Reactive statement to save data whenever currentStep, form data, or toggle states change
+    $: {
+        console.log('Reactive statement: Data changed, saving to sessionStorage. currentStep:', currentStep);
+        saveDataToSessionStorage();
+    }
 </script>
 
-<section class="form-section" id="form-section">
-    <h2 class="title">Ready to craft your perfect Statement of Purpose?</h2>
 
-    <div class="progress-bar">
-        {#each steps as step, i}
-            <div class="step-container">
-                <div class="step-content">
-                    <div class="step-number" class:active={step.number <= currentStep}>
-                        {step.number}
+<!-- Main Form Structure -->
+<div class="p-4 sm:p-6 md:p-8 lg:p-10 bg-white shadow-lg rounded-lg max-w-4xl mx-auto my-8">
+    <div class="mb-6">
+        <ul class="flex justify-between items-center text-sm font-medium text-center text-gray-500">
+            {#each steps as step (step.number)}
+                <li class="relative flex-1">
+                    <div class="flex flex-col items-center">
+                        <div class="w-8 h-8 flex items-center justify-center rounded-full border-2 {step.active ? 'border-indigo-600 bg-indigo-600 text-white' : 'border-gray-300 text-gray-500'} transition-colors duration-200">
+                            {step.number}
+                        </div>
+                        <span class="mt-2 text-xs {step.active ? 'text-indigo-600' : 'text-gray-500'}">{step.label}</span>
                     </div>
-                    <div class="step-label">{step.label}</div>
-                </div>
-                {#if i < steps.length - 1}
-                    <div class="connector" class:active={step.number < currentStep}></div>
-                {/if}
-            </div>
-        {/each}
+                    {#if step.number < totalSteps}
+                        <div class="absolute top-4 left-1/2 -translate-x-1/2 w-full h-0.5 bg-gray-200 z-[-1] transition-colors duration-200"></div>
+                    {/if}
+                </li>
+            {/each}
+        </ul>
     </div>
 
-    {#if currentStep === 1}
-        <div class="form-container">
-            <div class="info-box">
-                Tell us about your academic journey! Fill in these details, and click "Next" to move forward with your SOP creation.
-            </div>
-
-            <form class="question-form" on:submit|preventDefault={handleNext}>
-                <div class="form-group">
-                    <label for="university">
-                        Which university or college are you applying to?
-                        <span class="required">*</span>
-                    </label>
-                    <input 
-                        type="text" 
-                        id="university" 
-                        bind:value={universityData.university}
-                        placeholder="Eg: Harvard University"
-                        required
-                    />
-                </div>
-
-                <div class="form-group">
-                    <label for="country">
-                        Which country is the college/university located in?
-                        <span class="required">*</span>
-                    </label>
-                    <div class="select-wrapper">
-                        <select id="country" bind:value={universityData.country} required>
-                            <option value="" disabled selected hidden>Please select a country</option>
-                            {#each countries as country}
-                                {#if country === '──────────'}
-                                    <option disabled class="separator">{country}</option>
-                                {:else}
-                                    <option value={country}>{country}</option>
-                                {/if}
-                            {/each}
-                        </select>
-                        <div class="select-arrow">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="6 9 12 15 18 9"></polyline>
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="program">
-                        Which degree program interests you?
-                        <span class="required">*</span>
-                    </label>
-                    <input 
-                        type="text" 
-                        id="program" 
-                        bind:value={universityData.program}
-                        placeholder="Eg: PhD in Computer Science"
-                        required
-                    />
-                </div>
-
-                <div class="section-divider">Tell us about your future aspirations</div>
-
-                <div class="options-container">
-                    <label class="option best-choice" class:expanded={!showOtherOptions}>
-                        <input 
-                            type="checkbox" 
-                            bind:checked={isBestChoiceSelected}
-                            on:change={handleBestChoiceChange}
-                        />
-                        <div class="option-content">
-                            <span class="best-choice-tag">Best Choice</span>
-                            <span class="option-text">Share your unique vision and career aspirations in your own words</span>
-                            {#if showAspirationTextbox}
-                                <textarea
-                                    class="custom-input"
-                                    placeholder="Tell us about your career goals and aspirations..."
-                                    bind:value={customAspiration}
-                                    required={isBestChoiceSelected}
-                                ></textarea>
-                            {/if}
-                        </div>
-                    </label>
-
-                    {#if showOtherOptions}
-                        <div class="divider">
-                            <span>OR choose from common career paths</span>
-                        </div>
-
-                        <label class="option">
-                            <input type="radio" name="aspiration" value="executive" bind:group={selectedAspiration} required={!isBestChoiceSelected} />
-                            <span class="option-text">Rise to an executive position and lead innovative teams in industry-leading companies</span>
-                        </label>
-
-                        <label class="option">
-                            <input type="radio" name="aspiration" value="professor" bind:group={selectedAspiration} required={!isBestChoiceSelected} />
-                            <span class="option-text">Shape future talent as a university professor and mentor to aspiring professionals</span>
-                        </label>
-
-                        <label class="option">
-                            <input type="radio" name="aspiration" value="innovator" bind:group={selectedAspiration} required={!isBestChoiceSelected} />
-                            <span class="option-text">Pioneer breakthrough solutions that address critical challenges in the industry</span>
-                        </label>
-
-                        <label class="option">
-                            <input type="radio" name="aspiration" value="policy" bind:group={selectedAspiration} required={!isBestChoiceSelected} />
-                            <span class="option-text">Drive positive change through policy-making and strategic industry initiatives</span>
-                        </label>
-
-                        <label class="option">
-                            <input type="radio" name="aspiration" value="consulting" bind:group={selectedAspiration} required={!isBestChoiceSelected} />
-                            <span class="option-text">Launch and grow your own consulting firm, helping businesses overcome complex challenges</span>
-                        </label>
-                    {/if}
-                </div>
-
-                <div class="section-divider">What qualities of this university are you most interested in?</div>
-
-                <div class="options-container">
-                    <label class="option best-choice" class:expanded={!showOtherQualities}>
-                        <input 
-                            type="checkbox" 
-                            bind:checked={isCustomQuality}
-                            on:change={handleQualityChange}
-                        />
-                        <div class="option-content">
-                            <span class="best-choice-tag">Best Choice</span>
-                            <span class="option-text">Share your unique perspective on what draws you to this institution</span>
-                            {#if showQualityTextbox}
-                                <textarea
-                                    class="custom-input"
-                                    placeholder="Tell us what specifically interests you about this university..."
-                                    bind:value={customQualityReason}
-                                    required={isCustomQuality}
-                                ></textarea>
-                            {/if}
-                        </div>
-                    </label>
-
-                    {#if showOtherQualities}
-                        <div class="divider">
-                            <span>OR choose from common options</span>
-                        </div>
-
-                        <label class="option">
-                            <input type="checkbox" bind:group={selectedQualities} value="research" required={!isCustomQuality && selectedQualities.length === 0} />
-                            <span class="option-text">Strong research programs and state-of-the-art facilities</span>
-                        </label>
-
-                        <label class="option">
-                            <input type="checkbox" bind:group={selectedQualities} value="faculty" />
-                            <span class="option-text">Distinguished faculty and academic mentorship opportunities</span>
-                        </label>
-
-                        <label class="option">
-                            <input type="checkbox" bind:group={selectedQualities} value="industry" />
-                            <span class="option-text">Industry connections and career development resources</span>
-                        </label>
-
-                        <label class="option">
-                            <input type="checkbox" bind:group={selectedQualities} value="diversity" />
-                            <span class="option-text">Diverse, international community and cross-cultural learning environment</span>
-                        </label>
-
-                        <label class="option">
-                            <input type="checkbox" bind:group={selectedQualities} value="reputation" />
-                            <span class="option-text">Academic reputation and program ranking in my field of interest</span>
-                        </label>
-                    {/if}
-                </div>
-
-                {#if errors.length > 0}
-                    <div class="error-container">
-                        <p class="error-heading">Please fix the following issues:</p>
-                        <ul>
-                            {#each errors as error}
-                                <li>{error}</li>
-                            {/each}
-                        </ul>
-                    </div>
-                {/if}
-
-                <div class="button-container">
-                    <button type="submit" class="next-button">
-                        NEXT <span class="arrow">➜</span>
-                    </button>
-                </div>
-            </form>
+    <!-- Error Display -->
+    {#if errors.length > 0}
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+            <strong class="font-bold">Errors:</strong>
+            <ul class="mt-1 list-disc list-inside">
+                {#each errors as error}
+                    <li>{error}</li>
+                {/each}
+            </ul>
         </div>
-    {:else if currentStep === 2}
-        <div class="form-container">
-            <div class="info-box">
-                Tell us about your academic background. This will help us highlight your educational journey in your SOP.
-            </div>
+    {/if}
 
-            <form class="question-form" on:submit|preventDefault={handleNext}>
-                <div class="form-group">
-                    <label for="highest-degree">
-                        What is your highest degree completed/pursuing?
-                        <span class="required">*</span>
-                    </label>
-                    <select 
-                        id="highest-degree" 
-                        bind:value={academicsData.highestDegree}
-                        required
-                    >
-                        <option value="" disabled selected>Select your highest degree</option>
-                        <option value="high-school">High School</option>
-                        <option value="bachelors">Bachelor's Degree</option>
-                        <option value="masters">Master's Degree</option>
-                        <option value="phd">PhD</option>
-                        <option value="other">Other</option>
+    <!-- Step 1: University Data -->
+    {#if currentStep === 1}
+        <h2 class="text-2xl font-bold mb-6 text-gray-800">University Application Details</h2>
+        <form on:submit|preventDefault={handleNext}>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="university-name" class="block text-sm font-medium text-gray-700 mb-2">University Name <span class="text-red-500">*</span></label>
+                    <input type="text" id="university-name" bind:value={universityData.university} placeholder="e.g., Harvard University" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required aria-required="true"/>
+                </div>
+                <div>
+                    <label for="country" class="block text-sm font-medium text-gray-700 mb-2">Country Applying To <span class="text-red-500">*</span></label>
+                    <select id="country" bind:value={universityData.country} class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required aria-required="true">
+                        <option value="" disabled selected>Select a country</option>
+                        {#each countries as country}
+                            <option value={country}>{country}</option>
+                        {/each}
                     </select>
                 </div>
-
-                <div class="form-group">
-                    <label for="field-of-study">
-                        Field of Study
-                        <span class="required">*</span>
-                    </label>
-                    <input 
-                        type="text" 
-                        id="field-of-study" 
-                        bind:value={academicsData.fieldOfStudy}
-                        placeholder="Eg: Computer Science"
-                        required
-                    />
+                <div class="md:col-span-2">
+                    <label for="program" class="block text-sm font-medium text-gray-700 mb-2">Program/Course Applying For <span class="text-red-500">*</span></label>
+                    <input type="text" id="program" bind:value={universityData.program} placeholder="e.g., Master of Computer Science" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required aria-required="true"/>
                 </div>
-
-                <div class="form-group">
-                    <label for="university-name">
-                        University/Institution Name
-                        <span class="required">*</span>
-                    </label>
-                    <input 
-                        type="text" 
-                        id="university-name" 
-                        bind:value={academicsData.university}
-                        placeholder="Enter your university name"
-                        required
-                    />
-                </div>
-
-                <div class="form-group">
-                    <label for="gpa">
-                        GPA
-                        <span class="optional">(Leave empty if you don't want it to be included in your SOP)</span>
-                    </label>
-                    <input 
-                        type="text" 
-                        id="gpa" 
-                        bind:value={academicsData.gpa}
-                        placeholder="E.g., 3.8/4.0, 8.5/10, 85%, etc."
-                        class="text-input"
-                    />
-                </div>
-
-                <div class="form-group">
-                    <label for="relevant-courses">
-                        Relevant Courses
-                        <span class="optional">(Optional)</span>
-                    </label>
-                    <textarea
-                        id="relevant-courses"
-                        bind:value={academicsData.relevantCourses}
-                        placeholder="E.g., Machine Learning, Data Structures, Algorithms, Database Systems, Computer Networks, etc."
-                        class="text-input"
-                        rows="3"
-                    ></textarea>
-                </div>
-
-                <div class="section-divider">
-                    <div class="section-header">
-                        <span>Projects</span>
-                        <svg class="section-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
-                        </svg>
-                    </div>
-                </div>
-
-                {#each projects as project, i}
-                    <div class="dynamic-input-container">
-                        <div class="input-with-remove">
-                            <textarea
-                                placeholder="E.g., Developed a machine learning model for healthcare data analysis"
-                                bind:value={project.text}
-                                class="custom-input"
-                            ></textarea>
-                            {#if projects.length > 1}
-                                <button 
-                                    type="button" 
-                                    class="remove-button" 
-                                    on:click={() => removeProject(i)}
-                                    aria-label="Remove project"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                                    </svg>
-                                </button>
-                            {/if}
-                        </div>
-                    </div>
-                {/each}
-
-                <button type="button" class="add-button" on:click={addProject}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="12" y1="5" x2="12" y2="19"></line>
-                        <line x1="5" y1="12" x2="19" y2="12"></line>
-                    </svg>
-                    Add Another Project
+            </div>
+            <div class="flex justify-end mt-8">
+                <button type="submit" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Next
                 </button>
+            </div>
+        </form>
+    {/if}
 
-                <div class="section-divider">
-                    <div class="section-header">
-                        <span>Academic Achievements</span>
-                        <svg class="section-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                        </svg>
-                    </div>
+    <!-- Step 2: Academic Data -->
+    {#if currentStep === 2}
+        <h2 class="text-2xl font-bold mb-6 text-gray-800">Academic Background</h2>
+        <form on:submit|preventDefault={handleNext}>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                    <label for="degree-type" class="block text-sm font-medium text-gray-700 mb-2">Degree Type <span class="text-red-500">*</span></label>
+                    <input type="text" id="degree-type" bind:value={academicData.degreeType} placeholder="e.g., Bachelor of Technology" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required aria-required="true"/>
                 </div>
+                <div>
+                    <label for="field-of-study" class="block text-sm font-medium text-gray-700 mb-2">Field of Study <span class="text-red-500">*</span></label>
+                    <input type="text" id="field-of-study" bind:value={academicData.fieldOfStudy} placeholder="e.g., Computer Engineering" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required aria-required="true"/>
+                </div>
+                <div class="md:col-span-2">
+                    <label for="academic-university-name" class="block text-sm font-medium text-gray-700 mb-2">University Name <span class="text-red-500">*</span></label>
+                    <input type="text" id="academic-university-name" bind:value={academicData.universityName} placeholder="e.g., Delhi Technological University" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required aria-required="true"/>
+                </div>
+                <div>
+                    <label for="gpa" class="block text-sm font-medium text-gray-700 mb-2">GPA (Optional)</label>
+                    <input type="text" id="gpa" bind:value={academicData.gpa} placeholder="e.g., 3.8/4.0 or 85%" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"/>
+                </div>
+                <div class="md:col-span-2">
+                    <label for="relevant-courses" class="block text-sm font-medium text-gray-700 mb-2">Relevant Courses (Optional)</label>
+                    <textarea id="relevant-courses" bind:value={academicData.relevantCourses} rows="3" placeholder="e.g., Data Structures, Algorithms, Machine Learning" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
+                </div>
+            </div>
 
-                {#each achievements as achievement, i}
-                    <div class="dynamic-input-container">
-                        <div class="input-with-remove">
-                            <textarea
-                                placeholder="E.g., Received the Dean's List Award for academic excellence"
-                                bind:value={achievement.title}
-                                class="custom-input"
-                            ></textarea>
-                            {#if achievements.length > 1}
-                                <button 
-                                    type="button" 
-                                    class="remove-button" 
-                                    on:click={() => removeAchievement(i)}
-                                    aria-label="Remove achievement"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                                    </svg>
-                                </button>
-                            {/if}
-                        </div>
-                    </div>
-                {/each}
-
-                <button type="button" class="add-button" on:click={addAchievement}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="12" y1="5" x2="12" y2="19"></line>
-                        <line x1="5" y1="12" x2="19" y2="12"></line>
-                    </svg>
-                    Add Another Achievement
-                </button>
-
-                {#if errors.length > 0}
-                    <div class="error-container">
-                        <p class="error-heading">Please fix the following issues:</p>
-                        <ul>
-                            {#each errors as error}
-                                <li>{error}</li>
-                            {/each}
-                        </ul>
+            <h3 class="text-xl font-bold mb-4 text-gray-800">Your Aspirations</h3>
+            <fieldset class="mb-6">
+                <legend class="block text-sm font-medium text-gray-700 mb-2">What is your primary aspiration for pursuing this program? <span class="text-red-500">*</span></legend>
+                <div class="flex flex-wrap gap-4">
+                    <label for="aspiration-career" class="inline-flex items-center">
+                        <input type="radio" name="aspiration" value="Career Advancement" bind:group={selectedAspiration} class="form-radio text-indigo-600 h-4 w-4" id="aspiration-career"/>
+                        <span class="ml-2 text-gray-700">Career Advancement</span>
+                    </label>
+                    <label for="aspiration-research" class="inline-flex items-center">
+                        <input type="radio" name="aspiration" value="Academic Research" bind:group={selectedAspiration} class="form-radio text-indigo-600 h-4 w-4" id="aspiration-research"/>
+                        <span class="ml-2 text-gray-700">Academic Research</span>
+                    </label>
+                    <label for="aspiration-change" class="inline-flex items-center">
+                        <input type="radio" name="aspiration" value="Change of Career" bind:group={selectedAspiration} class="form-radio text-indigo-600 h-4 w-4" id="aspiration-change"/>
+                        <span class="ml-2 text-gray-700">Change of Career</span>
+                    </label>
+                    <label for="aspiration-personal" class="inline-flex items-center">
+                        <input type="radio" name="aspiration" value="Personal Growth" bind:group={selectedAspiration} class="form-radio text-indigo-600 h-4 w-4" id="aspiration-personal"/>
+                        <span class="ml-2 text-gray-700">Personal Growth</span>
+                    </label>
+                    <label for="aspiration-best" class="inline-flex items-center">
+                        <input type="radio" name="aspiration" value="Best Choice" bind:group={selectedAspiration} class="form-radio text-indigo-600 h-4 w-4" id="aspiration-best"/>
+                        <span class="ml-2 text-gray-700">My Best Choice</span>
+                    </label>
+                </div>
+                {#if selectedAspiration === 'Best Choice'}
+                    <div class="mt-4">
+                        <label for="custom-aspiration" class="block text-sm font-medium text-gray-700 mb-2">Please describe your custom aspiration: <span class="text-red-500">*</span></label>
+                        <textarea id="custom-aspiration" bind:value={customAspiration} rows="2" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required aria-required="true"></textarea>
                     </div>
                 {/if}
+            </fieldset>
 
-                <div class="button-container">
-                    <button type="button" class="back-button" on:click={handleBack}>
-                        ← BACK
-                    </button>
-                    <button type="submit" class="next-button">
-                        NEXT <span class="arrow">➜</span>
-                    </button>
+            <h3 class="text-xl font-bold mb-4 text-gray-800">Your Qualities</h3>
+            <fieldset class="mb-6">
+                <legend class="block text-sm font-medium text-gray-700 mb-2">Which qualities describe you best? (Select all that apply) <span class="text-red-500">*</span></legend>
+                <div class="flex flex-wrap gap-4">
+                    <label for="quality-innovative" class="inline-flex items-center">
+                        <input type="checkbox" value="Innovative" bind:group={selectedQualities} class="form-checkbox text-indigo-600 h-4 w-4" id="quality-innovative"/>
+                        <span class="ml-2 text-gray-700">Innovative</span>
+                    </label>
+                    <label for="quality-resilient" class="inline-flex items-center">
+                        <input type="checkbox" value="Resilient" bind:group={selectedQualities} class="form-checkbox text-indigo-600 h-4 w-4" id="quality-resilient"/>
+                        <span class="ml-2 text-gray-700">Resilient</span>
+                    </label>
+                    <label for="quality-leader" class="inline-flex items-center">
+                        <input type="checkbox" value="Leader" bind:group={selectedQualities} class="form-checkbox text-indigo-600 h-4 w-4" id="quality-leader"/>
+                        <span class="ml-2 text-gray-700">Leader</span>
+                    </label>
+                    <label for="quality-collaborative" class="inline-flex items-center">
+                        <input type="checkbox" value="Collaborative" bind:group={selectedQualities} class="form-checkbox text-indigo-600 h-4 w-4" id="quality-collaborative"/>
+                        <span class="ml-2 text-gray-700">Collaborative</span>
+                    </label>
+                    <label for="quality-determined" class="inline-flex items-center">
+                        <input type="checkbox" value="Determined" bind:group={selectedQualities} class="form-checkbox text-indigo-600 h-4 w-4" id="quality-determined"/>
+                        <span class="ml-2 text-gray-700">Determined</span>
+                    </label>
+                    <label for="quality-problem-solver" class="inline-flex items-center">
+                        <input type="checkbox" value="Problem-Solver" bind:group={selectedQualities} class="form-checkbox text-indigo-600 h-4 w-4" id="quality-problem-solver"/>
+                        <span class="ml-2 text-gray-700">Problem-Solver</span>
+                    </label>
+                    <label for="quality-critical-thinker" class="inline-flex items-center">
+                        <input type="checkbox" value="Critical Thinker" bind:group={selectedQualities} class="form-checkbox text-indigo-600 h-4 w-4" id="quality-critical-thinker"/>
+                        <span class="ml-2 text-gray-700">Critical Thinker</span>
+                    </label>
+                    <label for="quality-adaptable" class="inline-flex items-center">
+                        <input type="checkbox" value="Adaptable" bind:group={selectedQualities} class="form-checkbox text-indigo-600 h-4 w-4" id="quality-adaptable"/>
+                        <span class="ml-2 text-gray-700">Adaptable</span>
+                    </label>
+                    <label for="quality-custom" class="inline-flex items-center">
+                        <input type="checkbox" value="Custom" bind:group={isCustomQuality} class="form-checkbox text-indigo-600 h-4 w-4" id="quality-custom"/>
+                        <span class="ml-2 text-gray-700">Custom</span>
+                    </label>
                 </div>
-            </form>
-        </div>
-    {:else if currentStep === 3}
-        <div class="form-container">
-            <div class="section-header">
-                <div class="header-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
-                        <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
-                        <line x1="12" y1="22.08" x2="12" y2="12"></line>
-                    </svg>
-                </div>
-                <h2>Work Experience</h2>
-            </div>
+                {#if isCustomQuality}
+                    <div class="mt-4">
+                        <label for="custom-quality-reason" class="block text-sm font-medium text-gray-700 mb-2">Please describe your custom quality: <span class="text-red-500">*</span></label>
+                        <textarea id="custom-quality-reason" bind:value={customQualityReason} rows="2" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required aria-required="true"></textarea>
+                    </div>
+                {/if}
+            </fieldset>
 
-            <div class="info-alert">
-                <div class="info-alert-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <line x1="12" y1="16" x2="12" y2="12"></line>
-                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                    </svg>
-                </div>
-                <div class="info-alert-content">
-                    <h3>Important Note</h3>
-                    <p>Your work experience significantly strengthens your SOP. Take a moment to detail your professional journey - it could make your application stand out.</p>
-                </div>
-            </div>
-
-            {#if !showWorkExperienceForm}
-                <button type="button" class="add-experience-button" on:click={handleWorkExperience}>
-                    <span class="plus-icon">+</span>
-                    ADD WORK EXPERIENCE
+            <div class="flex justify-between mt-8">
+                <button type="button" on:click={handleBack} class="inline-flex items-center px-6 py-3 border border-gray-300 shadow-sm text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Back
                 </button>
-            {:else}
-                <div class="form-header">
-                    <h3>Work Experience Details</h3>
-                    <button type="button" class="cancel-button" on:click={cancelWorkExperience}>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg>
-                        Cancel
-                    </button>
-                </div>
+                <button type="submit" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Next
+                </button>
+            </div>
+        </form>
+    {/if}
 
-                {#each workExperiences as experience, expIndex}
-                    <div class="experience-form">
-                        <div class="experience-header">
-                            <h3>Experience {expIndex + 1}</h3>
-                            {#if workExperiences.length > 1}
-                                <button class="remove-experience" on:click={() => removeWorkExperience(expIndex)} aria-label="Remove work experience">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                                    </svg>
+    <!-- Step 3: Work Experience -->
+    {#if currentStep === 3}
+        <h2 class="text-2xl font-bold mb-6 text-gray-800">Work Experience</h2>
+        <form on:submit|preventDefault={handleNext}>
+            <div class="mb-6">
+                <label for="show-work-experience" class="inline-flex items-center">
+                    <input type="checkbox" bind:checked={showWorkExperienceForm} class="form-checkbox text-indigo-600 h-5 w-5" id="show-work-experience"/>
+                    <span class="ml-2 text-lg font-medium text-gray-700">I have work experience</span>
+                </label>
+            </div>
+
+            {#if showWorkExperienceForm}
+                {#each workExperiences as experience, i}
+                    <div class="border p-4 rounded-md mb-4 {i > 0 ? 'mt-4' : ''}">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Work Experience {i + 1}</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                            <div>
+                                <label for="company-name-{i}" class="block text-sm font-medium text-gray-700 mb-2">Company Name <span class="text-red-500">*</span></label>
+                                <input type="text" id="company-name-{i}" bind:value={experience.company} class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required aria-required="true"/>
+                            </div>
+                            <div>
+                                <label for="position-{i}" class="block text-sm font-medium text-gray-700 mb-2">Position <span class="text-red-500">*</span></label>
+                                <input type="text" id="position-{i}" bind:value={experience.position} class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required aria-required="true"/>
+                            </div>
+                            <div class="md:col-span-2">
+                                <label for="company-description-{i}" class="block text-sm font-medium text-gray-700 mb-2">Company Description (Optional)</label>
+                                <textarea id="company-description-{i}" bind:value={experience.companyDescription} rows="2" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
+                            </div>
+                            <div class="md:col-span-2">
+                                <!-- Changed from <label> to <div> for semantic correctness when not directly labeling an input -->
+                                <div class="block text-sm font-medium text-gray-700 mb-2">Key Responsibilities <span class="text-red-500">*</span></div>
+                                {#each experience.responsibilities as resp, j}
+                                    <div class="flex items-center mb-2">
+                                        <label for="responsibility-{i}-{j}" class="sr-only">Responsibility {j + 1}</label> <!-- Visually hidden label -->
+                                        <input type="text" id="responsibility-{i}-{j}" bind:value={experience.responsibilities[j]} class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="e.g., Developed and maintained..." required aria-required="true"/>
+                                        {#if experience.responsibilities.length > 1}
+                                            <button type="button" on:click={() => {experience.responsibilities = experience.responsibilities.filter((_, k) => k !== j);}} class="ml-2 text-red-600 hover:text-red-800" aria-label="Remove responsibility">
+                                                &times;
+                                            </button>
+                                        {/if}
+                                    </div>
+                                {/each}
+                                <button type="button" on:click={() => experience.responsibilities = [...experience.responsibilities, '']} class="text-indigo-600 hover:text-indigo-800 text-sm mt-1">
+                                    + Add Responsibility
                                 </button>
-                            {/if}
+                            </div>
+                            <div class="md:col-span-2">
+                                <label for="skills-{i}" class="block text-sm font-medium text-gray-700 mb-2">Skills Utilized (Optional)</label>
+                                <textarea id="skills-{i}" bind:value={experience.skills} rows="2" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="e.g., Python, SQL, Machine Learning"></textarea>
+                            </div>
+                            <div class="md:col-span-2">
+                                <label for="projects-{i}" class="block text-sm font-medium text-gray-700 mb-2">Projects (Optional)</label>
+                                <textarea id="projects-{i}" bind:value={experience.projects} rows="2" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Briefly describe key projects"></textarea>
+                            </div>
                         </div>
-
-                        <div class="form-group">
-                            <label for="company-{expIndex}">Company Name <span class="required">*</span></label>
-                            <input 
-                                type="text" 
-                                id="company-{expIndex}" 
-                                bind:value={experience.company}
-                                placeholder="Eg: Amazon"
-                                required
-                            />
-                        </div>
-
-                        <div class="form-group">
-                            <label for="position-{expIndex}">Position <span class="required">*</span></label>
-                            <input 
-                                type="text" 
-                                id="position-{expIndex}" 
-                                bind:value={experience.position}
-                                placeholder="Eg: Software Engineer"
-                                required
-                            />
-                        </div>
-
-                        <div class="responsibilities-section">
-                            <label for="responsibility-input-0-{expIndex}">Key Responsibilities <span class="required">*</span></label>
-                            {#each experience.responsibilities as responsibility, respIndex}
-                                <div class="responsibility-input">
-                                    <input 
-                                        type="text" 
-                                        id="responsibility-input-{respIndex}-{expIndex}" 
-                                        bind:value={experience.responsibilities[respIndex]}
-                                        placeholder="Eg: Responsible for building & maintaining the backend infrastructure"
-                                        required
-                                    />
-                                    {#if experience.responsibilities.length > 1}
-                                        <button 
-                                            class="remove-button" 
-                                            on:click={() => removeResponsibility(expIndex, respIndex)}
-                                            aria-label="Remove responsibility"
-                                        >
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                <line x1="18" y1="6" x2="6" y2="18"></line>
-                                                <line x1="6" y1="6" x2="18" y2="18"></line>
-                                            </svg>
-                                        </button>
-                                    {/if}
-                                </div>
-                            {/each}
-                            <button 
-                                type="button" 
-                                class="add-responsibility" 
-                                on:click={() => addResponsibility(expIndex)}
-                            >
-                                + Add Another Responsibility
+                        {#if workExperiences.length > 1}
+                            <button type="button" on:click={() => workExperiences = workExperiences.filter((_, k) => k !== i)} class="mt-4 inline-flex items-center px-4 py-2 border border-red-300 text-sm font-medium rounded-md text-red-700 bg-red-50 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500" aria-label="Remove this work experience">
+                                Remove Work Experience
                             </button>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="company-desc-{expIndex}">Company Description <span class="optional">(Optional)</span></label>
-                            <input 
-                                type="text" 
-                                id="company-desc-{expIndex}" 
-                                bind:value={experience.companyDescription}
-                                placeholder="Eg: One of the largest e-commerce companies in the world"
-                            />
-                        </div>
-
-                        <div class="form-group">
-                            <label for="skills-{expIndex}">Skills Used <span class="optional">(Optional)</span></label>
-                            <input 
-                                type="text" 
-                                id="skills-{expIndex}" 
-                                bind:value={experience.skills}
-                                placeholder="Eg: JavaScript, Python, Pandas, RabbitMQ, Redis"
-                            />
-                        </div>
-
-                        <div class="form-group">
-                            <label for="projects-{expIndex}">What projects did you work on? <span class="optional">(Optional)</span></label>
-                            <textarea
-                                id="projects-{expIndex}"
-                                bind:value={experience.projects}
-                                placeholder="Eg: Built a chat application using Node.js, RabbitMQ, and Redis. The application handled real-time messaging for over 10,000 concurrent users."
-                                class="project-textarea"
-                            ></textarea>
-                        </div>
+                        {/if}
                     </div>
                 {/each}
-
-                <button type="button" class="add-another-experience" on:click={addNewWorkExperience}>
+                <button type="button" on:click={() => workExperiences = [...workExperiences, { company: '', position: '', responsibilities: [''], companyDescription: '', skills: '', projects: '' }]} class="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                     + Add Another Work Experience
                 </button>
             {/if}
 
-            {#if errors.length > 0}
-                <div class="error-container">
-                    <p class="error-heading">Please fix the following issues:</p>
-                    <ul>
-                        {#each errors as error}
-                            <li>{error}</li>
-                        {/each}
-                    </ul>
-                </div>
-            {/if}
-
-            <div class="button-container">
-                <button type="button" class="back-button" on:click={handleBack}>
-                    ← BACK
+            <div class="flex justify-between mt-8">
+                <button type="button" on:click={handleBack} class="inline-flex items-center px-6 py-3 border border-gray-300 shadow-sm text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Back
                 </button>
-                <button type="button" class="next-button" on:click={handleNext}>
-                    NEXT <span class="arrow">➜</span>
+                <button type="submit" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Next
                 </button>
             </div>
-        </div>
-    {:else if currentStep === 4}
-        <div class="form-container">
-            <div class="info-alert">
-                <div class="info-alert-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <line x1="12" y1="16" x2="12" y2="12"></line>
-                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                    </svg>
-                </div>
-                <div class="info-alert-content">
-                    <p>This section brings your story to life. Your activities, clubs, awards, community service, and hobbies show admissions committees your ability to balance responsibilities, work in teams, and lead.</p>
-                    <p>These experiences help paint a vibrant picture of you as a well-rounded individual.</p>
-                    <p>Add any sections that are relevant to you.</p>
-                </div>
+        </form>
+    {/if}
+
+    <!-- Step 4: Extra-Curricular Activities -->
+    {#if currentStep === 4}
+        <h2 class="text-2xl font-bold mb-6 text-gray-800">Extra-Curricular & Projects</h2>
+        <form on:submit|preventDefault={handleSubmit}>
+            <!-- Organizations Section -->
+            <div class="mb-6">
+                <label for="show-organizations" class="inline-flex items-center">
+                    <input type="checkbox" bind:checked={showOrganizationsForm} class="form-checkbox text-indigo-600 h-5 w-5" id="show-organizations"/>
+                    <span class="ml-2 text-lg font-medium text-gray-700">I have leadership/organizational experience</span>
+                </label>
             </div>
-
-            <!-- Organizations and Clubs Section -->
-            {#if !showOrganizationsForm}
-                <button type="button" class="add-section-button" on:click={handleOrganizations}>
-                    <span class="plus-icon">+</span>
-                    ADD ORGANIZATIONS & CLUBS
-                </button>
-            {:else}
-                <div class="form-header">
-                    <h3>Organizations and Clubs</h3>
-                    <button type="button" class="cancel-button" on:click={cancelOrganizations}>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg>
-                        Cancel
-                    </button>
-                </div>
-
-                {#each organizations as org, orgIndex}
-                    <div class="experience-form">
-                        <div class="experience-header">
-                            <h3>Organization {orgIndex + 1}</h3>
-                            {#if organizations.length > 1}
-                                <button class="remove-button" on:click={() => removeOrganization(orgIndex)} aria-label="Remove organization">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                                    </svg>
-                                </button>
-                            {/if}
+            {#if showOrganizationsForm}
+                {#each organizations as org, i}
+                    <div class="border p-4 rounded-md mb-4 {i > 0 ? 'mt-4' : ''}">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Organization {i + 1}</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                            <div>
+                                <label for="org-name-{i}" class="block text-sm font-medium text-gray-700 mb-2">Organization Name <span class="text-red-500">*</span></label>
+                                <input type="text" id="org-name-{i}" bind:value={org.name} class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required aria-required="true"/>
+                            </div>
+                            <div>
+                                <label for="org-role-{i}" class="block text-sm font-medium text-gray-700 mb-2">Your Role <span class="text-red-500">*</span></label>
+                                <input type="text" id="org-role-{i}" bind:value={org.role} class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required aria-required="true"/>
+                            </div>
+                            <div class="md:col-span-2">
+                                <label for="org-description-{i}" class="block text-sm font-medium text-gray-700 mb-2">Description of your contribution <span class="text-red-500">*</span></label>
+                                <textarea id="org-description-{i}" bind:value={org.description} rows="3" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required aria-required="true"></textarea>
+                            </div>
                         </div>
-
-                        <div class="form-group">
-                            <label for="org-name-{orgIndex}">Organization Name <span class="required">*</span></label>
-                            <input 
-                                type="text" 
-                                id="org-name-{orgIndex}" 
-                                bind:value={org.name}
-                                placeholder="Eg: Computer Science Society"
-                                required
-                            />
-                        </div>
-
-                        <div class="form-group">
-                            <label for="org-role-{orgIndex}">Your Role <span class="required">*</span></label>
-                            <input 
-                                type="text" 
-                                id="org-role-{orgIndex}" 
-                                bind:value={org.role}
-                                placeholder="Eg: Vice President"
-                                required
-                            />
-                        </div>
-
-                        <div class="form-group">
-                            <label for="org-desc-{orgIndex}">Description <span class="required">*</span></label>
-                            <textarea
-                                id="org-desc-{orgIndex}"
-                                bind:value={org.description}
-                                placeholder="Describe your responsibilities and achievements in this role"
-                                class="description-textarea"
-                                required
-                            ></textarea>
-                        </div>
+                        {#if organizations.length > 1}
+                            <button type="button" on:click={() => organizations = organizations.filter((_, k) => k !== i)} class="mt-4 inline-flex items-center px-4 py-2 border border-red-300 text-sm font-medium rounded-md text-red-700 bg-red-50 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500" aria-label="Remove this organization">
+                                Remove Organization
+                            </button>
+                        {/if}
                     </div>
                 {/each}
-
-                <button class="add-button" on:click={addOrganization}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="12" y1="5" x2="12" y2="19"></line>
-                        <line x1="5" y1="12" x2="19" y2="12"></line>
-                    </svg>
-                    NEW ORGANIZATION/CLUB
+                <button type="button" on:click={() => organizations = [...organizations, { name: '', role: '', description: '' }]} class="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    + Add Another Organization
                 </button>
             {/if}
 
             <!-- Community Service Section -->
-            {#if !showCommunityServiceForm}
-                <button type="button" class="add-section-button" on:click={handleCommunityService}>
-                    <span class="plus-icon">+</span>
-                    ADD COMMUNITY SERVICE
-                </button>
-            {:else}
-                <div class="form-header">
-                    <h3>Community Service</h3>
-                    <button type="button" class="cancel-button" on:click={cancelCommunityService}>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg>
-                        Cancel
-                    </button>
-                </div>
-
-                {#each communityServices as service, serviceIndex}
-                    <div class="experience-form">
-                        <div class="experience-header">
-                            <h3>Experience {serviceIndex + 1}</h3>
-                            {#if communityServices.length > 1}
-                                <button class="remove-button" on:click={() => removeCommunityService(serviceIndex)} aria-label="Remove community service">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                                    </svg>
-                                </button>
-                            {/if}
+            <div class="mt-8 mb-6">
+                <label for="show-community-service" class="inline-flex items-center">
+                    <input type="checkbox" bind:checked={showCommunityServiceForm} class="form-checkbox text-indigo-600 h-5 w-5" id="show-community-service"/>
+                    <span class="ml-2 text-lg font-medium text-gray-700">I have community service experience</span>
+                </label>
+            </div>
+            {#if showCommunityServiceForm}
+                {#each communityServices as service, i}
+                    <div class="border p-4 rounded-md mb-4 {i > 0 ? 'mt-4' : ''}">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Community Service {i + 1}</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                            <div>
+                                <label for="cs-organization-{i}" class="block text-sm font-medium text-gray-700 mb-2">Organization <span class="text-red-500">*</span></label>
+                                <input type="text" id="cs-organization-{i}" bind:value={service.organization} class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required aria-required="true"/>
+                            </div>
+                            <div>
+                                <label for="cs-role-{i}" class="block text-sm font-medium text-gray-700 mb-2">Your Role <span class="text-red-500">*</span></label>
+                                <input type="text" id="cs-role-{i}" bind:value={service.role} class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required aria-required="true"/>
+                            </div>
+                            <div class="md:col-span-2">
+                                <label for="cs-impact-{i}" class="block text-sm font-medium text-gray-700 mb-2">Describe your impact <span class="text-red-500">*</span></label>
+                                <textarea id="cs-impact-{i}" bind:value={service.impact} rows="3" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required aria-required="true"></textarea>
+                            </div>
                         </div>
-
-                        <div class="form-group">
-                            <label for="service-org-{serviceIndex}">Organization <span class="required">*</span></label>
-                            <input 
-                                type="text" 
-                                id="service-org-{serviceIndex}" 
-                                bind:value={service.organization}
-                                placeholder="Eg: Local Food Bank"
-                                required
-                            />
-                        </div>
-
-                        <div class="form-group">
-                            <label for="service-role-{serviceIndex}">Your Role <span class="required">*</span></label>
-                            <input 
-                                type="text" 
-                                id="service-role-{serviceIndex}" 
-                                bind:value={service.role}
-                                placeholder="Eg: Volunteer Coordinator"
-                                required
-                            />
-                        </div>
-
-                        <div class="form-group">
-                            <label for="service-impact-{serviceIndex}">Impact <span class="required">*</span></label>
-                            <textarea
-                                id="service-impact-{serviceIndex}"
-                                bind:value={service.impact}
-                                placeholder="Describe the impact of your service and what you learned"
-                                class="description-textarea"
-                                required
-                            ></textarea>
-                        </div>
+                        {#if communityServices.length > 1}
+                            <button type="button" on:click={() => communityServices = communityServices.filter((_, k) => k !== i)} class="mt-4 inline-flex items-center px-4 py-2 border border-red-300 text-sm font-medium rounded-md text-red-700 bg-red-50 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500" aria-label="Remove this community service">
+                                Remove Community Service
+                            </button>
+                        {/if}
                     </div>
                 {/each}
-
-                <button class="add-button" on:click={addCommunityService}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="12" y1="5" x2="12" y2="19"></line>
-                        <line x1="5" y1="12" x2="19" y2="12"></line>
-                    </svg>
-                    NEW COMMUNITY SERVICE
+                <button type="button" on:click={() => communityServices = [...communityServices, { organization: '', role: '', impact: '' }]} class="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    + Add Another Community Service
                 </button>
             {/if}
 
-            <!-- Hobbies Section -->
-            {#if !showHobbiesForm}
-                <button type="button" class="add-section-button" on:click={handleHobbies}>
-                    <span class="plus-icon">+</span>
-                    ADD HOBBIES & INTERESTS
-                </button>
-            {:else}
-                <div class="form-header">
-                    <h3>Hobbies & Interests</h3>
-                    <button type="button" class="cancel-button" on:click={cancelHobbies}>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg>
-                        Cancel
-                    </button>
-                </div>
-
-                <div class="form-group">
-                    <label for="hobbies">Share your hobbies and interests <span class="required">*</span></label>
-                    <textarea
-                        id="hobbies"
-                        bind:value={hobbies}
-                        placeholder="Eg: Enjoy capturing moments through photography, participating in local chess tournaments, maintaining a tech blog about AI developments..."
-                        class="description-textarea"
-                        required
-                    ></textarea>
-                </div>
-            {/if}
-
-            <!-- Awards and Achievements Section -->
-            {#if !showAchievementsForm}
-                <button type="button" class="add-section-button" on:click={handleAchievements}>
-                    <span class="plus-icon">+</span>
-                    ADD AWARDS & ACHIEVEMENTS
-                </button>
-            {:else}
-                <div class="form-header">
-                    <h3>Awards & Achievements</h3>
-                    <button type="button" class="cancel-button" on:click={cancelAchievements}>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg>
-                        Cancel
-                    </button>
-                </div>
-
-                {#each achievements as achievement, achievementIndex}
-                    <div class="experience-form">
-                        <div class="experience-header">
-                            <h3>Achievement {achievementIndex + 1}</h3>
-                            {#if achievements.length > 1}
-                                <button class="remove-button" on:click={() => removeAchievement(achievementIndex)} aria-label="Remove achievement">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                                    </svg>
-                                </button>
-                            {/if}
-                        </div>
-
-                        <div class="form-group">
-                            <label for="achievement-title-{achievementIndex}">Title <span class="required">*</span></label>
-                            <input 
-                                type="text" 
-                                id="achievement-title-{achievementIndex}" 
-                                bind:value={achievement.title}
-                                placeholder="Eg: First Place in National Coding Competition"
-                                required
-                            />
-                        </div>
-
-                        <div class="form-group">
-                            <label for="achievement-desc-{achievementIndex}">Description <span class="required">*</span></label>
-                            <textarea
-                                id="achievement-desc-{achievementIndex}"
-                                bind:value={achievement.description}
-                                placeholder="Describe the achievement and its significance"
-                                class="description-textarea"
-                                required
-                            ></textarea>
-                        </div>
+            <!-- Projects Section (Optional) -->
+            <div class="mt-8 mb-6">
+                <label for="show-achievements" class="inline-flex items-center">
+                    <input type="checkbox" bind:checked={showAchievementsForm} class="form-checkbox text-indigo-600 h-5 w-5" id="show-achievements"/>
+                    <span class="ml-2 text-lg font-medium text-gray-700">I have significant projects or achievements</span>
+                </label>
+            </div>
+            {#if showAchievementsForm}
+                <h3 class="text-xl font-bold mb-4 text-gray-800">Projects (Optional)</h3>
+                {#each projects as project, i}
+                    <div class="border p-4 rounded-md mb-4 {i > 0 ? 'mt-4' : ''}">
+                        <label for="project-text-{i}" class="block text-sm font-medium text-gray-700 mb-2">Project/Research/Publication (Optional)</label>
+                        <textarea id="project-text-{i}" bind:value={project.text} rows="3" placeholder="Describe a significant project, research, or publication." class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
+                        {#if projects.length > 1}
+                            <button type="button" on:click={() => projects = projects.filter((_, k) => k !== i)} class="mt-4 inline-flex items-center px-4 py-2 border border-red-300 text-sm font-medium rounded-md text-red-700 bg-red-50 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500" aria-label="Remove this project">
+                                Remove Project
+                            </button>
+                        {/if}
                     </div>
                 {/each}
+                <button type="button" on:click={() => projects = [...projects, { text: '' }]} class="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    + Add Another Project
+                </button>
 
-                <button class="add-button" on:click={addAchievement}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="12" y1="5" x2="12" y2="19"></line>
-                        <line x1="5" y1="12" x2="19" y2="12"></line>
-                    </svg>
-                    NEW ACHIEVEMENT
+                <h3 class="text-xl font-bold mt-8 mb-4 text-gray-800">Achievements (Optional)</h3>
+                {#each achievements as achievement, i}
+                    <div class="border p-4 rounded-md mb-4 {i > 0 ? 'mt-4' : ''}">
+                        <div>
+                            <label for="achievement-title-{i}" class="block text-sm font-medium text-gray-700 mb-2">Achievement Title (Optional)</label>
+                            <input type="text" id="achievement-title-{i}" bind:value={achievement.title} placeholder="e.g., Dean's List, Scholarship Recipient" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"/>
+                        </div>
+                        <div class="mt-4">
+                            <label for="achievement-description-{i}" class="block text-sm font-medium text-gray-700 mb-2">Description (Optional)</label>
+                            <textarea id="achievement-description-{i}" bind:value={achievement.description} rows="3" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
+                        </div>
+                        {#if achievements.length > 1}
+                            <button type="button" on:click={() => achievements = achievements.filter((_, k) => k !== i)} class="mt-4 inline-flex items-center px-4 py-2 border border-red-300 text-sm font-medium rounded-md text-red-700 bg-red-50 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500" aria-label="Remove this achievement">
+                                Remove Achievement
+                            </button>
+                        {/if}
+                    </div>
+                {/each}
+                <button type="button" on:click={() => achievements = [...achievements, { title: '', description: '' }]} class="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    + Add Another Achievement
                 </button>
             {/if}
 
-            <div class="button-container">
-                <button type="button" class="back-button" on:click={handleBack}>
-                    ← BACK
+            <!-- Hobbies Section (Optional) -->
+            <div class="mt-8 mb-6">
+                <label for="show-hobbies" class="inline-flex items-center">
+                    <input type="checkbox" bind:checked={showHobbiesForm} class="form-checkbox text-indigo-600 h-5 w-5" id="show-hobbies"/>
+                    <span class="ml-2 text-lg font-medium text-gray-700">I want to include hobbies/interests</span>
+                </label>
+            </div>
+            {#if showHobbiesForm}
+                <div class="mb-6">
+                    <label for="hobbies" class="block text-sm font-medium text-gray-700 mb-2">Hobbies & Interests (Optional)</label>
+                    <textarea id="hobbies" bind:value={hobbies} rows="3" placeholder="e.g., Photography, hiking, coding personal projects, playing guitar." class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
+                </div>
+            {/if}
+
+            <div class="flex justify-between mt-8">
+                <button type="button" on:click={handleBack} class="inline-flex items-center px-6 py-3 border border-gray-300 shadow-sm text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Back
                 </button>
-                <button type="button" class="next-button" on:click={handleNext}>
-                    NEXT <span class="arrow">➜</span>
+                <button type="submit" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                    Generate SOP
                 </button>
             </div>
-        </div>
+        </form>
     {/if}
-</section>
-
-<style lang="postcss">
-    .form-section {
-        padding: 4rem 1rem 2rem;
-        max-width: 1000px;
-        margin: 0 auto;
-    }
-
-    .title {
-        text-align: center;
-        font-size: 1.75rem;
-        font-weight: 500;
-        color: #1E293B;
-        margin-bottom: 3rem;
-    }
-
-    .progress-bar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 4rem;
-        padding: 0 2rem;
-        max-width: 800px;
-        margin-left: auto;
-        margin-right: auto;
-    }
-
-    .step-container {
-        display: flex;
-        align-items: center;
-        position: relative;
-        flex: 1;
-    }
-
-    .step-content {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        position: relative;
-        z-index: 1;
-        width: 100%;
-    }
-
-    .step-number {
-        width: 2.5rem;
-        height: 2.5rem;
-        border-radius: 50%;
-        background-color: #E2E8F0;
-        color: #64748B;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-    }
-
-    .step-number.active {
-        background-color: #2196F3;
-        color: white;
-    }
-
-    .step-label {
-        text-align: center;
-        color: #64748B;
-        font-size: 0.9rem;
-        white-space: nowrap;
-    }
-
-    .connector {
-        position: absolute;
-        left: calc(50% + 1.25rem);
-        right: calc(-50% + 1.25rem);
-        top: 1.25rem;
-        height: 2px;
-        background-color: #E2E8F0;
-        z-index: 0;
-    }
-
-    .connector.active {
-        background-color: #2196F3;
-    }
-
-    .info-box {
-        background-color: #F0F9FF;
-        border-radius: 0.5rem;
-        padding: 1.25rem;
-        margin-bottom: 2rem;
-        color: #0369A1;
-        font-size: 1.1rem;
-        line-height: 1.5;
-    }
-
-    .form-container {
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 2rem;
-    }
-
-    .form-group {
-        margin-bottom: 1.5rem;
-        max-width: 800px;
-        margin-left: auto;
-        margin-right: auto;
-    }
-
-    label {
-        display: block;
-        margin-bottom: 0.5rem;
-        color: #1E293B;
-        font-weight: 500;
-        font-size: 1.1rem;
-    }
-
-    .required {
-        color: #EF4444;
-        margin-left: 0.25rem;
-    }
-
-    input[type="text"] {
-        width: 100%;
-        padding: 0.75rem;
-        border: 1px solid #CBD5E1;
-        border-radius: 0.375rem;
-        font-size: 1rem;
-        color: #1E293B;
-        background-color: white;
-        transition: border-color 0.2s ease;
-    }
-
-    input[type="text"]:focus {
-        outline: none;
-        border-color: #2196F3;
-        box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
-    }
-
-    input[type="text"]::placeholder {
-        color: #94A3B8;
-    }
-
-    .select-wrapper {
-        position: relative;
-        width: 100%;
-    }
-
-    select {
-        width: 100%;
-        padding: 0.75rem 1rem;
-        border: 1px solid #E2E8F0;
-        border-radius: 0.375rem;
-        font-size: 1rem;
-        font-family: inherit;
-        color: #1E293B;
-        background-color: white;
-        transition: all 0.2s ease;
-        cursor: pointer;
-        appearance: none;
-        padding-right: 2.5rem;
-    }
-
-    select:focus {
-        outline: none;
-        border-color: #2196F3;
-        box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
-    }
-
-    select option {
-        padding: 0.625rem 1rem;
-        font-size: 1rem;
-        color: #1E293B;
-        background-color: white;
-        line-height: 1;
-        height: 40px;
-    }
-
-    select option.separator {
-        color: #94A3B8;
-        background-color: #F8FAFC;
-        font-size: 0.875rem;
-        text-align: center;
-        border-bottom: 1px solid #E2E8F0;
-        border-top: 1px solid #E2E8F0;
-        padding: 0.25rem 0;
-        height: 30px;
-    }
-
-    .select-arrow {
-        position: absolute;
-        right: 0.75rem;
-        top: 50%;
-        transform: translateY(-50%);
-        pointer-events: none;
-        color: #64748B;
-        transition: color 0.2s ease;
-    }
-
-    select:hover + .select-arrow {
-        color: #2196F3;
-    }
-
-    select:focus + .select-arrow {
-        color: #2196F3;
-        transform: translateY(-50%) rotate(180deg);
-    }
-
-    .section-divider {
-        font-size: 1.25rem;
-        font-weight: 500;
-        color: #1E293B;
-        margin: 2.5rem 0 1.5rem;
-        text-align: left;
-        padding-bottom: 0.5rem;
-        border-bottom: 2px solid #E2E8F0;
-    }
-
-    .options-container {
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-    }
-
-    .option {
-        display: flex;
-        align-items: flex-start;
-        gap: 1rem;
-        padding: 1rem;
-        background: white;
-        border: 1px solid #E2E8F0;
-        border-radius: 0.5rem;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        width: 100%;
-    }
-
-    .option:hover {
-        border-color: #2196F3;
-        background-color: #F0F9FF;
-    }
-
-    .option.best-choice {
-        border-color: #2196F3;
-        background-color: white;
-    }
-
-    .option.best-choice.expanded {
-        flex: 1;
-        margin-bottom: 0;
-    }
-
-    .option.best-choice:has(input:checked) {
-        background-color: #F0F9FF;
-        border-color: #2196F3;
-        border-width: 2px;
-    }
-
-    .option-content {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-        width: 100%;
-    }
-
-    .best-choice-tag {
-        display: inline-block;
-        padding: 0.25rem 0.75rem;
-        background-color: #2196F3;
-        color: white;
-        border-radius: 1rem;
-        font-size: 0.75rem;
-        font-weight: 500;
-        width: fit-content;
-    }
-
-    .option-text {
-        color: #1E293B;
-        font-size: 0.9375rem;
-        line-height: 1.5;
-    }
-
-    .divider {
-        position: relative;
-        text-align: center;
-        margin: 1.5rem 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 1rem;
-    }
-
-    .divider::before,
-    .divider::after {
-        content: '';
-        flex: 1;
-        height: 1px;
-        background: #E2E8F0;
-    }
-
-    .divider span {
-        color: #64748B;
-        font-size: 0.875rem;
-        white-space: nowrap;
-        padding: 0 0.5rem;
-    }
-
-    input[type="radio"],
-    input[type="checkbox"] {
-        width: 1.25rem;
-        height: 1.25rem;
-        margin-top: 0.25rem;
-        border: 2px solid #CBD5E1;
-        cursor: pointer;
-    }
-
-    input[type="radio"] {
-        border-radius: 50%;
-    }
-
-    input[type="checkbox"] {
-        border-radius: 0.25rem;
-    }
-
-    input[type="radio"]:checked,
-    input[type="checkbox"]:checked {
-        background-color: #2196F3;
-        border-color: #2196F3;
-    }
-
-    .custom-input {
-        margin-top: 1rem;
-        width: 100%;
-        min-height: 120px;
-        padding: 0.75rem;
-        border: 1px solid #CBD5E1;
-        border-radius: 0.375rem;
-        font-size: 1rem;
-        color: #1E293B;
-        background-color: white;
-        resize: vertical;
-        font-family: inherit;
-        line-height: 1.5;
-    }
-
-    .custom-input:focus {
-        outline: none;
-        border-color: #2196F3;
-        box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
-    }
-
-    .custom-input::placeholder {
-        color: #94A3B8;
-    }
-
-    @media (max-width: 768px) {
-        .progress-bar {
-            padding: 0;
-        }
-
-        .step-label {
-            font-size: 0.75rem;
-        }
-
-        .form-container {
-            padding: 1rem;
-        }
-
-        .connector {
-            left: calc(50% + 1rem);
-            right: calc(-50% + 1rem);
-        }
-    }
-
-    .form-group {
-        margin-bottom: 1.5rem;
-        max-width: 800px;
-        margin-left: auto;
-        margin-right: auto;
-    }
-
-    .form-group label {
-        display: block;
-        margin-bottom: 0.5rem;
-        color: #1E293B;
-        font-weight: 500;
-        font-size: 1rem;
-    }
-
-    .required {
-        color: #EF4444;
-        margin-left: 0.25rem;
-    }
-
-    .button-container {
-        display: flex;
-        justify-content: center;
-        margin-top: 2rem;
-    }
-
-    .next-button {
-        background-color: #2196F3;
-        color: white;
-        padding: 1rem 3rem;
-        border-radius: 0.5rem;
-        font-weight: 600;
-        border: none;
-        cursor: pointer;
-        font-size: 1.2rem;
-        transition: all 0.2s ease;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        box-shadow: 0 4px 6px rgba(33, 150, 243, 0.3);
-    }
-
-    .next-button:hover {
-        background-color: #1976D2;
-        transform: translateY(-2px);
-        box-shadow: 0 6px 8px rgba(33, 150, 243, 0.4);
-    }
-
-    .arrow {
-        font-size: 1.25rem;
-    }
-
-    @media (max-width: 640px) {
-        .form-group {
-            padding: 0;
-        }
-
-        .next-button {
-            width: 100%;
-            justify-content: center;
-        }
-    }
-
-
-
-    .error-container {
-        background-color: #FEE2E2;
-        border: 1px solid #EF4444;
-        border-radius: 0.5rem;
-        padding: 1rem;
-        margin-bottom: 1.5rem;
-    }
-
-    .error-heading {
-        color: #B91C1C;
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-    }
-
-    .error-container ul {
-        list-style-type: disc;
-        margin-left: 1.5rem;
-        color: #B91C1C;
-    }
-
-    .error-container li {
-        margin-bottom: 0.25rem;
-    }
-
-    .back-button {
-        background-color: #64748B;
-        color: white;
-        padding: 1rem 2rem;
-        border-radius: 0.5rem;
-        font-weight: 600;
-        border: none;
-        cursor: pointer;
-        font-size: 1.2rem;
-        transition: all 0.2s ease;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        box-shadow: 0 4px 6px rgba(100, 116, 139, 0.3);
-    }
-
-    .back-button:hover {
-        background-color: #475569;
-        transform: translateY(-2px);
-        box-shadow: 0 6px 8px rgba(100, 116, 139, 0.4);
-    }
-
-    .button-container {
-        display: flex;
-        justify-content: center;
-        gap: 1rem;
-        margin-top: 2rem;
-    }
-
-    @media (max-width: 640px) {
-        .button-container {
-            flex-direction: column;
-        }
-
-        .back-button,
-        .next-button {
-            width: 100%;
-            justify-content: center;
-        }
-    }
-
-    .section-divider {
-        font-size: 1.25rem;
-        font-weight: 500;
-        color: #1E293B;
-        margin: 2.5rem 0 1.5rem;
-        text-align: left;
-        padding-bottom: 0.5rem;
-        border-bottom: 2px solid #E2E8F0;
-    }
-
-    .section-header {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        margin-bottom: 2rem;
-    }
-
-    .header-icon {
-        color: #2196F3;
-    }
-
-    .section-header h2 {
-        font-size: 1.75rem;
-        font-weight: 600;
-        color: #1E293B;
-        margin: 0;
-    }
-
-
-    .add-experience-button {
-        background-color: #6366F1;
-        color: white;
-        border: none;
-        border-radius: 0.5rem;
-        padding: 1rem 2rem;
-        font-size: 1rem;
-        font-weight: 600;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        margin: 2rem auto;
-        transition: all 0.2s ease;
-    }
-
-    .add-experience-button:hover {
-        background-color: #4F46E5;
-        transform: translateY(-2px);
-    }
-
-    .plus-icon {
-        font-size: 1.5rem;
-        font-weight: 400;
-    }
-
-    .dynamic-input-container {
-        margin-bottom: 1rem;
-    }
-
-    .input-with-remove {
-        display: flex;
-        gap: 0.5rem;
-        align-items: flex-start;
-    }
-
-    .remove-button {
-        background: none;
-        border: none;
-        color: #EF4444;
-        cursor: pointer;
-        padding: 0.25rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 0.25rem;
-        transition: all 0.2s ease;
-    }
-
-    .remove-button:hover {
-        background-color: #FEE2E2;
-    }
-
-    .add-button {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        background: none;
-        border: 2px dashed #CBD5E1;
-        color: #64748B;
-        padding: 0.75rem 1rem;
-        border-radius: 0.5rem;
-        cursor: pointer;
-        width: 100%;
-        justify-content: center;
-        font-weight: 500;
-        margin-bottom: 2rem;
-        transition: all 0.2s ease;
-    }
-
-    .add-button:hover {
-        border-color: #2196F3;
-        color: #2196F3;
-        background-color: #F0F9FF;
-    }
-
-    .custom-input {
-        min-height: 80px;
-        width: 100%;
-    }
-
-    .optional {
-        color: #64748B;
-        font-size: 0.875rem;
-        font-weight: normal;
-        margin-left: 0.5rem;
-    }
-
-    .text-input {
-        width: 100%;
-        padding: 0.75rem;
-        border: 1px solid #CBD5E1;
-        border-radius: 0.375rem;
-        font-size: 1rem;
-        color: #1E293B;
-        background-color: white;
-        transition: border-color 0.2s ease;
-        font-family: inherit;
-    }
-
-    .text-input:focus {
-        outline: none;
-        border-color: #2196F3;
-        box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
-    }
-
-    .text-input::placeholder {
-        color: #94A3B8;
-    }
-
-    .info-alert {
-        background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);
-        border-radius: 1rem;
-        padding: 1.5rem;
-        margin-bottom: 2rem;
-        display: flex;
-        gap: 1.25rem;
-        align-items: flex-start;
-        border-left: 4px solid #2196F3;
-    }
-
-    .info-alert-icon {
-        color: #2196F3;
-        flex-shrink: 0;
-    }
-
-    .info-alert-content h3 {
-        color: #1565C0;
-        font-size: 1.25rem;
-        font-weight: 600;
-        margin: 0 0 0.5rem 0;
-    }
-
-    .info-alert-content p {
-        color: #1976D2;
-        font-size: 1rem;
-        line-height: 1.6;
-        margin: 0;
-    }
-
-    .experience-form {
-        background: #FFFFFF;
-        border: 1px solid #E2E8F0;
-        border-radius: 1rem;
-        padding: 2rem;
-        margin-bottom: 2rem;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-    }
-
-    .experience-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1.5rem;
-    }
-
-    .experience-header h3 {
-        font-size: 1.25rem;
-        font-weight: 600;
-        color: #1E293B;
-        margin: 0;
-    }
-
-    .remove-experience {
-        background: none;
-        border: none;
-        color: #EF4444;
-        cursor: pointer;
-        padding: 0.5rem;
-        border-radius: 0.5rem;
-        display: flex;
-        align-items: center;
-        transition: all 0.2s ease;
-    }
-
-    .remove-experience:hover {
-        background-color: #FEE2E2;
-    }
-
-
-    .responsibilities-section {
-        margin-top: 1.5rem;
-    }
-
-    .responsibility-input {
-        display: flex;
-        gap: 0.5rem;
-        margin-bottom: 0.75rem;
-    }
-
-    .add-responsibility {
-        background: none;
-        border: none;
-        color: #2196F3;
-        padding: 0.5rem 1rem;
-        cursor: pointer;
-        font-size: 0.95rem;
-        font-weight: 500;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        border-radius: 0.5rem;
-        transition: all 0.2s ease;
-    }
-
-    .add-responsibility:hover {
-        background-color: #E3F2FD;
-    }
-
-    .add-another-experience {
-        width: 100%;
-        padding: 1rem;
-        background-color: #E3F2FD;
-        color: #2196F3;
-        border: 2px dashed #2196F3;
-        border-radius: 0.5rem;
-        font-weight: 600;
-        cursor: pointer;
-        margin-bottom: 2rem;
-        transition: all 0.2s ease;
-    }
-
-    .add-another-experience:hover {
-        background-color: #BBDEFB;
-    }
-
-    .project-textarea {
-        min-height: 120px;
-        width: 100%;
-        padding: 0.75rem;
-        border: 1px solid #CBD5E1;
-        border-radius: 0.375rem;
-        font-size: 1rem;
-        color: #1E293B;
-        background-color: white;
-        transition: border-color 0.2s ease;
-        font-family: inherit;
-        line-height: 1.5;
-    }
-
-    .project-textarea:focus {
-        outline: none;
-        border-color: #2196F3;
-        box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
-    }
-
-    .project-textarea::placeholder {
-        color: #94A3B8;
-    }
-
-    .description-textarea {
-        min-height: 100px;
-        width: 100%;
-        padding: 0.75rem;
-        border: 1px solid #CBD5E1;
-        border-radius: 0.375rem;
-        font-size: 1rem;
-        color: #1E293B;
-        background-color: white;
-        transition: border-color 0.2s ease;
-        font-family: inherit;
-        line-height: 1.5;
-        resize: vertical;
-    }
-
-    .description-textarea:focus {
-        outline: none;
-        border-color: #2196F3;
-        box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
-    }
-
-    .description-textarea::placeholder {
-        color: #94A3B8;
-    }
-
-
-    .add-button {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-        width: 100%;
-        padding: 0.75rem;
-        background-color: #F1F5F9;
-        color: #2196F3;
-        border: 2px dashed #2196F3;
-        border-radius: 0.5rem;
-        font-weight: 600;
-        font-size: 0.875rem;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        margin: 1rem 0;
-    }
-
-    .add-button:hover {
-        background-color: #E3F2FD;
-    }
-
-    .add-button svg {
-        color: currentColor;
-    }
-
-    .form-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 2rem;
-    }
-
-    .form-header h3 {
-        font-size: 1.25rem;
-        font-weight: 600;
-        color: #1E293B;
-        margin: 0;
-    }
-
-    .cancel-button {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        background: none;
-        border: none;
-        color: #EF4444;
-        font-size: 0.95rem;
-        font-weight: 500;
-        cursor: pointer;
-        padding: 0.5rem;
-        border-radius: 0.375rem;
-        transition: all 0.2s ease;
-    }
-
-    .cancel-button:hover {
-        background-color: #FEE2E2;
-    }
-
-    .cancel-button svg {
-        width: 1.25rem;
-        height: 1.25rem;
-    }
-
-    .add-section-button {
-        background-color: #F8FAFC;
-        color: #2196F3;
-        border: 2px dashed #2196F3;
-        border-radius: 0.5rem;
-        padding: 1rem 2rem;
-        font-size: 1rem;
-        font-weight: 600;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        margin: 1.5rem 0;
-        width: 100%;
-        justify-content: center;
-        transition: all 0.2s ease;
-    }
-
-    .add-section-button:hover {
-        background-color: #E3F2FD;
-        transform: translateY(-2px);
-    }
-
-    .plus-icon {
-        font-size: 1.5rem;
-        font-weight: 400;
-    }
-
-</style> 
+</div>
+
+{#if showLoginModal}
+    <LoginModal
+        show={showLoginModal}
+        supabase={supabase}
+        on:loginSuccess={handleLoginSuccess}
+        on:close={handleLoginModalClose}
+    />
+{/if}
