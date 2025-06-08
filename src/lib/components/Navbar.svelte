@@ -1,12 +1,17 @@
 <script lang="ts">
+  import { page } from '$app/stores';
+  
   let { data } = $props<{ data: { session: any; supabase: any } }>();
   let { session, supabase } = $derived(data);
 
   async function signInWithGoogle() {
+    const currentPath = $page.url.pathname;
+    const redirectUrl = `${location.origin}/auth/callback?next=${encodeURIComponent(currentPath)}`;
+    
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${location.origin}/auth/callback`
+        redirectTo: redirectUrl
       }
     });
   }
@@ -24,19 +29,22 @@
         <a href="/dashboard" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition duration-300 ease-in-out">
           Application Dashboard
         </a>
-        <div class="relative group">
-          <button class="px-4 py-2 text-sm font-medium text-white bg-transparent border border-white rounded-md hover:bg-white hover:text-[#0A192F] transition duration-300 ease-in-out">
-            Account
-          </button>
-          <div class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition duration-300 ease-in-out transform scale-95 group-hover:scale-100">
-            <button onclick={signOut} class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Sign Out</button>
-          </div>
-        </div>
+        <a href="/account" class="px-4 py-2 text-sm font-medium text-white bg-transparent border border-white rounded-md hover:bg-white hover:text-[#0A192F] transition duration-300 ease-in-out">
+          Account
+        </a>
       {:else}
         <!-- Get Started Button -->
-        <a href="#form-section" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition duration-300 ease-in-out">
+        <button 
+          onclick={() => {
+            const formSection = document.getElementById('form-section');
+            if (formSection) {
+              formSection.scrollIntoView({ behavior: 'smooth' });
+            }
+          }}
+          class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition duration-300 ease-in-out"
+        >
           Get Started
-        </a>
+        </button>
         <button onclick={signInWithGoogle} class="px-4 py-2 text-sm font-medium text-white bg-transparent border border-white rounded-md hover:bg-white hover:text-[#0A192F] flex items-center space-x-3 transition duration-300 ease-in-out">
           <img src="https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg" alt="Google G Logo" class="w-4 h-4">
           Login with Google

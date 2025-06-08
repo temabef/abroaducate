@@ -35,7 +35,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <Fa icon={faFileAlt} />
-                <h2>Your statement of purpose is ready!</h2>
+                <h2>Your Statement of Purpose is ready!</h2>
             </div>
             <p>If you want to make finer edits, highlight the text you'd like to change to access the pop-up below:</p>
             <div class="suggestion-buttons">
@@ -43,8 +43,9 @@
                 <div class="buttons-row">
                     <button class="suggest-button">Concise</button>
                     <button class="suggest-button">Detailed</button>
-                    <button class="suggest-button">Professional</button>
-                    <button class="suggest-button">Informal</button>
+                    <button class="suggest-button">Research</button>
+                    <button class="suggest-button">Academic</button>
+                    <button class="suggest-button">Technical</button>
                 </div>
             </div>
             <div class="modal-footer">
