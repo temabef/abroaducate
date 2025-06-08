@@ -3,6 +3,8 @@
     import { goto } from '$app/navigation';
     import type { PageData } from './$types';
     import { formatDistanceToNow, parseISO, isBefore } from 'date-fns';
+    import DocumentChecklist from '$lib/components/DocumentChecklist.svelte';
+    import TimelineView from '$lib/components/TimelineView.svelte';
 
     export let data: PageData;
     let { supabase, session } = data;
@@ -11,6 +13,8 @@
         id: string;
         university_name: string;
         program_name: string;
+        country?: string;
+        program_type?: string;
         application_deadline: string | null;
         content: string;
         status: 'draft' | 'final' | 'submitted';
@@ -20,6 +24,8 @@
         word_count: number;
         application_notes?: string;
         submission_date?: string;
+        days_until_deadline?: number | null;
+        deadline_status?: string;
     };
     
     type Application = {
@@ -39,6 +45,9 @@
     let viewMode: 'sops' | 'applications' = 'sops';
     let searchQuery = '';
     let statusFilter: string = 'all';
+    let deadlineFilter: string = 'all';
+    let countryFilter: string = 'all';
+    let programTypeFilter: string = 'all';
     
     // Stats
     let stats = {
@@ -47,6 +56,19 @@
         submittedApplications: 0,
         pendingDeadlines: 0
     };
+
+    // Enhanced stats and filtering
+    let enhancedStats = {
+        finalSOPs: 0,
+        overdueDeadlines: 0,
+        countriesApplied: 0,
+        avgWordCount: 0,
+        mostRecentActivity: null
+    };
+    
+    // Available filter options
+    let countries: string[] = [];
+    let programTypes: string[] = [];
 
     onMount(async () => {
         if (!session?.user) {
@@ -61,18 +83,42 @@
         try {
             loading = true;
             
-            // Load SOPs
-            const { data: sopsData, error: sopsError } = await supabase
-                .from('sops')
-                .select('*')
-                .eq('user_id', session?.user?.id)
-                .order('updated_at', { ascending: false });
+            // Load enhanced dashboard data using the new database function
+            const { data: dashboardData, error: dashboardError } = await supabase
+                .rpc('get_application_dashboard', { user_uuid: session?.user?.id });
                 
-            if (sopsError) {
-                console.error('Error loading SOPs:', sopsError);
+            if (dashboardError) {
+                console.error('Error loading dashboard data:', dashboardError);
+                // Fallback to basic query
+                await loadBasicDashboardData();
             } else {
-                sops = sopsData || [];
+                // Convert to SOP format for compatibility
+                sops = dashboardData?.map((item: any) => ({
+                    id: item.sop_id,
+                    university_name: item.university_name,
+                    program_name: item.program_name,
+                    country: item.country,
+                    program_type: item.program_type,
+                    application_deadline: item.application_deadline,
+                    status: item.status,
+                    word_count: item.word_count,
+                    created_at: item.created_at,
+                    updated_at: item.updated_at,
+                    days_until_deadline: item.days_until_deadline,
+                    deadline_status: item.deadline_status,
+                    application_submitted: false,
+                    content: '',
+                    application_notes: '',
+                    submission_date: null
+                })) || [];
+                
+                // Extract filter options
+                countries = [...new Set(sops.map(s => s.country).filter((c): c is string => Boolean(c)))];
+                programTypes = [...new Set(sops.map(s => s.program_type).filter((p): p is string => Boolean(p)))];
             }
+            
+            // Load enhanced statistics
+            await loadEnhancedStats();
             
             // Load Applications
             const { data: appsData, error: appsError } = await supabase
@@ -93,6 +139,45 @@
             console.error('Error loading dashboard:', error);
         } finally {
             loading = false;
+        }
+    }
+    
+    async function loadBasicDashboardData() {
+        // Fallback method for basic SOP loading
+        const { data: sopsData, error: sopsError } = await supabase
+            .from('sops')
+            .select('*')
+            .eq('user_id', session?.user?.id)
+            .order('updated_at', { ascending: false });
+            
+        if (sopsError) {
+            console.error('Error loading SOPs:', sopsError);
+        } else {
+            sops = sopsData || [];
+            countries = [...new Set(sops.map(s => s.country).filter((c): c is string => Boolean(c)))];
+            programTypes = [...new Set(sops.map(s => s.program_type).filter((p): p is string => Boolean(p)))];
+        }
+    }
+    
+    async function loadEnhancedStats() {
+        try {
+            const { data: statsData, error: statsError } = await supabase
+                .rpc('get_user_sop_stats', { user_uuid: session?.user?.id });
+                
+            if (statsError) {
+                console.error('Error loading enhanced stats:', statsError);
+            } else if (statsData && statsData.length > 0) {
+                const stat = statsData[0];
+                enhancedStats = {
+                    finalSOPs: stat.final_sops || 0,
+                    overdueDeadlines: stat.overdue_deadlines || 0,
+                    countriesApplied: stat.countries_applied || 0,
+                    avgWordCount: stat.avg_word_count || 0,
+                    mostRecentActivity: stat.most_recent_activity
+                };
+            }
+        } catch (error) {
+            console.error('Error loading enhanced stats:', error);
         }
     }
     
@@ -164,13 +249,49 @@
             await loadDashboardData();
         }
     }
+
+    async function handleChecklistUpdate(event: CustomEvent) {
+        const { applicationId, checklist, sopId } = event.detail;
+        
+        try {
+            const response = await fetch('/api/update-checklist', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    applicationId,
+                    sopId,
+                    checklist
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to update checklist');
+            }
+            
+            // Reload dashboard to reflect changes
+            await loadDashboardData();
+            
+        } catch (error) {
+            console.error('Error updating checklist:', error);
+            alert('Failed to update checklist. Please try again.');
+        }
+    }
     
-    // Filter functions
+    // Enhanced filter functions
     $: filteredSOPs = sops.filter(sop => {
         const matchesSearch = sop.university_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                             sop.program_name.toLowerCase().includes(searchQuery.toLowerCase());
+                             sop.program_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                             (sop.country && sop.country.toLowerCase().includes(searchQuery.toLowerCase()));
         const matchesStatus = statusFilter === 'all' || sop.status === statusFilter;
-        return matchesSearch && matchesStatus;
+        const matchesCountry = countryFilter === 'all' || sop.country === countryFilter;
+        const matchesProgramType = programTypeFilter === 'all' || sop.program_type === programTypeFilter;
+        const matchesDeadline = deadlineFilter === 'all' || 
+            (deadlineFilter === 'urgent' && sop.deadline_status === 'urgent') ||
+            (deadlineFilter === 'upcoming' && sop.deadline_status === 'upcoming') ||
+            (deadlineFilter === 'overdue' && sop.deadline_status === 'overdue') ||
+            (deadlineFilter === 'no_deadline' && sop.deadline_status === 'no_deadline');
+        
+        return matchesSearch && matchesStatus && matchesCountry && matchesProgramType && matchesDeadline;
     });
     
     $: filteredApplications = applications.filter(app => {
@@ -179,6 +300,28 @@
         const matchesStatus = statusFilter === 'all' || app.status === statusFilter;
         return matchesSearch && matchesStatus;
     });
+    
+    function getDeadlineColor(deadlineStatus: string): string {
+        const colors = {
+            overdue: 'text-red-600 bg-red-50',
+            urgent: 'text-orange-600 bg-orange-50',
+            upcoming: 'text-yellow-600 bg-yellow-50',
+            distant: 'text-green-600 bg-green-50',
+            no_deadline: 'text-gray-600 bg-gray-50'
+        };
+        return colors[deadlineStatus as keyof typeof colors] || 'text-gray-600 bg-gray-50';
+    }
+    
+    function formatDeadlineStatus(deadlineStatus: string, daysUntil: number | null): string {
+        if (deadlineStatus === 'no_deadline') return 'No deadline';
+        if (deadlineStatus === 'overdue') return `Overdue (${Math.abs(daysUntil || 0)} days ago)`;
+        if (daysUntil !== null) {
+            if (daysUntil === 0) return 'Due today';
+            if (daysUntil === 1) return 'Due tomorrow';
+            return `${daysUntil} days left`;
+        }
+        return deadlineStatus;
+    }
 </script>
 
 <svelte:head>
@@ -194,15 +337,26 @@
                     <h1 class="text-3xl font-bold text-gray-900">Application Dashboard</h1>
                     <p class="text-gray-600">Manage your SOPs and track your applications</p>
                 </div>
-                <button
-                    onclick={createNewSOP}
-                    class="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center gap-2"
-                >
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                    </svg>
-                    Create New SOP
-                </button>
+                <div class="flex gap-3">
+                    <button
+                        onclick={() => goto('/applications')}
+                        class="bg-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors flex items-center gap-2"
+                    >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                        </svg>
+                        Manage Applications
+                    </button>
+                    <button
+                        onclick={createNewSOP}
+                        class="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center gap-2"
+                    >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        Create New SOP
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -299,6 +453,56 @@
                 </div>
                 
                 <div class="flex gap-4">
+                    <!-- Calendar Button -->
+                    <button
+                        onclick={() => goto('/calendar')}
+                        class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium flex items-center gap-2"
+                    >
+                        📅 Calendar
+                    </button>
+                    
+                    <!-- SOP Review Button -->
+                    <button
+                        onclick={() => goto('/sop-review')}
+                        class="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-colors font-medium flex items-center gap-2"
+                    >
+                        🔍 Review SOP
+                    </button>
+                    
+                    <!-- Cover Letters Button -->
+                    <button
+                        onclick={() => goto('/cover-letters')}
+                        class="px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-colors font-medium flex items-center gap-2"
+                    >
+                        📝 Cover Letters
+                    </button>
+                    
+                    <!-- Personal Statements Button -->
+                    <button
+                        onclick={() => goto('/personal-statements')}
+                        class="px-4 py-2 bg-gradient-to-r from-purple-600 to-violet-600 text-white rounded-lg hover:from-purple-700 hover:to-violet-700 transition-colors font-medium flex items-center gap-2"
+                    >
+                        💭 Personal Statements
+                    </button>
+                    
+                    <!-- Academic CV Builder Button -->
+                    <button
+                        onclick={() => goto('/academic-cv')}
+                        class="px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-colors font-medium flex items-center gap-2"
+                    >
+                        📄 Academic CV Builder
+                    </button>
+                    
+
+                    
+                    <!-- Applications Button -->
+                    <button
+                        onclick={() => goto('/applications')}
+                        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                    >
+                        Manage Applications
+                    </button>
+                    
                     <!-- Search -->
                     <div class="relative">
                         <input
@@ -390,7 +594,22 @@
                                         </div>
                                     </div>
                                     
-                                    <div class="flex justify-between items-center pt-4 border-t">
+                                    <!-- Document Checklist -->
+                                    <div class="mt-4 pt-4 border-t">
+                                        <DocumentChecklist
+                                            applicationId=""
+                                            universityName={sop.university_name}
+                                            programName={sop.program_name}
+                                            initialChecklist={{}}
+                                            compact={true}
+                                            on:checklistUpdated={(e) => handleChecklistUpdate({
+                                                ...e,
+                                                detail: { ...e.detail, sopId: sop.id }
+                                            })}
+                                        />
+                                    </div>
+                                    
+                                    <div class="flex justify-between items-center pt-4 border-t mt-4">
                                         <div class="flex gap-3">
                                             <button
                                                 onclick={() => viewSOP(sop.id)}

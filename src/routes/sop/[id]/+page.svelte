@@ -4,6 +4,8 @@
     import { page } from '$app/stores';
     import type { PageData } from './$types';
     import { formatDistanceToNow, parseISO } from 'date-fns';
+import WordCountOptimizer from '$lib/components/WordCountOptimizer.svelte';
+import UniversityMatcher from '$lib/components/UniversityMatcher.svelte';
     
     export let data: PageData;
     let { supabase, session } = data;
@@ -44,6 +46,20 @@
     ];
     
     let sopId: string;
+    
+    // Add AI Analysis variables
+    let analyzing = false;
+    let analysisResult: any = null;
+    let analysisError = '';
+    let selectedAnalysis = 'comprehensive';
+    
+    const analysisOptions = [
+        { value: 'comprehensive', label: '🔍 Comprehensive Analysis', description: 'Complete analysis with all features' },
+        { value: 'plagiarism', label: '📝 Plagiarism Check', description: 'Check for originality and similar content' },
+        { value: 'grammar', label: '✏️ Grammar & Style', description: 'Grammar, spelling, and writing style' },
+        { value: 'tone', label: '🎭 Tone Analysis', description: 'Analyze writing tone and personality' },
+        { value: 'readability', label: '📊 Readability Score', description: 'Reading difficulty and clarity metrics' }
+    ];
     
     onMount(async () => {
         sopId = $page.params.id;
@@ -237,8 +253,96 @@
         goto(`/sop/${sopId}/edit`);
     }
     
+    function reviewSOP() {
+        if (!sop) return;
+        
+        // Create URL with pre-populated parameters
+        const params = new URLSearchParams({
+            sop: sop.content || '',
+            university: sop.university_name || '',
+            program: sop.program_name || ''
+        });
+        
+        goto(`/sop-review?${params.toString()}`);
+    }
+    
     function backToDashboard() {
         goto('/dashboard');
+    }
+    
+    // AI Analysis Functions
+    async function runAnalysis(): Promise<void> {
+        if (!sop || !sop.content) {
+            analysisError = 'No SOP content to analyze';
+            return;
+        }
+        
+        analyzing = true;
+        analysisError = '';
+        analysisResult = null;
+        
+        try {
+            const response = await fetch('/api/analyze-sop', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    text: sop.content,
+                    analysisType: selectedAnalysis
+                })
+            });
+            
+            const responseData = await response.json();
+            
+            if (!response.ok) {
+                if (response.status === 403 && responseData.upgradeRequired) {
+                    analysisError = `${responseData.message} Consider upgrading your plan for more usage.`;
+                    return;
+                }
+                throw new Error(responseData.message || 'Analysis failed');
+            }
+            
+            analysisResult = responseData;
+            
+        } catch (err: any) {
+            analysisError = err.message || 'Failed to analyze text';
+            console.error('Analysis error:', err);
+        } finally {
+            analyzing = false;
+        }
+    }
+    
+    function getScoreColor(score: number): string {
+        if (score >= 80) return 'text-green-600';
+        if (score >= 60) return 'text-yellow-600';
+        return 'text-red-600';
+    }
+    
+    // Handle content optimization from WordCountOptimizer
+    async function handleContentOptimized(event: CustomEvent) {
+        if (!sop) return;
+        
+        const { optimizedContent, originalWordCount, newWordCount } = event.detail;
+        
+        // Update SOP content
+        const updatedSop = { ...sop };
+        updatedSop.content = optimizedContent;
+        updatedSop.word_count = newWordCount;
+        sop = updatedSop;
+        
+        // Save to database
+        try {
+            await saveSOP();
+            alert(`Content optimized! Word count changed from ${originalWordCount} to ${newWordCount} words.`);
+        } catch (error) {
+            console.error('Error saving optimized content:', error);
+            alert('Failed to save optimized content. Please try again.');
+        }
+    }
+    
+    function getProgressColor(score: number): string {
+        if (score >= 80) return 'bg-green-500';
+        if (score >= 60) return 'bg-yellow-500';
+        return 'bg-red-500';
     }
 </script>
 
@@ -275,7 +379,10 @@
                 </div>
             </div>
             <button
-                onclick={() => closeSOPReadyModal(document.getElementById('dontShowAgain')?.checked)}
+                onclick={() => {
+                    const checkbox = document.getElementById('dontShowAgain') as HTMLInputElement;
+                    closeSOPReadyModal(checkbox?.checked || false);
+                }}
                 class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
             >
                 Got it!
@@ -377,6 +484,12 @@
                             Copy SOP
                         </button>
                         <button
+                            onclick={reviewSOP}
+                            class="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-colors flex items-center gap-2"
+                        >
+                            🔍 Review SOP
+                        </button>
+                        <button
                             onclick={editSOP}
                             class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
                         >
@@ -403,6 +516,213 @@
                             <p class="mb-4">{paragraph}</p>
                         {/if}
                     {/each}
+                </div>
+            </div>
+            
+            <!-- Word Count Optimization Section -->
+            {#if sop}
+                <div class="mt-8">
+                    <WordCountOptimizer
+                        sopContent={sop.content}
+                        universityName={sop.university_name}
+                        programName={sop.program_name}
+                        programType="masters"
+                        currentWordCount={sop.word_count || 0}
+                        on:contentOptimized={handleContentOptimized}
+                    />
+                </div>
+            {/if}
+
+            <!-- University Matching Section -->
+            {#if sop?.form_data}
+                <div class="mt-8">
+                    <UniversityMatcher 
+                        userProfile={{
+                            gpa: sop.form_data.academicData?.gpa || '',
+                            field: sop.form_data.academicData?.fieldOfStudy || sop.program_name,
+                            qualities: sop.form_data.selectedQualities || [],
+                            degree_level: 'masters'
+                        }}
+                    />
+                </div>
+            {/if}
+            
+            <!-- AI Analysis Section -->
+            <div class="mt-8 bg-white rounded-lg shadow-sm border">
+                <div class="border-b bg-gradient-to-r from-blue-50 to-purple-50 px-6 py-4">
+                    <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2">
+                        🤖 AI Analysis Tools
+                        <span class="text-sm font-normal text-gray-600">Improve your SOP with advanced AI insights</span>
+                    </h2>
+                </div>
+                
+                <div class="p-6">
+                    <!-- Analysis Type Selection -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold mb-3">Choose Analysis Type</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                            {#each analysisOptions as option}
+                                <button 
+                                    class={`p-3 rounded-lg border text-left transition-all ${
+                                        selectedAnalysis === option.value
+                                            ? 'border-blue-500 bg-blue-50 text-blue-900'
+                                            : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                                    }`}
+                                    onclick={() => selectedAnalysis = option.value}
+                                >
+                                    <div class="font-medium mb-1">{option.label}</div>
+                                    <div class="text-sm text-gray-600">{option.description}</div>
+                                </button>
+                            {/each}
+                        </div>
+                    </div>
+                    
+                    <!-- Analysis Button -->
+                    <div class="mb-6">
+                        <button 
+                            class="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                            onclick={runAnalysis}
+                            disabled={analyzing}
+                        >
+                            {#if analyzing}
+                                <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                Analyzing...
+                            {:else}
+                                🔍 Run Analysis
+                            {/if}
+                        </button>
+                    </div>
+                    
+                    <!-- Error Display -->
+                    {#if analysisError}
+                        <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                            <div class="flex items-center gap-2 text-red-800">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                {analysisError}
+                            </div>
+                        </div>
+                    {/if}
+                    
+                    <!-- Analysis Results -->
+                    {#if analysisResult}
+                        <div class="space-y-6">
+                            {#if selectedAnalysis === 'comprehensive'}
+                                <!-- Comprehensive Analysis Results -->
+                                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                    <!-- Overall Score -->
+                                    <div class="lg:col-span-2 text-center p-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg">
+                                        <div class="text-4xl font-bold {getScoreColor(analysisResult.overall_score)} mb-2">
+                                            {analysisResult.overall_score}%
+                                        </div>
+                                        <div class="text-gray-600">Overall SOP Quality Score</div>
+                                    </div>
+                                    
+                                    <!-- Individual Scores -->
+                                    <div class="space-y-4">
+                                        <div class="flex justify-between items-center">
+                                            <span class="font-medium">Originality</span>
+                                            <span class="{getScoreColor(analysisResult.plagiarism.originality_score)}">{analysisResult.plagiarism.originality_score}%</span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span class="font-medium">Grammar</span>
+                                            <span class="{getScoreColor(analysisResult.grammar.score)}">{analysisResult.grammar.score}%</span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span class="font-medium">Tone</span>
+                                            <span class="{getScoreColor(analysisResult.tone.score)}">{analysisResult.tone.score}%</span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span class="font-medium">Readability</span>
+                                            <span class="{getScoreColor(analysisResult.readability.score)}">{analysisResult.readability.score}%</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Quick Insights -->
+                                    <div class="space-y-3">
+                                        <h4 class="font-semibold">Key Insights</h4>
+                                        <div class="text-sm text-gray-600 space-y-2">
+                                            <div>• Readability Level: {analysisResult.readability.readability_level}</div>
+                                            <div>• Primary Tone: {analysisResult.tone.tone_analysis.primary_tone}</div>
+                                            <div>• Risk Level: {analysisResult.plagiarism.risk_level}</div>
+                                            <div>• Grade Level: {analysisResult.readability.grade_level}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {:else}
+                                <!-- Single Analysis Results -->
+                                <div class="bg-gray-50 rounded-lg p-6">
+                                    {#if selectedAnalysis === 'plagiarism'}
+                                        <h3 class="text-lg font-semibold mb-4">📝 Originality Analysis</h3>
+                                        <div class="text-center mb-4">
+                                            <div class="text-3xl font-bold {getScoreColor(analysisResult.originality_score)} mb-2">
+                                                {analysisResult.originality_score}%
+                                            </div>
+                                            <div class="text-gray-600">Originality Score</div>
+                                        </div>
+                                        <div class="text-center">
+                                            <span class={`px-3 py-1 rounded-full text-sm font-medium ${
+                                                analysisResult.risk_level === 'low' ? 'bg-green-100 text-green-800' :
+                                                analysisResult.risk_level === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                                                'bg-red-100 text-red-800'
+                                            }`}>
+                                                Risk Level: {analysisResult.risk_level.toUpperCase()}
+                                            </span>
+                                        </div>
+                                    {:else if selectedAnalysis === 'grammar'}
+                                        <h3 class="text-lg font-semibold mb-4">✏️ Grammar & Style Analysis</h3>
+                                        <div class="text-center mb-4">
+                                            <div class="text-3xl font-bold {getScoreColor(analysisResult.score)} mb-2">
+                                                {analysisResult.score}%
+                                            </div>
+                                            <div class="text-gray-600">Grammar Score</div>
+                                        </div>
+                                        <div class="grid grid-cols-2 gap-4 text-sm">
+                                            <div class="text-center">
+                                                <div class="font-semibold">{analysisResult.errors.length}</div>
+                                                <div class="text-gray-600">Issues Found</div>
+                                            </div>
+                                            <div class="text-center">
+                                                <div class="font-semibold">{analysisResult.readability.grade_level}</div>
+                                                <div class="text-gray-600">Grade Level</div>
+                                            </div>
+                                        </div>
+                                    {:else if selectedAnalysis === 'tone'}
+                                        <h3 class="text-lg font-semibold mb-4">🎭 Tone Analysis</h3>
+                                        <div class="text-center mb-4">
+                                            <div class="text-3xl font-bold {getScoreColor(analysisResult.score)} mb-2">
+                                                {analysisResult.score}%
+                                            </div>
+                                            <div class="text-gray-600">Tone Score</div>
+                                        </div>
+                                        <div class="space-y-2 text-sm">
+                                            <div>Primary Tone: <strong>{analysisResult.tone_analysis.primary_tone}</strong></div>
+                                            <div>Confidence: {analysisResult.tone_analysis.confidence_level}%</div>
+                                        </div>
+                                    {:else if selectedAnalysis === 'readability'}
+                                        <h3 class="text-lg font-semibold mb-4">📊 Readability Analysis</h3>
+                                        <div class="text-center mb-4">
+                                            <div class="text-2xl font-bold {getScoreColor(analysisResult.score)} mb-2">
+                                                {analysisResult.readability_level}
+                                            </div>
+                                            <div class="text-gray-600">Readability Level</div>
+                                        </div>
+                                        <div class="grid grid-cols-2 gap-4 text-sm">
+                                            <div class="text-center">
+                                                <div class="font-semibold">{analysisResult.statistics.total_words}</div>
+                                                <div class="text-gray-600">Words</div>
+                                            </div>
+                                            <div class="text-center">
+                                                <div class="font-semibold">{analysisResult.statistics.total_sentences}</div>
+                                                <div class="text-gray-600">Sentences</div>
+                                            </div>
+                                        </div>
+                                    {/if}
+                                </div>
+                            {/if}
+                        </div>
+                    {/if}
                 </div>
             </div>
             
