@@ -1,5 +1,6 @@
 <script lang="ts">
     import { createEventDispatcher } from 'svelte';
+    import { goto } from '$app/navigation';
     
     export let existingUserData: any = null;
     export let existingSOPData: any = null;
@@ -179,6 +180,46 @@
         }
     }
     
+    async function savePersonalStatement() {
+        try {
+            console.log('Starting save process...');
+            const response = await fetch('/api/save-personal-statement', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    ...personalStatementData,
+                    generatedContent: generatedPersonalStatement,
+                    wordCount: generatedPersonalStatement.split(' ').length
+                })
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+                console.error('Save error:', errorData);
+                throw new Error(errorData.error || 'Failed to save personal statement');
+            }
+            
+            const result = await response.json();
+            console.log('Save result:', result);
+            const { personalStatementId } = result;
+            
+            if (!personalStatementId) {
+                throw new Error('No personal statement ID returned from save');
+            }
+            
+            console.log('Redirecting to edit page:', `/personal-statements/${personalStatementId}`);
+            
+            // Use goto instead of window.location for better SvelteKit handling
+            await goto(`/personal-statements/${personalStatementId}`);
+            
+        } catch (error) {
+            console.error('Error saving personal statement:', error);
+            const errorMessage = error instanceof Error ? error.message : 'Failed to save personal statement. Please try again.';
+            alert(errorMessage);
+        }
+    }
+
+    
     function startOver() {
         currentStep = 1;
         generatedPersonalStatement = '';
@@ -268,10 +309,10 @@
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     {#each applicationTypes as applicationType}
-                        <label class={`relative overflow-hidden rounded-lg border-2 cursor-pointer transition-all ${
+                        <label class={`relative overflow-hidden rounded-lg border-3 cursor-pointer transition-all ${
                             personalStatementData.applicationType === applicationType.value 
-                                ? 'border-purple-500 ring-2 ring-purple-200' 
-                                : 'border-gray-200 hover:border-gray-300'
+                                ? 'border-purple-600 ring-4 ring-purple-300 shadow-lg transform scale-105' 
+                                : 'border-gray-200 hover:border-gray-400 hover:shadow-md'
                         }`}>
                             <input 
                                 type="radio" 
@@ -593,6 +634,12 @@
                 
                 <div class="flex gap-3">
                     <button
+                        onclick={savePersonalStatement}
+                        class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+                    >
+                        💾 Save & Edit
+                    </button>
+                    <button
                         onclick={startOver}
                         class="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
                     >
@@ -616,17 +663,21 @@
                     <div></div>
                 {/if}
                 
-                <button
-                    onclick={nextStep}
-                    disabled={
-                        (currentStep === 1 && !personalStatementData.applicationType) ||
-                        (currentStep === 2 && (!personalStatementData.institutionName || !personalStatementData.programName)) ||
-                        (currentStep === 3 && !personalStatementData.personalDetails.formativeExperience)
-                    }
-                    class="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                    Next →
-                </button>
+                {#if currentStep < totalSteps}
+                    <button
+                        onclick={nextStep}
+                        disabled={
+                            (currentStep === 1 && !personalStatementData.applicationType) ||
+                            (currentStep === 2 && (!personalStatementData.institutionName || !personalStatementData.programName)) ||
+                            (currentStep === 3 && !personalStatementData.personalDetails.formativeExperience)
+                        }
+                        class="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                        Next →
+                    </button>
+                {:else}
+                    <div></div>
+                {/if}
             </div>
         {/if}
     </div>
@@ -645,5 +696,14 @@
     @keyframes spin {
         from { transform: rotate(0deg); }
         to { transform: rotate(360deg); }
+    }
+    
+    /* Enhanced selection styling */
+    .border-3 {
+        border-width: 3px;
+    }
+    
+    label {
+        transition: all 0.3s ease-in-out;
     }
 </style>

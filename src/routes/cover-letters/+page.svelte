@@ -72,6 +72,14 @@
         }
     }
     
+    onMount(async () => {
+        if (session?.user) {
+            loading = true;
+            await Promise.all([loadUserData(), loadExistingSOPs(), loadSavedCoverLetters()]);
+            loading = false;
+        }
+    });
+    
     function startGenerator(sopData: any = null) {
         selectedSOP = sopData;
         showGenerator = true;
@@ -84,6 +92,10 @@
     }
     
     function viewCoverLetter(coverLetterId: string) {
+        goto(`/cover-letters/${coverLetterId}`);
+    }
+    
+    function editCoverLetter(coverLetterId: string) {
         goto(`/cover-letters/${coverLetterId}`);
     }
     
@@ -318,7 +330,16 @@
                                             onclick={() => viewCoverLetter(coverLetter.id)}
                                             class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm"
                                         >
-                                            👁️ View
+                                            ✏️ Edit
+                                        </button>
+                                        <button
+                                            onclick={() => {
+                                                // Download or view functionality
+                                                window.open(`/api/export-document`, '_blank');
+                                            }}
+                                            class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm"
+                                        >
+                                            📤 Export
                                         </button>
                                     </div>
                                 </div>

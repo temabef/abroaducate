@@ -2,51 +2,69 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
 export const POST: RequestHandler = async ({ request, locals: { supabase } }) => {
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    const { data: { session } } = await supabase.auth.getSession();
     
     if (!session?.user) {
         return json({ error: 'Unauthorized' }, { status: 401 });
     }
     
     try {
-        const { coverLetterData, generatedContent } = await request.json();
+        const coverLetterData = await request.json();
         
-        if (!coverLetterData || !generatedContent) {
-            return json({ error: 'Cover letter data and content are required' }, { status: 400 });
-        }
-        
-        // Save cover letter to database
-        const { data, error } = await supabase
+        // Insert cover letter into database
+        const { data: coverLetter, error: insertError } = await supabase
             .from('cover_letters')
             .insert({
                 user_id: session.user.id,
                 position_type: coverLetterData.positionType,
                 job_title: coverLetterData.jobTitle,
                 company_name: coverLetterData.companyName,
-                application_deadline: coverLetterData.applicationDeadline,
-                form_data: coverLetterData,
-                generated_content: generatedContent,
-                word_count: generatedContent.split(/\s+/).length,
-                status: 'final',
+                application_deadline: coverLetterData.applicationDeadline || null,
+                form_data: {
+                    personalInfo: coverLetterData.personalInfo,
+                    positionDetails: coverLetterData.positionDetails,
+                    customRequests: coverLetterData.customRequests,
+                    jobDescription: coverLetterData.jobDescription,
+                    requirements: coverLetterData.requirements
+                },
+                generated_content: coverLetterData.generatedContent,
+                word_count: coverLetterData.wordCount || 0,
+                status: 'draft',
+                version: 1,
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString()
             })
-            .select()
+            .select('id')
             .single();
             
-        if (error) {
-            console.error('Error saving cover letter:', error);
-            throw error;
+        if (insertError) {
+            console.error('Error inserting cover letter:', insertError);
+            throw insertError;
         }
         
-        return json({
-            success: true,
-            coverLetterId: data.id,
-            message: 'Cover letter saved successfully'
+        // Log analytics
+        await supabase
+            .from('cover_letter_analytics')
+            .insert({
+                user_id: session.user.id,
+                cover_letter_id: coverLetter.id,
+                action_type: 'created',
+                session_data: {
+                    position_type: coverLetterData.positionType,
+                    word_count: coverLetterData.wordCount,
+                    generation_method: 'ai_generated'
+                },
+                created_at: new Date().toISOString()
+            });
+        
+        return json({ 
+            success: true, 
+            coverLetterId: coverLetter.id,
+            message: 'Cover letter saved successfully' 
         });
         
     } catch (error) {
-        console.error('Error in save cover letter API:', error);
+        console.error('Error saving cover letter:', error);
         return json({ error: 'Failed to save cover letter' }, { status: 500 });
     }
 };

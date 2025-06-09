@@ -17,6 +17,17 @@ export interface UserScholarshipInteraction {
   is_applied: boolean;
   match_score?: number;
   applied_at?: string;
+  // Phase 1 enhancements
+  status?: 'interested' | 'researching' | 'preparing' | 'applying' | 'submitted' | 'accepted' | 'rejected' | 'waitlisted';
+  priority?: 'low' | 'medium' | 'high' | 'urgent';
+  document_checklist?: any[];
+  notes?: string;
+  deadline_reminder?: boolean;
+  submission_method?: string;
+  confirmation_number?: string;
+  submitted_documents?: any[];
+  days_until_deadline?: number;
+  personal_deadline?: string;
 }
 
 /**
@@ -252,6 +263,96 @@ export async function getScholarshipStats(
     applied_count: appliedCount,
     high_match_count: highMatchCount
   };
+}
+
+/**
+ * Update scholarship application status
+ */
+export async function updateScholarshipStatus(
+  supabase: SupabaseClient,
+  userId: string,
+  scholarshipId: string,
+  status: 'interested' | 'researching' | 'preparing' | 'applying' | 'submitted' | 'accepted' | 'rejected' | 'waitlisted'
+): Promise<boolean> {
+  const { error } = await supabase
+    .from('user_scholarship_interactions')
+    .update({ status })
+    .eq('user_id', userId)
+    .eq('scholarship_id', scholarshipId);
+
+  if (error) {
+    console.error('Error updating scholarship status:', error);
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Update scholarship priority
+ */
+export async function updateScholarshipPriority(
+  supabase: SupabaseClient,
+  userId: string,
+  scholarshipId: string,
+  priority: 'low' | 'medium' | 'high' | 'urgent'
+): Promise<boolean> {
+  const { error } = await supabase
+    .from('user_scholarship_interactions')
+    .update({ priority })
+    .eq('user_id', userId)
+    .eq('scholarship_id', scholarshipId);
+
+  if (error) {
+    console.error('Error updating scholarship priority:', error);
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Update scholarship notes
+ */
+export async function updateScholarshipNotes(
+  supabase: SupabaseClient,
+  userId: string,
+  scholarshipId: string,
+  notes: string
+): Promise<boolean> {
+  const { error } = await supabase
+    .from('user_scholarship_interactions')
+    .update({ notes })
+    .eq('user_id', userId)
+    .eq('scholarship_id', scholarshipId);
+
+  if (error) {
+    console.error('Error updating scholarship notes:', error);
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Get scholarship applications with deadline tracking
+ */
+export async function getScholarshipApplications(
+  supabase: SupabaseClient,
+  userId: string
+): Promise<any[]> {
+  const { data, error } = await supabase
+    .from('user_scholarship_deadlines')
+    .select('*')
+    .eq('user_id', userId)
+    .order('deadline', { ascending: true });
+
+  if (error) {
+    console.error('Error fetching scholarship applications:', error);
+    return [];
+  }
+
+  return data || [];
 }
 
 /**

@@ -252,5 +252,5 @@
                 </div>
             </div>
         {/if}
-    </div>
+    {/if}
 </div> 

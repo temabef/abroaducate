@@ -173,18 +173,39 @@
       if (fetchError) {
         console.error('Error loading scholarships:', fetchError);
         error = 'Failed to load scholarships. Please try again.';
-      } else {
-        // Add UI state properties
-        allScholarships = (scholarshipData || []).map(scholarship => ({
-          ...scholarship,
-          applied: false,
-          saved: false,
-          matchScore: Math.floor(Math.random() * 40) + 60 // Random score 60-100 for demo
-        }));
-        
-        // Initial filtering after loading
-        updateFiltered();
+        return;
       }
+
+      // Load user interactions if logged in
+      let userInteractions: any[] = [];
+      if (session?.user?.id) {
+        const { data: interactions } = await supabase
+          .from('user_scholarship_interactions')
+          .select('*')
+          .eq('user_id', session.user.id);
+        userInteractions = interactions || [];
+        console.log('🔗 Loaded user interactions:', userInteractions.length);
+      }
+
+      // Merge scholarship data with user interactions
+      allScholarships = (scholarshipData || []).map(scholarship => {
+        const interaction = userInteractions.find(i => i.scholarship_id === scholarship.id);
+        return {
+          ...scholarship,
+          applied: interaction?.is_applied || false,
+          saved: interaction?.is_saved || false,
+          matchScore: interaction?.match_score || Math.floor(Math.random() * 40) + 60
+        };
+      });
+      
+      console.log('✅ Scholarships loaded with interactions:', {
+        total: allScholarships.length,
+        saved: allScholarships.filter(s => s.saved).length,
+        applied: allScholarships.filter(s => s.applied).length
+      });
+      
+      // Initial filtering after loading
+      updateFiltered();
     } catch (err) {
       console.error('Error:', err);
       error = 'Failed to load scholarships. Please try again.';
@@ -235,15 +256,35 @@
     }
   }
 
-  function toggleSaved(scholarshipId: string) {
+  async function toggleSaved(scholarshipId: string) {
+    if (!session?.user?.id) {
+      alert('Please log in to save scholarships');
+      return;
+    }
+
     const scholarship = allScholarships.find(s => s.id === scholarshipId);
     if (scholarship) {
-      scholarship.saved = !scholarship.saved;
-      allScholarships = [...allScholarships]; // Trigger reactivity
+      // Import the service function
+      const { toggleScholarshipSaved } = await import('$lib/services/scholarshipService');
+      
+      const success = await toggleScholarshipSaved(supabase, session.user.id, scholarshipId);
+      
+      if (success) {
+        scholarship.saved = !scholarship.saved;
+        allScholarships = [...allScholarships]; // Trigger reactivity
+        console.log('✅ Scholarship saved state updated in database');
+      } else {
+        alert('Failed to save scholarship. Please try again.');
+      }
     }
   }
 
-  function applyToScholarship(scholarshipId: string) {
+  async function applyToScholarship(scholarshipId: string) {
+    if (!session?.user?.id) {
+      alert('Please log in to apply to scholarships');
+      return;
+    }
+
     const scholarship = allScholarships.find(s => s.id === scholarshipId);
     if (scholarship) {
       // Open external application website
@@ -251,18 +292,45 @@
         window.open(scholarship.website, '_blank');
       }
       
-      // Mark as applied and saved
-      scholarship.applied = true;
-      scholarship.saved = true;
-      allScholarships = [...allScholarships]; // Trigger reactivity
+      // Import the service function
+      const { applyToScholarship: applyService } = await import('$lib/services/scholarshipService');
+      
+      const success = await applyService(supabase, session.user.id, scholarshipId);
+      
+      if (success) {
+        // Mark as applied and saved
+        scholarship.applied = true;
+        scholarship.saved = true;
+        allScholarships = [...allScholarships]; // Trigger reactivity
+        console.log('✅ Scholarship application status updated in database');
+      } else {
+        alert('Failed to mark scholarship as applied. Please try again.');
+      }
     }
   }
 
-  function unapplyToScholarship(scholarshipId: string) {
+  async function unapplyToScholarship(scholarshipId: string) {
+    if (!session?.user?.id) {
+      alert('Please log in to manage applications');
+      return;
+    }
+
     const scholarship = allScholarships.find(s => s.id === scholarshipId);
     if (scholarship) {
-      scholarship.applied = false;
-      allScholarships = [...allScholarships]; // Trigger reactivity
+      // Update database - just mark as not applied but keep saved
+      const { error } = await supabase
+        .from('user_scholarship_interactions')
+        .update({ is_applied: false })
+        .eq('user_id', session.user.id)
+        .eq('scholarship_id', scholarshipId);
+
+      if (!error) {
+        scholarship.applied = false;
+        allScholarships = [...allScholarships]; // Trigger reactivity
+        console.log('✅ Scholarship unapplied in database');
+      } else {
+        alert('Failed to update application status. Please try again.');
+      }
     }
   }
 

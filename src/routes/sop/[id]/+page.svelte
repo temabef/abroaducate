@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
+    import { onMount, onDestroy } from 'svelte';
     import { goto } from '$app/navigation';
     import { page } from '$app/stores';
     import type { PageData } from './$types';
@@ -34,7 +34,7 @@ import UniversityMatcher from '$lib/components/UniversityMatcher.svelte';
     let showEditPopup = false;
     let editingText = false;
     let popupPosition = { x: 0, y: 0 };
-    let showSOPReadyModal = false;
+
     
     // Edit options
     const editOptions = [
@@ -71,14 +71,15 @@ import UniversityMatcher from '$lib/components/UniversityMatcher.svelte';
         
         await loadSOP();
         
-        // Show "SOP Ready" modal for first-time viewers
-        const hasSeenModal = localStorage.getItem(`sop-ready-${sopId}`);
-        if (!hasSeenModal) {
-            showSOPReadyModal = true;
-        }
-        
         // Setup text selection detection
         setupTextSelection();
+    });
+    
+    onDestroy(() => {
+        document.removeEventListener('mouseup', handleTextSelection);
+        document.removeEventListener('touchend', handleTextSelection);
+        document.removeEventListener('click', handleDocumentClick);
+        document.removeEventListener('selectionchange', handleSelectionChange);
     });
     
     async function loadSOP() {
@@ -124,6 +125,29 @@ import UniversityMatcher from '$lib/components/UniversityMatcher.svelte';
     function setupTextSelection() {
         document.addEventListener('mouseup', handleTextSelection);
         document.addEventListener('touchend', handleTextSelection);
+        document.addEventListener('click', handleDocumentClick);
+        document.addEventListener('selectionchange', handleSelectionChange);
+    }
+    
+    function handleDocumentClick(event: Event) {
+        // Hide popup when clicking outside the SOP content or popup
+        const target = event.target as HTMLElement;
+        const sopContent = document.getElementById('sop-content');
+        const popup = document.querySelector('.edit-popup');
+        
+        if (!sopContent?.contains(target) && !popup?.contains(target)) {
+            showEditPopup = false;
+            selectedText = '';
+        }
+    }
+    
+    function handleSelectionChange() {
+        // Hide popup when selection is cleared
+        const selection = window.getSelection();
+        if (!selection || selection.toString().trim() === '') {
+            showEditPopup = false;
+            selectedText = '';
+        }
     }
     
     function handleTextSelection(event: Event) {
@@ -242,16 +266,9 @@ import UniversityMatcher from '$lib/components/UniversityMatcher.svelte';
         }
     }
     
-    function closeSOPReadyModal(dontShowAgain: boolean = false) {
-        showSOPReadyModal = false;
-        if (dontShowAgain) {
-            localStorage.setItem(`sop-ready-${sopId}`, 'seen');
-        }
-    }
+
     
-    function editSOP() {
-        goto(`/sop/${sopId}/edit`);
-    }
+
     
     function reviewSOP() {
         if (!sop) return;
@@ -350,51 +367,12 @@ import UniversityMatcher from '$lib/components/UniversityMatcher.svelte';
     <title>{sop ? `${sop.university_name} SOP` : 'Loading SOP'} - SOP Generator</title>
 </svelte:head>
 
-<!-- SOP Ready Modal -->
-{#if showSOPReadyModal}
-    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div class="bg-white rounded-lg p-8 max-w-lg mx-4">
-            <div class="text-center mb-6">
-                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                    </svg>
-                </div>
-                <h2 class="text-2xl font-bold text-gray-900 mb-4">
-                    Your Statement of Purpose is ready! 🎉
-                </h2>
-                <p class="text-gray-600 mb-4">
-                    You can now highlight any text in your SOP to make specific improvements. 
-                    Simply select text and choose from editing options like "Make Concise" or "Add Detail".
-                </p>
-                <div class="flex items-center justify-center gap-2 mb-6">
-                    <input 
-                        type="checkbox" 
-                        id="dontShowAgain" 
-                        class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                    />
-                    <label for="dontShowAgain" class="text-sm text-gray-600">
-                        Don't show me this again
-                    </label>
-                </div>
-            </div>
-            <button
-                onclick={() => {
-                    const checkbox = document.getElementById('dontShowAgain') as HTMLInputElement;
-                    closeSOPReadyModal(checkbox?.checked || false);
-                }}
-                class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
-            >
-                Got it!
-            </button>
-        </div>
-    </div>
-{/if}
+
 
 <!-- Edit Popup -->
 {#if showEditPopup}
     <div 
-        class="fixed z-40 bg-white rounded-lg shadow-xl border p-4"
+        class="edit-popup fixed z-40 bg-white rounded-lg shadow-xl border p-4"
         style="left: {popupPosition.x - 100}px; top: {popupPosition.y - 60}px;"
     >
         <div class="flex flex-wrap gap-2">
@@ -489,17 +467,21 @@ import UniversityMatcher from '$lib/components/UniversityMatcher.svelte';
                         >
                             🔍 Review SOP
                         </button>
-                        <button
-                            onclick={editSOP}
-                            class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-                        >
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                            </svg>
-                            Edit SOP
-                        </button>
+
                     </div>
                 </div>
+            </div>
+        </div>
+        
+        <!-- Inline Editing Instructions -->
+        <div class="max-w-4xl mx-auto px-4 pt-6">
+            <div class="bg-blue-50 rounded-lg border border-blue-200 p-4 mb-6">
+                <h3 class="font-medium text-blue-900 mb-2 flex items-center gap-2">
+                    💡 Inline Editing Available
+                </h3>
+                <p class="text-sm text-blue-800">
+                    Highlight any text in your SOP below to see academic editing options popup automatically. Choose from options like "Make Concise", "Add Detail", "Research Focus", or "Academic Tone".
+                </p>
             </div>
         </div>
         
@@ -726,21 +708,7 @@ import UniversityMatcher from '$lib/components/UniversityMatcher.svelte';
                 </div>
             </div>
             
-            <!-- Help Text -->
-            <div class="mt-6 p-4 bg-blue-50 rounded-lg">
-                <div class="flex items-start gap-3">
-                    <svg class="w-5 h-5 text-blue-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    <div>
-                        <h3 class="font-semibold text-blue-900 mb-1">💡 Pro Tip</h3>
-                        <p class="text-blue-800 text-sm">
-                            Highlight any text in your SOP to make specific improvements. 
-                            You can make sections more concise, add detail, or adjust the tone to match your target program.
-                        </p>
-                    </div>
-                </div>
-            </div>
+
         </div>
     {/if}
 </div> 

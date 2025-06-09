@@ -1,5 +1,6 @@
 <script lang="ts">
     import { createEventDispatcher } from 'svelte';
+    import { goto } from '$app/navigation';
     
     export let existingUserData: any = null;
     export let existingSOPData: any = null;
@@ -153,7 +154,9 @@
             });
             
             if (!response.ok) {
-                throw new Error('Failed to generate cover letter');
+                const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+                console.error('Server error:', errorData);
+                throw new Error(errorData.details || errorData.error || 'Failed to generate cover letter');
             }
             
             const data = await response.json();
@@ -162,7 +165,8 @@
             
         } catch (error) {
             console.error('Error generating cover letter:', error);
-            alert('Failed to generate cover letter. Please try again.');
+            const errorMessage = error instanceof Error ? error.message : 'Failed to generate cover letter. Please try again.';
+            alert(errorMessage);
         } finally {
             generating = false;
         }
@@ -190,7 +194,44 @@
         };
     }
     
-
+    async function saveCoverLetter() {
+        try {
+            console.log('Starting save process...');
+            const response = await fetch('/api/save-cover-letter', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    ...coverLetterData,
+                    generatedContent: generatedCoverLetter,
+                    wordCount: generatedCoverLetter.split(' ').length
+                })
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+                console.error('Save error:', errorData);
+                throw new Error(errorData.error || 'Failed to save cover letter');
+            }
+            
+            const result = await response.json();
+            console.log('Save result:', result);
+            const { coverLetterId } = result;
+            
+            if (!coverLetterId) {
+                throw new Error('No cover letter ID returned from save');
+            }
+            
+            console.log('Redirecting to edit page:', `/cover-letters/${coverLetterId}`);
+            
+            // Use goto instead of window.location for better SvelteKit handling
+            await goto(`/cover-letters/${coverLetterId}`);
+            
+        } catch (error) {
+            console.error('Error saving cover letter:', error);
+            const errorMessage = error instanceof Error ? error.message : 'Failed to save cover letter. Please try again.';
+            alert(errorMessage);
+        }
+    }
     
     async function copyCoverLetter() {
         try {
@@ -198,7 +239,7 @@
             alert('Cover letter copied to clipboard!');
         } catch (error) {
             console.error('Failed to copy:', error);
-            alert('Failed to copy. Please select and copy manually.');
+            alert('Failed to copy to clipboard');
         }
     }
     
@@ -246,10 +287,10 @@
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     {#each positionTypes as positionType}
-                        <label class={`relative overflow-hidden rounded-lg border-2 cursor-pointer transition-all ${
+                        <label class={`relative overflow-hidden rounded-lg border-3 cursor-pointer transition-all ${
                             coverLetterData.positionType === positionType.value 
-                                ? 'border-blue-500 ring-2 ring-blue-200' 
-                                : 'border-gray-200 hover:border-gray-300'
+                                ? 'border-blue-600 ring-4 ring-blue-300 shadow-lg transform scale-105' 
+                                : 'border-gray-200 hover:border-gray-400 hover:shadow-md'
                         }`}>
                             <input 
                                 type="radio" 
@@ -554,6 +595,12 @@
                 
                 <div class="flex gap-3">
                     <button
+                        onclick={saveCoverLetter}
+                        class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+                    >
+                        💾 Save & Edit
+                    </button>
+                    <button
                         onclick={startOver}
                         class="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
                     >
@@ -577,16 +624,20 @@
                     <div></div>
                 {/if}
                 
-                <button
-                    onclick={nextStep}
-                    disabled={
-                        (currentStep === 1 && !coverLetterData.positionType) ||
-                        (currentStep === 2 && (!coverLetterData.jobTitle || !coverLetterData.companyName))
-                    }
-                    class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                    Next →
-                </button>
+                {#if currentStep < totalSteps}
+                    <button
+                        onclick={nextStep}
+                        disabled={
+                            (currentStep === 1 && !coverLetterData.positionType) ||
+                            (currentStep === 2 && (!coverLetterData.jobTitle || !coverLetterData.companyName))
+                        }
+                        class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                        Next →
+                    </button>
+                {:else}
+                    <div></div>
+                {/if}
             </div>
         {/if}
     </div>
@@ -605,5 +656,14 @@
     @keyframes spin {
         from { transform: rotate(0deg); }
         to { transform: rotate(360deg); }
+    }
+    
+    /* Enhanced selection styling */
+    .border-3 {
+        border-width: 3px;
+    }
+    
+    label {
+        transition: all 0.3s ease-in-out;
     }
 </style> 

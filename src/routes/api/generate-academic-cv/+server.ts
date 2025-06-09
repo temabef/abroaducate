@@ -18,7 +18,7 @@ export const POST: RequestHandler = async ({ request }) => {
             messages: [
                 {
                     role: "system",
-                    content: `You are an expert academic CV writer with extensive knowledge of academic standards and field-specific requirements. Create professional, well-formatted academic CVs that follow academic conventions for different fields. Focus on clarity, proper academic formatting, and field-appropriate emphasis.`
+                    content: `You are an expert academic CV writer. Create clean, professional academic CVs using a simple single-column format with horizontal line separators between sections. Follow standard academic formatting conventions and ensure the CV is professional, scannable, and appropriate for academic applications.`
                 },
                 {
                     role: "user", 
@@ -26,7 +26,7 @@ export const POST: RequestHandler = async ({ request }) => {
                 }
             ],
             temperature: 0.3,
-            max_tokens: 2000
+            max_tokens: 2500
         });
 
         const cv = completion.choices[0]?.message?.content || '';
@@ -49,41 +49,39 @@ function buildCVPrompt(cvData: any): string {
         arts: 'Arts and creative fields showcase portfolio work, exhibitions, performances, grants, and creative collaborations alongside traditional academic metrics.'
     };
 
-    let prompt = `Create a professional academic CV for the ${cvData.template.replace('_', ' ')} field. 
+    let prompt = `Create a professional academic CV for the ${cvData.template.replace('_', ' ')} field using this EXACT FORMAT:
 
-TEMPLATE GUIDANCE: ${templateGuides[cvData.template as keyof typeof templateGuides]}
+${cvData.personalInfo.fullName.toUpperCase()}
+${cvData.personalInfo.address || 'Address'}
+${cvData.personalInfo.phone || 'Phone'} | ${cvData.personalInfo.email}${cvData.personalInfo.website ? ' | ' + cvData.personalInfo.website : ''}
 
-PERSONAL INFORMATION:
-Name: ${cvData.personalInfo.fullName}
-Email: ${cvData.personalInfo.email}
-Phone: ${cvData.personalInfo.phone || 'Not provided'}
-Address: ${cvData.personalInfo.address || 'Not provided'}`;
+_______________________________________________________________________________
 
-    if (cvData.personalInfo.website) {
-        prompt += `\nWebsite: ${cvData.personalInfo.website}`;
-    }
+EDUCATION`;
 
     // Education Section
     if (cvData.education && cvData.education.length > 0) {
-        prompt += `\n\nEDUCATION:`;
         cvData.education.forEach((edu: any) => {
             if (edu.degree && edu.institution) {
-                prompt += `\n- ${edu.degree}, ${edu.institution}`;
+                prompt += `\n• ${edu.degree}, ${edu.institution}`;
                 if (edu.year) prompt += ` (${edu.year})`;
-                if (edu.gpa) prompt += ` - GPA: ${edu.gpa}`;
+                if (edu.gpa) prompt += `\n  GPA: ${edu.gpa}`;
                 if (edu.thesis) prompt += `\n  Thesis: "${edu.thesis}"`;
                 if (edu.advisor) prompt += `\n  Advisor: ${edu.advisor}`;
             }
         });
     }
 
+    prompt += `\n\n_______________________________________________________________________________
+
+RESEARCH EXPERIENCE & INTERESTS`;
+
     // Research Experience
     if (cvData.research && cvData.research.length > 0) {
-        prompt += `\n\nRESEARCH EXPERIENCE:`;
         cvData.research.forEach((research: any) => {
             if (research.title) {
-                prompt += `\n- ${research.title}`;
-                if (research.institution) prompt += ` - ${research.institution}`;
+                prompt += `\n• ${research.title}`;
+                if (research.institution) prompt += `, ${research.institution}`;
                 if (research.duration) prompt += ` (${research.duration})`;
                 if (research.supervisor) prompt += `\n  Supervisor: ${research.supervisor}`;
                 if (research.description) prompt += `\n  ${research.description}`;
@@ -91,22 +89,26 @@ Address: ${cvData.personalInfo.address || 'Not provided'}`;
         });
     }
 
-    // Publications
+    // Publications Section
     if (cvData.publications && cvData.publications.length > 0) {
-        prompt += `\n\nPUBLICATIONS:`;
+        prompt += `\n\n_______________________________________________________________________________
+
+PUBLICATIONS`;
         cvData.publications.forEach((pub: any) => {
             if (pub.citation) {
-                prompt += `\n- [${pub.type.toUpperCase()}] ${pub.citation} (${pub.year})`;
+                prompt += `\n• ${pub.citation} (${pub.year})`;
             }
         });
     }
 
     // Professional Experience
     if (cvData.experience && cvData.experience.length > 0) {
-        prompt += `\n\nPROFESSIONAL EXPERIENCE:`;
+        prompt += `\n\n_______________________________________________________________________________
+
+RELEVANT WORK EXPERIENCE`;
         cvData.experience.forEach((exp: any) => {
             if (exp.title && exp.organization) {
-                prompt += `\n- ${exp.title} - ${exp.organization}`;
+                prompt += `\n• ${exp.title}, ${exp.organization}`;
                 if (exp.duration) prompt += ` (${exp.duration})`;
                 if (exp.description) prompt += `\n  ${exp.description}`;
             }
@@ -115,47 +117,55 @@ Address: ${cvData.personalInfo.address || 'Not provided'}`;
 
     // Awards and Honors
     if (cvData.awards && cvData.awards.length > 0) {
-        prompt += `\n\nAWARDS AND HONORS:`;
+        prompt += `\n\n_______________________________________________________________________________
+
+HONORS AND AWARDS`;
         cvData.awards.forEach((award: any) => {
             if (award.title) {
-                prompt += `\n- ${award.title}`;
-                if (award.organization) prompt += ` - ${award.organization}`;
+                prompt += `\n• ${award.title}`;
+                if (award.organization) prompt += `, ${award.organization}`;
                 if (award.year) prompt += ` (${award.year})`;
-                if (award.amount) prompt += ` - ${award.amount}`;
             }
         });
     }
 
     // Skills
-    if (cvData.skills) {
+    if (cvData.skills && (cvData.skills.technical?.length > 0 || cvData.skills.software?.length > 0)) {
+        prompt += `\n\n_______________________________________________________________________________
+
+TECHNICAL SKILLS`;
         if (cvData.skills.technical && cvData.skills.technical.length > 0) {
-            prompt += `\n\nTECHNICAL SKILLS: ${cvData.skills.technical.join(', ')}`;
+            prompt += `\n${cvData.skills.technical.join(', ')}`;
         }
         if (cvData.skills.software && cvData.skills.software.length > 0) {
-            prompt += `\n\nSOFTWARE & TOOLS: ${cvData.skills.software.join(', ')}`;
-        }
-        if (cvData.skills.languages && cvData.skills.languages.length > 0) {
-            prompt += `\n\nLANGUAGES: ${cvData.skills.languages.join(', ')}`;
+            prompt += `\n\nSOFTWARE & TOOLS\n${cvData.skills.software.join(', ')}`;
         }
     }
 
-    // Custom requests
-    if (cvData.customRequests) {
-        prompt += `\n\nADDITIONAL INSTRUCTIONS: ${cvData.customRequests}`;
+    // Languages
+    if (cvData.skills && cvData.skills.languages && cvData.skills.languages.length > 0) {
+        prompt += `\n\n_______________________________________________________________________________
+
+LANGUAGES SPOKEN\n${cvData.skills.languages.join(', ')}`;
     }
 
-    prompt += `\n\nPlease create a well-formatted, professional academic CV following these guidelines:
-1. Use clear section headers and consistent formatting
-2. Prioritize sections based on the ${cvData.template.replace('_', ' ')} field conventions
-3. Include proper academic formatting (reverse chronological order for education/experience)
-4. Use action verbs and quantify achievements where possible
-5. Maintain professional tone appropriate for academic contexts
-6. Format for clarity and easy scanning by academic committees
-7. Include all provided information in appropriate sections
-8. Add any missing standard sections that would be expected in this field
-9. Ensure the CV is polished and ready for academic applications
+    prompt += `\n\n_______________________________________________________________________________
 
-Format the output as a clean, professional CV that can be easily copied and pasted.`;
+REFERENCES\nAvailable on request
+
+FORMATTING INSTRUCTIONS:
+1. Use the EXACT format shown above with underscores as section dividers
+2. Keep it single-column, clean, and professional
+3. Use bullet points (•) for each entry
+4. Maintain consistent spacing and indentation
+5. Put institution/organization names after titles, separated by commas
+6. Include dates in parentheses at the end of entries
+7. Use proper academic formatting conventions
+8. Keep the header simple with name in ALL CAPS
+9. End with "References: Available on request"
+10. Field-specific guidance: ${templateGuides[cvData.template as keyof typeof templateGuides]}
+
+Generate a clean, professional academic CV that follows this exact formatting structure.`;
 
     return prompt;
 } 

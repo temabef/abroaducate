@@ -1,5 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import { OPENAI_API_KEY } from '$env/static/private';
 
 export const POST: RequestHandler = async ({ request, locals: { supabase } }) => {
     const { data: { session }, error: sessionError } = await supabase.auth.getSession();
@@ -110,7 +111,7 @@ Respond with a valid JSON object in this exact format:`;
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+                'Authorization': `Bearer ${OPENAI_API_KEY}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({

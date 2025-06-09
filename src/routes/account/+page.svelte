@@ -150,6 +150,74 @@
                 </div>
             </div>
             
+            <!-- Feature Usage & Limits -->
+            <div class="account-section">
+                <div class="section-header">
+                    <h2>📊 Feature Usage & Limits</h2>
+                </div>
+                <div class="usage-grid">
+                    <div class="usage-card">
+                        <div class="usage-header">
+                            <h3>📝 Document Generation</h3>
+                            <span class="usage-period">This Month</span>
+                        </div>
+                        <div class="usage-items">
+                            <div class="usage-item">
+                                <span class="usage-label">SOPs Created</span>
+                                <div class="usage-bar">
+                                    <div class="usage-progress" style="width: {getUsagePercentage(usage?.sops_created || 0, planLimits?.sops_limit)}%"></div>
+                                </div>
+                                <span class="usage-text">{usage?.sops_created || 0} / {planLimits?.sops_limit || '∞'}</span>
+                            </div>
+                            <div class="usage-item">
+                                <span class="usage-label">Cover Letters</span>
+                                <div class="usage-bar">
+                                    <div class="usage-progress" style="width: {getUsagePercentage(usage?.cover_letters_created || 0, planLimits?.cover_letters_limit)}%"></div>
+                                </div>
+                                <span class="usage-text">{usage?.cover_letters_created || 0} / {planLimits?.cover_letters_limit || '∞'}</span>
+                            </div>
+                            <div class="usage-item">
+                                <span class="usage-label">Personal Statements</span>
+                                <div class="usage-bar">
+                                    <div class="usage-progress" style="width: {getUsagePercentage(usage?.personal_statements_created || 0, planLimits?.personal_statements_limit)}%"></div>
+                                </div>
+                                <span class="usage-text">{usage?.personal_statements_created || 0} / {planLimits?.personal_statements_limit || '∞'}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="usage-card">
+                        <div class="usage-header">
+                            <h3>🤖 AI Features</h3>
+                            <span class="usage-period">This Month</span>
+                        </div>
+                        <div class="usage-items">
+                            <div class="usage-item">
+                                <span class="usage-label">Inline Edits</span>
+                                <div class="usage-bar">
+                                    <div class="usage-progress" style="width: {getUsagePercentage(usage?.inline_edits_used || 0, planLimits?.inline_edits_limit)}%"></div>
+                                </div>
+                                <span class="usage-text">{usage?.inline_edits_used || 0} / {planLimits?.inline_edits_limit || '∞'}</span>
+                            </div>
+                            <div class="usage-item">
+                                <span class="usage-label">AI Reviews</span>
+                                <div class="usage-bar">
+                                    <div class="usage-progress" style="width: {getUsagePercentage(usage?.ai_reviews_used || 0, planLimits?.ai_reviews_limit)}%"></div>
+                                </div>
+                                <span class="usage-text">{usage?.ai_reviews_used || 0} / {planLimits?.ai_reviews_limit || '∞'}</span>
+                            </div>
+                            <div class="usage-item">
+                                <span class="usage-label">Word Optimizations</span>
+                                <div class="usage-bar">
+                                    <div class="usage-progress" style="width: {getUsagePercentage(usage?.word_optimizations_used || 0, planLimits?.word_optimizations_limit)}%"></div>
+                                </div>
+                                <span class="usage-text">{usage?.word_optimizations_used || 0} / {planLimits?.word_optimizations_limit || '∞'}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Current Subscription -->
             <div class="account-section">
                 <div class="section-header">

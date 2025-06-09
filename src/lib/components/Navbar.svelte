@@ -219,6 +219,13 @@
                 <div class="text-sm text-gray-500">Perfect word count</div>
               </div>
             </a>
+            <a href="/cold-email-generator" class="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition duration-200">
+              <span class="text-lg mr-3">📧</span>
+              <div>
+                <div class="font-medium">Cold Email Generator</div>
+                <div class="text-sm text-gray-500">Reach out to professors</div>
+              </div>
+            </a>
           </div>
         {/if}
       </div>
@@ -334,6 +341,7 @@
             <a href="/sop-review" class="block py-2 text-gray-300 hover:text-white transition duration-300">🔍 Document Review</a>
             <a href="/text-enhancement" class="block py-2 text-gray-300 hover:text-white transition duration-300">✨ Text Enhancement</a>
             <a href="/word-optimization" class="block py-2 text-gray-300 hover:text-white transition duration-300">📊 Word Optimization</a>
+            <a href="/cold-email-generator" class="block py-2 text-gray-300 hover:text-white transition duration-300">📧 Cold Email Generator</a>
           </div>
         </details>
 

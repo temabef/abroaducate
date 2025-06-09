@@ -1,5 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import { OPENAI_API_KEY } from '$env/static/private';
 
 export const POST: RequestHandler = async ({ request, locals: { supabase } }) => {
     const { data: { session }, error: sessionError } = await supabase.auth.getSession();
@@ -18,19 +19,94 @@ export const POST: RequestHandler = async ({ request, locals: { supabase } }) =>
         // Generate cover letter using AI
         const generatedCoverLetter = await generateCoverLetterWithAI(coverLetterData);
         
+        // Save to database
+        console.log('Attempting to save cover letter to database...');
+        console.log('User ID:', session.user.id);
+        console.log('Cover letter data keys:', Object.keys(coverLetterData));
+        
+        const insertData = {
+            user_id: session.user.id,
+            position_type: coverLetterData.positionType,
+            job_title: coverLetterData.jobTitle,
+            company_name: coverLetterData.companyName,
+            application_deadline: coverLetterData.applicationDeadline || null,
+            form_data: coverLetterData,
+            generated_content: generatedCoverLetter,
+            word_count: generatedCoverLetter.split(/\s+/).length,
+            status: 'draft',
+            version: 1,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+        };
+        
+        console.log('Insert data prepared:', Object.keys(insertData));
+        
+        const { data: savedCoverLetter, error: saveError } = await supabase
+            .from('cover_letters')
+            .insert(insertData)
+            .select('id')
+            .single();
+            
+        if (saveError) {
+            console.error('Database save error:', saveError);
+            console.error('Save error details:', JSON.stringify(saveError, null, 2));
+            throw new Error(`Database save failed: ${saveError.message || JSON.stringify(saveError)}`);
+        }
+        
+        console.log('Cover letter saved successfully with ID:', savedCoverLetter?.id);
+
+        // Log analytics
+        console.log('Attempting to log analytics...');
+        const { error: analyticsError } = await supabase
+            .from('cover_letter_analytics')
+            .insert({
+                user_id: session.user.id,
+                cover_letter_id: savedCoverLetter.id,
+                action_type: 'created',
+                session_data: {
+                    position_type: coverLetterData.positionType,
+                    word_count: generatedCoverLetter.split(/\s+/).length,
+                    generation_method: 'ai_generated'
+                },
+                created_at: new Date().toISOString()
+            });
+            
+        if (analyticsError) {
+            console.error('Analytics logging error:', analyticsError);
+            console.error('Analytics error details:', JSON.stringify(analyticsError, null, 2));
+            // Don't throw here - analytics failure shouldn't break the main flow
+        } else {
+            console.log('Analytics logged successfully');
+        }
+        
         return json({
             success: true,
-            coverLetter: generatedCoverLetter
+            coverLetter: generatedCoverLetter,
+            coverLetterId: savedCoverLetter.id
         });
         
     } catch (error) {
         console.error('Error generating cover letter:', error);
-        return json({ error: 'Failed to generate cover letter' }, { status: 500 });
+        const errorDetails = error instanceof Error ? {
+            message: error.message,
+            stack: error.stack,
+            name: error.name
+        } : { message: JSON.stringify(error) };
+        console.error('Error details:', errorDetails);
+        console.error('Full error object:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
+        return json({ 
+            error: 'Failed to generate cover letter',
+            details: errorDetails.message || 'Unknown error occurred'
+        }, { status: 500 });
     }
 };
 
 async function generateCoverLetterWithAI(data: any): Promise<string> {
     const { positionType, jobTitle, companyName, personalInfo, positionDetails, jobDescription, customRequests } = data;
+    
+    // Debug: Check if API key is available
+    console.log('OPENAI_API_KEY available:', !!OPENAI_API_KEY);
+    console.log('OPENAI_API_KEY length:', OPENAI_API_KEY ? OPENAI_API_KEY.length : 0);
     
     // Create position-specific prompts
     const basePrompt = `You are an expert career advisor and professional writer specializing in creating compelling cover letters. Create a professional, personalized cover letter that stands out.`;
@@ -84,7 +160,7 @@ async function generateCoverLetterWithAI(data: any): Promise<string> {
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+                'Authorization': `Bearer ${OPENAI_API_KEY}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
@@ -105,16 +181,34 @@ async function generateCoverLetterWithAI(data: any): Promise<string> {
         });
         
         if (!response.ok) {
-            throw new Error(`OpenAI API error: ${response.status}`);
+            const errorText = await response.text();
+            console.error('OpenAI API error details:', {
+                status: response.status,
+                statusText: response.statusText,
+                errorText: errorText
+            });
+            throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
         }
         
         const aiResponse = await response.json();
+        console.log('OpenAI response received:', !!aiResponse.choices);
+        
+        if (!aiResponse.choices || !aiResponse.choices[0] || !aiResponse.choices[0].message) {
+            console.error('Invalid OpenAI response structure:', aiResponse);
+            throw new Error('Invalid response from OpenAI API');
+        }
+        
         return aiResponse.choices[0].message.content.trim();
         
     } catch (error) {
         console.error('OpenAI API error:', error);
-        // Fallback to template-based generation
-        return generateFallbackCoverLetter(data);
+        const errorDetails = error instanceof Error ? {
+            message: error.message,
+            name: error.name
+        } : { message: String(error) };
+        console.error('OpenAI Error details:', errorDetails);
+        // For now, let's throw the error to see what's happening instead of falling back
+        throw error;
     }
 }
 

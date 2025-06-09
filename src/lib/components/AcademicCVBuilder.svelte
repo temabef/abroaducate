@@ -279,6 +279,68 @@
             alert('Failed to copy. Please select and copy manually.');
         }
     }
+
+    async function exportToPDF() {
+        try {
+            const response = await fetch('/api/export-pdf', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    content: generatedCV,
+                    title: `${cvData.personalInfo.fullName}_Academic_CV`,
+                    type: 'cv'
+                })
+            });
+
+            if (response.ok) {
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${cvData.personalInfo.fullName}_Academic_CV.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            } else {
+                throw new Error('Failed to export PDF');
+            }
+        } catch (error) {
+            console.error('Error exporting PDF:', error);
+            alert('Failed to export PDF. Please try again.');
+        }
+    }
+
+    async function exportToWord() {
+        try {
+            const response = await fetch('/api/export-word', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    content: generatedCV,
+                    title: `${cvData.personalInfo.fullName}_Academic_CV`,
+                    type: 'cv'
+                })
+            });
+
+            if (response.ok) {
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${cvData.personalInfo.fullName}_Academic_CV.docx`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            } else {
+                throw new Error('Failed to export Word document');
+            }
+        } catch (error) {
+            console.error('Error exporting Word:', error);
+            alert('Failed to export Word document. Please try again.');
+        }
+    }
     
     function getStepTitle(step: number): string {
         const titles = {
@@ -326,10 +388,10 @@
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
                     {#each cvTemplates as template}
-                        <label class={`relative overflow-hidden rounded-lg border-2 cursor-pointer transition-all ${
+                        <label class={`relative overflow-hidden rounded-lg border-3 cursor-pointer transition-all ${
                             cvData.template === template.value 
-                                ? 'border-indigo-500 ring-2 ring-indigo-200' 
-                                : 'border-gray-200 hover:border-gray-300'
+                                ? 'border-indigo-600 ring-4 ring-indigo-300 shadow-lg transform scale-105' 
+                                : 'border-gray-200 hover:border-gray-400 hover:shadow-md'
                         }`}>
                             <input 
                                 type="radio" 
@@ -950,12 +1012,24 @@
             <div class="p-6">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-xl font-bold text-gray-900">Your Academic CV</h3>
-                    <div class="flex gap-2">
+                    <div class="flex gap-2 flex-wrap">
                         <button
                             onclick={copyCV}
-                            class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
+                            class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium text-sm"
                         >
-                            📋 Copy to Clipboard
+                            📋 Copy
+                        </button>
+                        <button
+                            onclick={exportToPDF}
+                            class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium text-sm"
+                        >
+                            📄 PDF
+                        </button>
+                        <button
+                            onclick={exportToWord}
+                            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
+                        >
+                            📝 Word
                         </button>
                     </div>
                 </div>
@@ -991,20 +1065,20 @@
                     <div></div>
                 {/if}
                 
-                <button
-                    onclick={nextStep}
-                    disabled={
-                        (currentStep === 1 && (!cvData.personalInfo.fullName || !cvData.personalInfo.email)) ||
-                        (currentStep === 2 && !cvData.education.some(e => e.degree && e.institution))
-                    }
-                    class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                    {#if currentStep === totalSteps}
-                        Review →
-                    {:else}
+                {#if currentStep < totalSteps}
+                    <button
+                        onclick={nextStep}
+                        disabled={
+                            (currentStep === 1 && (!cvData.personalInfo.fullName || !cvData.personalInfo.email)) ||
+                            (currentStep === 2 && !cvData.education.some(e => e.degree && e.institution))
+                        }
+                        class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
                         Next →
-                    {/if}
-                </button>
+                    </button>
+                {:else}
+                    <div></div>
+                {/if}
             </div>
         {/if}
     </div>
@@ -1023,5 +1097,14 @@
     @keyframes spin {
         from { transform: rotate(0deg); }
         to { transform: rotate(360deg); }
+    }
+    
+    /* Enhanced selection styling */
+    .border-3 {
+        border-width: 3px;
+    }
+    
+    label {
+        transition: all 0.3s ease-in-out;
     }
 </style> 

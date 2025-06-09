@@ -168,6 +168,7 @@
             <div class="flex items-center gap-2">
                 <button
                     onclick={() => navigateMonth('prev')}
+                    aria-label="Previous month"
                     class="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
                 >
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -177,6 +178,7 @@
                 
                 <button
                     onclick={() => navigateMonth('next')}
+                    aria-label="Next month"
                     class="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
                 >
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -188,6 +190,7 @@
         
         <button
             onclick={goToToday}
+            aria-label="Go to today"
             class="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
         >
             Today
@@ -217,7 +220,11 @@
                     class={`min-h-[120px] p-2 border-b border-r border-gray-200 cursor-pointer transition-colors ${
                         isCurrentMonth ? 'bg-white hover:bg-gray-50' : 'bg-gray-50'
                     } ${isSelected ? 'bg-blue-50 ring-2 ring-blue-500' : ''}`}
+                    role="button"
+                    tabindex="0"
+                    aria-label={`${format(day, 'MMMM d, yyyy')} - ${dayEvents.length} events`}
                     onclick={() => selectDate(day)}
+                    onkeydown={(e) => e.key === 'Enter' || e.key === ' ' ? selectDate(day) : null}
                     onmouseenter={() => hoveredDate = day}
                     onmouseleave={() => hoveredDate = null}
                 >

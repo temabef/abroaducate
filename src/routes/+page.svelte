@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  
+
   let { data } = $props();
   let { session, supabase } = $derived(data);
 
@@ -201,7 +201,7 @@
           <div class="text-4xl mb-4">🤖</div>
           <h3 class="text-2xl font-bold text-gray-900 mb-4">AI Tools</h3>
           <p class="text-gray-600 mb-6">
-            Enhance your documents with AI-powered review, text optimization, and word count management
+            Enhance your documents and outreach with AI-powered review, text optimization, and professional emails
           </p>
           <ul class="space-y-2 mb-6">
             <li class="flex items-center text-gray-700">
@@ -212,7 +212,7 @@
             </li>
             <li class="flex items-center text-gray-700">
               <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7-293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
               </svg>
               Text Enhancement
             </li>
@@ -220,10 +220,10 @@
               <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
               </svg>
-              Word Optimization
+              Cold Email Generator
             </li>
           </ul>
-          <a href="/sop-review" class="bg-purple-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-purple-700 transition duration-300 inline-block">
+          <a href="/cold-email-generator" class="bg-purple-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-purple-700 transition duration-300 inline-block">
             Try AI Tools →
           </a>
         </div>
