@@ -1,0 +1,689 @@
+<script lang="ts">
+  import { onMount } from 'svelte';
+  
+  let { data } = $props();
+  let { supabase, session } = $derived(data);
+
+  interface Scholarship {
+    id: string;
+    title: string;
+    provider: string;
+    amount: string;
+    deadline: string;
+    location: string;
+    field: string;
+    level: string;
+    type: string;
+    description: string;
+    requirements: string[];
+    website?: string;
+    min_gpa?: number;
+    min_ielts?: number;
+    min_toefl?: number;
+    age_limit?: number;
+    nationality_restrictions?: string[];
+    is_active: boolean;
+    created_at?: string;
+    updated_at?: string;
+    // Graduate funding fields
+    funding_category?: string;
+    university_name?: string;
+    program_name?: string;
+    department?: string;
+    funding_type?: string;
+    application_method?: string;
+    professor_name?: string;
+    professor_email?: string;
+    position_details?: string;
+    has_automatic_funding?: boolean;
+    // UI state
+    applied?: boolean;
+    saved?: boolean;
+    matchScore?: number;
+  }
+
+  // Database state
+  let allScholarships: Scholarship[] = $state([]);
+  let isLoading = $state(true);
+  let error = $state('');
+
+  // Display state  
+  let filteredScholarships: Scholarship[] = $state([]);
+  let displayScholarships: Scholarship[] = $state([]);
+  let totalPages = $state(0);
+  let searchQuery = $state('');
+  let filters = $state({
+    location: '',
+    level: '',
+    field: '',
+    type: '',
+    amount: '',
+    deadline: '',
+    funding_category: ''
+  });
+  let sortBy = $state('created_at');
+  let viewMode = $state('all'); // 'all', 'saved', 'applied'
+  let showFilters = $state(false);
+
+  // Pagination state
+  let currentPage = $state(1);
+  let itemsPerPage = $state(10);
+
+  // Function to get filtered scholarships based on current state
+  function getFilteredScholarships(): Scholarship[] {
+    let filtered = [...allScholarships];
+    
+    console.log('🔍 Filtering - Mode:', viewMode, 'Total:', allScholarships.length);
+
+    // Apply view mode filter
+    if (viewMode === 'saved') {
+      filtered = filtered.filter(s => s.saved);
+      console.log('📋 Saved filter result:', filtered.length);
+    } else if (viewMode === 'applied') {
+      filtered = filtered.filter(s => s.applied);
+      console.log('✅ Applied filter result:', filtered.length);
+    }
+
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(s => 
+        s.title.toLowerCase().includes(query) ||
+        s.provider.toLowerCase().includes(query) ||
+        s.field.toLowerCase().includes(query) ||
+        s.location.toLowerCase().includes(query) ||
+        s.description.toLowerCase().includes(query)
+      );
+    }
+
+    // Apply other filters
+    if (filters.location) {
+      filtered = filtered.filter(s => s.location.toLowerCase().includes(filters.location.toLowerCase()));
+    }
+    if (filters.level) {
+      filtered = filtered.filter(s => s.level.toLowerCase().includes(filters.level.toLowerCase()));
+    }
+    if (filters.field) {
+      filtered = filtered.filter(s => s.field.toLowerCase().includes(filters.field.toLowerCase()));
+    }
+    if (filters.type) {
+      filtered = filtered.filter(s => s.type.toLowerCase().includes(filters.type.toLowerCase()));
+    }
+    if (filters.funding_category) {
+      filtered = filtered.filter(s => 
+        (s.funding_category || 'Traditional Scholarship') === filters.funding_category
+      );
+    }
+
+    // Apply sorting
+    filtered.sort((a, b) => {
+      if (sortBy === 'matchScore') return (b.matchScore || 0) - (a.matchScore || 0);
+      if (sortBy === 'deadline') return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
+      if (sortBy === 'title') return a.title.localeCompare(b.title);
+      if (sortBy === 'created_at') return new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime();
+      return 0;
+    });
+
+    return filtered;
+  }
+
+  // Update what scholarships to display for current page
+  function updateDisplayScholarships() {
+    totalPages = Math.ceil(filteredScholarships.length / itemsPerPage);
+    if (currentPage > totalPages && totalPages > 0) {
+      currentPage = 1;
+    }
+    
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    displayScholarships = filteredScholarships.slice(startIndex, endIndex);
+    
+    console.log('📄 Display updated - Page:', currentPage, 'Showing:', displayScholarships.length);
+  }
+
+  // Update filtered scholarships (called by reactive effects)
+  function updateFiltered() {
+    filteredScholarships = getFilteredScholarships();
+    updateDisplayScholarships();
+  }
+
+  // Simple function to switch view modes
+  function switchViewMode(newMode: string) {
+    console.log('🔄 View Mode Change:', viewMode, '->', newMode);
+    viewMode = newMode;
+    currentPage = 1;
+    
+    // Trigger immediate filtering
+    updateFiltered();
+    
+    console.log('✅ View mode switched to:', viewMode, 'Results:', filteredScholarships.length);
+  }
+
+  async function loadScholarships() {
+    isLoading = true;
+    error = '';
+    
+    try {
+      const { data: scholarshipData, error: fetchError } = await supabase
+        .from('scholarships')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+
+      if (fetchError) {
+        console.error('Error loading scholarships:', fetchError);
+        error = 'Failed to load scholarships. Please try again.';
+      } else {
+        // Add UI state properties
+        allScholarships = (scholarshipData || []).map(scholarship => ({
+          ...scholarship,
+          applied: false,
+          saved: false,
+          matchScore: Math.floor(Math.random() * 40) + 60 // Random score 60-100 for demo
+        }));
+        
+        // Initial filtering after loading
+        updateFiltered();
+      }
+    } catch (err) {
+      console.error('Error:', err);
+      error = 'Failed to load scholarships. Please try again.';
+    } finally {
+      isLoading = false;
+    }
+  }
+
+  // Auto-update filtering when dependencies change
+  $effect(() => {
+    if (allScholarships.length > 0) {
+      console.log('🔄 Auto-filtering triggered:', {
+        viewMode,
+        searchQuery: searchQuery.length,
+        filtersActive: Object.values(filters).some(f => f.length > 0),
+        sortBy
+      });
+      updateFiltered();
+    }
+  });
+
+  // Reset to page 1 when filters change  
+  $effect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      currentPage = 1;
+    }
+  });
+
+  onMount(async () => {
+    await loadScholarships();
+  });
+
+  function goToPage(page: number) {
+    if (page >= 1 && page <= totalPages) {
+      currentPage = page;
+    }
+  }
+
+  function nextPage() {
+    if (currentPage < totalPages) {
+      currentPage++;
+    }
+  }
+
+  function prevPage() {
+    if (currentPage > 1) {
+      currentPage--;
+    }
+  }
+
+  function toggleSaved(scholarshipId: string) {
+    const scholarship = allScholarships.find(s => s.id === scholarshipId);
+    if (scholarship) {
+      scholarship.saved = !scholarship.saved;
+      allScholarships = [...allScholarships]; // Trigger reactivity
+    }
+  }
+
+  function applyToScholarship(scholarshipId: string) {
+    const scholarship = allScholarships.find(s => s.id === scholarshipId);
+    if (scholarship) {
+      // Open external application website
+      if (scholarship.website) {
+        window.open(scholarship.website, '_blank');
+      }
+      
+      // Mark as applied and saved
+      scholarship.applied = true;
+      scholarship.saved = true;
+      allScholarships = [...allScholarships]; // Trigger reactivity
+    }
+  }
+
+  function unapplyToScholarship(scholarshipId: string) {
+    const scholarship = allScholarships.find(s => s.id === scholarshipId);
+    if (scholarship) {
+      scholarship.applied = false;
+      allScholarships = [...allScholarships]; // Trigger reactivity
+    }
+  }
+
+  function getDeadlineStatus(deadline: string) {
+    const deadlineDate = new Date(deadline);
+    const today = new Date();
+    const diffTime = deadlineDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 0) return { text: 'Expired', class: 'bg-red-100 text-red-800' };
+    if (diffDays <= 7) return { text: `${diffDays} day${diffDays === 1 ? '' : 's'} left`, class: 'bg-red-100 text-red-800' };
+    if (diffDays <= 30) return { text: `${diffDays} days left`, class: 'bg-yellow-100 text-yellow-800' };
+    return { text: `${diffDays} days left`, class: 'bg-green-100 text-green-800' };
+  }
+
+  function getMatchScoreColor(score: number) {
+    if (score >= 90) return 'text-green-600';
+    if (score >= 75) return 'text-yellow-600';
+    return 'text-gray-600';
+  }
+</script>
+
+<svelte:head>
+  <title>Scholarships - Abroaducate</title>
+  <meta name="description" content="Browse thousands of scholarships and funding opportunities for your academic journey." />
+</svelte:head>
+
+<div class="min-h-screen bg-gray-50 pt-16">
+  <!-- Header -->
+  <div class="bg-white shadow-sm border-b">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">Scholarship Opportunities</h1>
+          <p class="text-gray-600 mt-1">
+            {isLoading ? 'Loading...' : `${filteredScholarships.length} scholarships available`}
+          </p>
+        </div>
+        
+        <div class="flex items-center gap-4">
+          <button
+            onclick={() => loadScholarships()}
+            class="bg-yellow-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-yellow-700 transition duration-200"
+          >
+            🔄 Refresh
+          </button>
+          <button
+            onclick={() => showFilters = !showFilters}
+            class="bg-gray-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-gray-700 transition duration-200"
+          >
+            {showFilters ? 'Hide' : 'Show'} Filters
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    {#if error}
+      <div class="mb-6 p-4 bg-red-100 border border-red-300 rounded-lg">
+        <p class="text-red-800">{error}</p>
+        <button 
+          onclick={() => loadScholarships()}
+          class="mt-2 text-red-600 hover:text-red-800 underline"
+        >
+          Try Again
+        </button>
+      </div>
+    {/if}
+
+    <!-- Search and View Mode -->
+    <div class="mb-6 space-y-4">
+      <!-- Search Bar -->
+      <div class="flex flex-col sm:flex-row gap-4">
+        <div class="flex-1">
+          <input
+            type="text"
+            bind:value={searchQuery}
+            placeholder="Search scholarships by title, provider, field, or location..."
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+          />
+        </div>
+        <div class="flex gap-2">
+          <select
+            bind:value={sortBy}
+            class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+          >
+            <option value="created_at">Latest First</option>
+            <option value="matchScore">Best Match</option>
+            <option value="deadline">Deadline</option>
+            <option value="title">Title A-Z</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- View Mode Tabs -->
+      <div class="flex space-x-1 bg-gray-100 p-1 rounded-lg w-fit">
+        <button
+          onclick={() => switchViewMode('all')}
+          class="px-4 py-2 rounded-md text-sm font-medium transition-colors {viewMode === 'all' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'}"
+        >
+          All ({allScholarships.length})
+        </button>
+        <button
+          onclick={() => switchViewMode('saved')}
+          class="px-4 py-2 rounded-md text-sm font-medium transition-colors {viewMode === 'saved' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'}"
+        >
+          Saved ({allScholarships.filter(s => s.saved).length})
+        </button>
+        <button
+          onclick={() => switchViewMode('applied')}
+          class="px-4 py-2 rounded-md text-sm font-medium transition-colors {viewMode === 'applied' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'}"
+        >
+          Applied ({allScholarships.filter(s => s.applied).length})
+        </button>
+      </div>
+    </div>
+
+    <!-- Filters Panel -->
+    {#if showFilters}
+      <div class="mb-6 p-6 bg-white rounded-lg shadow-sm border">
+        <h3 class="text-lg font-semibold mb-4">Filters</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div>
+            <label for="filter-funding-category" class="block text-sm font-medium text-gray-700 mb-1">Funding Category</label>
+            <select
+              id="filter-funding-category"
+              bind:value={filters.funding_category}
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+            >
+              <option value="">All Categories</option>
+              <option value="Traditional Scholarship">🏆 Traditional Scholarship</option>
+              <option value="Graduate Program Funding">🎓 Graduate Program</option>
+              <option value="Advertised Position">🔬 Research Position</option>
+            </select>
+          </div>
+          <div>
+            <label for="filter-location" class="block text-sm font-medium text-gray-700 mb-1">Location</label>
+            <input
+              id="filter-location"
+              type="text"
+              bind:value={filters.location}
+              placeholder="e.g., United States"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+            />
+          </div>
+          <div>
+            <label for="filter-level" class="block text-sm font-medium text-gray-700 mb-1">Level</label>
+            <select
+              id="filter-level"
+              bind:value={filters.level}
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+            >
+              <option value="">All Levels</option>
+              <option value="Bachelor">Bachelor's</option>
+              <option value="Master">Master's</option>
+              <option value="PhD">PhD</option>
+              <option value="Graduate">Graduate</option>
+            </select>
+          </div>
+          <div>
+            <label for="filter-field" class="block text-sm font-medium text-gray-700 mb-1">Field</label>
+            <input
+              id="filter-field"
+              type="text"
+              bind:value={filters.field}
+              placeholder="e.g., Engineering"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+            />
+          </div>
+          <div>
+            <label for="filter-type" class="block text-sm font-medium text-gray-700 mb-1">Type</label>
+            <select
+              id="filter-type"
+              bind:value={filters.type}
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+            >
+              <option value="">All Types</option>
+              <option value="Merit-based">Merit-based</option>
+              <option value="Research-based">Research-based</option>
+              <option value="Need-based">Need-based</option>
+              <option value="Field-specific">Field-specific</option>
+            </select>
+          </div>
+        </div>
+        <div class="mt-4 flex gap-4">
+          <button
+            onclick={() => { 
+              filters = { location: '', level: '', field: '', type: '', amount: '', deadline: '', funding_category: '' };
+              searchQuery = '';
+            }}
+            class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition duration-200"
+          >
+            Clear All Filters
+          </button>
+        </div>
+      </div>
+    {/if}
+
+    <!-- Loading State -->
+    {#if isLoading}
+      <div class="text-center py-12">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-600 mx-auto"></div>
+        <p class="mt-4 text-gray-600">Loading scholarships...</p>
+      </div>
+
+    <!-- Empty State -->
+    {:else if displayScholarships.length === 0}
+      <div class="text-center py-12">
+        <h3 class="text-lg font-medium text-gray-900 mb-2">No scholarships found</h3>
+        <p class="text-gray-600 mb-4">
+          {filteredScholarships.length === 0 && allScholarships.length > 0 
+            ? 'Try adjusting your search or filters.' 
+            : 'No scholarships available at the moment.'}
+        </p>
+        {#if filteredScholarships.length === 0 && allScholarships.length > 0}
+          <button
+            onclick={() => { 
+              filters = { location: '', level: '', field: '', type: '', amount: '', deadline: '', funding_category: '' };
+              searchQuery = '';
+            }}
+            class="text-yellow-600 hover:text-yellow-700 underline"
+          >
+            Clear all filters
+          </button>
+        {/if}
+      </div>
+
+    <!-- Scholarship Grid -->
+    {:else}
+      <div class="space-y-6">
+        <!-- Pagination Info -->
+        <div class="flex items-center justify-between">
+          <p class="text-sm text-gray-600">
+            Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filteredScholarships.length)} of {filteredScholarships.length} scholarships
+          </p>
+          <div class="text-sm text-gray-600">
+            Page {currentPage} of {totalPages}
+          </div>
+        </div>
+
+        <!-- Scholarship Cards -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {#each displayScholarships as scholarship (scholarship.id)}
+            <div class="bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow duration-200">
+              <div class="p-6">
+                <!-- Funding Category Badge -->
+                {#if scholarship.funding_category && scholarship.funding_category !== 'Traditional Scholarship'}
+                  <div class="mb-3">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                      {scholarship.funding_category === 'Graduate Program Funding' 
+                        ? 'bg-blue-100 text-blue-800' 
+                        : 'bg-purple-100 text-purple-800'}">
+                      {scholarship.funding_category === 'Graduate Program Funding' ? '🎓' : '🔬'}
+                      {scholarship.funding_category}
+                    </span>
+                  </div>
+                {/if}
+                
+                <!-- Header -->
+                <div class="flex justify-between items-start mb-4">
+                  <div class="flex-1 mr-4">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-1">{scholarship.title}</h3>
+                    <p class="text-gray-600">{scholarship.provider}</p>
+                    
+                    <!-- Additional info for graduate programs -->
+                    {#if scholarship.funding_category === 'Graduate Program Funding' && scholarship.program_name}
+                      <p class="text-sm text-blue-600 mt-1">{scholarship.program_name}</p>
+                    {:else if scholarship.funding_category === 'Advertised Position' && scholarship.professor_name}
+                      <p class="text-sm text-purple-600 mt-1">Prof. {scholarship.professor_name}</p>
+                    {/if}
+                  </div>
+                  <div class="flex flex-col items-end gap-2">
+                    {#if scholarship.matchScore}
+                      <span class="text-sm font-medium {getMatchScoreColor(scholarship.matchScore)}">
+                        {scholarship.matchScore}% match
+                      </span>
+                    {/if}
+                    <button
+                      onclick={() => toggleSaved(scholarship.id)}
+                      class="p-2 rounded-full hover:bg-gray-100 transition-colors duration-200"
+                      aria-label={scholarship.saved ? 'Remove scholarship from saved list' : 'Save scholarship to your list'}
+                      title={scholarship.saved ? 'Remove from saved' : 'Save scholarship'}
+                    >
+                      <svg class="w-5 h-5 {scholarship.saved ? 'text-yellow-500 fill-current' : 'text-gray-400'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                                 <!-- Amount and Deadline -->
+                 <div class="flex items-center justify-between mb-4">
+                   <div class="text-xl font-bold text-yellow-600">{scholarship.amount}</div>
+                   {#each [getDeadlineStatus(scholarship.deadline)] as status}
+                     <div>
+                       <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {status.class}">
+                         {status.text}
+                       </span>
+                     </div>
+                   {/each}
+                 </div>
+
+                <!-- Details -->
+                <div class="grid grid-cols-2 gap-4 mb-4 text-sm">
+                  <div>
+                    <span class="text-gray-500">Location:</span>
+                    <span class="ml-1 text-gray-900">{scholarship.location}</span>
+                  </div>
+                  <div>
+                    <span class="text-gray-500">Level:</span>
+                    <span class="ml-1 text-gray-900">{scholarship.level}</span>
+                  </div>
+                  <div>
+                    <span class="text-gray-500">Field:</span>
+                    <span class="ml-1 text-gray-900">{scholarship.field}</span>
+                  </div>
+                  <div>
+                    <span class="text-gray-500">Type:</span>
+                    <span class="ml-1 text-gray-900">{scholarship.type}</span>
+                  </div>
+                </div>
+
+                <!-- Description -->
+                <p class="text-gray-600 text-sm mb-4 line-clamp-2">{scholarship.description}</p>
+
+                <!-- Requirements -->
+                {#if scholarship.requirements && scholarship.requirements.length > 0}
+                  <div class="mb-4">
+                    <span class="text-sm font-medium text-gray-700">Requirements:</span>
+                    <div class="mt-1 flex flex-wrap gap-1">
+                      {#each scholarship.requirements.slice(0, 3) as requirement}
+                        <span class="inline-flex px-2 py-1 text-xs bg-gray-100 text-gray-800 rounded">
+                          {requirement}
+                        </span>
+                      {/each}
+                      {#if scholarship.requirements.length > 3}
+                        <span class="text-xs text-gray-500">+{scholarship.requirements.length - 3} more</span>
+                      {/if}
+                    </div>
+                  </div>
+                {/if}
+
+                <!-- Actions -->
+                <div class="flex gap-3 pt-4 border-t">
+                  {#if scholarship.applied}
+                    <button
+                      onclick={() => unapplyToScholarship(scholarship.id)}
+                      class="flex-1 px-4 py-2 bg-green-100 text-green-700 border border-green-300 rounded-lg hover:bg-green-200 transition duration-200"
+                    >
+                      Applied ✓ (Click to Unmark)
+                    </button>
+                  {:else}
+                    <button
+                      onclick={() => applyToScholarship(scholarship.id)}
+                      class="flex-1 px-4 py-2 bg-yellow-600 text-white hover:bg-yellow-700 rounded-lg transition duration-200"
+                    >
+                      Apply Now
+                    </button>
+                  {/if}
+                </div>
+              </div>
+            </div>
+          {/each}
+        </div>
+
+        <!-- Pagination -->
+        {#if totalPages > 1}
+          <div class="flex items-center justify-center space-x-2 mt-8">
+            <button
+              onclick={prevPage}
+              disabled={currentPage === 1}
+              class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Previous
+            </button>
+            
+            {#each Array.from({length: Math.min(5, totalPages)}, (_, i) => {
+              const start = Math.max(1, currentPage - 2);
+              const end = Math.min(totalPages, start + 4);
+              return start + i;
+            }).filter(page => page <= totalPages) as page}
+              <button
+                onclick={() => goToPage(page)}
+                class="px-3 py-2 text-sm font-medium {currentPage === page 
+                  ? 'text-white bg-yellow-600 border-yellow-600' 
+                  : 'text-gray-500 bg-white border-gray-300 hover:bg-gray-50'} border rounded-md"
+              >
+                {page}
+              </button>
+            {/each}
+            
+            <button
+              onclick={nextPage}
+              disabled={currentPage === totalPages}
+              class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Next
+            </button>
+          </div>
+        {/if}
+      </div>
+    {/if}
+
+    <!-- Call to Action Section -->
+    <div class="mt-12 bg-gradient-to-r from-yellow-600 to-orange-600 rounded-lg p-8 text-center text-white">
+      <h3 class="text-2xl font-bold mb-4">Need Help with Your Applications?</h3>
+      <p class="text-yellow-100 mb-6">
+        Use our AI-powered tools to create compelling scholarship essays and application documents.
+      </p>
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <a href="/sop" class="bg-white text-yellow-600 px-6 py-3 rounded-lg font-medium hover:bg-gray-100 transition duration-200">
+          📝 Generate Statement of Purpose
+        </a>
+        <a href="/cover-letters" class="border-2 border-white text-white px-6 py-3 rounded-lg font-medium hover:bg-white hover:text-yellow-600 transition duration-200">
+          ✉️ Create Cover Letter
+        </a>
+        <a href="/dashboard" class="border-2 border-white text-white px-6 py-3 rounded-lg font-medium hover:bg-white hover:text-yellow-600 transition duration-200">
+          📊 View Dashboard
+        </a>
+      </div>
+    </div>
+  </div>
+</div> 

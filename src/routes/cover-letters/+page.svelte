@@ -4,27 +4,25 @@
     import CoverLetterGenerator from '$lib/components/CoverLetterGenerator.svelte';
     import type { PageData } from './$types';
     
+    async function signInWithGoogle() {
+        const currentUrl = '/cover-letters';
+        const redirectUrl = `${location.origin}/auth/callback?next=${encodeURIComponent(currentUrl)}`;
+        
+        await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: { redirectTo: redirectUrl }
+        });
+    }
+    
     export let data: PageData;
     let { supabase, session } = data;
     
     let userData: any = null;
     let existingSOPs: any[] = [];
-    let loading = true;
+    let loading = false;
     let selectedSOP: any = null;
     let showGenerator = false;
     let savedCoverLetters: any[] = [];
-    
-    onMount(async () => {
-        if (!session?.user) {
-            goto('/');
-            return;
-        }
-        
-        await loadUserData();
-        await loadExistingSOPs();
-        await loadSavedCoverLetters();
-        loading = false;
-    });
     
     async function loadUserData() {
         try {
@@ -148,6 +146,66 @@
                 existingSOPData={selectedSOP}
                 on:coverLetterGenerated={handleCoverLetterGenerated}
             />
+        </div>
+    {:else if !session?.user}
+        <!-- Authentication Required -->
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div class="text-center mb-8">
+                <div class="text-6xl mb-4">🔐</div>
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Login Required</h2>
+                <p class="text-xl text-gray-600 mb-8">
+                    Please log in to access the Cover Letter Generator and save your work.
+                </p>
+                <button 
+                    onclick={() => {
+                        const currentUrl = '/cover-letters';
+                        const redirectUrl = `${location.origin}/auth/callback?next=${encodeURIComponent(currentUrl)}`;
+                        supabase.auth.signInWithOAuth({
+                            provider: 'google',
+                            options: { redirectTo: redirectUrl }
+                        });
+                    }}
+                    class="inline-flex items-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                    <img src="https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg" alt="Google" class="w-5 h-5 mr-3">
+                    Sign in with Google
+                </button>
+            </div>
+            
+            <!-- Preview Features -->
+            <div class="bg-white rounded-lg shadow-lg p-8">
+                <h3 class="text-xl font-semibold text-gray-900 mb-6 text-center">Cover Letter Generator Features</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="flex items-start space-x-3">
+                        <span class="text-2xl">🎓</span>
+                        <div>
+                            <h4 class="font-medium text-gray-900">Academic Positions</h4>
+                            <p class="text-sm text-gray-600">Tailored for PhD, PostDoc, and Professor roles</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start space-x-3">
+                        <span class="text-2xl">💼</span>
+                        <div>
+                            <h4 class="font-medium text-gray-900">Industry Roles</h4>
+                            <p class="text-sm text-gray-600">Corporate, startup, and consulting positions</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start space-x-3">
+                        <span class="text-2xl">🔄</span>
+                        <div>
+                            <h4 class="font-medium text-gray-900">SOP Integration</h4>
+                            <p class="text-sm text-gray-600">Leverage your existing SOP content</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start space-x-3">
+                        <span class="text-2xl">⚡</span>
+                        <div>
+                            <h4 class="font-medium text-gray-900">AI-Powered</h4>
+                            <p class="text-sm text-gray-600">Intelligent content generation and optimization</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     {:else}
         <!-- Main Content -->
