@@ -70,12 +70,14 @@
     document.removeEventListener('selectionchange', handleSelectionChange);
   });
   
-  function setupTextSelection() {
-    document.addEventListener('mouseup', handleTextSelection);
-    document.addEventListener('touchend', handleTextSelection);
-    document.addEventListener('click', handleDocumentClick);
-    document.addEventListener('selectionchange', handleSelectionChange);
-  }
+      function setupTextSelection() {
+        if (typeof document !== 'undefined') {
+            document.addEventListener('mouseup', handleTextSelection);
+            document.addEventListener('touchend', handleTextSelection);
+            document.addEventListener('click', handleDocumentClick);
+            document.addEventListener('selectionchange', handleSelectionChange);
+        }
+    }
   
   function handleDocumentClick(event: Event) {
     // Hide popup when clicking outside the cover letter content or popup

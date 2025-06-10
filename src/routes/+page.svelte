@@ -14,7 +14,9 @@
   }
 
   function scrollToSection(sectionId: string) {
-    document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
+    if (typeof document !== 'undefined') {
+      document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
+    }
   }
 </script>
 

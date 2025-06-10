@@ -9,15 +9,55 @@
     let matchResults: any = null;
     let error = '';
     let showAdvancedForm = false;
-    let profileForm = {
+    const valueOptions = [
+        { 
+            value: 'maximum_savings', 
+            label: '💰 Maximum Savings Focus', 
+            description: 'Prioritize universities with highest scholarship potential'
+        },
+        { 
+            value: 'value_for_money', 
+            label: '⚖️ Best Value for Money', 
+            description: 'Balance quality education with cost optimization'
+        },
+        { 
+            value: 'scholarship_hunter', 
+            label: '🎯 Scholarship Hunter', 
+            description: 'Target universities known for generous financial aid'
+        },
+        { 
+            value: 'investment_focused', 
+            label: '📈 ROI Investment', 
+            description: 'Focus on career outcomes vs education investment'
+        }
+    ];
+
+    let profileForm: {
+        gpa: string;
+        field: string;
+        degree_level: string;
+        qualities: string[];
+        value_approach: string;
+        research_interest: string;
+        preferred_countries: string[];
+        scholarship_priority: string;
+    } = {
         gpa: '',
         field: '',
         degree_level: 'masters',
         qualities: [],
-        budget_preference: 'moderate',
+        value_approach: 'maximum_savings',
         research_interest: '',
-        preferred_countries: []
+        preferred_countries: [],
+        scholarship_priority: 'high'
     };
+
+    const scholarshipPriorityOptions = [
+        { value: 'essential', label: '🚨 Essential - I need significant aid', description: 'Cannot attend without substantial scholarships' },
+        { value: 'high', label: '🎯 High Priority - Want to minimize costs', description: 'Actively seeking scholarships to reduce expenses' },
+        { value: 'moderate', label: '⚖️ Moderate - Nice to have savings', description: 'Open to scholarships but not dependent on them' },
+        { value: 'low', label: '💼 Low Priority - Focused on fit', description: 'Scholarships are bonus, prioritizing program quality' }
+    ];
 
     const availableQualities = [
         'research-excellence',
@@ -151,6 +191,34 @@
             maximumFractionDigits: 0
         }).format(amount);
     }
+
+    // NEW: Scholarship Intelligence Color Functions
+    function getAffordabilityColor(rating: string): string {
+        switch (rating) {
+            case 'Excellent': return 'text-green-600';
+            case 'Good': return 'text-blue-600';
+            case 'Fair': return 'text-yellow-600';
+            case 'Challenging': return 'text-red-600';
+            default: return 'text-gray-600';
+        }
+    }
+
+    function getAffordabilityBadgeColor(rating: string): string {
+        switch (rating) {
+            case 'Excellent': return 'text-green-700 bg-green-100';
+            case 'Good': return 'text-blue-700 bg-blue-100';
+            case 'Fair': return 'text-yellow-700 bg-yellow-100';
+            case 'Challenging': return 'text-red-700 bg-red-100';
+            default: return 'text-gray-700 bg-gray-100';
+        }
+    }
+
+    function getScholarshipMatchColor(score: number): string {
+        if (score >= 85) return 'text-green-700 bg-green-100';
+        if (score >= 70) return 'text-blue-700 bg-blue-100';
+        if (score >= 55) return 'text-yellow-700 bg-yellow-100';
+        return 'text-gray-700 bg-gray-100';
+    }
 </script>
 
 <div class="university-matcher bg-white rounded-lg shadow-sm border p-6">
@@ -219,13 +287,13 @@
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">
-                    Budget Preference
+                    Value Approach
                 </label>
                 <select 
-                    bind:value={profileForm.budget_preference}
+                    bind:value={profileForm.value_approach}
                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                    {#each budgetOptions as option}
+                    {#each valueOptions as option}
                         <option value={option.value}>{option.label}</option>
                     {/each}
                 </select>
@@ -234,6 +302,21 @@
 
         {#if showAdvancedForm}
             <div class="advanced-options space-y-4 p-4 bg-gray-50 rounded-lg border">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Scholarship Priority
+                    </label>
+                    <select 
+                        bind:value={profileForm.scholarship_priority}
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                        {#each scholarshipPriorityOptions as option}
+                            <option value={option.value}>{option.label}</option>
+                        {/each}
+                    </select>
+                    <p class="text-xs text-gray-500 mt-1">How important are scholarships to your decision?</p>
+                </div>
+
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">
                         What do you value in a university? (Select up to 5)
@@ -323,15 +406,15 @@
                         <div class="text-gray-600">Total Matches</div>
                     </div>
                     <div class="text-center">
-                        <div class="text-2xl font-bold text-green-600">{matchResults.matches.filter(m => m.match_score >= 80).length}</div>
+                        <div class="text-2xl font-bold text-green-600">{matchResults.matches.filter((m: any) => m.match_score >= 80).length}</div>
                         <div class="text-gray-600">Excellent Matches</div>
                     </div>
                     <div class="text-center">
-                        <div class="text-2xl font-bold text-purple-600">{matchResults.matches.filter(m => m.admission_probability === 'High').length}</div>
+                        <div class="text-2xl font-bold text-purple-600">{matchResults.matches.filter((m: any) => m.admission_probability === 'High').length}</div>
                         <div class="text-gray-600">High Probability</div>
                     </div>
                     <div class="text-center">
-                        <div class="text-2xl font-bold text-orange-600">{matchResults.matches.filter(m => m.estimated_cost_fit === 'Excellent' || m.estimated_cost_fit === 'Good').length}</div>
+                        <div class="text-2xl font-bold text-orange-600">{matchResults.matches.filter((m: any) => m.estimated_cost_fit === 'Excellent' || m.estimated_cost_fit === 'Good').length}</div>
                         <div class="text-gray-600">Budget Friendly</div>
                     </div>
                 </div>
@@ -402,7 +485,7 @@
                             {#if match.match_breakdown}
                                 <div class="match-breakdown bg-gray-50 p-4 rounded-lg mb-4">
                                     <h6 class="text-sm font-medium text-gray-700 mb-3">🎯 Compatibility Breakdown</h6>
-                                    <div class="grid grid-cols-2 md:grid-cols-5 gap-3 text-xs">
+                                    <div class="grid grid-cols-2 md:grid-cols-6 gap-3 text-xs">
                                         <div class="text-center">
                                             <div class={`text-lg font-bold ${getBreakdownColor(match.match_breakdown.academic_fit)}`}>
                                                 {Math.round(match.match_breakdown.academic_fit)}
@@ -432,6 +515,12 @@
                                                 {Math.round(match.match_breakdown.financial_feasibility)}
                                             </div>
                                             <div class="text-gray-600">Financial</div>
+                                        </div>
+                                        <div class="text-center">
+                                            <div class={`text-lg font-bold ${getBreakdownColor(match.match_breakdown.scholarship_opportunities)}`}>
+                                                {Math.round(match.match_breakdown.scholarship_opportunities)}
+                                            </div>
+                                            <div class="text-gray-600">💰 Scholarships</div>
                                         </div>
                                     </div>
                                 </div>
@@ -487,6 +576,82 @@
                                     </div>
                                 {/if}
                             </div>
+
+                            <!-- NEW: Scholarship Intelligence Section -->
+                            {#if match.funding_analysis}
+                                <div class="funding-analysis bg-green-50 p-4 rounded-lg mb-4">
+                                    <h6 class="text-sm font-medium text-green-700 mb-3 flex items-center">
+                                        🎓 Scholarship Intelligence & Funding Analysis
+                                    </h6>
+                                    
+                                    <!-- Cost Analysis -->
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                                        <div class="text-center">
+                                            <div class="text-lg font-bold text-gray-600">
+                                                {formatCurrency(match.funding_analysis.original_cost)}
+                                            </div>
+                                            <div class="text-xs text-gray-500">Original Cost</div>
+                                        </div>
+                                        <div class="text-center">
+                                            <div class="text-lg font-bold text-green-600">
+                                                -{formatCurrency(match.funding_analysis.potential_aid)}
+                                            </div>
+                                            <div class="text-xs text-gray-500">Potential Aid</div>
+                                        </div>
+                                        <div class="text-center">
+                                            <div class={`text-lg font-bold ${getAffordabilityColor(match.funding_analysis.affordability_rating)}`}>
+                                                {formatCurrency(match.funding_analysis.estimated_final_cost)}
+                                            </div>
+                                            <div class="text-xs text-gray-500">Est. Final Cost</div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Affordability Rating -->
+                                    <div class="text-center mb-4">
+                                        <span class={`px-3 py-1 rounded-full text-sm font-medium ${getAffordabilityBadgeColor(match.funding_analysis.affordability_rating)}`}>
+                                            {match.funding_analysis.affordability_rating} Affordability
+                                        </span>
+                                    </div>
+
+                                    <!-- Funding Strategy -->
+                                    <div class="bg-white p-3 rounded border-l-4 border-green-500">
+                                        <h6 class="text-xs font-medium text-gray-700 mb-2">💡 Recommended Funding Strategy</h6>
+                                        <p class="text-xs text-gray-600">{match.funding_analysis.funding_strategy}</p>
+                                    </div>
+                                </div>
+                            {/if}
+
+                            <!-- Relevant Scholarships -->
+                            {#if match.relevant_scholarships && match.relevant_scholarships.length > 0}
+                                <div class="scholarships-section bg-blue-50 p-4 rounded-lg mb-4">
+                                    <h6 class="text-sm font-medium text-blue-700 mb-3 flex items-center">
+                                        🏆 Recommended Scholarships ({match.relevant_scholarships.length})
+                                    </h6>
+                                    <div class="space-y-3">
+                                        {#each match.relevant_scholarships as scholarship}
+                                            <div class="bg-white p-3 rounded border border-blue-200">
+                                                <div class="flex justify-between items-start mb-2">
+                                                    <div class="flex-1">
+                                                        <h6 class="text-sm font-medium text-gray-900">{scholarship.title}</h6>
+                                                        <p class="text-xs text-gray-600">{scholarship.provider}</p>
+                                                    </div>
+                                                    <div class="text-right space-y-1">
+                                                        <div class="text-sm font-medium text-green-600">{scholarship.amount}</div>
+                                                        <div class={`text-xs px-2 py-1 rounded ${getScholarshipMatchColor(scholarship.match_score)}`}>
+                                                            {scholarship.match_score}% match
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="text-xs text-gray-600 mb-2">{scholarship.why_relevant}</div>
+                                                <div class="flex justify-between items-center text-xs">
+                                                    <span class="bg-gray-100 text-gray-700 px-2 py-1 rounded">{scholarship.type}</span>
+                                                    <span class="text-red-600">⏰ Deadline: {scholarship.deadline}</span>
+                                                </div>
+                                            </div>
+                                        {/each}
+                                    </div>
+                                </div>
+                            {/if}
 
                             <!-- University Strengths -->
                             {#if match.university.strengths}

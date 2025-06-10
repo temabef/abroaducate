@@ -56,9 +56,11 @@
   });
   
   function setupTextSelection() {
-    document.addEventListener('mouseup', handleTextSelection);
-    document.addEventListener('click', handleDocumentClick);
-    document.addEventListener('selectionchange', handleSelectionChange);
+    if (typeof document !== 'undefined') {
+      document.addEventListener('mouseup', handleTextSelection);
+      document.addEventListener('click', handleDocumentClick);
+      document.addEventListener('selectionchange', handleSelectionChange);
+    }
   }
   
   function handleDocumentClick(event: Event) {

@@ -1,8 +1,13 @@
 import { json } from '@sveltejs/kit';
-import { OPENAI_API_KEY } from '$env/static/private';
+import { OPENAI_API_KEY, COLLEGE_SCORECARD_API_KEY } from '$env/static/private';
 import type { RequestHandler } from './$types';
+import { universityDataManager } from '$lib/database/university-integration';
+import { ukUniversityDataManager } from '$lib/database/uk-university-integration';
+import { canadianUniversityManager } from '$lib/database/canada-university-integration';
+import { australianUniversityManager } from '$lib/database/australia-university-integration';
 
-// Enhanced University database with detailed information
+// Enhanced University database with detailed information + scholarship connections
+// Now integrated with Phase II hybrid system for 1000+ universities
 const UNIVERSITIES = [
     {
         id: 'harvard',
@@ -378,9 +383,11 @@ interface UserProfile {
     field: string;
     degree_level: string;
     qualities: string[];
-    budget_preference: string;
+    value_approach: string;  // NEW: Replace budget_preference
     research_interest: string;
     preferred_countries: string[];
+    scholarship_priority: string; // NEW: How important are scholarships?
+    nationality?: string; // Optional field for scholarship filtering
 }
 
 interface UniversityMatch {
@@ -392,12 +399,369 @@ interface UniversityMatch {
         preference_alignment: number;
         geographic_fit: number;
         financial_feasibility: number;
+        scholarship_opportunities: number; // NEW: Scholarship potential score
     };
     strengths: string[];
     concerns: string[];
     improvement_suggestions: string[];
     admission_probability: string;
     estimated_cost_fit: string;
+    // NEW: Scholarship intelligence fields
+    relevant_scholarships: ScholarshipMatch[];
+    funding_analysis: FundingAnalysis;
+    cost_after_aid: number;
+}
+
+interface ScholarshipMatch {
+    id: string;
+    title: string;
+    provider: string;
+    amount: string;
+    match_score: number;
+    deadline: string;
+    type: string;
+    why_relevant: string;
+}
+
+interface FundingAnalysis {
+    original_cost: number;
+    potential_aid: number;
+    estimated_final_cost: number;
+    affordability_rating: 'Excellent' | 'Good' | 'Fair' | 'Challenging';
+    funding_strategy: string;
+}
+
+// NEW: Scholarship Amount Intelligence System
+
+interface StandardizedScholarshipAmount {
+    annual_value: number; // Always in USD per year
+    coverage_type: 'full_funding' | 'tuition_only' | 'living_expenses' | 'partial' | 'stipend';
+    confidence_level: 'high' | 'medium' | 'low' | 'estimated';
+    original_text: string;
+    includes_living: boolean;
+    includes_tuition: boolean;
+}
+
+function parseScholarshipAmount(scholarshipAmount: string, scholarshipType: string, country: string): StandardizedScholarshipAmount {
+    const amount = scholarshipAmount.toLowerCase().trim();
+    
+    // 1. DIRECT AMOUNT PARSING
+    if (amount.includes('$')) {
+        const numericValue = extractNumericValue(amount);
+        if (numericValue > 0) {
+            const annualValue = normalizeToAnnual(numericValue, amount);
+            return {
+                annual_value: annualValue,
+                coverage_type: determineCoverageType(amount),
+                confidence_level: 'high',
+                original_text: scholarshipAmount,
+                includes_living: amount.includes('living') || amount.includes('stipend'),
+                includes_tuition: amount.includes('tuition') || amount.includes('full')
+            };
+        }
+    }
+    
+    // 2. CURRENCY CONVERSION
+    if (amount.includes('€') || amount.includes('eur')) {
+        const numericValue = extractNumericValue(amount);
+        const usdValue = convertToUSD(numericValue, 'EUR') * (amount.includes('month') ? 12 : 1);
+        return {
+            annual_value: usdValue,
+            coverage_type: determineCoverageType(amount),
+            confidence_level: 'high',
+            original_text: scholarshipAmount,
+            includes_living: amount.includes('living') || amount.includes('allowance'),
+            includes_tuition: amount.includes('tuition') || amount.includes('fees')
+        };
+    }
+    
+    // 3. QUALITATIVE ANALYSIS
+    if (amount.includes('full') && (amount.includes('fund') || amount.includes('cover'))) {
+        const estimatedValue = estimateFullFunding(country, scholarshipType);
+        return {
+            annual_value: estimatedValue,
+            coverage_type: 'full_funding',
+            confidence_level: 'medium',
+            original_text: scholarshipAmount,
+            includes_living: true,
+            includes_tuition: true
+        };
+    }
+    
+    // 4. PARTIAL COVERAGE ESTIMATION
+    if (amount.includes('tuition') && !amount.includes('living')) {
+        const tuitionEstimate = estimateTuitionCoverage(country, scholarshipType);
+        return {
+            annual_value: tuitionEstimate,
+            coverage_type: 'tuition_only',
+            confidence_level: 'medium',
+            original_text: scholarshipAmount,
+            includes_living: false,
+            includes_tuition: true
+        };
+    }
+    
+    // 5. CONTEXT-BASED ESTIMATION
+    return estimateByContext(scholarshipType, country, scholarshipAmount);
+}
+
+function extractNumericValue(text: string): number {
+    // Extract numbers from text like "$50,000", "€1,200", "45k"
+    const matches = text.match(/[\d,]+\.?\d*/g);
+    if (!matches) return 0;
+    
+    let value = parseFloat(matches[0].replace(/,/g, ''));
+    
+    // Handle k/K notation
+    if (text.includes('k') || text.includes('K')) {
+        value *= 1000;
+    }
+    
+    return value;
+}
+
+function normalizeToAnnual(value: number, text: string): number {
+    if (text.includes('month')) return value * 12;
+    if (text.includes('semester')) return value * 2;
+    if (text.includes('year') || text.includes('annual')) return value;
+    
+    // Default assumption: if > 100k, likely total program; if < 100k, likely annual
+    return value > 100000 && !text.includes('year') ? value / 2 : value;
+}
+
+function estimateFullFunding(country: string, scholarshipType: string): number {
+    // Evidence-based estimates for "full funding" by country
+    const countryEstimates: { [key: string]: number } = {
+        'United States': 65000,  // Average grad school total cost
+        'United Kingdom': 45000, // UK international student costs
+        'Canada': 35000,         // Canadian graduate costs
+        'Australia': 42000,      // Australian international costs
+        'Germany': 25000,        // Lower tuition + living costs
+        'France': 22000,         // EU costs with living
+        'Netherlands': 35000,    // Dutch graduate costs
+        'Switzerland': 55000,    // High living costs
+        'Singapore': 40000,      // Asian hub costs
+        'Sweden': 30000          // Scandinavian average
+    };
+    
+    const baseEstimate = countryEstimates[country] || 35000;
+    
+    // Adjust by scholarship prestige
+    if (scholarshipType?.includes('government') || scholarshipType?.includes('national')) {
+        return baseEstimate * 1.2; // Government scholarships tend to be more generous
+    }
+    
+    return baseEstimate;
+}
+
+function estimateTuitionCoverage(country: string, scholarshipType: string): number {
+    // Tuition-only estimates
+    const tuitionEstimates: { [key: string]: number } = {
+        'United States': 45000,
+        'United Kingdom': 30000,
+        'Canada': 20000,
+        'Australia': 28000,
+        'Germany': 2000,     // Low tuition fees
+        'France': 3000,
+        'Netherlands': 15000,
+        'Switzerland': 1500,
+        'Singapore': 25000,
+        'Sweden': 0          // No tuition for EU students
+    };
+    
+    return tuitionEstimates[country] || 25000;
+}
+
+function estimateByContext(scholarshipType: string, country: string, originalText: string): StandardizedScholarshipAmount {
+    // Context-based estimation for unclear amounts
+    let estimatedValue = 25000; // Conservative default
+    let coverageType: StandardizedScholarshipAmount['coverage_type'] = 'partial';
+    let confidenceLevel: StandardizedScholarshipAmount['confidence_level'] = 'low';
+    
+    // Type-based adjustments
+    if (scholarshipType?.includes('Merit-based')) {
+        estimatedValue = 35000;
+        coverageType = 'tuition_only';
+    } else if (scholarshipType?.includes('Research-based')) {
+        estimatedValue = 45000;
+        coverageType = 'full_funding';
+        confidenceLevel = 'medium';
+    }
+    
+    // Provider-based adjustments  
+    if (originalText.includes('government') || originalText.includes('national')) {
+        estimatedValue *= 1.3;
+        confidenceLevel = 'medium';
+    }
+    
+    return {
+        annual_value: estimatedValue,
+        coverage_type: coverageType,
+        confidence_level: confidenceLevel,
+        original_text: originalText,
+        includes_living: coverageType === 'full_funding',
+        includes_tuition: true
+    };
+}
+
+function determineCoverageType(text: string): StandardizedScholarshipAmount['coverage_type'] {
+    if (text.includes('full') && (text.includes('fund') || text.includes('stipend'))) {
+        return 'full_funding';
+    } else if (text.includes('tuition') && !text.includes('living')) {
+        return 'tuition_only';
+    } else if (text.includes('living') || text.includes('stipend')) {
+        return text.includes('tuition') ? 'full_funding' : 'living_expenses';
+    }
+    return 'partial';
+}
+
+function convertToUSD(amount: number, fromCurrency: string): number {
+    // Simplified conversion rates (in production, use real-time API)
+    const rates: { [key: string]: number } = {
+        'EUR': 1.08,
+        'GBP': 1.25,
+        'CAD': 0.74,
+        'AUD': 0.65,
+        'CHF': 1.12,
+        'SGD': 0.74,
+        'SEK': 0.092
+    };
+    
+    return amount * (rates[fromCurrency] || 1);
+}
+
+// Function to get hybrid universities (elite + API)
+async function getHybridUniversities(userProfile: UserProfile): Promise<any[]> {
+    try {
+        // Start with elite universities
+        let allUniversities = [...UNIVERSITIES];
+        
+        // Add API universities for broader options
+        console.log('🌍 Phase 2.4: Expanding to Canada & Australia - Fetching global universities');
+        const [apiUniversities, ukUniversities, canadianUniversities, australianUniversities] = await Promise.all([
+            universityDataManager.fetchUSUniversities(undefined, 30, COLLEGE_SCORECARD_API_KEY),
+            ukUniversityDataManager.fetchUKUniversities(20),
+            canadianUniversityManager.fetchCanadianUniversities(undefined, 20),
+            australianUniversityManager.fetchAustralianUniversities(undefined, 15)
+        ]);
+        
+        // Convert API universities to our format and filter duplicates
+        const eliteNames = new Set(UNIVERSITIES.map(uni => uni.name.toLowerCase()));
+        
+        const convertedApiUniversities = apiUniversities
+            .filter(uni => !eliteNames.has(uni.name.toLowerCase()))
+            .map(apiUni => ({
+                id: apiUni.id,
+                name: apiUni.name,
+                country: apiUni.country,
+                region: apiUni.region,
+                ranking: apiUni.global_ranking || 999,
+                acceptance_rate: apiUni.acceptance_rate || 50,
+                avg_gpa: apiUni.avg_gpa || 3.0,
+                strengths: apiUni.strengths,
+                programs: apiUni.programs as any,
+                requirements: apiUni.requirements as any,
+                cost: apiUni.cost,
+                living_cost: apiUni.living_cost || 15000,
+                scholarships: apiUni.scholarships,
+                scholarship_percentage: apiUni.scholarship_percentage || 30,
+                location_type: apiUni.location_type,
+                class_size: apiUni.class_size,
+                research_opportunities: apiUni.research_opportunities
+            }));
+        
+        // Convert UK universities to our format
+        const convertedUKUniversities = ukUniversities
+            .filter(ukUni => !eliteNames.has(ukUni.name.toLowerCase()))
+            .map(ukUni => ({
+                id: ukUni.id,
+                name: ukUni.name,
+                country: ukUni.country,
+                region: ukUni.region,
+                ranking: ukUni.global_ranking || ukUni.national_ranking || 999,
+                acceptance_rate: ukUni.acceptance_rate || 30,
+                avg_gpa: ukUni.avg_gpa || 3.5,
+                strengths: ukUni.strengths,
+                programs: ukUni.programs as any,
+                requirements: ukUni.requirements as any,
+                cost: ukUni.out_of_state_tuition || ukUni.cost,
+                living_cost: ukUni.living_cost || 18000,
+                scholarships: ukUni.scholarships,
+                scholarship_percentage: ukUni.scholarship_percentage || 35,
+                location_type: ukUni.location_type,
+                class_size: ukUni.class_size,
+                research_opportunities: ukUni.research_opportunities
+            }));
+
+        // Convert Canadian universities to our format - Phase 2.3
+        const convertedCanadianUniversities = canadianUniversities
+            .filter(caUni => !eliteNames.has(caUni.name.toLowerCase()))
+            .map(caUni => ({
+                id: caUni.id,
+                name: caUni.name,
+                country: caUni.country,
+                region: caUni.region,
+                ranking: caUni.global_ranking || caUni.national_ranking || 999,
+                acceptance_rate: caUni.acceptance_rate || 65,
+                avg_gpa: caUni.avg_gpa || 3.3,
+                strengths: caUni.strengths,
+                programs: caUni.programs as any,
+                requirements: caUni.requirements as any,
+                cost: caUni.out_of_state_tuition || caUni.cost,
+                living_cost: caUni.living_cost || 14000,
+                scholarships: caUni.scholarships,
+                scholarship_percentage: caUni.scholarship_percentage || 40,
+                location_type: caUni.location_type,
+                class_size: caUni.class_size,
+                research_opportunities: caUni.research_opportunities
+            }));
+
+        // Convert Australian universities to our format - Phase 2.4
+        const convertedAustralianUniversities = australianUniversities
+            .filter(auUni => !eliteNames.has(auUni.name.toLowerCase()))
+            .map(auUni => ({
+                id: auUni.id,
+                name: auUni.name,
+                country: auUni.country,
+                region: auUni.region,
+                ranking: auUni.global_ranking || auUni.national_ranking || 999,
+                acceptance_rate: auUni.acceptance_rate || 75,
+                avg_gpa: auUni.avg_gpa || 3.1,
+                strengths: auUni.strengths,
+                programs: auUni.programs as any,
+                requirements: auUni.requirements as any,
+                cost: auUni.out_of_state_tuition || auUni.cost,
+                living_cost: auUni.living_cost || 16000,
+                scholarships: auUni.scholarships,
+                scholarship_percentage: auUni.scholarship_percentage || 35,
+                location_type: auUni.location_type,
+                class_size: auUni.class_size,
+                research_opportunities: auUni.research_opportunities
+            }));
+        
+        // Combine and return
+        allUniversities.push(...convertedApiUniversities);
+        allUniversities.push(...convertedUKUniversities);
+        allUniversities.push(...convertedCanadianUniversities);
+        allUniversities.push(...convertedAustralianUniversities);
+        
+        console.log(`🍁 Phase 2.3: Added ${convertedCanadianUniversities.length} Canadian universities`);
+        console.log(`🇦🇺 Phase 2.4: Added ${convertedAustralianUniversities.length} Australian universities`);
+        console.log(`📊 Total university pool: ${allUniversities.length} (${UNIVERSITIES.length} elite + ${convertedApiUniversities.length} US + ${convertedUKUniversities.length} UK + ${convertedCanadianUniversities.length} CA + ${convertedAustralianUniversities.length} AU)`);
+        
+        // Filter by user preferences if specified
+        if (userProfile.preferred_countries && userProfile.preferred_countries.length > 0) {
+            allUniversities = allUniversities.filter(uni => 
+                userProfile.preferred_countries.includes(uni.country)
+            );
+        }
+        
+        return allUniversities;
+        
+    } catch (error) {
+        console.warn('Failed to fetch API universities, using elite only:', error);
+        return UNIVERSITIES;
+    }
 }
 
 export const POST: RequestHandler = async ({ request, locals: { supabase, safeGetSession } }) => {
@@ -410,9 +774,15 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, safeGe
     try {
         const userProfile = await request.json();
         
-        const matches = UNIVERSITIES.map(university => {
+        // Get hybrid universities (elite + API) for comprehensive matching
+        console.log('🔗 Phase 2.1: Using hybrid university system (Elite + Phase II API data)');
+        const universities = await getHybridUniversities(userProfile);
+        console.log(`📊 Total universities available: ${universities.length} (${UNIVERSITIES.length} elite + ${universities.length - UNIVERSITIES.length} API)`);
+        
+        const matches = await Promise.all(universities.map(async university => {
             const matchScore = calculateEnhancedMatchScore(university, userProfile);
             const matchBreakdown = calculateMatchBreakdown(university, userProfile);
+            const scholarshipData = await calculateScholarshipIntelligence(university, userProfile, supabase);
             
             return {
                 university,
@@ -422,9 +792,13 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, safeGe
                 concerns: identifyEnhancedConcerns(university, userProfile),
                 improvement_suggestions: generateImprovementSuggestions(university, userProfile),
                 admission_probability: calculateEnhancedAdmissionProbability(university, userProfile),
-                estimated_cost_fit: calculateCostFit(university, userProfile)
+                estimated_cost_fit: calculateCostFit(university, userProfile),
+                // NEW: Scholarship intelligence
+                relevant_scholarships: scholarshipData.relevant_scholarships,
+                funding_analysis: scholarshipData.funding_analysis,
+                cost_after_aid: scholarshipData.cost_after_aid
             };
-        });
+        }));
 
         // Sort by match score
         matches.sort((a, b) => b.match_score - a.match_score);
@@ -451,7 +825,8 @@ function calculateEnhancedMatchScore(university: any, userProfile: UserProfile):
         breakdown.program_strength * weights.program +
         breakdown.preference_alignment * weights.preference +
         breakdown.geographic_fit * weights.geographic +
-        breakdown.financial_feasibility * weights.financial
+        breakdown.financial_feasibility * weights.financial +
+        breakdown.scholarship_opportunities * weights.scholarship
     );
     
     // Apply degree level bonus/penalty
@@ -461,53 +836,120 @@ function calculateEnhancedMatchScore(university: any, userProfile: UserProfile):
 }
 
 function getDynamicWeights(userProfile: UserProfile): any {
-    // Default weights
+    // Base weights (scholarship-aware by default)
     let weights = {
-        academic: 0.30,
-        program: 0.25,
-        preference: 0.20,
-        geographic: 0.15,
-        financial: 0.10
+        academic: 0.22,
+        program: 0.20,
+        preference: 0.18,
+        geographic: 0.12,
+        financial: 0.13,
+        scholarship: 0.15  // Higher base weight for scholarships
     };
-    
+
     // Adjust weights based on degree level
     switch (userProfile.degree_level) {
         case 'phd':
-            // PhD prioritizes research and program strength
-            weights.program = 0.35;
-            weights.academic = 0.35;
-            weights.preference = 0.15;
-            weights.geographic = 0.10;
+            // PhD prioritizes research and funding opportunities
+            weights.program = 0.30;
+            weights.academic = 0.25;
+            weights.scholarship = 0.20; // Higher for PhD funding
+            weights.preference = 0.12;
+            weights.geographic = 0.08;
             weights.financial = 0.05;
             break;
         case 'masters':
-            // Masters balances academics and program strength
-            weights.academic = 0.30;
-            weights.program = 0.30;
-            weights.preference = 0.20;
+            // Masters balances all factors with strong scholarship focus
+            weights.academic = 0.25;
+            weights.program = 0.22;
+            weights.scholarship = 0.18;
+            weights.preference = 0.15;
             weights.geographic = 0.12;
             weights.financial = 0.08;
             break;
         case 'undergraduate':
-            // Undergrad considers broader fit and affordability
-            weights.academic = 0.25;
-            weights.program = 0.20;
-            weights.preference = 0.25;
+            // Undergrad considers broader fit with moderate scholarship focus
+            weights.academic = 0.22;
+            weights.program = 0.18;
+            weights.scholarship = 0.15;
+            weights.preference = 0.20;
             weights.geographic = 0.15;
-            weights.financial = 0.15;
+            weights.financial = 0.10;
             break;
     }
-    
-    // Adjust based on budget preference
-    if (userProfile.budget_preference === 'low') {
-        weights.financial += 0.05;
-        weights.preference -= 0.05;
-    } else if (userProfile.budget_preference === 'unlimited') {
-        weights.financial = 0.02;
-        weights.program += 0.05;
-        weights.academic += 0.03;
+
+    // Adjust based on VALUE APPROACH (new system)
+    switch (userProfile.value_approach) {
+        case 'maximum_savings':
+            // Maximize scholarship and financial factors
+            weights.scholarship += 0.10;
+            weights.financial += 0.05;
+            weights.program -= 0.08;
+            weights.preference -= 0.07;
+            break;
+        case 'scholarship_hunter':
+            // Aggressively prioritize scholarship opportunities
+            weights.scholarship += 0.15;
+            weights.financial += 0.03;
+            weights.academic -= 0.05;
+            weights.program -= 0.08;
+            weights.preference -= 0.05;
+            break;
+        case 'value_for_money':
+            // Balanced approach with slight scholarship boost
+            weights.scholarship += 0.05;
+            weights.program += 0.03;
+            weights.financial += 0.02;
+            weights.preference -= 0.05;
+            weights.geographic -= 0.05;
+            break;
+        case 'investment_focused':
+            // Focus on program quality and career outcomes
+            weights.program += 0.10;
+            weights.academic += 0.05;
+            weights.scholarship += 0.02; // Still want some savings
+            weights.preference -= 0.08;
+            weights.geographic -= 0.04;
+            weights.financial -= 0.05;
+            break;
     }
-    
+
+    // Adjust based on SCHOLARSHIP PRIORITY
+    switch (userProfile.scholarship_priority) {
+        case 'essential':
+            // Cannot attend without significant aid
+            weights.scholarship += 0.15;
+            weights.financial += 0.10;
+            weights.program -= 0.10;
+            weights.preference -= 0.10;
+            weights.geographic -= 0.05;
+            break;
+        case 'high':
+            // Actively seeking to minimize costs
+            weights.scholarship += 0.08;
+            weights.financial += 0.05;
+            weights.program -= 0.05;
+            weights.preference -= 0.05;
+            weights.geographic -= 0.03;
+            break;
+        case 'moderate':
+            // Open to scholarships but not dependent
+            // Keep current weights (no adjustment)
+            break;
+        case 'low':
+            // Scholarships are bonus, focus on fit
+            weights.scholarship -= 0.05;
+            weights.financial -= 0.03;
+            weights.program += 0.05;
+            weights.academic += 0.03;
+            break;
+    }
+
+    // Ensure weights sum to 1.0
+    const totalWeight = Object.values(weights).reduce((sum, weight) => sum + weight, 0);
+    Object.keys(weights).forEach(key => {
+        (weights as any)[key] = (weights as any)[key] / totalWeight;
+    });
+
     return weights;
 }
 
@@ -544,7 +986,8 @@ function calculateMatchBreakdown(university: any, userProfile: UserProfile) {
         program_strength: calculateProgramStrength(university, userProfile),
         preference_alignment: calculatePreferenceAlignment(university, userProfile),
         geographic_fit: calculateGeographicFit(university, userProfile),
-        financial_feasibility: calculateFinancialFeasibility(university, userProfile)
+        financial_feasibility: calculateFinancialFeasibility(university, userProfile),
+        scholarship_opportunities: calculateScholarshipOpportunities(university, userProfile)
     };
 }
 
@@ -640,7 +1083,7 @@ function calculateFinancialFeasibility(university: any, userProfile: UserProfile
         'unlimited': Infinity
     };
     
-    const maxBudget = budgetRanges[userProfile.budget_preference as keyof typeof budgetRanges] || budgetRanges.moderate;
+    const maxBudget = budgetRanges[userProfile.value_approach as keyof typeof budgetRanges] || budgetRanges.moderate;
     
     if (totalCost <= maxBudget * 0.7) {
         return 100; // Well within budget
@@ -809,7 +1252,7 @@ function identifyEnhancedConcerns(university: any, userProfile: UserProfile): st
         'moderate': 60000,
         'high': 100000
     };
-    const maxBudget = budgetRanges[userProfile.budget_preference as keyof typeof budgetRanges];
+    const maxBudget = budgetRanges[userProfile.value_approach as keyof typeof budgetRanges];
     
     if (maxBudget && totalCost > maxBudget * 1.2) {
         concerns.push(`High total cost (${formatCurrency(totalCost)}) may exceed your budget`);
@@ -903,7 +1346,7 @@ function calculateCostFit(university: any, userProfile: UserProfile): string {
         'unlimited': Infinity
     };
     
-    const maxBudget = budgetRanges[userProfile.budget_preference as keyof typeof budgetRanges] || budgetRanges.moderate;
+    const maxBudget = budgetRanges[userProfile.value_approach as keyof typeof budgetRanges] || budgetRanges.moderate;
     
     if (totalCost <= maxBudget * 0.7) {
         return 'Excellent';
@@ -981,7 +1424,7 @@ function generateBudgetAdvice(matches: UniversityMatch[], userProfile: UserProfi
     const affordableOptions = matches.filter((m: UniversityMatch) => m.estimated_cost_fit === 'Excellent' || m.estimated_cost_fit === 'Good');
     const scholarshipOptions = matches.filter((m: UniversityMatch) => m.university.scholarship_percentage > 50);
     
-    if (userProfile.budget_preference === 'low' && affordableOptions.length > 0) {
+    if (userProfile.value_approach === 'maximum_savings' && affordableOptions.length > 0) {
         return `💰 Budget-friendly: ${affordableOptions[0].university.name} offers excellent value at ${formatCurrency(affordableOptions[0].university.cost + affordableOptions[0].university.living_cost)}`;
     }
     
@@ -1062,4 +1505,242 @@ function formatCurrency(amount: number): string {
         currency: 'USD',
         maximumFractionDigits: 0
     }).format(amount);
+}
+
+// NEW: Scholarship Intelligence Functions
+
+function calculateScholarshipOpportunities(university: any, userProfile: UserProfile): number {
+    let score = 0;
+    
+    // Base scholarship availability score
+    if (university.scholarship_percentage) {
+        score += Math.min(50, university.scholarship_percentage);
+    }
+    
+    // University-specific scholarship programs
+    if (university.ranking <= 10) {
+        score += 20; // Top universities often have better funding
+    } else if (university.ranking <= 50) {
+        score += 10;
+    }
+    
+    // Field-specific funding opportunities
+    const fieldBonus = calculateFieldScholarshipBonus(userProfile.field, university);
+    score += fieldBonus;
+    
+    // International student considerations
+    if (userProfile.nationality && userProfile.nationality !== university.country) {
+        // International students often have specific scholarships
+        score += 10;
+    }
+    
+    // Research funding for PhD/Research programs
+    if (userProfile.degree_level === 'phd' && university.research_opportunities === 'extensive') {
+        score += 15;
+    }
+    
+    return Math.min(100, score);
+}
+
+async function calculateScholarshipIntelligence(university: any, userProfile: UserProfile, supabase: any): Promise<{
+    relevant_scholarships: ScholarshipMatch[];
+    funding_analysis: FundingAnalysis;
+    cost_after_aid: number;
+}> {
+    // Real database query to your scholarship table
+    const relevantScholarships = await generateRelevantScholarships(university, userProfile, supabase);
+    
+    const originalCost = university.cost + (university.living_cost || 0);
+    const potentialAid = calculatePotentialAid(university, userProfile, relevantScholarships);
+    const finalCost = Math.max(0, originalCost - potentialAid);
+    
+    const fundingAnalysis: FundingAnalysis = {
+        original_cost: originalCost,
+        potential_aid: potentialAid,
+        estimated_final_cost: finalCost,
+        affordability_rating: calculateAffordabilityRating(finalCost, userProfile),
+        funding_strategy: generateFundingStrategy(university, userProfile, relevantScholarships)
+    };
+    
+    return {
+        relevant_scholarships: relevantScholarships,
+        funding_analysis: fundingAnalysis,
+        cost_after_aid: finalCost
+    };
+}
+
+function calculateFieldScholarshipBonus(field: string, university: any): number {
+    const fieldBonuses: { [key: string]: number } = {
+        'computer-science': 15,
+        'engineering': 12,
+        'medicine': 10,
+        'business': 8,
+        'research': 10
+    };
+    
+    const normalizedField = normalizeEnhancedField(field);
+    return fieldBonuses[normalizedField || ''] || 5;
+}
+
+async function generateRelevantScholarships(university: any, userProfile: UserProfile, supabase: any): Promise<ScholarshipMatch[]> {
+    // Real database query to your scholarship table
+    let query = supabase
+        .from('scholarships')
+        .select('*')
+        .eq('is_active', true);
+    
+    // Location filtering for international students
+    const universityCountry = university.country;
+    if (universityCountry === 'United States') {
+        query = query.or(`location.ilike.%United States%,location.ilike.%USA%,location.ilike.%Global%`);
+    } else if (universityCountry === 'United Kingdom') {
+        query = query.or(`location.ilike.%United Kingdom%,location.ilike.%UK%,location.ilike.%Global%`);
+    } else {
+        query = query.or(`location.ilike.%${universityCountry}%,location.ilike.%Global%,location.ilike.%International%`);
+    }
+    
+    // Field matching (including cross-field relationships)
+    const normalizedField = normalizeEnhancedField(userProfile.field);
+    const relatedFields = normalizedField ? findRelatedFields(normalizedField) : [];
+    const fieldFilters = [normalizedField || userProfile.field, ...relatedFields, 'All Fields'].join(',');
+    query = query.in('field', fieldFilters.split(','));
+    
+    // Level filtering
+    let levelFilters = [userProfile.degree_level];
+    if (userProfile.degree_level === 'masters') {
+        levelFilters.push('Graduate', 'Master\'s', 'Masters');
+    } else if (userProfile.degree_level === 'phd') {
+        levelFilters.push('PhD', 'Doctoral', 'Graduate', 'Research');
+    }
+    query = query.in('level', levelFilters);
+    
+    // GPA requirements
+    const userGPA = parseFloat(userProfile.gpa) || 3.0;
+    query = query.or(`min_gpa.is.null,min_gpa.lte.${userGPA}`);
+    
+    const { data: scholarships, error } = await query
+        .order('deadline', { ascending: true })
+        .limit(5);
+    
+    if (error || !scholarships) {
+        console.error('Scholarship query error:', error);
+        return [];
+    }
+    
+    // Transform to match interface and calculate relevance
+    return scholarships.map((scholarship: any) => ({
+        id: scholarship.id,
+        title: scholarship.title,
+        provider: scholarship.provider,
+        amount: scholarship.amount,
+        match_score: calculateRealScholarshipMatch(userProfile, scholarship),
+        deadline: scholarship.deadline,
+        type: scholarship.funding_category || scholarship.type,
+        why_relevant: generateRelevanceExplanation(userProfile, scholarship, university)
+    })).sort((a: any, b: any) => b.match_score - a.match_score).slice(0, 3);
+}
+
+function calculateRealScholarshipMatch(userProfile: UserProfile, scholarship: any): number {
+    let score = 50; // Base score
+    
+    // GPA matching
+    const userGPA = parseFloat(userProfile.gpa) || 3.0;
+    if (!scholarship.min_gpa || userGPA >= scholarship.min_gpa) {
+        score += 20;
+        if (userGPA >= 3.7) score += 10;
+    }
+    
+    // Field relevance
+    const normalizedField = normalizeEnhancedField(userProfile.field);
+    if (scholarship.field.toLowerCase().includes(normalizedField) || 
+        scholarship.field.toLowerCase() === 'all fields') {
+        score += 15;
+    }
+    
+    // Level match
+    if (scholarship.level.toLowerCase().includes(userProfile.degree_level)) {
+        score += 15;
+    }
+    
+    // Research alignment for PhD
+    if (userProfile.degree_level === 'phd' && 
+        (scholarship.type.toLowerCase().includes('research') || 
+         scholarship.funding_category === 'Graduate Program Funding')) {
+        score += 10;
+    }
+    
+    // Position-specific bonus
+    if (scholarship.funding_category === 'Advertised Position' && 
+        scholarship.professor_name) {
+        score += 15; // Direct position opportunities
+    }
+    
+    return Math.min(100, score);
+}
+
+function generateRelevanceExplanation(userProfile: UserProfile, scholarship: any, university: any): string {
+    if (scholarship.funding_category === 'Graduate Program Funding') {
+        return `Perfect for ${userProfile.degree_level} students in ${userProfile.field}. Offers ${scholarship.funding_type} position at ${scholarship.university_name}.`;
+    } else if (scholarship.funding_category === 'Advertised Position') {
+        return `Direct research position with Prof. ${scholarship.professor_name}. Matches your ${userProfile.field} background and ${university.name} affiliation.`;
+    } else {
+        return `Excellent match for ${userProfile.field} students pursuing ${userProfile.degree_level} degree in ${university.country}.`;
+    }
+}
+
+function calculatePotentialAid(university: any, userProfile: UserProfile, scholarships: ScholarshipMatch[]): number {
+    let totalAid = 0;
+    
+    // University scholarships
+    if (university.scholarship_percentage) {
+        totalAid += (university.cost * university.scholarship_percentage / 100);
+    }
+    
+    // External scholarships (estimate)
+    const externalScholarshipValue = scholarships.reduce((sum, scholarship) => {
+        const amount = parseFloat(scholarship.amount.replace(/[^0-9]/g, '')) || 0;
+        return sum + Math.min(amount, 50000); // Cap at $50k per scholarship
+    }, 0);
+    
+    totalAid += externalScholarshipValue * 0.3; // 30% chance of getting external scholarships
+    
+    return totalAid;
+}
+
+function calculateAffordabilityRating(finalCost: number, userProfile: UserProfile): 'Excellent' | 'Good' | 'Fair' | 'Challenging' {
+    const budgetRanges = {
+        'low': 30000,
+        'moderate': 60000,
+        'high': 100000,
+        'unlimited': Infinity
+    };
+    
+    const maxBudget = budgetRanges[userProfile.value_approach as keyof typeof budgetRanges] || budgetRanges.moderate;
+    
+    if (finalCost <= maxBudget * 0.7) return 'Excellent';
+    if (finalCost <= maxBudget) return 'Good';
+    if (finalCost <= maxBudget * 1.3) return 'Fair';
+    return 'Challenging';
+}
+
+function generateFundingStrategy(university: any, userProfile: UserProfile, scholarships: ScholarshipMatch[]): string {
+    const strategies = [];
+    
+    if (university.scholarship_percentage > 50) {
+        strategies.push(`Apply for ${university.name} merit scholarships (${university.scholarship_percentage}% of students receive aid)`);
+    }
+    
+    if (scholarships.length > 0) {
+        strategies.push(`Target ${scholarships.length} external scholarships: ${scholarships[0].title}`);
+    }
+    
+    if (userProfile.degree_level === 'phd') {
+        strategies.push('Explore research assistantship and teaching assistant opportunities');
+    }
+    
+    if (userProfile.nationality && userProfile.nationality !== university.country) {
+        strategies.push('Look into country-specific exchange programs and bilateral scholarships');
+    }
+    
+    return strategies.join(' • ');
 } 

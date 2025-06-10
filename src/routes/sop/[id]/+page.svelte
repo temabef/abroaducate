@@ -5,7 +5,6 @@
     import type { PageData } from './$types';
     import { formatDistanceToNow, parseISO } from 'date-fns';
 import WordCountOptimizer from '$lib/components/WordCountOptimizer.svelte';
-import UniversityMatcher from '$lib/components/UniversityMatcher.svelte';
     
     export let data: PageData;
     let { supabase, session } = data;
@@ -123,14 +122,17 @@ import UniversityMatcher from '$lib/components/UniversityMatcher.svelte';
     }
     
     function setupTextSelection() {
-        document.addEventListener('mouseup', handleTextSelection);
-        document.addEventListener('touchend', handleTextSelection);
-        document.addEventListener('click', handleDocumentClick);
-        document.addEventListener('selectionchange', handleSelectionChange);
+        if (typeof document !== 'undefined') {
+            document.addEventListener('mouseup', handleTextSelection);
+            document.addEventListener('touchend', handleTextSelection);
+            document.addEventListener('click', handleDocumentClick);
+            document.addEventListener('selectionchange', handleSelectionChange);
+        }
     }
     
     function handleDocumentClick(event: Event) {
         // Hide popup when clicking outside the SOP content or popup
+        if (typeof document === 'undefined') return;
         const target = event.target as HTMLElement;
         const sopContent = document.getElementById('sop-content');
         const popup = document.querySelector('.edit-popup');
@@ -511,20 +513,6 @@ import UniversityMatcher from '$lib/components/UniversityMatcher.svelte';
                         programType="masters"
                         currentWordCount={sop.word_count || 0}
                         on:contentOptimized={handleContentOptimized}
-                    />
-                </div>
-            {/if}
-
-            <!-- University Matching Section -->
-            {#if sop?.form_data}
-                <div class="mt-8">
-                    <UniversityMatcher 
-                        userProfile={{
-                            gpa: sop.form_data.academicData?.gpa || '',
-                            field: sop.form_data.academicData?.fieldOfStudy || sop.program_name,
-                            qualities: sop.form_data.selectedQualities || [],
-                            degree_level: 'masters'
-                        }}
                     />
                 </div>
             {/if}

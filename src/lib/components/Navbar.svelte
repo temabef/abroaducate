@@ -124,6 +124,20 @@
                 <div class="text-sm text-gray-500">Find opportunities</div>
               </div>
             </a>
+            <a href="/universities" class="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition duration-200">
+              <span class="text-lg mr-3">🎯</span>
+              <div>
+                <div class="font-medium">University Matching</div>
+                <div class="text-sm text-gray-500">Smart university + scholarship pairing</div>
+              </div>
+            </a>
+            <a href="/universities/phase2" class="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition duration-200">
+              <span class="text-lg mr-3">🚀</span>
+              <div>
+                <div class="font-medium">Phase II Testing</div>
+                <div class="text-sm text-gray-500">1000+ university database</div>
+              </div>
+            </a>
             <a href="/scholarships/my-applications" class="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition duration-200">
               <span class="text-lg mr-3">📊</span>
               <div>
@@ -251,9 +265,11 @@
         <div class="hidden lg:flex items-center space-x-2">
           <button 
             onclick={() => {
-              const formSection = document.getElementById('form-section');
-              if (formSection) {
-                formSection.scrollIntoView({ behavior: 'smooth' });
+              if (typeof document !== 'undefined') {
+                const formSection = document.getElementById('form-section');
+                if (formSection) {
+                  formSection.scrollIntoView({ behavior: 'smooth' });
+                }
               }
             }}
             class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition duration-300 ease-in-out"
@@ -310,6 +326,7 @@
           </summary>
           <div class="pl-4 space-y-1">
             <a href="/scholarships" class="block py-2 text-gray-300 hover:text-white transition duration-300">🔍 Browse Scholarships</a>
+            <a href="/universities" class="block py-2 text-gray-300 hover:text-white transition duration-300">🎯 University Matching</a>
             <a href="/scholarships/my-applications" class="block py-2 text-gray-300 hover:text-white transition duration-300">📊 My Applications</a>
           </div>
         </details>
@@ -362,9 +379,11 @@
           <div class="pt-2 border-t border-gray-700 space-y-2">
             <button 
               onclick={() => {
-                const formSection = document.getElementById('form-section');
-                if (formSection) {
-                  formSection.scrollIntoView({ behavior: 'smooth' });
+                if (typeof document !== 'undefined') {
+                  const formSection = document.getElementById('form-section');
+                  if (formSection) {
+                    formSection.scrollIntoView({ behavior: 'smooth' });
+                  }
                 }
                 mobileMenuOpen = false;
               }}
