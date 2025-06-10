@@ -38,7 +38,6 @@
         { id: 'personal_statement', name: 'Personal Statement', required: false, status: 'not_started', category: 'essays' },
         { id: 'resume', name: 'Resume/CV', required: true, status: 'not_started', category: 'personal' },
         { id: 'portfolio', name: 'Portfolio', required: false, status: 'not_started', category: 'personal' },
-        { id: 'research_proposal', name: 'Research Proposal', required: false, status: 'not_started', category: 'essays' },
         
         // Financial
         { id: 'bank_statement', name: 'Bank Statement', required: true, status: 'not_started', category: 'financial' },

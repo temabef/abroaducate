@@ -5,7 +5,7 @@
 ### ✅ **Core Features to Implement**
 2. **Advanced AI Enhancement** - Tone analysis, word count optimization, plagiarism detection, grammar checking
 4. **Application Tracking** - Deadlines, checklists, status updates, reminders
-5. **Document Suite** - Cover letters for Advertised Positions, research proposals, academic CV builder
+5. **Document Suite** - Cover letters for Advertised Positions, academic CV builder
 
 ### 💰 **Monetization Tiers**
 - **Free**: 1 SOP, basic generation, limited AI improvements
@@ -219,18 +219,7 @@ interface CoverLetterData {
 }
 ```
 
-#### **5.2 Research Proposal Creator**
-```typescript
-// Research proposal structure
-interface ResearchProposal {
-    research_area: string;
-    methodology: string;
-    objectives: string[];
-    literature_review: string;
-    timeline: string;
-    generated_proposal: string;
-}
-```
+
 
 #### **5.3 Academic CV Builder**
 ```typescript
