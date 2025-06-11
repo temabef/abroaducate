@@ -189,6 +189,14 @@
                 <div class="text-sm text-gray-500">Find the right fit</div>
               </div>
             </a>
+            <a href="/gpa-converter" class="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition duration-200">
+              <span class="text-lg mr-3">🧮</span>
+              <div>
+                <div class="font-medium">GPA Converter</div>
+                <div class="text-sm text-gray-500">50+ African countries - 100% FREE</div>
+              </div>
+              <span class="ml-auto px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">FREE</span>
+            </a>
           </div>
         {/if}
       </div>
@@ -240,6 +248,7 @@
                 <div class="text-sm text-gray-500">Reach out to professors</div>
               </div>
             </a>
+
           </div>
         {/if}
       </div>
@@ -343,6 +352,7 @@
             <a href="/dashboard" class="block py-2 text-gray-300 hover:text-white transition duration-300">📊 Dashboard</a>
             <a href="/calendar" class="block py-2 text-gray-300 hover:text-white transition duration-300">📅 Calendar</a>
             <a href="/universities" class="block py-2 text-gray-300 hover:text-white transition duration-300">🏫 University Matching</a>
+            <a href="/gpa-converter" class="block py-2 text-gray-300 hover:text-white transition duration-300">🌍 GPA Converter <span class="ml-2 px-2 py-1 text-xs bg-green-600 text-white rounded-full">FREE</span></a>
           </div>
         </details>
 
@@ -359,6 +369,7 @@
             <a href="/text-enhancement" class="block py-2 text-gray-300 hover:text-white transition duration-300">✨ Text Enhancement</a>
             <a href="/word-optimization" class="block py-2 text-gray-300 hover:text-white transition duration-300">📊 Word Optimization</a>
             <a href="/cold-email-generator" class="block py-2 text-gray-300 hover:text-white transition duration-300">📧 Cold Email Generator</a>
+
           </div>
         </details>
 

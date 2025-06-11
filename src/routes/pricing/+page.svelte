@@ -37,6 +37,8 @@
       </p>
     </div>
 
+
+
     <!-- Pay-as-you-grow Banner -->
     <div class="max-w-4xl mx-auto mb-12 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
       <div class="text-center">
@@ -116,12 +118,7 @@
             </svg>
             <span class="text-gray-700">Version history (cover letters only)</span>
           </li>
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-700"><strong>GPA Converter:</strong> Basic conversion for 50+ African countries</span>
-          </li>
+
           <li class="flex items-start">
             <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
@@ -219,12 +216,7 @@
             </svg>
             <span class="text-gray-700"><strong>Cold Email Generator</strong> - Professional outreach templates</span>
           </li>
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-700"><strong>GPA Converter:</strong> Save conversion history + advanced features</span>
-          </li>
+
           <li class="flex items-start">
             <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
@@ -316,12 +308,7 @@
             </svg>
             <span class="text-gray-700"><strong>Advanced Cold Email Suite</strong> - Smart templates + professional guidance</span>
           </li>
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-700"><strong>GPA Converter Pro:</strong> Custom grading systems + WES-style official reports + unlimited conversions</span>
-          </li>
+
           <li class="flex items-start">
             <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
@@ -391,12 +378,7 @@
                 <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>✅ Basic Templates</strong></td>
                 <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>✅ Advanced Templates</strong></td>
               </tr>
-              <tr class="bg-gray-50">
-                <td class="px-6 py-4 text-sm text-gray-900 font-medium">GPA Converter</td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>✅ Basic Conversion</strong></td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>✅ Save History + Bulk Upload</strong></td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>✅ Custom Systems + Official Reports</strong></td>
-              </tr>
+
               <tr>
                 <td class="px-6 py-4 text-sm text-gray-900 font-medium">Support Level</td>
                 <td class="px-6 py-4 text-sm text-center text-gray-600">Community</td>
@@ -424,6 +406,33 @@
             </tbody>
           </table>
         </div>
+      </div>
+    </div>
+
+    <!-- Free GPA Converter Highlight -->
+    <div class="mt-20 max-w-4xl mx-auto mb-8 bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-6">
+      <div class="text-center">
+        <h2 class="text-2xl font-bold text-green-900 mb-3">🌍 GPA Converter - 100% FREE for Everyone!</h2>
+        <p class="text-green-700 text-lg mb-4">
+          Convert your African university grades to US 4.0 scale completely free. No signup required, unlimited conversions.
+        </p>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+          <div class="bg-white rounded-lg p-4 border border-green-100">
+            <div class="font-semibold text-green-900">50+ Countries</div>
+            <div class="text-green-700">All African grading systems</div>
+          </div>
+          <div class="bg-white rounded-lg p-4 border border-green-100">
+            <div class="font-semibold text-green-900">Smart Assist</div>
+            <div class="text-green-700">OCR transcript processing</div>
+          </div>
+          <div class="bg-white rounded-lg p-4 border border-green-100">
+            <div class="font-semibold text-green-900">Professional PDF</div>
+            <div class="text-green-700">Download official transcripts</div>
+          </div>
+        </div>
+        <a href="/gpa-converter" class="inline-block mt-4 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition duration-300 font-semibold">
+          Try GPA Converter Free →
+        </a>
       </div>
     </div>
 
