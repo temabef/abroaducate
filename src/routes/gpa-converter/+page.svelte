@@ -56,6 +56,24 @@
   }> = [];
   let showPreview = false;
   let previewMode = 'sessions'; // 'sessions' or 'table'
+  
+  // Editing phase state
+  let showEditingPhase = false;
+  let coursesForEditing: Array<{
+    name: string;
+    code: string;
+    grade: string;
+    credits: number;
+    year: string;
+    semester: string;
+    confidence: 'high' | 'medium' | 'low';
+    sessionName: string;
+  }> = [];
+
+  // Academic profile analysis state
+  let showAcademicAnalysis = false;
+  let academicProfile: any = null;
+  let analysis: any = null;
 
   // Academic year options
   const academicYears = [
@@ -526,6 +544,229 @@
 
   function formatSystemName(system: string): string {
     return system.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  }
+
+  // Academic Profile Analysis Function
+  function handleAnalyzeAcademicProfile() {
+    // Enhanced validation for better UX
+    if (courses.length === 0) {
+      alert('Please add courses first before analyzing your profile.');
+      return;
+    }
+
+    if (courses.length < 3) {
+      const proceed = confirm(`You only have ${courses.length} course(s) added. For meaningful analysis, we recommend at least 5 courses. Would you like to continue anyway?`);
+      if (!proceed) return;
+    }
+
+    // Check if courses have valid grades and GPA values
+    const validCourses = courses.filter(course => course.grade && course.usGPA !== undefined && course.usGPA > 0);
+    if (validCourses.length < courses.length * 0.8) {
+      alert('Some courses are missing grades or GPA values. Please complete your course information for better analysis.');
+      return;
+    }
+
+    try {
+      // Create academic profile from current session data
+      academicProfile = extractCurrentSessionProfile();
+      
+      // Import and run analysis
+      import('$lib/academicAnalyzer/analysisEngine.js').then(module => {
+        analysis = module.analyzeAcademicProfile(academicProfile);
+        
+        // Enhanced validation: check if analysis generated meaningful results
+        if (!analysis || !analysis.hasAnalysis) {
+          alert('Unable to generate meaningful analysis with current data. Please add more courses or check your entries.');
+          return;
+        }
+
+        // Only show analysis if we have sufficient insights
+        const hasMinimumInsights = (
+          (analysis.strengths && analysis.strengths.length > 0) ||
+          (analysis.weaknesses && analysis.weaknesses.length > 0) ||
+          (analysis.recommendations && analysis.recommendations.length > 0)
+        );
+
+        if (!hasMinimumInsights) {
+          const proceed = confirm('Analysis completed, but we found limited insights with your current data. This may result in sparse results. Continue viewing?');
+          if (!proceed) return;
+        }
+
+        showAcademicAnalysis = true;
+        
+        // Scroll to analysis section
+        setTimeout(() => {
+          document.getElementById('academic-analysis-section')?.scrollIntoView({ 
+            behavior: 'smooth' 
+          });
+        }, 100);
+      }).catch(error => {
+        console.error('Error loading analysis engine:', error);
+        alert('Unable to load analysis engine. Please try again.');
+      });
+    } catch (error) {
+      console.error('Error analyzing academic profile:', error);
+      alert('Error analyzing profile. Please try again.');
+    }
+  }
+
+  // Extract academic profile from current session
+  function extractCurrentSessionProfile() {
+    const totalCredits = courses.reduce((sum, course) => sum + course.credits, 0);
+    const totalPoints = courses.reduce((sum, course) => sum + course.usGPA * course.credits, 0);
+    const calculatedGPA = totalCredits > 0 ? totalPoints / totalCredits : 0;
+
+    // Group courses by year
+    const coursesByYear: Record<string, any> = {};
+    academicYears.forEach(year => {
+      const yearCourses = courses.filter(c => c.year === year);
+      if (yearCourses.length > 0) {
+        const yearCredits = yearCourses.reduce((sum, course) => sum + course.credits, 0);
+        const yearPoints = yearCourses.reduce((sum, course) => sum + course.usGPA * course.credits, 0);
+        coursesByYear[year] = {
+          courses: yearCourses,
+          gpa: yearCredits > 0 ? (yearPoints / yearCredits).toFixed(2) : '0.00',
+          totalCredits: yearCredits,
+          courseCount: yearCourses.length
+        };
+      }
+    });
+
+    // Categorize by subject
+    const coursesBySubject = categorizeBySubject(courses);
+
+    // Analyze grade distribution
+    const gradeDistribution = analyzeGradeDistribution(courses);
+
+    return {
+      hasData: true,
+      totalGPA: calculatedGPA,
+      totalCourses: courses.length,
+      studentInfo: {
+        studentName: studentName || '',
+        universityName: universityName || '',
+        programOfStudy: programOfStudy || ''
+      },
+      coursesByYear: coursesByYear,
+      coursesBySubject: coursesBySubject,
+      gradeDistribution: gradeDistribution,
+      creditHours: {
+        total: totalCredits,
+        average: courses.length > 0 ? parseFloat((totalCredits / courses.length).toFixed(1)) : 0,
+        courseCount: courses.length
+      },
+      gradingSystem: {
+        country: selectedCountry,
+        system: selectedGradingSystem
+      },
+      extractedAt: new Date().toISOString()
+    };
+  }
+
+  // Helper functions for academic analysis
+  function categorizeBySubject(courses: any[]) {
+    const subjectCategories: Record<string, string[]> = {
+      'Science': ['chemistry', 'biology', 'physics', 'anatomy', 'physiology', 'biochemistry', 'microbiology'],
+      'Mathematics': ['mathematics', 'math', 'calculus', 'statistics', 'algebra', 'geometry'],
+      'Engineering': ['engineering', 'mechanical', 'electrical', 'civil', 'chemical', 'computer'],
+      'Business': ['business', 'management', 'economics', 'finance', 'accounting', 'marketing'],
+      'Liberal Arts': ['english', 'literature', 'history', 'philosophy', 'art', 'music'],
+      'Social Sciences': ['psychology', 'sociology', 'political', 'anthropology', 'geography'],
+      'Language': ['language', 'foreign', 'spanish', 'french', 'german', 'chinese'],
+      'Other': []
+    };
+
+    const categorizedCourses: Record<string, any[]> = {};
+    
+    // Initialize categories
+    Object.keys(subjectCategories).forEach(category => {
+      categorizedCourses[category] = [];
+    });
+
+    courses.forEach(course => {
+      const courseName = (course.name || '').toLowerCase();
+      const courseCode = (course.code || '').toLowerCase();
+      
+      let categorized = false;
+      
+      // Try to categorize based on course name and code
+      for (const [category, keywords] of Object.entries(subjectCategories)) {
+        if (category === 'Other') continue;
+        
+        const isMatch = keywords.some(keyword => 
+          courseName.includes(keyword) || courseCode.includes(keyword)
+        );
+        
+        if (isMatch) {
+          categorizedCourses[category].push(course);
+          categorized = true;
+          break;
+        }
+      }
+      
+      // If not categorized, put in 'Other'
+      if (!categorized) {
+        categorizedCourses['Other'].push(course);
+      }
+    });
+
+    // Calculate GPA for each subject area
+    const result: Record<string, any> = {};
+    Object.keys(categorizedCourses).forEach(category => {
+      const courses = categorizedCourses[category];
+      if (courses.length > 0) {
+        const totalCredits = courses.reduce((sum: number, course: any) => sum + (course.credits || 0), 0);
+        const totalGradePoints = courses.reduce((sum: number, course: any) => sum + ((course.usGPA || 0) * (course.credits || 0)), 0);
+        
+        result[category] = {
+          courses: courses,
+          gpa: totalCredits > 0 ? (totalGradePoints / totalCredits).toFixed(2) : '0.00',
+          totalCredits: totalCredits,
+          courseCount: courses.length
+        };
+      } else {
+        result[category] = {
+          courses: [],
+          gpa: '0.00',
+          totalCredits: 0,
+          courseCount: 0
+        };
+      }
+    });
+
+    return result;
+  }
+
+  function analyzeGradeDistribution(courses: any[]) {
+    const gradeCount: Record<string, number> = {};
+    const gpaRanges: Record<string, number> = {
+      'A Range (3.7-4.0)': 0,
+      'B Range (2.7-3.6)': 0,
+      'C Range (1.7-2.6)': 0,
+      'D Range (0.7-1.6)': 0,
+      'F Range (0.0-0.6)': 0
+    };
+
+    courses.forEach(course => {
+      const grade = course.grade;
+      const gpa = course.usGPA || 0;
+      
+      // Count individual grades
+      gradeCount[grade] = (gradeCount[grade] || 0) + 1;
+      
+      // Count GPA ranges
+      if (gpa >= 3.7) gpaRanges['A Range (3.7-4.0)']++;
+      else if (gpa >= 2.7) gpaRanges['B Range (2.7-3.6)']++;
+      else if (gpa >= 1.7) gpaRanges['C Range (1.7-2.6)']++;
+      else if (gpa >= 0.7) gpaRanges['D Range (0.7-1.6)']++;
+      else gpaRanges['F Range (0.0-0.6)']++;
+    });
+
+    return {
+      byGrade: gradeCount,
+      byGPARange: gpaRanges,
+      totalCourses: courses.length
+    };
   }
 
   function loadUploadData() {
@@ -1035,51 +1276,26 @@
       return;
     }
 
-    // Convert all courses from all sessions to the main format
-    const allNewCourses = [];
+    // Instead of adding directly, move to editing phase
+    showPreview = false;
+    showEditingPhase = true;
     
+    // Prepare courses for editing
+    coursesForEditing = [];
     for (const session of detectedSessions) {
       for (const course of session.courses) {
-        const gradeKey = course.grade;
-        const usGPA = currentGradingSystem && gradeKey in currentGradingSystem 
-          ? (currentGradingSystem as any)[gradeKey]?.usGPA || 0 
-          : 0;
-
-        allNewCourses.push({
+        coursesForEditing.push({
           name: course.name,
-          code: course.code || undefined,
+          code: course.code || '',
           grade: course.grade,
           credits: typeof course.credits === 'string' ? parseFloat(course.credits) : course.credits,
-          usGPA: usGPA,
-          year: session.year || undefined,
-          semester: undefined
+          year: session.year || '',
+          semester: '',
+          confidence: course.confidence,
+          sessionName: session.name
         });
       }
     }
-
-    // Add all courses at once
-    courses = [...courses, ...allNewCourses];
-    
-    // Clear extraction state
-    detectedSessions = [];
-    showPreview = false;
-    selectedFile = null;
-    extractedText = '';
-    activeTab = 'manual';
-    saveData();
-
-    // Provide clear next steps
-    const instructionMessage = `🎉 Successfully added ${allNewCourses.length} courses!\n\n📋 Next Steps:\n1. Review your courses in the "Added Courses" section below\n2. Edit any incorrect information if needed\n3. Click "Convert My GPA" to see your results\n4. Download your official transcript PDF\n\n💡 Tip: You can still add more courses manually if any were missed!`;
-    
-    alert(instructionMessage);
-    
-    // Scroll to courses section
-    setTimeout(() => {
-      const coursesSection = document.querySelector('[data-section="courses"]');
-      if (coursesSection) {
-        coursesSection.scrollIntoView({ behavior: 'smooth' });
-      }
-    }, 500);
   }
 
   function editCourseInSession(sessionIndex: number, courseIndex: number) {
@@ -1107,6 +1323,71 @@
     detectedSessions = [];
     extractedText = '';
     statusMessage = 'Extraction cancelled. You can try again or enter courses manually.';
+  }
+
+  function updateEditingCourse(index: number, field: string, value: any) {
+    if (coursesForEditing[index]) {
+      coursesForEditing[index][field] = value;
+      coursesForEditing = [...coursesForEditing]; // Force reactivity
+    }
+  }
+
+  function removeEditingCourse(index: number) {
+    coursesForEditing = coursesForEditing.filter((_, i) => i !== index);
+  }
+
+  function confirmEditedCourses() {
+    if (coursesForEditing.length === 0 || !currentGradingSystem) {
+      return;
+    }
+
+    // Convert edited courses to the main format
+    const newCourses = coursesForEditing.map(course => {
+      const gradeKey = course.grade;
+      const usGPA = currentGradingSystem && gradeKey in currentGradingSystem 
+        ? (currentGradingSystem as any)[gradeKey]?.usGPA || 0 
+        : 0;
+
+      return {
+        name: course.name,
+        code: course.code || undefined,
+        grade: course.grade,
+        credits: course.credits,
+        usGPA: usGPA,
+        year: course.year || undefined,
+        semester: course.semester || undefined
+      };
+    });
+
+    // Add all courses at once
+    courses = [...courses, ...newCourses];
+    
+    // Clear all extraction/editing state
+    detectedSessions = [];
+    showPreview = false;
+    showEditingPhase = false;
+    coursesForEditing = [];
+    selectedFile = null;
+    extractedText = '';
+    activeTab = 'manual';
+    saveData();
+
+    // Show success message without misleading popup
+    alert(`✅ Successfully added ${newCourses.length} courses to your conversion list!`);
+    
+    // Scroll to courses section
+    setTimeout(() => {
+      const coursesSection = document.querySelector('[data-section="courses"]');
+      if (coursesSection) {
+        coursesSection.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, 500);
+  }
+
+  function cancelEditing() {
+    showEditingPhase = false;
+    coursesForEditing = [];
+    statusMessage = 'Course editing cancelled. You can try extraction again.';
   }
 
   async function cleanupWorker() {
@@ -1726,7 +2007,16 @@
                 <div class="text-sm text-gray-500">
                   Supports PDF transcripts and JPG/PNG images up to 10MB
                 </div>
-                <div class="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                
+                <!-- Image vs PDF Recommendation -->
+                <div class="mt-4 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                  <p class="text-xs text-yellow-800">
+                    📸 <strong>Best Results Tip:</strong> 
+                    Images (JPG/PNG) provide significantly better text recognition than PDFs! If you have an image of your transcript, that's your best option for accurate course extraction.
+                  </p>
+                </div>
+                
+                <div class="mt-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
                   <p class="text-xs text-blue-700">
                     💡 <strong>Smart Processing:</strong> 
                     • PDF files are automatically converted to high-quality images
@@ -1865,6 +2155,128 @@
                   class="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors font-medium"
                 >
                   ❌ Cancel & Try Again
+                </button>
+              </div>
+            </div>
+          {/if}
+
+          <!-- Course Editing Phase -->
+          {#if showEditingPhase && coursesForEditing.length > 0}
+            <div class="bg-gradient-to-r from-blue-50 to-green-50 rounded-xl p-6 border border-blue-200">
+              <h4 class="text-xl font-bold text-gray-900 mb-4">
+                ✏️ Review & Edit Extracted Courses
+              </h4>
+              
+              <div class="mb-4 p-3 bg-blue-100 rounded-lg border border-blue-200">
+                <p class="text-blue-800 text-sm">
+                  📝 <strong>Review each course below:</strong> Edit any incorrect information, then confirm to add all courses to your conversion list.
+                </p>
+              </div>
+              
+              <div class="space-y-4 mb-6 max-h-96 overflow-y-auto">
+                {#each coursesForEditing as course, index}
+                  <div class="bg-white rounded-lg border border-gray-200 p-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                      <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">Course Code</label>
+                        <input
+                          type="text"
+                          bind:value={course.code}
+                          on:input={() => updateEditingCourse(index, 'code', course.code)}
+                          class="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="e.g., MTH101"
+                        />
+                      </div>
+                      
+                      <div class="md:col-span-2">
+                        <label class="block text-xs font-medium text-gray-700 mb-1">Course Name</label>
+                        <input
+                          type="text"
+                          bind:value={course.name}
+                          on:input={() => updateEditingCourse(index, 'name', course.name)}
+                          class="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="e.g., Mathematics I"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">Credits</label>
+                        <input
+                          type="number"
+                          bind:value={course.credits}
+                          on:input={() => updateEditingCourse(index, 'credits', course.credits)}
+                          class="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          min="1"
+                          max="12"
+                          step="1"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
+                      <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">Grade</label>
+                        <select
+                          bind:value={course.grade}
+                          on:change={() => updateEditingCourse(index, 'grade', course.grade)}
+                          class="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                          <option value="">Select Grade</option>
+                          {#each availableGrades as grade}
+                            <option value={grade}>{grade}</option>
+                          {/each}
+                        </select>
+                      </div>
+                      
+                      <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">Academic Year</label>
+                        <select
+                          bind:value={course.year}
+                          on:change={() => updateEditingCourse(index, 'year', course.year)}
+                          class="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                          <option value="">Select Year</option>
+                          {#each academicYears as year}
+                            <option value={year}>{year}</option>
+                          {/each}
+                        </select>
+                      </div>
+                      
+                      <div class="flex items-end">
+                        <button
+                          on:click={() => removeEditingCourse(index)}
+                          class="bg-red-600 text-white px-3 py-2 rounded text-sm hover:bg-red-700 transition-colors"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div class="mt-2 flex items-center justify-between">
+                      <div class="flex items-center space-x-2">
+                        <span class="text-xs text-gray-500">From: {course.sessionName}</span>
+                        <span class="px-2 py-1 text-xs rounded-full {course.confidence === 'high' ? 'bg-green-100 text-green-800' : course.confidence === 'medium' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}">
+                          {course.confidence} confidence
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                {/each}
+              </div>
+              
+              <!-- Action Buttons -->
+              <div class="flex gap-3 justify-center">
+                <button
+                  on:click={confirmEditedCourses}
+                  class="bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium text-lg"
+                >
+                  ✅ Confirm & Add All {coursesForEditing.length} Courses
+                </button>
+                <button
+                  on:click={cancelEditing}
+                  class="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors font-medium"
+                >
+                  ❌ Cancel & Start Over
                 </button>
               </div>
             </div>
@@ -2207,10 +2619,219 @@
               >
                 📄 Download Transcript (PDF)
               </button>
+              
+              <!-- Academic Profile Analysis CTA -->
+              <div class="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                <div class="flex items-start space-x-3">
+                  <div class="text-2xl">🎯</div>
+                  <div class="flex-1">
+                    <h4 class="font-semibold text-blue-900 mb-1">
+                      Want to analyze your academic profile?
+                    </h4>
+                    <p class="text-blue-700 text-sm mb-3">
+                      Get comprehensive insights into your strengths, weaknesses, and competitiveness for studying abroad - completely FREE!
+                    </p>
+                                         <button
+                       on:click={handleAnalyzeAcademicProfile}
+                       class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
+                     >
+                       📊 Analyze My Profile
+                     </button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         {/if}
 
+        <!-- Academic Profile Analysis Results -->
+        {#if showAcademicAnalysis && analysis && analysis.hasAnalysis}
+          <div id="academic-analysis-section" class="mt-8 bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl shadow-lg p-6">
+            <div class="text-center mb-6">
+              <h3 class="text-2xl font-bold text-gray-900 mb-2">🎯 Your Academic Profile Analysis</h3>
+              <p class="text-gray-600">Comprehensive insights into your academic strengths and opportunities</p>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+              <div class="bg-white rounded-lg shadow-sm p-4 text-center">
+                <div class="text-2xl font-bold text-blue-600 mb-1">{academicProfile.totalGPA.toFixed(2)}</div>
+                <div class="text-sm text-gray-600">Overall GPA</div>
+                <div class="text-xs text-gray-500">{analysis.overall.gpaCategory}</div>
+              </div>
+              <div class="bg-white rounded-lg shadow-sm p-4 text-center">
+                <div class="text-2xl font-bold text-green-600 mb-1">{analysis.strengths.length}</div>
+                <div class="text-sm text-gray-600">Key Strengths</div>
+                <div class="text-xs text-green-600">Identified</div>
+              </div>
+              <div class="bg-white rounded-lg shadow-sm p-4 text-center">
+                <div class="text-2xl font-bold text-orange-600 mb-1">{analysis.weaknesses.length}</div>
+                <div class="text-sm text-gray-600">Growth Areas</div>
+                <div class="text-xs text-orange-600">To Improve</div>
+              </div>
+              <div class="bg-white rounded-lg shadow-sm p-4 text-center">
+                <div class="text-2xl font-bold text-purple-600 mb-1">{analysis.competitiveness.percentile}th</div>
+                <div class="text-sm text-gray-600">Percentile</div>
+                <div class="text-xs text-purple-600">{analysis.competitiveness.level}</div>
+              </div>
+            </div>
+
+            <!-- Strengths Section -->
+            {#if analysis.strengths.length > 0}
+              <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+                <h4 class="text-lg font-semibold text-green-900 mb-4 flex items-center">
+                  <span class="mr-2">💪</span> Your Academic Strengths
+                </h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {#each analysis.strengths.slice(0, 4) as strength}
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                      <div class="flex items-start space-x-3">
+                        <div class="text-xl">{strength.icon}</div>
+                        <div class="flex-1">
+                          <h5 class="font-medium text-green-900 text-sm">{strength.title}</h5>
+                          <p class="text-green-700 text-xs mt-1">{strength.description}</p>
+                          <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 mt-2">
+                            {strength.category}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  {/each}
+                </div>
+              </div>
+            {/if}
+
+            <!-- Growth Areas Section -->
+            {#if analysis.weaknesses.length > 0}
+              <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+                <h4 class="text-lg font-semibold text-orange-900 mb-4 flex items-center">
+                  <span class="mr-2">📈</span> Areas for Growth
+                </h4>
+                <div class="space-y-3">
+                  {#each analysis.weaknesses.slice(0, 3) as weakness}
+                    <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                      <div class="flex items-start space-x-3">
+                        <div class="text-lg">{weakness.icon}</div>
+                        <div class="flex-1">
+                          <div class="flex items-center justify-between mb-1">
+                            <h5 class="font-medium text-orange-900 text-sm">{weakness.title}</h5>
+                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium {
+                              weakness.severity === 'high' ? 'bg-red-100 text-red-800' :
+                              weakness.severity === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                              'bg-blue-100 text-blue-800'
+                            }">
+                              {weakness.severity} priority
+                            </span>
+                          </div>
+                          <p class="text-orange-700 text-xs">{weakness.description}</p>
+                        </div>
+                      </div>
+                    </div>
+                  {/each}
+                </div>
+              </div>
+            {/if}
+
+            <!-- Competitiveness Overview -->
+            <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+              <h4 class="text-lg font-semibold text-purple-900 mb-4 flex items-center">
+                <span class="mr-2">🎯</span> University Competitiveness
+              </h4>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h5 class="font-medium text-gray-900 mb-2">Assessment</h5>
+                  <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                    <div class="text-center">
+                      <div class="text-xl font-bold text-purple-600 mb-1">{analysis.competitiveness.level}</div>
+                      <p class="text-purple-700 text-sm">{analysis.competitiveness.description}</p>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <h5 class="font-medium text-gray-900 mb-2">Opportunities</h5>
+                  <ul class="space-y-2">
+                    {#each analysis.competitiveness.opportunities.slice(0, 3) as opportunity}
+                      <li class="flex items-start space-x-2 text-sm">
+                        <span class="text-green-500 mt-1">✓</span>
+                        <span class="text-gray-700">{opportunity}</span>
+                      </li>
+                    {/each}
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <!-- Recommendations -->
+            {#if analysis.recommendations.length > 0}
+              <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+                <h4 class="text-lg font-semibold text-blue-900 mb-4 flex items-center">
+                  <span class="mr-2">💡</span> Personalized Recommendations
+                </h4>
+                <div class="space-y-4">
+                  {#each analysis.recommendations.slice(0, 2) as rec}
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <div class="flex items-start space-x-3">
+                        <div class="text-lg">💡</div>
+                        <div class="flex-1">
+                          <div class="flex items-center justify-between mb-2">
+                            <h5 class="font-medium text-blue-900 text-sm">{rec.title}</h5>
+                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium {
+                              rec.priority === 'high' ? 'bg-red-100 text-red-800' :
+                              rec.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                              'bg-green-100 text-green-800'
+                            }">
+                              {rec.priority} priority
+                            </span>
+                          </div>
+                          <p class="text-blue-700 text-sm mb-2">{rec.description}</p>
+                          <details class="text-xs">
+                            <summary class="font-medium text-blue-800 cursor-pointer hover:text-blue-600">Action Steps</summary>
+                            <ul class="mt-2 space-y-1 ml-4">
+                              {#each rec.actionItems as action}
+                                <li class="flex items-start space-x-2">
+                                  <span class="text-blue-500">•</span>
+                                  <span class="text-blue-700">{action}</span>
+                                </li>
+                              {/each}
+                            </ul>
+                          </details>
+                        </div>
+                      </div>
+                    </div>
+                  {/each}
+                </div>
+              </div>
+            {/if}
+
+            <!-- Action Buttons -->
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+              <a 
+                href="/academic-analyzer" 
+                class="inline-flex items-center justify-center px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
+              >
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                </svg>
+                View Detailed Analysis
+              </a>
+              <a 
+                href="/universities" 
+                class="inline-flex items-center justify-center px-6 py-3 border border-purple-300 text-purple-700 rounded-lg hover:bg-purple-50 transition-colors font-medium"
+              >
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                </svg>
+                Find Matching Universities
+              </a>
+              <button
+                on:click={() => showAcademicAnalysis = false}
+                class="inline-flex items-center justify-center px-6 py-3 border border-gray-300 text-gray-700 bg-white rounded-lg hover:bg-gray-50 transition-colors font-medium"
+              >
+                Close Analysis
+              </button>
+            </div>
+          </div>
+        {/if}
 
       </div>
     </div>

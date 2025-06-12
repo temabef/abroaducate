@@ -20,7 +20,7 @@ export interface CurrentUsage {
 export async function checkUsageLimit(
     supabase: SupabaseClient,
     userId: string,
-    usageType: 'sops_created' | 'ai_improvements_used' | 'analytics_generated' | 'plagiarism_checks',
+    usageType: 'sops_created' | 'cover_letters_created' | 'personal_statements_created' | 'academic_cvs_created' | 'ai_improvements_used' | 'analytics_generated' | 'plagiarism_checks',
     increment: number = 1
 ): Promise<{ allowed: boolean; planType: string; currentUsage: number; limit: number | null; message?: string }> {
     try {
@@ -51,7 +51,35 @@ export async function checkUsageLimit(
             };
         }
 
-        const limit = planLimits[`${usageType.replace('_used', '').replace('_created', '').replace('_generated', '')}_limit`];
+        // Map usage types to their corresponding limit columns
+        let limitColumn: string;
+        switch (usageType) {
+            case 'sops_created':
+                limitColumn = 'sops_limit';
+                break;
+            case 'cover_letters_created':
+                limitColumn = 'cover_letters_limit';
+                break;
+            case 'personal_statements_created':
+                limitColumn = 'personal_statements_limit';
+                break;
+            case 'academic_cvs_created':
+                limitColumn = 'academic_cvs_limit';
+                break;
+            case 'ai_improvements_used':
+                limitColumn = 'ai_improvements_limit';
+                break;
+            case 'analytics_generated':
+                limitColumn = 'analytics_limit';
+                break;
+            case 'plagiarism_checks':
+                limitColumn = 'plagiarism_checks_limit';
+                break;
+            default:
+                limitColumn = 'sops_limit';
+        }
+        
+        const limit = planLimits[limitColumn];
         
         // If limit is null (unlimited), allow action
         if (limit === null) {
@@ -99,7 +127,7 @@ export async function checkUsageLimit(
 export async function incrementUsage(
     supabase: SupabaseClient,
     userId: string,
-    usageType: 'sops_created' | 'ai_improvements_used' | 'analytics_generated' | 'plagiarism_checks',
+    usageType: 'sops_created' | 'cover_letters_created' | 'personal_statements_created' | 'academic_cvs_created' | 'ai_improvements_used' | 'analytics_generated' | 'plagiarism_checks',
     increment: number = 1
 ): Promise<boolean> {
     try {

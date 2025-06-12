@@ -2,19 +2,43 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import OpenAI from 'openai';
 import { OPENAI_API_KEY } from '$env/static/private';
+import { checkUsageLimit, incrementUsage } from '$lib/usage-limits';
+import { getModelConfig } from '$lib/ai-models';
 
 const openai = new OpenAI({
     apiKey: OPENAI_API_KEY
 });
 
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async ({ request, locals: { supabase, safeGetSession } }) => {
+    const { session } = await safeGetSession();
+
+    if (!session) {
+        return json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Check usage limits before processing
+    const usageCheck = await checkUsageLimit(supabase, session.user.id, 'academic_cvs_created');
+    if (!usageCheck.allowed) {
+        return json({
+            error: 'Usage limit exceeded',
+            message: usageCheck.message,
+            planType: usageCheck.planType,
+            currentUsage: usageCheck.currentUsage,
+            limit: usageCheck.limit,
+            upgradeRequired: true
+        }, { status: 403 });
+    }
+
     try {
         const cvData = await request.json();
         
         const prompt = buildCVPrompt(cvData);
         
+        // Get AI model based on user's subscription
+        const modelConfig = await getModelConfig(supabase, session.user.id, 'academic-cv');
+        
         const completion = await openai.chat.completions.create({
-            model: "gpt-4",
+            model: modelConfig.model,
             messages: [
                 {
                     role: "system",
@@ -25,11 +49,14 @@ export const POST: RequestHandler = async ({ request }) => {
                     content: prompt
                 }
             ],
-            temperature: 0.3,
-            max_tokens: 2500
+            temperature: modelConfig.temperature,
+            max_tokens: modelConfig.max_tokens
         });
 
         const cv = completion.choices[0]?.message?.content || '';
+        
+        // Increment usage counter after successful generation
+        await incrementUsage(supabase, session.user.id, 'academic_cvs_created');
         
         return json({ cv });
         

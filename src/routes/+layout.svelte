@@ -3,6 +3,7 @@
 	import { invalidate } from '$app/navigation';
 	import '../app.css';
 	import Navbar from '$lib/components/Navbar.svelte';
+	import GlobalUpgradeHandler from '$lib/components/GlobalUpgradeHandler.svelte';
 
 	let { data, children } = $props();
 	let { supabase, session } = $derived(data);
@@ -21,4 +22,7 @@
 
 <Navbar {data} />
 
-{@render children()} 
+{@render children()}
+
+<!-- Global upgrade handler - works everywhere -->
+<GlobalUpgradeHandler /> 

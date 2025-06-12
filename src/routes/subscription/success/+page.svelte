@@ -9,7 +9,7 @@
     let { supabase, session } = data;
     
     // Type definitions
-    type PlanType = 'basic' | 'pro';
+    type PlanType = 'professional' | 'elite';
     type SubscriptionData = {
         plan_type: PlanType;
         user_id: string;
@@ -22,12 +22,12 @@
     let error = '';
     let subscription: SubscriptionData | null = null;
     let planDetails: any = null;
-    let planFromUrl: PlanType = 'basic';
+    let planFromUrl: PlanType = 'professional';
     
     onMount(async () => {
         const urlParams = new URLSearchParams(window.location.search);
         sessionId = urlParams.get('session_id') || '';
-        planFromUrl = (urlParams.get('plan') as PlanType) || 'basic'; // Get plan from URL as backup
+        planFromUrl = (urlParams.get('plan') as PlanType) || 'professional'; // Get plan from URL as backup
         
         if (!sessionId) {
             error = 'Invalid session';
@@ -97,18 +97,18 @@
     }
     
     function getPlanName(): string {
-        const planType: PlanType = subscription?.plan_type || planFromUrl || 'basic';
-        return planType === 'basic' ? 'Basic Plan' : 'Pro Plan';
+        const planType: PlanType = subscription?.plan_type || planFromUrl || 'professional';
+        return planType === 'professional' ? 'Professional Plan' : 'Elite Plan';
     }
     
     function getPlanPrice(): string {
-        const planType: PlanType = subscription?.plan_type || planFromUrl || 'basic';
-        return planType === 'basic' ? '$4.99' : '$19.99';
+        const planType: PlanType = subscription?.plan_type || planFromUrl || 'professional';
+        return planType === 'professional' ? '$9.99' : '$19.99';
     }
     
     function getPlanEmoji(): string {
-        const planType: PlanType = subscription?.plan_type || planFromUrl || 'basic';
-        return planType === 'basic' ? '⭐' : '👑';
+        const planType: PlanType = subscription?.plan_type || planFromUrl || 'professional';
+        return planType === 'professional' ? '⭐' : '👑';
     }
 </script>
 
@@ -199,7 +199,7 @@
                 {:else}
                     <!-- Show plan-specific features based on plan type -->
                     <ul class="text-sm text-blue-800 space-y-2 text-left">
-                        {#if (subscription?.plan_type || planFromUrl) === 'basic'}
+                        {#if (subscription?.plan_type || planFromUrl) === 'professional'}
                             <li class="flex items-center">
                                 <svg class="w-4 h-4 text-green-600 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>

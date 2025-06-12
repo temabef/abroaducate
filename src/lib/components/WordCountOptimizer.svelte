@@ -1,5 +1,6 @@
 <script lang="ts">
     import { createEventDispatcher } from 'svelte';
+    import AIFeatureWidget from '$lib/components/AIFeatureWidget.svelte';
     
     export let sopContent: string = '';
     export let universityName: string = '';
@@ -13,71 +14,33 @@
     let optimizing = false;
     let optimizationResult: any = null;
     let error = '';
+    let targetWordCount = 500; // Default target
     
     $: if (sopContent) {
         currentWordCount = sopContent.split(/\s+/).filter(w => w.length > 0).length;
     }
     
-    async function analyzeWordCount() {
-        analyzing = true;
-        error = '';
+    // Handle AI optimization result from new unified system
+    function handleOptimizationSuccess(event: CustomEvent) {
+        const { result } = event.detail;
         
-        try {
-            const response = await fetch('/api/optimize-word-count', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    content: sopContent,
-                    university_name: universityName,
-                    program_name: programName,
-                    program_type: programType,
-                    optimization_type: 'analyze'
-                })
+        // If it's a string result, treat it as optimized content
+        if (typeof result === 'string') {
+            dispatch('contentOptimized', {
+                optimizedContent: result,
+                originalWordCount: currentWordCount,
+                newWordCount: result.split(/\s+/).filter(w => w.length > 0).length
             });
-            
-            if (!response.ok) throw new Error('Analysis failed');
-            
-            optimizationResult = await response.json();
-            
-        } catch (err) {
-            error = 'Failed to analyze word count';
-        } finally {
-            analyzing = false;
-        }
-    }
-    
-    async function optimizeContent() {
-        optimizing = true;
-        
-        try {
-            const response = await fetch('/api/optimize-word-count', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    content: sopContent,
-                    university_name: universityName,
-                    program_name: programName,
-                    program_type: programType,
-                    optimization_type: 'optimize'
-                })
-            });
-            
-            if (!response.ok) throw new Error('Optimization failed');
-            
-            const result = await response.json();
-            
+        } else {
+            // If it's an object, extract the content
+            optimizationResult = result;
             if (result.optimized_content) {
                 dispatch('contentOptimized', {
                     optimizedContent: result.optimized_content,
                     originalWordCount: currentWordCount,
-                    newWordCount: result.optimized_content.split(/\s+/).length
+                    newWordCount: result.optimized_content.split(/\s+/).filter(w => w.length > 0).length
                 });
             }
-            
-        } catch (err) {
-            error = 'Failed to optimize content';
-        } finally {
-            optimizing = false;
         }
     }
     
@@ -126,17 +89,45 @@
 <div class="word-count-optimizer bg-white rounded-lg border p-6 mb-6">
     <div class="flex items-center justify-between mb-4">
         <div>
-            <h3 class="text-lg font-semibold">Word Count Optimization</h3>
-            <p class="text-sm text-gray-500">Optimize your SOP length for university requirements</p>
+            <h3 class="text-lg font-semibold">📝 Word Count Optimization</h3>
+            <p class="text-sm text-gray-500">Optimize your content length for specific requirements</p>
         </div>
         <div class="text-right">
             <div class="text-2xl font-bold text-blue-600">{currentWordCount}</div>
-            <div class="text-sm text-gray-500">words</div>
+            <div class="text-sm text-gray-500">current words</div>
         </div>
     </div>
     
-    {#if optimizationResult}
-        <div class="mb-6 p-4 rounded-lg bg-blue-50 border border-blue-200">
+    <!-- Target Word Count Input -->
+    <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 mb-2">Target Word Count:</label>
+        <input 
+            type="number" 
+            bind:value={targetWordCount}
+            placeholder="e.g., 500"
+            class="border border-gray-300 rounded px-3 py-2 text-sm w-32"
+            min="50"
+            max="2000"
+        />
+    </div>
+    
+    <!-- AI Word Optimization Widget -->
+    <AIFeatureWidget 
+        featureType="word_optimization"
+        content={sopContent}
+        options={{ 
+            targetWordCount: targetWordCount,
+            universityName: universityName,
+            programName: programName
+        }}
+        placeholder="Enter your content to optimize word count..."
+        buttonText="📝 Optimize Word Count"
+        disabled={sopContent.trim().length === 0}
+        on:success={handleOptimizationSuccess}
+    />
+    
+    {#if optimizationResult && optimizationResult.university_requirements}
+        <div class="mt-4 p-4 rounded-lg bg-blue-50 border border-blue-200">
             <div class="font-semibold mb-2">
                 Status: {optimizationResult.optimization_needed}
             </div>
@@ -147,35 +138,9 @@
         </div>
     {/if}
     
-    <div class="flex gap-3 mb-4">
-        <button
-            on:click={analyzeWordCount}
-            disabled={analyzing || !sopContent}
-            class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
-        >
-            {analyzing ? 'Analyzing...' : 'Analyze Word Count'}
-        </button>
-        
-        {#if optimizationResult && optimizationResult.optimization_needed !== 'optimal'}
-            <button
-                on:click={optimizeContent}
-                disabled={optimizing}
-                class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50"
-            >
-                {optimizing ? 'Optimizing...' : 'Auto-Optimize'}
-            </button>
-        {/if}
-    </div>
-    
-    {#if error}
-        <div class="p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm mb-4">
-            {error}
-        </div>
-    {/if}
-    
-    {#if optimizationResult && optimizationResult.suggested_optimizations.length > 0}
-        <div class="border-t pt-4">
-            <h4 class="font-semibold mb-3">Suggestions</h4>
+    {#if optimizationResult && optimizationResult.suggested_optimizations && optimizationResult.suggested_optimizations.length > 0}
+        <div class="border-t pt-4 mt-4">
+            <h4 class="font-semibold mb-3">📋 Optimization Suggestions</h4>
             <div class="space-y-2">
                 {#each optimizationResult.suggested_optimizations as suggestion}
                     <div class="p-3 bg-gray-50 rounded">

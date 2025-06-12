@@ -4,7 +4,9 @@
     import { page } from '$app/stores';
     import type { PageData } from './$types';
     import { formatDistanceToNow, parseISO } from 'date-fns';
-import WordCountOptimizer from '$lib/components/WordCountOptimizer.svelte';
+    import WordCountOptimizer from '$lib/components/WordCountOptimizer.svelte';
+    import InlineAIEditor from '$lib/components/InlineAIEditor.svelte';
+    import AIFeatureWidget from '$lib/components/AIFeatureWidget.svelte';
     
     export let data: PageData;
     let { supabase, session } = data;
@@ -176,44 +178,35 @@ import WordCountOptimizer from '$lib/components/WordCountOptimizer.svelte';
         showEditPopup = true;
     }
     
-    async function handleEditOption(editType: string) {
-        if (!selectedText || !sop) return;
+    // Handle text editing with new unified system
+    function handleTextEdited(event: CustomEvent) {
+        if (!sop) return;
         
-        editingText = true;
+        const { originalText, editedText, editType } = event.detail;
+        
+        // Replace selected text in SOP content
+        sop.content = sop.content.replace(originalText, editedText);
+        sop.word_count = sop.content.split(/\s+/).filter(w => w.length > 0).length;
+        
+        // Save changes
+        saveSOP();
+        
+        // Record edit history
+        recordEdit(originalText, editedText, editType);
+        
+        // Clear selection
+        clearSelection();
+    }
+    
+    function closeInlineEditor() {
         showEditPopup = false;
-        
-        try {
-            const response = await fetch('/api/edit-text', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    text: selectedText,
-                    editType,
-                    context: sop.content
-                })
-            });
-            
-            if (!response.ok) throw new Error('Failed to edit text');
-            
-            const result = await response.json();
-            
-            // Replace selected text in SOP content
-            sop.content = sop.content.replace(selectedText, result.editedText);
-            sop.word_count = sop.content.split(/\s+/).length;
-            
-            // Save edit to database
-            await saveSOP();
-            
-            // Record edit history
-            await recordEdit(selectedText, result.editedText, editType);
-            
-        } catch (error) {
-            console.error('Error editing text:', error);
-            alert('Failed to edit text. Please try again.');
-        } finally {
-            editingText = false;
-            clearSelection();
-        }
+        clearSelection();
+    }
+    
+        async function handleEditOption(editType: string) {
+        // Legacy function - now handled by InlineAIEditor
+        // Just trigger the inline editor with the edit type
+        showEditPopup = true;
     }
     
     async function saveSOP() {
@@ -289,45 +282,17 @@ import WordCountOptimizer from '$lib/components/WordCountOptimizer.svelte';
         goto('/dashboard');
     }
     
-    // AI Analysis Functions
-    async function runAnalysis(): Promise<void> {
-        if (!sop || !sop.content) {
-            analysisError = 'No SOP content to analyze';
-            return;
-        }
-        
-        analyzing = true;
+    // AI Analysis Functions - Now using unified system
+    function handleAnalysisSuccess(event: CustomEvent) {
+        const { result } = event.detail;
+        analysisResult = result;
         analysisError = '';
-        analysisResult = null;
-        
-        try {
-            const response = await fetch('/api/analyze-sop', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    text: sop.content,
-                    analysisType: selectedAnalysis
-                })
-            });
-            
-            const responseData = await response.json();
-            
-            if (!response.ok) {
-                if (response.status === 403 && responseData.upgradeRequired) {
-                    analysisError = `${responseData.message} Consider upgrading your plan for more usage.`;
-                    return;
-                }
-                throw new Error(responseData.message || 'Analysis failed');
-            }
-            
-            analysisResult = responseData;
-            
-        } catch (err: any) {
-            analysisError = err.message || 'Failed to analyze text';
-            console.error('Analysis error:', err);
-        } finally {
-            analyzing = false;
-        }
+        analyzing = false;
+    }
+    
+    function handleAnalysisError() {
+        analysisError = 'Analysis failed. Please try again.';
+        analyzing = false;
     }
     
     function getScoreColor(score: number): string {
@@ -696,7 +661,37 @@ import WordCountOptimizer from '$lib/components/WordCountOptimizer.svelte';
                 </div>
             </div>
             
-
+            <!-- New Inline AI Editor -->
+            <InlineAIEditor 
+                {selectedText}
+                editType="improve"
+                context={sop?.content || ''}
+                show={showEditPopup}
+                position={popupPosition}
+                on:textEdited={handleTextEdited}
+                on:close={closeInlineEditor}
+            />
+            
+            <!-- SOP Analysis Section -->
+            {#if sop && sop.content}
+                <div class="mt-8">
+                    <h3 class="text-lg font-semibold mb-4">🔍 AI Analysis</h3>
+                    
+                    <AIFeatureWidget 
+                        featureType="sop_review"
+                        content={sop.content}
+                        options={{
+                            universityName: sop.university_name,
+                            programName: sop.program_name,
+                            reviewMode: selectedAnalysis
+                        }}
+                        placeholder="SOP content will be analyzed..."
+                        buttonText="🔍 Analyze SOP"
+                        showUsageInfo={true}
+                        on:success={handleAnalysisSuccess}
+                    />
+                </div>
+            {/if}
         </div>
     {/if}
 </div> 

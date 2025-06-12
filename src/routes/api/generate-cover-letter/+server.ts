@@ -1,12 +1,27 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { OPENAI_API_KEY } from '$env/static/private';
+import { checkUsageLimit, incrementUsage } from '$lib/usage-limits';
+import { getModelConfig } from '$lib/ai-models';
 
 export const POST: RequestHandler = async ({ request, locals: { supabase } }) => {
     const { data: { session }, error: sessionError } = await supabase.auth.getSession();
     
     if (!session?.user) {
         return json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    
+    // Check usage limits before processing
+    const usageCheck = await checkUsageLimit(supabase, session.user.id, 'cover_letters_created');
+    if (!usageCheck.allowed) {
+        return json({
+            error: 'Usage limit exceeded',
+            message: usageCheck.message,
+            planType: usageCheck.planType,
+            currentUsage: usageCheck.currentUsage,
+            limit: usageCheck.limit,
+            upgradeRequired: true
+        }, { status: 403 });
     }
     
     try {
@@ -17,7 +32,7 @@ export const POST: RequestHandler = async ({ request, locals: { supabase } }) =>
         }
         
         // Generate cover letter using AI
-        const generatedCoverLetter = await generateCoverLetterWithAI(coverLetterData);
+        const generatedCoverLetter = await generateCoverLetterWithAI(coverLetterData, supabase, session.user.id);
         
         // Save to database
         console.log('Attempting to save cover letter to database...');
@@ -54,6 +69,9 @@ export const POST: RequestHandler = async ({ request, locals: { supabase } }) =>
         }
         
         console.log('Cover letter saved successfully with ID:', savedCoverLetter?.id);
+
+        // Increment usage counter after successful generation
+        await incrementUsage(supabase, session.user.id, 'cover_letters_created');
 
         // Log analytics
         console.log('Attempting to log analytics...');
@@ -101,7 +119,7 @@ export const POST: RequestHandler = async ({ request, locals: { supabase } }) =>
     }
 };
 
-async function generateCoverLetterWithAI(data: any): Promise<string> {
+async function generateCoverLetterWithAI(data: any, supabase: any, userId: string): Promise<string> {
     const { positionType, jobTitle, companyName, personalInfo, positionDetails, jobDescription, customRequests } = data;
     
     // Debug: Check if API key is available
@@ -157,6 +175,9 @@ async function generateCoverLetterWithAI(data: any): Promise<string> {
     Generate ONLY the cover letter content without any additional commentary.`;
 
     try {
+        // Get AI model based on user's subscription
+        const modelConfig = await getModelConfig(supabase, userId, 'cover-letter');
+
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
             headers: {
@@ -164,7 +185,7 @@ async function generateCoverLetterWithAI(data: any): Promise<string> {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                model: 'gpt-4',
+                model: modelConfig.model,
                 messages: [
                     {
                         role: 'system',
@@ -175,8 +196,8 @@ async function generateCoverLetterWithAI(data: any): Promise<string> {
                         content: contextualPrompt
                     }
                 ],
-                temperature: 0.7,
-                max_tokens: 2000
+                temperature: modelConfig.temperature,
+                max_tokens: modelConfig.max_tokens
             })
         });
         

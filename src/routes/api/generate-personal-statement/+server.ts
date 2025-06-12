@@ -1,12 +1,27 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { OPENAI_API_KEY } from '$env/static/private';
+import { checkUsageLimit, incrementUsage } from '$lib/usage-limits';
+import { getModelConfig } from '$lib/ai-models';
 
 export const POST: RequestHandler = async ({ request, locals: { supabase } }) => {
     const { data: { session }, error: sessionError } = await supabase.auth.getSession();
     
     if (!session?.user) {
         return json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    
+    // Check usage limits before processing
+    const usageCheck = await checkUsageLimit(supabase, session.user.id, 'personal_statements_created');
+    if (!usageCheck.allowed) {
+        return json({
+            error: 'Usage limit exceeded',
+            message: usageCheck.message,
+            planType: usageCheck.planType,
+            currentUsage: usageCheck.currentUsage,
+            limit: usageCheck.limit,
+            upgradeRequired: true
+        }, { status: 403 });
     }
     
     try {
@@ -17,7 +32,10 @@ export const POST: RequestHandler = async ({ request, locals: { supabase } }) =>
         }
         
         // Generate personal statement using AI
-        const generatedPersonalStatement = await generatePersonalStatementWithAI(personalStatementData);
+        const generatedPersonalStatement = await generatePersonalStatementWithAI(personalStatementData, supabase, session.user.id);
+        
+        // Increment usage counter after successful generation
+        await incrementUsage(supabase, session.user.id, 'personal_statements_created');
         
         return json({
             success: true,
@@ -30,7 +48,7 @@ export const POST: RequestHandler = async ({ request, locals: { supabase } }) =>
     }
 };
 
-async function generatePersonalStatementWithAI(data: any): Promise<string> {
+async function generatePersonalStatementWithAI(data: any, supabase: any, userId: string): Promise<string> {
     const { applicationType, institutionName, programName, personalInfo, personalDetails, wordLimit, customRequests } = data;
     
     // Create application-specific prompts
@@ -105,6 +123,9 @@ async function generatePersonalStatementWithAI(data: any): Promise<string> {
     Generate ONLY the personal statement content without any additional commentary.`;
 
     try {
+        // Get AI model based on user's subscription
+        const modelConfig = await getModelConfig(supabase, userId, 'personal-statement');
+
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
             headers: {
@@ -112,7 +133,7 @@ async function generatePersonalStatementWithAI(data: any): Promise<string> {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                model: 'gpt-4',
+                model: modelConfig.model,
                 messages: [
                     {
                         role: 'system',
@@ -123,8 +144,8 @@ async function generatePersonalStatementWithAI(data: any): Promise<string> {
                         content: contextualPrompt
                     }
                 ],
-                temperature: 0.8, // Higher creativity for personal narratives
-                max_tokens: 2500 // Allow for longer personal statements
+                temperature: modelConfig.temperature,
+                max_tokens: modelConfig.max_tokens
             })
         });
         

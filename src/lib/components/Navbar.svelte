@@ -197,6 +197,14 @@
               </div>
               <span class="ml-auto px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">FREE</span>
             </a>
+            <a href="/academic-analyzer" class="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition duration-200">
+              <span class="text-lg mr-3">🎯</span>
+              <div>
+                <div class="font-medium">Academic Profile Analyzer</div>
+                <div class="text-sm text-gray-500">Quick assessment + detailed analysis</div>
+              </div>
+              <span class="ml-auto px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">NEW</span>
+            </a>
           </div>
         {/if}
       </div>
@@ -247,6 +255,14 @@
                 <div class="font-medium">Cold Email Generator</div>
                 <div class="text-sm text-gray-500">Reach out to professors</div>
               </div>
+            </a>
+            <a href="/visa-interview-practice" class="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition duration-200">
+              <span class="text-lg mr-3">🎯</span>
+              <div>
+                <div class="font-medium">Visa Interview Practice</div>
+                <div class="text-sm text-gray-500">F-1 visa interview simulator</div>
+              </div>
+              <span class="ml-auto px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">NEW</span>
             </a>
 
           </div>

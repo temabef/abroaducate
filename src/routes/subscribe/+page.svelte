@@ -28,7 +28,7 @@
         currentPlan = subscription?.plan_type || 'free';
     });
     
-    async function subscribe(planType: 'basic' | 'pro') {
+    async function subscribe(planType: 'professional' | 'elite') {
         if (loading) return;
         
         loading = true;

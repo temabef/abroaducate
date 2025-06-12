@@ -5,6 +5,7 @@
     import LoginModal from '$lib/components/LoginModal.svelte';
     import { formStore, loadStateFromSessionStorage, pendingGeneration, clearStateFromSessionStorage } from '$lib/stores';
     import { get } from 'svelte/store';
+    import { handleUpgradeRequired } from '$lib/services/upgradeService';
 
     export let data;
     let { session, supabase } = data;
@@ -87,6 +88,18 @@
 
             if (!response.ok) {
                 const errorData = await response.json();
+                
+                // Handle usage limit exceeded
+                if (response.status === 403 && errorData.upgradeRequired) {
+                    status = `🚀 ${errorData.message}`;
+                    isGenerating = false;
+                    hasTriedGeneration = false;
+                    
+                    // Use new beautiful upgrade system
+                    handleUpgradeRequired(errorData);
+                    return;
+                }
+                
                 throw new Error(errorData.error || 'Failed to generate SOP.');
             }
 

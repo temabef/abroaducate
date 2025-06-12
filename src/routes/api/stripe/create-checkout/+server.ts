@@ -18,14 +18,28 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, safeGe
 
         const { planType } = await request.json();
         
-        // Type-safe plan validation
+        // Validate plan type for production plans
         if (!planType || !(planType in SUBSCRIPTION_PLANS)) {
-            return json({ error: 'Invalid plan type' }, { status: 400 });
+            return json({ error: 'Invalid plan type. Please choose "professional" or "elite".' }, { status: 400 });
         }
 
-        // Type-safe plan access
+        // Get plan configuration
         const plan = SUBSCRIPTION_PLANS[planType as keyof typeof SUBSCRIPTION_PLANS];
         const origin = url.origin;
+
+        // Check if user already has an active subscription
+        const { data: existingSubscription } = await supabase
+            .from('user_subscriptions')
+            .select('plan_type, status, stripe_subscription_id')
+            .eq('user_id', session.user.id)
+            .eq('status', 'active')
+            .single();
+
+        if (existingSubscription && !existingSubscription.admin_override) {
+            return json({ 
+                error: 'You already have an active subscription. Please cancel your current plan before upgrading.' 
+            }, { status: 400 });
+        }
 
         // Create Stripe checkout session
         const checkoutSession = await stripe.checkout.sessions.create({
@@ -49,16 +63,22 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, safeGe
                     user_id: session.user.id,
                     plan_type: planType
                 }
-            }
+            },
+            // Add billing address collection for tax compliance
+            billing_address_collection: 'required',
+            // Allow promotional codes
+            allow_promotion_codes: true
         });
 
-        return json({ 
+        return json({
             checkoutUrl: checkoutSession.url,
             sessionId: checkoutSession.id
         });
 
-    } catch (error) {
-        console.error('Stripe checkout error:', error);
-        return json({ error: 'Failed to create checkout session' }, { status: 500 });
+    } catch (err: any) {
+        console.error('Checkout session error:', err);
+        return json({ 
+            error: err.message || 'Failed to create checkout session' 
+        }, { status: 500 });
     }
 }; 

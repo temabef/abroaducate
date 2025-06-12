@@ -79,19 +79,33 @@ async function handleCheckoutCompleted(session: any) {
         // Get subscription details from Stripe
         const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
         
+        // Check if user has admin override
+        const { data: existingSubscription } = await supabaseAdmin
+            .from('user_subscriptions')
+            .select('admin_override, plan_type')
+            .eq('user_id', userId)
+            .single();
+
+        // If admin override is set, don't change plan_type
+        const updateData: any = {
+            user_id: userId,
+            stripe_subscription_id: subscription.id,
+            stripe_customer_id: subscription.customer as string,
+            status: 'active',
+            current_period_start: new Date((subscription as any).current_period_start * 1000).toISOString(),
+            current_period_end: new Date((subscription as any).current_period_end * 1000).toISOString(),
+            created_at: new Date().toISOString()
+        };
+
+        // Only update plan_type if no admin override exists
+        if (!existingSubscription?.admin_override) {
+            updateData.plan_type = planType;
+        }
+        
         // Create or update subscription in database
         const { error } = await supabaseAdmin
             .from('user_subscriptions')
-            .upsert({
-                user_id: userId,
-                stripe_subscription_id: subscription.id,
-                stripe_customer_id: subscription.customer as string,
-                plan_type: planType,
-                status: 'active',
-                current_period_start: new Date((subscription as any).current_period_start * 1000).toISOString(),
-                current_period_end: new Date((subscription as any).current_period_end * 1000).toISOString(),
-                created_at: new Date().toISOString()
-            }, {
+            .upsert(updateData, {
                 onConflict: 'user_id',
                 ignoreDuplicates: false
             });
@@ -100,6 +114,9 @@ async function handleCheckoutCompleted(session: any) {
             console.error('Database error:', error);
         } else {
             console.log(`Subscription created/updated for user ${userId}`);
+            if (existingSubscription?.admin_override) {
+                console.log(`Admin override preserved - plan_type remains: ${existingSubscription.plan_type}`);
+            }
         }
 
     } catch (error) {
@@ -116,17 +133,31 @@ async function handleSubscriptionUpdated(subscription: any) {
             return;
         }
 
+        // Check if user has admin override
+        const { data: existingSubscription } = await supabaseAdmin
+            .from('user_subscriptions')
+            .select('admin_override, plan_type')
+            .eq('stripe_subscription_id', subscription.id)
+            .single();
+
+        const updateData: any = {
+            status: subscription.status,
+            current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
+            current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+        };
+
+        // If no admin override, we could potentially update plan_type based on subscription metadata
+        // But typically subscription.updated doesn't change plan_type, so we'll leave it as is
+
         const { error } = await supabaseAdmin
             .from('user_subscriptions')
-            .update({
-                status: subscription.status,
-                current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-                current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
-            })
+            .update(updateData)
             .eq('stripe_subscription_id', subscription.id);
 
         if (error) {
             console.error('Database error updating subscription:', error);
+        } else if (existingSubscription?.admin_override) {
+            console.log(`Admin override preserved during subscription update for user ${userId}`);
         }
 
     } catch (error) {

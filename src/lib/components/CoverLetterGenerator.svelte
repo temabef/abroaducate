@@ -1,6 +1,7 @@
 <script lang="ts">
     import { createEventDispatcher } from 'svelte';
     import { goto } from '$app/navigation';
+    import { handleUpgradeRequired } from '$lib/services/upgradeService';
     
     export let existingUserData: any = null;
     export let existingSOPData: any = null;
@@ -156,6 +157,14 @@
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
                 console.error('Server error:', errorData);
+                
+                // Handle usage limit exceeded
+                if (response.status === 403 && errorData.upgradeRequired) {
+                    // Use new beautiful upgrade system
+                    handleUpgradeRequired(errorData);
+                    return;
+                }
+                
                 throw new Error(errorData.details || errorData.error || 'Failed to generate cover letter');
             }
             

@@ -98,6 +98,12 @@
             <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
             </svg>
+            <span class="text-gray-700"><strong>Academic Analysis:</strong> Quick profile assessment only</span>
+          </li>
+          <li class="flex items-start">
+            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+            </svg>
             <span class="text-gray-700">Basic templates & PDF/RTF export</span>
           </li>
           <li class="flex items-start">
@@ -117,6 +123,12 @@
               <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
             </svg>
             <span class="text-gray-700">Version history (cover letters only)</span>
+          </li>
+          <li class="flex items-start">
+            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+            </svg>
+            <span class="text-gray-700"><strong>Visa Interview Simulator:</strong> 5 practice questions per session</span>
           </li>
 
           <li class="flex items-start">
@@ -178,6 +190,12 @@
             <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
             </svg>
+            <span class="text-gray-700"><strong>Academic Analysis:</strong> Comprehensive transcript analysis + Quick assessment</span>
+          </li>
+          <li class="flex items-start">
+            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+            </svg>
             <span class="text-gray-700">All templates & PDF/RTF export</span>
           </li>
           <li class="flex items-start">
@@ -216,12 +234,18 @@
             </svg>
             <span class="text-gray-700"><strong>Cold Email Generator</strong> - Professional outreach templates</span>
           </li>
+          <li class="flex items-start">
+            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+            </svg>
+            <span class="text-gray-700"><strong>Visa Interview Simulator:</strong> 20 practice questions per session</span>
+          </li>
 
           <li class="flex items-start">
             <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
             </svg>
-            <span class="text-gray-700"><em>💡 New features automatically included as we grow!</em></span>
+            <span class="text-gray-700"><em>New features automatically included as we grow!</em></span>
           </li>
         </ul>
 
@@ -259,6 +283,12 @@
               <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
             </svg>
             <span class="text-gray-700"><strong>University Database:</strong> 1500+ universities worldwide + priority access + new universities first</span>
+          </li>
+          <li class="flex items-start">
+            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+            </svg>
+            <span class="text-gray-700"><strong>Academic Analysis:</strong> Comprehensive transcript analysis + Quick assessment</span>
           </li>
           <li class="flex items-start">
             <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -308,12 +338,18 @@
             </svg>
             <span class="text-gray-700"><strong>Advanced Cold Email Suite</strong> - Smart templates + professional guidance</span>
           </li>
+          <li class="flex items-start">
+            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+            </svg>
+            <span class="text-gray-700"><strong>Visa Interview Simulator:</strong> All 30 practice questions per session</span>
+          </li>
 
           <li class="flex items-start">
             <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
             </svg>
-            <span class="text-gray-700"><em>🚀 New features automatically included as we grow!</em></span>
+            <span class="text-gray-700"><em>New features automatically included as we grow!</em></span>
           </li>
         </ul>
 
@@ -378,8 +414,14 @@
                 <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>✅ Basic Templates</strong></td>
                 <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>✅ Advanced Templates</strong></td>
               </tr>
-
               <tr>
+                <td class="px-6 py-4 text-sm text-gray-900 font-medium">Academic Profile Analysis</td>
+                <td class="px-6 py-4 text-sm text-center text-gray-600">Quick Assessment Only</td>
+                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>Comprehensive + Quick</strong></td>
+                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>Comprehensive + Quick</strong></td>
+              </tr>
+
+              <tr class="bg-gray-50">
                 <td class="px-6 py-4 text-sm text-gray-900 font-medium">Support Level</td>
                 <td class="px-6 py-4 text-sm text-center text-gray-600">Community</td>
                 <td class="px-6 py-4 text-sm text-center text-gray-600">Email (48h)</td>

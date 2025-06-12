@@ -2,6 +2,8 @@ import { json } from '@sveltejs/kit';
 import { OPENAI_API_KEY } from '$env/static/private';
 import type { RequestHandler } from './$types';
 import type { FormData, WorkExperience, Organization, CommunityService } from '$lib/types';
+import { checkUsageLimit, incrementUsage } from '$lib/usage-limits';
+import { getModelConfig } from '$lib/ai-models';
 
 // Helper function to build the prompt, ensuring no "undefined" values
 function buildPrompt(formData: FormData): string {
@@ -60,10 +62,26 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, safeGe
         return json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Check usage limits before processing
+    const usageCheck = await checkUsageLimit(supabase, session.user.id, 'sops_created');
+    if (!usageCheck.allowed) {
+        return json({
+            error: 'Usage limit exceeded',
+            message: usageCheck.message,
+            planType: usageCheck.planType,
+            currentUsage: usageCheck.currentUsage,
+            limit: usageCheck.limit,
+            upgradeRequired: true
+        }, { status: 403 });
+    }
+
     try {
         const formData: FormData = await request.json();
 
         const prompt = buildPrompt(formData);
+
+        // Get AI model based on user's subscription
+        const modelConfig = await getModelConfig(supabase, session.user.id, 'sop');
 
         const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
@@ -72,10 +90,10 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, safeGe
                 'Authorization': `Bearer ${OPENAI_API_KEY}`
             },
             body: JSON.stringify({
-                model: "gpt-3.5-turbo",
+                model: modelConfig.model,
                 messages: [{ role: "user", content: prompt }],
-                temperature: 0.7,
-                max_tokens: 1500,
+                temperature: modelConfig.temperature,
+                max_tokens: modelConfig.max_tokens,
             })
         });
 
@@ -141,6 +159,9 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, safeGe
             console.error('Database error after AI generation:', insertError);
             return json({ error: 'Failed to save the generated SOP.' }, { status: 500 });
         }
+
+        // Increment usage counter after successful generation
+        await incrementUsage(supabase, session.user.id, 'sops_created');
 
         return json({ success: true, sopId: insertData.id });
 

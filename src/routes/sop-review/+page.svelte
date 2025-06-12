@@ -1,7 +1,7 @@
 <script lang="ts">
     import { page } from '$app/stores';
     import { onMount } from 'svelte';
-    import SOPReviewer from '$lib/components/SOPReviewer.svelte';
+    import SOPReviewerNew from '$lib/components/SOPReviewerNew.svelte';
     
     export let data;
     
@@ -77,7 +77,7 @@
         
         <!-- SOP Reviewer Component -->
         <div class="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
-            <SOPReviewer 
+            <SOPReviewerNew 
                 {existingSOP}
                 {universityName}
                 {programName}

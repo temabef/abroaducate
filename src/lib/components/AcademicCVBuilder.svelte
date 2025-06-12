@@ -1,5 +1,7 @@
 <script lang="ts">
     import { createEventDispatcher } from 'svelte';
+    import { goto } from '$app/navigation';
+    import { handleUpgradeRequired } from '$lib/services/upgradeService';
     
     export let existingUserData: any = null;
     
@@ -61,6 +63,8 @@
     let currentStep = 1;
     let totalSteps = 6;
     let generatedCV = '';
+    
+    // No longer needed - using global upgrade system
     
     let cvData: CVData = {
         template: 'stem',
@@ -235,7 +239,18 @@
             });
             
             if (!response.ok) {
-                throw new Error('Failed to generate academic CV');
+                const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+                
+                // Handle usage limit exceeded - use the new global system!
+                if (response.status === 403 && errorData.upgradeRequired) {
+                    handleUpgradeRequired({
+                        ...errorData,
+                        usageType: 'academic_cvs_created'
+                    });
+                    return;
+                }
+                
+                throw new Error(errorData.error || 'Failed to generate academic CV');
             }
             
             const data = await response.json();
@@ -353,6 +368,8 @@
         };
         return titles[step as keyof typeof titles] || 'Complete';
     }
+    
+    // Upgrade handling now done by global system
 </script>
 
 <div class="academic-cv-builder">
@@ -1083,6 +1100,8 @@
         {/if}
     </div>
 </div>
+
+<!-- Upgrade modals now handled globally via GlobalUpgradeHandler in layout -->
 
 <style>
     .academic-cv-builder {

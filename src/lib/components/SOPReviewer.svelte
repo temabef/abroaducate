@@ -1,5 +1,6 @@
 <script lang="ts">
     import { createEventDispatcher } from 'svelte';
+    import AIFeatureWidget from '$lib/components/AIFeatureWidget.svelte';
     
     export let existingSOP: string = '';
     export let universityName: string = '';
@@ -65,42 +66,13 @@
         }
     }
     
-    async function analyzeSOP() {
-        if (!sopText.trim()) {
-            alert('Please enter or upload your SOP text first.');
-            return;
-        }
-        
-        analyzing = true;
-        analysisComplete = false;
-        
-        try {
-            const response = await fetch('/api/review-sop', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    sopText: sopText.trim(),
-                    reviewMode,
-                    universityName,
-                    programName
-                })
-            });
-            
-            if (!response.ok) {
-                throw new Error('Failed to analyze SOP');
-            }
-            
-            const data = await response.json();
-            paragraphAnalyses = data.paragraphAnalyses;
-            overallAnalysis = data.overallAnalysis;
-            analysisComplete = true;
-            
-        } catch (error) {
-            console.error('Error analyzing SOP:', error);
-            alert('Error analyzing SOP. Please try again.');
-        } finally {
-            analyzing = false;
-        }
+    // Handle AI analysis result from new unified system
+    function handleAnalysisSuccess(event: CustomEvent) {
+        const { result } = event.detail;
+        paragraphAnalyses = result.paragraphAnalyses || [];
+        overallAnalysis = result.overallAnalysis || null;
+        analysisComplete = true;
+        analyzing = false;
     }
     
     function selectParagraph(index: number) {
@@ -236,7 +208,7 @@
                             bind:value={sopText}
                             placeholder="Paste your Statement of Purpose here..."
                             class="w-full h-80 p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-y"
-                            disabled={inputMethod === 'existing' && existingSOP}
+                            disabled={inputMethod === 'existing' && !!existingSOP}
                         ></textarea>
                     </div>
                 {/if}
@@ -271,21 +243,20 @@
                     </div>
                 </div>
                 
-                <!-- Analyze Button -->
-                <button
-                    onclick={analyzeSOP}
-                    disabled={analyzing || !sopText.trim()}
-                    class="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                >
-                    {#if analyzing}
-                        <span class="flex items-center justify-center gap-2">
-                            <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                            Analyzing SOP...
-                        </span>
-                    {:else}
-                        🔍 Analyze My SOP
-                    {/if}
-                </button>
+                <!-- AI Analysis Widget -->
+                <AIFeatureWidget 
+                    featureType="sop_review"
+                    content={sopText}
+                    options={{
+                        universityName: universityName,
+                        programName: programName,
+                        reviewMode: reviewMode
+                    }}
+                    placeholder="Paste your Statement of Purpose here..."
+                    buttonText="🔍 Analyze My SOP"
+                    disabled={sopText.trim().length === 0}
+                    on:success={handleAnalysisSuccess}
+                />
             </div>
         {/if}
         
