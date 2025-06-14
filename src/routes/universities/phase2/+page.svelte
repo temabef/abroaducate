@@ -1,5 +1,12 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { universityDataManager } from '$lib/database/university-integration';
+  import { ukUniversityDataManager } from '$lib/database/uk-university-integration';
+  import { australianUniversityManager } from '$lib/database/australia-university-integration';
+  import { canadianUniversityManager } from '$lib/database/canada-university-integration';
+  import { germanUniversityManager } from '$lib/database/germany-university-integration';
+  import { dutchUniversityManager } from '$lib/database/netherlands-university-integration';
+  import { japaneseUniversityManager } from '$lib/database/japan-university-integration';
   
   let universities: any[] = [];
   let loading = false;
@@ -246,11 +253,14 @@
           </label>
           <select bind:value={selectedSource} class="select select-bordered w-full">
             <option value="us">🇺🇸 US Universities (7,000+ available)</option>
-            <option value="uk">🇬🇧 UK Universities (70 available)</option>
+            <option value="uk">🇬🇧 UK Universities (97 available)</option>
             <option value="australia">🇦🇺 Australia Universities (40 available)</option>
-            <option value="canada">🇨🇦 Canada Universities (50 available)</option>
+            <option value="canada">🇨🇦 Canada Universities (70 available)</option>
             <option value="germany">🇩🇪 Germany Universities (20+ available)</option>
             <option value="netherlands">🇳🇱 Netherlands Universities (20+ available)</option>
+            <option value="japan">🇯🇵 Japan Universities (30 available)</option>
+            <option value="france">🇫🇷 France Universities (50 available)</option>
+            <option value="italy">🇮🇹 Italy Universities (45 available)</option>
           </select>
         </div>
 
@@ -404,7 +414,7 @@
       </div>
 
       <!-- Fetch Button -->
-      <div class="flex justify-center">
+      <div class="flex justify-center gap-4">
         <button 
           on:click={enhancedMode ? fetchUniversitiesEnhanced : fetchUniversities}
           class="btn btn-primary btn-lg px-8"
@@ -417,6 +427,28 @@
             <span class="mr-2">🔍</span>
             Fetch Universities
           {/if}
+        </button>
+
+        <!-- Clear Cache Button -->
+        <button 
+          on:click={() => {
+            // Force refresh by setting forceRefresh parameter
+            const currentSource = selectedSource;
+            selectedSource = '';
+            setTimeout(() => {
+              selectedSource = currentSource;
+              if (enhancedMode) {
+                fetchUniversitiesEnhanced();
+              } else {
+                fetchUniversities();
+              }
+            }, 100);
+          }}
+          class="btn btn-outline btn-warning px-4"
+          disabled={loading}
+        >
+          <span class="mr-2">🧹</span>
+          Clear Cache & Refresh
         </button>
       </div>
     </div>

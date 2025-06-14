@@ -24,36 +24,44 @@
           <span class="text-3xl">🌍</span>
           <div class="text-center">
             <h3 class="text-lg font-bold text-gray-900">NEW: Global University Database</h3>
-            <p class="text-sm text-gray-700">Access 82+ universities across USA, UK, Canada & Australia!</p>
+            <p class="text-sm text-gray-700">Access 400+ universities across USA, UK, Canada, Australia, Germany & more!</p>
           </div>
           <span class="text-3xl">🎓</span>
         </div>
         
         <!-- Country Coverage Grid -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <div class="bg-white p-4 rounded-lg shadow-sm">
-            <div class="text-2xl mb-2">🇺🇸</div>
-            <div class="font-bold text-blue-600">47</div>
-            <div class="text-sm text-gray-600">US Universities</div>
-            <div class="text-xs text-gray-500 mt-1">Elite + API data</div>
+          <div class="bg-white p-4 rounded-lg shadow-sm text-center">
+            <div class="font-bold text-blue-600">🇬🇧 United Kingdom</div>
+            <div class="text-sm text-gray-600">97 Universities</div>
           </div>
-          <div class="bg-white p-4 rounded-lg shadow-sm">
-            <div class="text-2xl mb-2">🇬🇧</div>
-            <div class="font-bold text-red-600">20</div>
-            <div class="text-sm text-gray-600">UK Universities</div>
-            <div class="text-xs text-gray-500 mt-1">Russell Group & more</div>
+          <div class="bg-white p-4 rounded-lg shadow-sm text-center">
+            <div class="font-bold text-blue-600">🇨🇦 Canada</div>
+            <div class="text-sm text-gray-600">78 Universities</div>
           </div>
-          <div class="bg-white p-4 rounded-lg shadow-sm">
-            <div class="text-2xl mb-2">🍁</div>
-            <div class="font-bold text-green-600">20</div>
-            <div class="text-sm text-gray-600">Canadian Universities</div>
-            <div class="text-xs text-gray-500 mt-1">Maclean's top ranked</div>
+          <div class="bg-white p-4 rounded-lg shadow-sm text-center">
+            <div class="font-bold text-blue-600">🇩🇪 Germany</div>
+            <div class="text-sm text-gray-600">50 Universities</div>
           </div>
-          <div class="bg-white p-4 rounded-lg shadow-sm">
-            <div class="text-2xl mb-2">🇦🇺</div>
-            <div class="font-bold text-orange-600">15</div>
-            <div class="text-sm text-gray-600">Australian Universities</div>
-            <div class="text-xs text-gray-500 mt-1">Group of Eight</div>
+          <div class="bg-white p-4 rounded-lg shadow-sm text-center">
+            <div class="font-bold text-blue-600">🇫🇷 France</div>
+            <div class="text-sm text-gray-600">50 Universities</div>
+          </div>
+          <div class="bg-white p-4 rounded-lg shadow-sm text-center">
+            <div class="font-bold text-blue-600">🇮🇹 Italy</div>
+            <div class="text-sm text-gray-600">47 Universities</div>
+          </div>
+          <div class="bg-white p-4 rounded-lg shadow-sm text-center">
+            <div class="font-bold text-blue-600">🇯🇵 Japan</div>
+            <div class="text-sm text-gray-600">39 Universities</div>
+          </div>
+          <div class="bg-white p-4 rounded-lg shadow-sm text-center">
+            <div class="font-bold text-blue-600">🇦🇺 Australia</div>
+            <div class="text-sm text-gray-600">39 Universities</div>
+          </div>
+          <div class="bg-white p-4 rounded-lg shadow-sm text-center">
+            <div class="font-bold text-blue-600">🇳🇱 Netherlands</div>
+            <div class="text-sm text-gray-600">30 Universities</div>
           </div>
         </div>
 
@@ -166,22 +174,32 @@
       
       <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
         <div>
-          <div class="text-3xl font-bold text-blue-600">82+</div>
+          <div class="text-3xl font-bold text-blue-600">428+</div>
           <div class="text-sm text-gray-600">Universities Available</div>
         </div>
         <div>
-          <div class="text-3xl font-bold text-green-600">4</div>
+          <div class="text-3xl font-bold text-green-600">9</div>
           <div class="text-sm text-gray-600">Countries Covered</div>
         </div>
         <div>
-          <div class="text-3xl font-bold text-purple-600">1000+</div>
-          <div class="text-sm text-gray-600">Scholarships Integrated</div>
+          <div class="text-3xl font-bold text-purple-600">95%</div>
+          <div class="text-sm text-gray-600">Student Satisfaction</div>
         </div>
         <div>
-          <div class="text-3xl font-bold text-yellow-600">24/7</div>
-          <div class="text-sm text-gray-600">AI-Powered Matching</div>
+          <div class="text-3xl font-bold text-red-600">24/7</div>
+          <div class="text-sm text-gray-600">Support Available</div>
         </div>
       </div>
+    </div>
+
+    <!-- Call to Action -->
+    <div class="text-center">
+      <a href="/search" class="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+        Explore All Universities
+        <svg class="ml-2 -mr-1 w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+        </svg>
+      </a>
     </div>
   </div>
 </div> 

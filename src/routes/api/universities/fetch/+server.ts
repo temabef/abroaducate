@@ -1,9 +1,12 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from '@sveltejs/kit';
 import { universityDataManager, type EnhancedUniversity } from '$lib/database/university-integration';
-import { ukUniversityDataManager } from '$lib/database/uk-university-integration';
+import { ukUniversityDataManager, UK_UNIVERSITIES } from '$lib/database/uk-university-integration';
 import { australianUniversityManager } from '$lib/database/australia-university-integration';
-import { CanadianUniversityDataManager } from '$lib/database/canada-university-integration';
+import { CanadianUniversityDataManager, CANADIAN_UNIVERSITIES } from '$lib/database/canada-university-integration';
+import { japaneseUniversityManager } from '$lib/database/japan-university-integration';
+import { frenchUniversityManager } from '$lib/database/france-university-integration';
+import { italianUniversityManager } from '$lib/database/italy-university-integration';
 import { COLLEGE_SCORECARD_API_KEY } from '$env/static/private';
 
 // Create Canadian university manager instance
@@ -80,11 +83,15 @@ export const GET: RequestHandler = async ({ url }) => {
                 
             case 'uk':
                 console.log('🇬🇧 Fetching UK Universities...');
+                if (forceRefresh) {
+                    ukUniversityDataManager.clearCache();
+                }
                 universities = await ukUniversityDataManager.fetchUKUniversities(Math.min(limit, 200));
                 metadata = { 
                     fetching_mode: 'uk_comprehensive',
                     actual_fetched: universities.length,
-                    requested_limit: limit
+                    requested_limit: limit,
+                    total_available: UK_UNIVERSITIES.length
                 };
                 break;
                 
@@ -100,22 +107,30 @@ export const GET: RequestHandler = async ({ url }) => {
                 
             case 'canada':
                 console.log('🇨🇦 Fetching Canadian Universities...');
-                universities = await canadianUniversityManager.fetchCanadianUniversities(state || undefined, Math.min(limit, 50));
+                if (forceRefresh) {
+                    canadianUniversityManager.clearCache();
+                }
+                universities = await canadianUniversityManager.fetchCanadianUniversities(state || undefined, Math.min(limit, 100));
                 metadata = { 
                     fetching_mode: 'canada_comprehensive',
                     actual_fetched: universities.length,
-                    requested_limit: limit
+                    requested_limit: limit,
+                    total_available: CANADIAN_UNIVERSITIES.length
                 };
                 break;
                 
             case 'germany':
                 console.log('🇩🇪 Fetching German Universities...');
-                universities = await universityDataManager.fetchGermanUniversities(state || undefined, Math.min(limit, 50));
+                if (forceRefresh) {
+                    universityDataManager.clearGermanCache();
+                }
+                universities = await universityDataManager.fetchGermanUniversities(state || undefined, Math.min(limit, 100));
                 metadata = { 
                     fetching_mode: 'germany_comprehensive',
                     actual_fetched: universities.length,
                     requested_limit: limit,
-                    stats: universityDataManager.getGermanStats()
+                    stats: universityDataManager.getGermanStats(),
+                    cache_status: forceRefresh ? 'refreshed' : 'using_cache_if_available'
                 };
                 break;
                 
@@ -127,6 +142,36 @@ export const GET: RequestHandler = async ({ url }) => {
                     actual_fetched: universities.length,
                     requested_limit: limit,
                     stats: universityDataManager.getDutchStats()
+                };
+                break;
+                
+            case 'japan':
+                console.log('🇯🇵 Fetching Japanese Universities...');
+                universities = await japaneseUniversityManager.fetchJapaneseUniversities(state || undefined, Math.min(limit, 100));
+                metadata = { 
+                    fetching_mode: 'japan_comprehensive',
+                    actual_fetched: universities.length,
+                    requested_limit: limit
+                };
+                break;
+
+            case 'france':
+                console.log('🇫🇷 Fetching French Universities...');
+                universities = await frenchUniversityManager.fetchFrenchUniversities(state || undefined, Math.min(limit, 100));
+                metadata = { 
+                    fetching_mode: 'france_comprehensive',
+                    actual_fetched: universities.length,
+                    requested_limit: limit
+                };
+                break;
+
+            case 'italy':
+                console.log('🇮🇹 Fetching Italian Universities...');
+                universities = await italianUniversityManager.fetchItalianUniversities(state || undefined, Math.min(limit, 100));
+                metadata = { 
+                    fetching_mode: 'italy_comprehensive',
+                    actual_fetched: universities.length,
+                    requested_limit: limit
                 };
                 break;
                 

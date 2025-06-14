@@ -5,6 +5,9 @@ import { australianUniversityManager } from '$lib/database/australia-university-
 import { canadianUniversityManager } from '$lib/database/canada-university-integration';
 import { germanUniversityManager } from '$lib/database/germany-university-integration';
 import { dutchUniversityManager } from '$lib/database/netherlands-university-integration';
+import { japaneseUniversityManager } from '$lib/database/japan-university-integration';
+import { frenchUniversityManager } from '$lib/database/france-university-integration';
+import { italianUniversityManager } from '$lib/database/italy-university-integration';
 import { COLLEGE_SCORECARD_API_KEY } from '$env/static/private';
 import type { EnhancedUniversity } from '$lib/database/university-integration';
 
@@ -185,12 +188,15 @@ async function getAllUniversities(): Promise<EnhancedUniversity[]> {
             australianUniversityManager.fetchAustralianUniversities(undefined, 100),
             canadianUniversityManager.fetchCanadianUniversities(undefined, 100),
             germanUniversityManager.fetchGermanUniversities(undefined, 100),
-            dutchUniversityManager.fetchDutchUniversities(undefined, 100)
+            dutchUniversityManager.fetchDutchUniversities(undefined, 100),
+            		japaneseUniversityManager.fetchJapaneseUniversities(undefined, 100),
+		frenchUniversityManager.fetchFrenchUniversities(undefined, 100),
+		italianUniversityManager.fetchItalianUniversities(undefined, 100)
         ]);
         
         // Process results and add successful ones
         results.forEach((result, index) => {
-            const sources = ['US', 'UK', 'Australia', 'Canada', 'Germany', 'Netherlands'];
+            const sources = ['US', 'UK', 'Australia', 'Canada', 'Germany', 'Netherlands', 'Japan', 'France', 'Italy'];
             if (result.status === 'fulfilled') {
                 allUniversities.push(...result.value);
                 console.log(`✅ Loaded ${result.value.length} universities from ${sources[index]}`);

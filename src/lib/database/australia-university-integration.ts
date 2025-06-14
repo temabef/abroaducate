@@ -20,12 +20,13 @@ export interface AustralianUniversityData {
     living_cost: number;
     total_students?: number;
     international_students_percentage?: number;
-    university_type: 'group_of_eight' | 'atn' | 'iru' | 'regional' | 'specialist';
-    research_intensity: 'very_high' | 'high' | 'medium' | 'limited';
+    university_type: 'group_of_eight' | 'atn' | 'iru' | 'regional' | 'specialist' | 'private' | 'public';
+    research_intensity: 'very_high' | 'high' | 'medium' | 'limited' | 'low';
     notable_programs: string[];
     strengths: string[];
     website: string;
     go8_member: boolean; // Group of Eight member
+    language: string;
 }
 
 // Top Australian Universities Database (2025 Data)
@@ -52,7 +53,8 @@ export const AUSTRALIAN_UNIVERSITIES: AustralianUniversityData[] = [
         notable_programs: ['Medicine', 'Law', 'Engineering', 'Business', 'Arts', 'Science'],
         strengths: ['research-excellence', 'global-reputation', 'melbourne-model', 'innovation'],
         website: 'https://www.unimelb.edu.au',
-        go8_member: true
+        go8_member: true,
+        language: 'english'
     },
     {
         id: 'au-sydney',
@@ -75,7 +77,8 @@ export const AUSTRALIAN_UNIVERSITIES: AustralianUniversityData[] = [
         notable_programs: ['Medicine', 'Law', 'Engineering', 'Business', 'Architecture', 'Arts'],
         strengths: ['historic-prestige', 'research-excellence', 'sydney-location', 'global-alumni'],
         website: 'https://www.sydney.edu.au',
-        go8_member: true
+        go8_member: true,
+        language: 'english'
     },
     {
         id: 'au-anu',
@@ -98,7 +101,8 @@ export const AUSTRALIAN_UNIVERSITIES: AustralianUniversityData[] = [
         notable_programs: ['Political Science', 'International Relations', 'Economics', 'Physics', 'Computer Science'],
         strengths: ['research-intensive', 'government-connections', 'national-university', 'policy-research'],
         website: 'https://www.anu.edu.au',
-        go8_member: true
+        go8_member: true,
+        language: 'english'
     },
     {
         id: 'au-unsw',
@@ -121,7 +125,8 @@ export const AUSTRALIAN_UNIVERSITIES: AustralianUniversityData[] = [
         notable_programs: ['Engineering', 'Business', 'Medicine', 'Computer Science', 'Law', 'Art & Design'],
         strengths: ['innovation', 'technology-focus', 'industry-partnerships', 'entrepreneurship'],
         website: 'https://www.unsw.edu.au',
-        go8_member: true
+        go8_member: true,
+        language: 'english'
     },
     {
         id: 'au-monash',
@@ -144,7 +149,8 @@ export const AUSTRALIAN_UNIVERSITIES: AustralianUniversityData[] = [
         notable_programs: ['Medicine', 'Pharmacy', 'Engineering', 'Business', 'Education', 'Science'],
         strengths: ['largest-university', 'global-campuses', 'research-excellence', 'diversity'],
         website: 'https://www.monash.edu',
-        go8_member: true
+        go8_member: true,
+        language: 'english'
     },
     {
         id: 'au-queensland',
@@ -167,7 +173,8 @@ export const AUSTRALIAN_UNIVERSITIES: AustralianUniversityData[] = [
         notable_programs: ['Veterinary Science', 'Agriculture', 'Medicine', 'Engineering', 'Business', 'Psychology'],
         strengths: ['research-excellence', 'beautiful-campus', 'subtropical-location', 'innovation'],
         website: 'https://www.uq.edu.au',
-        go8_member: true
+        go8_member: true,
+        language: 'english'
     },
     {
         id: 'au-wa',
@@ -190,7 +197,8 @@ export const AUSTRALIAN_UNIVERSITIES: AustralianUniversityData[] = [
         notable_programs: ['Mining Engineering', 'Medicine', 'Agriculture', 'Marine Science', 'Psychology'],
         strengths: ['mining-excellence', 'marine-research', 'perth-location', 'industry-connections'],
         website: 'https://www.uwa.edu.au',
-        go8_member: true
+        go8_member: true,
+        language: 'english'
     },
     {
         id: 'au-adelaide',
@@ -213,7 +221,8 @@ export const AUSTRALIAN_UNIVERSITIES: AustralianUniversityData[] = [
         notable_programs: ['Wine Science', 'Agriculture', 'Engineering', 'Medicine', 'Computer Science'],
         strengths: ['wine-research', 'research-excellence', 'adelaide-lifestyle', 'nobel-prizes'],
         website: 'https://www.adelaide.edu.au',
-        go8_member: true
+        go8_member: true,
+        language: 'english'
     },
 
     // AUSTRALIAN TECHNOLOGY NETWORK (ATN)
@@ -237,7 +246,8 @@ export const AUSTRALIAN_UNIVERSITIES: AustralianUniversityData[] = [
         notable_programs: ['Engineering', 'Information Technology', 'Design', 'Business', 'Communication'],
         strengths: ['technology-focus', 'industry-connections', 'innovation', 'practical-learning'],
         website: 'https://www.uts.edu.au',
-        go8_member: false
+        go8_member: false,
+        language: 'english'
     },
     {
         id: 'au-qut',
@@ -259,7 +269,8 @@ export const AUSTRALIAN_UNIVERSITIES: AustralianUniversityData[] = [
         notable_programs: ['Business', 'Creative Industries', 'Education', 'Engineering', 'Health'],
         strengths: ['practical-focus', 'industry-partnerships', 'creative-programs', 'real-world-learning'],
         website: 'https://www.qut.edu.au',
-        go8_member: false
+        go8_member: false,
+        language: 'english'
     },
 
     // INNOVATIVE RESEARCH UNIVERSITIES (IRU)
@@ -283,7 +294,8 @@ export const AUSTRALIAN_UNIVERSITIES: AustralianUniversityData[] = [
         notable_programs: ['Business', 'Psychology', 'Linguistics', 'Actuarial Studies', 'Engineering'],
         strengths: ['business-school', 'psychology-research', 'innovation', 'industry-links'],
         website: 'https://www.mq.edu.au',
-        go8_member: false
+        go8_member: false,
+        language: 'english'
     },
     {
         id: 'au-griffith',
@@ -305,7 +317,8 @@ export const AUSTRALIAN_UNIVERSITIES: AustralianUniversityData[] = [
         notable_programs: ['Medicine', 'Music', 'Criminology', 'Environmental Science', 'Asian Studies'],
         strengths: ['asia-pacific-focus', 'environmental-programs', 'music-conservatorium', 'innovation'],
         website: 'https://www.griffith.edu.au',
-        go8_member: false
+        go8_member: false,
+        language: 'english'
     },
 
     // REGIONAL UNIVERSITIES
@@ -329,7 +342,8 @@ export const AUSTRALIAN_UNIVERSITIES: AustralianUniversityData[] = [
         notable_programs: ['Medicine', 'Engineering', 'Nursing', 'Education', 'Business'],
         strengths: ['problem-based-learning', 'medical-school', 'innovation', 'regional-focus'],
         website: 'https://www.newcastle.edu.au',
-        go8_member: false
+        go8_member: false,
+        language: 'english'
     },
     {
         id: 'au-wollongong',
@@ -351,7 +365,8 @@ export const AUSTRALIAN_UNIVERSITIES: AustralianUniversityData[] = [
         notable_programs: ['Engineering', 'Computer Science', 'Nursing', 'Business', 'Creative Arts'],
         strengths: ['engineering-excellence', 'coastal-location', 'innovation', 'student-experience'],
         website: 'https://www.uow.edu.au',
-        go8_member: false
+        go8_member: false,
+        language: 'english'
     },
 
     // ADDITIONAL MAJOR UNIVERSITIES TO REACH 40+
@@ -375,7 +390,8 @@ export const AUSTRALIAN_UNIVERSITIES: AustralianUniversityData[] = [
         notable_programs: ['Mining Engineering', 'Business', 'Health Sciences', 'Engineering', 'Architecture'],
         strengths: ['mining-excellence', 'industry-links', 'international-focus', 'practical-learning'],
         website: 'https://www.curtin.edu.au',
-        go8_member: false
+        go8_member: false,
+        language: 'english'
     },
     {
         id: 'au-rmit',
@@ -397,7 +413,8 @@ export const AUSTRALIAN_UNIVERSITIES: AustralianUniversityData[] = [
         notable_programs: ['Design', 'Engineering', 'Business', 'Information Technology', 'Media'],
         strengths: ['design-excellence', 'industry-partnerships', 'innovation', 'city-campus'],
         website: 'https://www.rmit.edu.au',
-        go8_member: false
+        go8_member: false,
+        language: 'english'
     },
     {
         id: 'au-deakin',
@@ -419,7 +436,8 @@ export const AUSTRALIAN_UNIVERSITIES: AustralianUniversityData[] = [
         notable_programs: ['Education', 'Health', 'Business', 'Engineering', 'Psychology'],
         strengths: ['student-satisfaction', 'online-learning', 'health-programs', 'innovation'],
         website: 'https://www.deakin.edu.au',
-        go8_member: false
+        go8_member: false,
+        language: 'english'
     },
     {
         id: 'au-latrobe',
@@ -441,7 +459,8 @@ export const AUSTRALIAN_UNIVERSITIES: AustralianUniversityData[] = [
         notable_programs: ['Health Sciences', 'Education', 'Business', 'Arts', 'Science'],
         strengths: ['health-excellence', 'research-focus', 'diversity', 'regional-campuses'],
         website: 'https://www.latrobe.edu.au',
-        go8_member: false
+        go8_member: false,
+        language: 'english'
     },
     {
         id: 'au-swinburne',
@@ -463,7 +482,8 @@ export const AUSTRALIAN_UNIVERSITIES: AustralianUniversityData[] = [
         notable_programs: ['Engineering', 'Information Technology', 'Design', 'Business', 'Science'],
         strengths: ['technology-focus', 'industry-partnerships', 'innovation', 'practical-learning'],
         website: 'https://www.swinburne.edu.au',
-        go8_member: false
+        go8_member: false,
+        language: 'english'
     },
     {
         id: 'au-flinders',
@@ -485,7 +505,8 @@ export const AUSTRALIAN_UNIVERSITIES: AustralianUniversityData[] = [
         notable_programs: ['Medicine', 'Health Sciences', 'Education', 'Social Work', 'Psychology'],
         strengths: ['medical-excellence', 'health-focus', 'research-intensive', 'student-support'],
         website: 'https://www.flinders.edu.au',
-        go8_member: false
+        go8_member: false,
+        language: 'english'
     },
     {
         id: 'au-murdoch',
@@ -507,7 +528,8 @@ export const AUSTRALIAN_UNIVERSITIES: AustralianUniversityData[] = [
         notable_programs: ['Veterinary Science', 'Environmental Science', 'Psychology', 'Education', 'Business'],
         strengths: ['veterinary-excellence', 'environmental-focus', 'small-classes', 'research-opportunities'],
         website: 'https://www.murdoch.edu.au',
-        go8_member: false
+        go8_member: false,
+        language: 'english'
     },
     {
         id: 'au-bond',
@@ -529,7 +551,8 @@ export const AUSTRALIAN_UNIVERSITIES: AustralianUniversityData[] = [
         notable_programs: ['Business', 'Law', 'Medicine', 'Architecture', 'Health Sciences'],
         strengths: ['small-classes', 'premium-education', 'industry-connections', 'accelerated-programs'],
         website: 'https://www.bond.edu.au',
-        go8_member: false
+        go8_member: false,
+        language: 'english'
     },
     {
         id: 'au-canberra',
@@ -551,7 +574,8 @@ export const AUSTRALIAN_UNIVERSITIES: AustralianUniversityData[] = [
         notable_programs: ['Health', 'Education', 'Business', 'Design', 'Information Technology'],
         strengths: ['health-programs', 'government-connections', 'practical-focus', 'capital-location'],
         website: 'https://www.canberra.edu.au',
-        go8_member: false
+        go8_member: false,
+        language: 'english'
     },
     {
         id: 'au-southern-cross',
@@ -573,7 +597,8 @@ export const AUSTRALIAN_UNIVERSITIES: AustralianUniversityData[] = [
         notable_programs: ['Tourism', 'Environmental Science', 'Health', 'Education', 'Business'],
         strengths: ['tourism-excellence', 'coastal-campuses', 'environmental-focus', 'student-support'],
         website: 'https://www.scu.edu.au',
-        go8_member: false
+        go8_member: false,
+        language: 'english'
     },
     {
         id: 'au-central-queensland',
@@ -595,7 +620,8 @@ export const AUSTRALIAN_UNIVERSITIES: AustralianUniversityData[] = [
         notable_programs: ['Engineering', 'Health', 'Education', 'Business', 'Trades'],
         strengths: ['regional-focus', 'practical-programs', 'mining-connections', 'flexible-study'],
         website: 'https://www.cqu.edu.au',
-        go8_member: false
+        go8_member: false,
+        language: 'english'
     },
     {
         id: 'au-james-cook',
@@ -617,7 +643,8 @@ export const AUSTRALIAN_UNIVERSITIES: AustralianUniversityData[] = [
         notable_programs: ['Marine Science', 'Tropical Medicine', 'Veterinary Science', 'Engineering', 'Education'],
         strengths: ['tropical-research', 'marine-excellence', 'medical-programs', 'regional-expertise'],
         website: 'https://www.jcu.edu.au',
-        go8_member: false
+        go8_member: false,
+        language: 'english'
     },
     {
         id: 'au-charles-darwin',
@@ -639,7 +666,8 @@ export const AUSTRALIAN_UNIVERSITIES: AustralianUniversityData[] = [
         notable_programs: ['Indigenous Studies', 'Tropical Health', 'Engineering', 'Education', 'Environmental Science'],
         strengths: ['indigenous-focus', 'tropical-expertise', 'multicultural', 'regional-development'],
         website: 'https://www.cdu.edu.au',
-        go8_member: false
+        go8_member: false,
+        language: 'english'
     },
     {
         id: 'au-tasmania',
@@ -661,7 +689,8 @@ export const AUSTRALIAN_UNIVERSITIES: AustralianUniversityData[] = [
         notable_programs: ['Marine Science', 'Medicine', 'Arts', 'Science', 'Agriculture'],
         strengths: ['marine-research', 'island-expertise', 'research-intensive', 'natural-environment'],
         website: 'https://www.utas.edu.au',
-        go8_member: false
+        go8_member: false,
+        language: 'english'
     },
 
     // ADDITIONAL QUALITY UNIVERSITIES - EXPANDING TO 40+
@@ -685,7 +714,8 @@ export const AUSTRALIAN_UNIVERSITIES: AustralianUniversityData[] = [
         notable_programs: ['Engineering', 'Computer Science', 'Business', 'Health Sciences', 'Education'],
         strengths: ['innovation', 'industry-partnerships', 'coastal-campus', 'research-excellence'],
         website: 'https://www.uow.edu.au',
-        go8_member: false
+        go8_member: false,
+        language: 'english'
     },
     {
         id: 'au-victoria-university',
@@ -706,7 +736,8 @@ export const AUSTRALIAN_UNIVERSITIES: AustralianUniversityData[] = [
         notable_programs: ['Sports Science', 'Education', 'Business', 'Health Sciences', 'Engineering'],
         strengths: ['practical-learning', 'industry-focused', 'diverse-community', 'vocational-pathways'],
         website: 'https://www.vu.edu.au',
-        go8_member: false
+        go8_member: false,
+        language: 'english'
     },
     {
         id: 'au-edith-cowan',
@@ -727,7 +758,8 @@ export const AUSTRALIAN_UNIVERSITIES: AustralianUniversityData[] = [
         notable_programs: ['Nursing', 'Education', 'Business', 'Arts', 'Engineering'],
         strengths: ['teaching-excellence', 'student-support', 'modern-facilities', 'industry-connections'],
         website: 'https://www.ecu.edu.au',
-        go8_member: false
+        go8_member: false,
+        language: 'english'
     },
     {
         id: 'au-southern-queensland',
@@ -748,7 +780,8 @@ export const AUSTRALIAN_UNIVERSITIES: AustralianUniversityData[] = [
         notable_programs: ['Agriculture', 'Engineering', 'Education', 'Business', 'Health Sciences'],
         strengths: ['distance-education', 'regional-focus', 'agricultural-expertise', 'affordable-education'],
         website: 'https://www.usq.edu.au',
-        go8_member: false
+        go8_member: false,
+        language: 'english'
     },
     {
         id: 'au-catholic-university',
@@ -769,7 +802,8 @@ export const AUSTRALIAN_UNIVERSITIES: AustralianUniversityData[] = [
         notable_programs: ['Nursing', 'Education', 'Theology', 'Social Work', 'Health Sciences'],
         strengths: ['values-based-education', 'community-service', 'health-focus', 'multi-campus'],
         website: 'https://www.acu.edu.au',
-        go8_member: false
+        go8_member: false,
+        language: 'english'
     },
     {
         id: 'au-new-england',
@@ -790,7 +824,8 @@ export const AUSTRALIAN_UNIVERSITIES: AustralianUniversityData[] = [
         notable_programs: ['Agriculture', 'Veterinary Science', 'Education', 'Arts', 'Business'],
         strengths: ['rural-expertise', 'distance-education', 'agricultural-research', 'small-class-sizes'],
         website: 'https://www.une.edu.au',
-        go8_member: false
+        go8_member: false,
+        language: 'english'
     },
     {
         id: 'au-federation',
@@ -810,7 +845,8 @@ export const AUSTRALIAN_UNIVERSITIES: AustralianUniversityData[] = [
         notable_programs: ['Mining Engineering', 'Education', 'Business', 'Health Sciences', 'Information Technology'],
         strengths: ['mining-expertise', 'regional-focus', 'practical-learning', 'industry-partnerships'],
         website: 'https://www.federation.edu.au',
-        go8_member: false
+        go8_member: false,
+        language: 'english'
     },
     {
         id: 'au-charles-sturt',
@@ -831,7 +867,8 @@ export const AUSTRALIAN_UNIVERSITIES: AustralianUniversityData[] = [
         notable_programs: ['Agriculture', 'Veterinary Science', 'Education', 'Health Sciences', 'Business'],
         strengths: ['rural-health', 'agricultural-sciences', 'distance-education', 'community-engagement'],
         website: 'https://www.csu.edu.au',
-        go8_member: false
+        go8_member: false,
+        language: 'english'
     },
     {
         id: 'au-sunshine-coast',
@@ -852,7 +889,8 @@ export const AUSTRALIAN_UNIVERSITIES: AustralianUniversityData[] = [
         notable_programs: ['Business', 'Health Sciences', 'Arts', 'Science', 'Education'],
         strengths: ['modern-campus', 'coastal-location', 'student-experience', 'innovation'],
         website: 'https://www.usc.edu.au',
-        go8_member: false
+        go8_member: false,
+        language: 'english'
     },
     {
         id: 'au-southern-cross',
@@ -872,7 +910,8 @@ export const AUSTRALIAN_UNIVERSITIES: AustralianUniversityData[] = [
         notable_programs: ['Marine Science', 'Tourism', 'Health Sciences', 'Education', 'Business'],
         strengths: ['coastal-studies', 'environmental-focus', 'tourism-expertise', 'flexible-learning'],
         website: 'https://www.scu.edu.au',
-        go8_member: false
+        go8_member: false,
+        language: 'english'
     },
     {
         id: 'au-notre-dame',
@@ -881,18 +920,218 @@ export const AUSTRALIAN_UNIVERSITIES: AustralianUniversityData[] = [
         state: 'Western Australia',
         region: 'Perth Metropolitan',
         established: 1989,
-        acceptance_rate: 68,
-        domestic_tuition: 10500,
-        international_tuition: 32000,
-        living_cost: 17800,
+        qs_ranking: 801,
+        times_ranking: 801,
+        acceptance_rate: 70,
+        tuition_domestic: 15000,
+        tuition_international: 28000,
+        living_cost: 23000,
         total_students: 12000,
         international_students_percentage: 5,
-        university_type: 'specialist',
+        university_type: 'private',
+        language: 'english',
         research_intensity: 'medium',
-        notable_programs: ['Medicine', 'Law', 'Business', 'Health Sciences', 'Education'],
-        strengths: ['small-class-sizes', 'personalized-attention', 'values-based', 'clinical-training'],
-        website: 'https://www.notredame.edu.au',
-        go8_member: false
+        notable_programs: ['Medicine', 'Nursing', 'Law', 'Education', 'Business'],
+        strengths: ['catholic-education', 'small-classes', 'practical-experience', 'student-support'],
+        website: 'https://www.notredame.edu.au'
+    },
+    {
+        id: 'au-western-sydney',
+        name: 'Western Sydney University',
+        city: 'Sydney',
+        state: 'New South Wales',
+        region: 'New South Wales',
+        established: 1989,
+        qs_ranking: 501,
+        times_ranking: 401,
+        acceptance_rate: 80,
+        tuition_domestic: 9000,
+        tuition_international: 30000,
+        living_cost: 25000,
+        total_students: 48000,
+        international_students_percentage: 15,
+        university_type: 'public',
+        language: 'english',
+        research_intensity: 'medium',
+        notable_programs: ['Nursing', 'Education', 'Business', 'Engineering', 'Health Sciences'],
+        strengths: ['industry-connections', 'diverse-student-body', 'practical-learning', 'multiple-campuses'],
+        website: 'https://www.westernsydney.edu.au'
+    },
+    {
+        id: 'au-south-australia',
+        name: 'University of South Australia',
+        city: 'Adelaide',
+        state: 'South Australia',
+        region: 'South Australia',
+        established: 1991,
+        qs_ranking: 301,
+        times_ranking: 301,
+        acceptance_rate: 75,
+        tuition_domestic: 9000,
+        tuition_international: 32000,
+        living_cost: 22000,
+        total_students: 37000,
+        international_students_percentage: 25,
+        university_type: 'public',
+        language: 'english',
+        research_intensity: 'high',
+        notable_programs: ['Business', 'IT', 'Engineering', 'Health Sciences', 'Education'],
+        strengths: ['industry-partnerships', 'practical-education', 'research-focus', 'modern-facilities'],
+        website: 'https://www.unisa.edu.au'
+    },
+    {
+        id: 'au-technology-sydney',
+        name: 'University of Technology Sydney',
+        city: 'Sydney',
+        state: 'New South Wales',
+        region: 'New South Wales',
+        established: 1988,
+        qs_ranking: 137,
+        times_ranking: 160,
+        acceptance_rate: 70,
+        tuition_domestic: 9000,
+        tuition_international: 35000,
+        living_cost: 25000,
+        total_students: 46000,
+        international_students_percentage: 35,
+        university_type: 'public',
+        language: 'english',
+        research_intensity: 'high',
+        notable_programs: ['Business', 'Engineering', 'IT', 'Design', 'Communications'],
+        strengths: ['industry-focus', 'modern-campus', 'practical-learning', 'innovation'],
+        website: 'https://www.uts.edu.au'
+    },
+    {
+        id: 'au-australian-catholic',
+        name: 'Australian Catholic University',
+        city: 'Multiple Campuses',
+        state: 'Multiple States',
+        region: 'National',
+        established: 1991,
+        qs_ranking: 801,
+        times_ranking: 601,
+        acceptance_rate: 85,
+        tuition_domestic: 9000,
+        tuition_international: 25000,
+        living_cost: 23000,
+        total_students: 35000,
+        international_students_percentage: 10,
+        university_type: 'public',
+        language: 'english',
+        research_intensity: 'medium',
+        notable_programs: ['Nursing', 'Education', 'Social Work', 'Psychology', 'Theology'],
+        strengths: ['catholic-values', 'multi-campus', 'community-engagement', 'ethical-focus'],
+        website: 'https://www.acu.edu.au'
+    },
+    {
+        id: 'au-canberra',
+        name: 'University of Canberra',
+        city: 'Canberra',
+        state: 'Australian Capital Territory',
+        region: 'Australian Capital Territory',
+        established: 1967,
+        qs_ranking: 456,
+        times_ranking: 401,
+        acceptance_rate: 80,
+        tuition_domestic: 9000,
+        tuition_international: 28000,
+        living_cost: 22000,
+        total_students: 17000,
+        international_students_percentage: 25,
+        university_type: 'public',
+        language: 'english',
+        research_intensity: 'medium',
+        notable_programs: ['Health', 'Sports Studies', 'Education', 'Communication', 'IT'],
+        strengths: ['capital-city-location', 'government-connections', 'practical-education', 'sports-focus'],
+        website: 'https://www.canberra.edu.au'
+    },
+    {
+        id: 'au-torrens',
+        name: 'Torrens University Australia',
+        city: 'Multiple Campuses',
+        state: 'Multiple States',
+        region: 'National',
+        established: 2012,
+        qs_ranking: 0,
+        times_ranking: 0,
+        acceptance_rate: 85,
+        tuition_domestic: 20000,
+        tuition_international: 25000,
+        living_cost: 24000,
+        total_students: 19000,
+        international_students_percentage: 40,
+        university_type: 'private',
+        language: 'english',
+        research_intensity: 'low',
+        notable_programs: ['Business', 'Design', 'Health', 'Hospitality', 'Education'],
+        strengths: ['industry-connections', 'online-learning', 'practical-focus', 'global-network'],
+        website: 'https://www.torrens.edu.au'
+    },
+    {
+        id: 'au-murdoch',
+        name: 'Murdoch University',
+        city: 'Perth',
+        state: 'Western Australia',
+        region: 'Western Australia',
+        established: 1973,
+        qs_ranking: 571,
+        times_ranking: 501,
+        acceptance_rate: 80,
+        tuition_domestic: 9000,
+        tuition_international: 29000,
+        living_cost: 22000,
+        total_students: 23000,
+        international_students_percentage: 20,
+        university_type: 'public',
+        language: 'english',
+        research_intensity: 'medium',
+        notable_programs: ['Veterinary Science', 'Environmental Science', 'IT', 'Business', 'Law'],
+        strengths: ['sustainability-focus', 'research-facilities', 'veterinary-school', 'flexible-learning'],
+        website: 'https://www.murdoch.edu.au'
+    },
+    {
+        id: 'au-deakin',
+        name: 'Deakin University',
+        city: 'Multiple Campuses',
+        state: 'Victoria',
+        region: 'Victoria',
+        established: 1974,
+        qs_ranking: 283,
+        times_ranking: 251,
+        acceptance_rate: 75,
+        tuition_domestic: 9000,
+        tuition_international: 32000,
+        living_cost: 23000,
+        total_students: 60000,
+        international_students_percentage: 25,
+        university_type: 'public',
+        language: 'english',
+        research_intensity: 'high',
+        notable_programs: ['Business', 'Nursing', 'IT', 'Education', 'Engineering'],
+        strengths: ['online-learning', 'industry-connections', 'research-excellence', 'student-satisfaction'],
+        website: 'https://www.deakin.edu.au'
+    },
+    {
+        id: 'au-southern-queensland',
+        name: 'University of Southern Queensland',
+        city: 'Toowoomba',
+        state: 'Queensland',
+        region: 'Queensland',
+        established: 1967,
+        qs_ranking: 701,
+        times_ranking: 801,
+        acceptance_rate: 85,
+        tuition_domestic: 9000,
+        tuition_international: 26000,
+        living_cost: 20000,
+        total_students: 28000,
+        international_students_percentage: 15,
+        university_type: 'public',
+        language: 'english',
+        research_intensity: 'medium',
+        notable_programs: ['Engineering', 'Education', 'Business', 'Nursing', 'Psychology'],
+        strengths: ['online-education', 'regional-focus', 'affordable-living', 'flexible-study'],
+        website: 'https://www.usq.edu.au'
     }
 ];
 
@@ -989,7 +1228,8 @@ export class AustralianUniversityDataManager {
             ownership_type: 'public',
             website_url: auUni.website,
             data_source: 'government_api',
-            last_updated: new Date().toISOString()
+            last_updated: new Date().toISOString(),
+            language: auUni.language
         };
     }
 
