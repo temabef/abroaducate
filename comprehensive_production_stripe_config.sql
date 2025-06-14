@@ -33,15 +33,15 @@ INSERT INTO plan_features (plan_type, feature_category, feature_name, feature_li
 
 -- FREE TIER FEATURES
 -- Document Generation
-('free', 'documents', 'sops_created', 2, true, '{"monthly_reset": true}'),
-('free', 'documents', 'cover_letters_created', 2, true, '{"monthly_reset": true}'),
+('free', 'documents', 'sops_created', 1, true, '{"monthly_reset": true}'),
+('free', 'documents', 'cover_letters_created', 1, true, '{"monthly_reset": true}'),
 ('free', 'documents', 'personal_statements_created', 1, true, '{"monthly_reset": true}'),
 ('free', 'documents', 'academic_cvs_created', 1, true, '{"monthly_reset": true}'),
 
 -- AI Features
-('free', 'ai_features', 'reviews', 3, true, '{"monthly_reset": true}'),
-('free', 'ai_features', 'text_enhancements', 5, true, '{"monthly_reset": true}'),
-('free', 'ai_features', 'word_optimizations', 3, true, '{"monthly_reset": true}'),
+('free', 'ai_features', 'reviews', 2, true, '{"monthly_reset": true}'),
+('free', 'ai_features', 'text_enhancements', 4, true, '{"monthly_reset": true}'),
+('free', 'ai_features', 'word_optimizations', 2, true, '{"monthly_reset": true}'),
 ('free', 'ai_features', 'plagiarism_checks', 1, true, '{"monthly_reset": true}'),
 
 -- University Matching

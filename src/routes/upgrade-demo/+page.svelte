@@ -121,7 +121,7 @@
                         🚀 You've reached your academic cvs_created limit for your free plan.<br><br>
                         Your current plan: free<br>
                         Usage: 1/1<br><br>
-                        Upgrade to Professional ($7.99/month) for 50 documents or Elite ($19.99/month) for unlimited!<br><br>
+                        Upgrade to Professional ($12/month) for 50 documents or Elite ($29/month) for unlimited!<br><br>
                         Would you like to upgrade now?
                     </div>
                     <div class="flex gap-2 mt-4">

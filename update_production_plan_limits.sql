@@ -19,8 +19,8 @@ INSERT INTO plan_limits (
 -- FREE TIER: Document-specific limits
 (
     'free',
-    2,  -- 2 SOPs per month
-    2,  -- 2 Cover Letters per month
+    1,  -- 2 SOPs per month
+    1,  -- 2 Cover Letters per month
     1,  -- 1 Personal Statement per month
     1,  -- 1 Academic CV per month
     5,  -- 5 AI reviews per month

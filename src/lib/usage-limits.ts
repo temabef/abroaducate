@@ -29,84 +29,65 @@ export async function checkUsageLimit(
             .from('user_subscriptions')
             .select('plan_type')
             .eq('user_id', userId)
-            .eq('status', 'active')
-            .single();
+            .in('status', ['active', 'trialing'])
+            .limit(1)
+            .maybeSingle();
 
         const planType = subscription?.plan_type || 'free';
 
-        // Get plan limits
-        const { data: planLimits } = await supabase
-            .from('plan_limits')
+        // Get current month's usage
+        const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
+        const { data: currentUsage } = await supabase
+            .from('user_usage')
             .select('*')
-            .eq('plan_type', planType)
+            .eq('user_id', userId)
+            .eq('month_year', currentMonth)
             .single();
 
-        if (!planLimits) {
-            return {
-                allowed: false,
-                planType,
-                currentUsage: 0,
-                limit: 0,
-                message: 'Plan configuration not found'
-            };
-        }
+        // Define limits based on plan type
+        const planLimits = {
+            free: {
+                sops_created: 2,
+                cover_letters_created: 2,
+                personal_statements_created: 1,
+                academic_cvs_created: 1,
+                ai_improvements_used: 2,
+                analytics_generated: 1,
+                plagiarism_checks: 1
+            },
+            professional: {
+                sops_created: 15,
+                cover_letters_created: 15,
+                personal_statements_created: 10,
+                academic_cvs_created: 10,
+                ai_improvements_used: 25,
+                analytics_generated: 10,
+                plagiarism_checks: 10
+            },
+            elite: {
+                sops_created: null,
+                cover_letters_created: null,
+                personal_statements_created: null,
+                academic_cvs_created: null,
+                ai_improvements_used: null,
+                analytics_generated: null,
+                plagiarism_checks: null
+            }
+        } as const;
 
-        // Map usage types to their corresponding limit columns
-        let limitColumn: string;
-        switch (usageType) {
-            case 'sops_created':
-                limitColumn = 'sops_limit';
-                break;
-            case 'cover_letters_created':
-                limitColumn = 'cover_letters_limit';
-                break;
-            case 'personal_statements_created':
-                limitColumn = 'personal_statements_limit';
-                break;
-            case 'academic_cvs_created':
-                limitColumn = 'academic_cvs_limit';
-                break;
-            case 'ai_improvements_used':
-                limitColumn = 'ai_improvements_limit';
-                break;
-            case 'analytics_generated':
-                limitColumn = 'analytics_limit';
-                break;
-            case 'plagiarism_checks':
-                limitColumn = 'plagiarism_checks_limit';
-                break;
-            default:
-                limitColumn = 'sops_limit';
-        }
-        
-        const limit = planLimits[limitColumn];
-        
-        // If limit is null (unlimited), allow action
-        if (limit === null) {
-            return {
-                allowed: true,
-                planType,
-                currentUsage: 0,
-                limit: null
-            };
-        }
+        const limits = planLimits[planType as keyof typeof planLimits] || planLimits.free;
+        const usage = currentUsage?.[usageType] || 0;
+        const currentLimit = limits[usageType];
 
-        // Get current usage using the database function
-        const { data: usageData } = await supabase.rpc('get_current_usage', {
-            user_uuid: userId
-        });
-
-        const currentUsage = usageData?.[0]?.[usageType] || 0;
-
-        // Check if adding increment would exceed limit
-        const wouldExceed = (currentUsage + increment) > limit;
+        // If limit is null (unlimited) or usage + increment is within limit
+        const allowed = currentLimit === null || usage + increment <= currentLimit;
 
         return {
-            allowed: !wouldExceed,
+            allowed,
             planType,
-            currentUsage,
-            limit,
-            message: wouldExceed ? `You've reached your ${usageType.replace('_', ' ')} limit for your ${planType} plan.` : undefined
+            currentUsage: usage,
+            limit: currentLimit,
+            message: allowed ? undefined : `You've reached your ${usageType.replace(/_/g, ' ')} limit for your ${planType} plan.`
         };
 
     } catch (error) {
@@ -131,18 +112,42 @@ export async function incrementUsage(
     increment: number = 1
 ): Promise<boolean> {
     try {
-        const { data, error } = await supabase.rpc('increment_usage', {
-            user_uuid: userId,
-            usage_type: usageType,
-            increment_by: increment
-        });
+        const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
+
+        // First check if we can increment
+        const usageCheck = await checkUsageLimit(supabase, userId, usageType, increment);
+        if (!usageCheck.allowed) {
+            return false;
+        }
+
+        // Get current usage first
+        const { data: currentUsage } = await supabase
+            .from('user_usage')
+            .select(usageType)
+            .eq('user_id', userId)
+            .eq('month_year', currentMonth)
+            .single();
+
+        // Type assertion since we know the shape of the data
+        const currentValue = ((currentUsage as Record<string, number | null>)?.[usageType] ?? 0);
+
+        // Update with the new value
+        const { data, error } = await supabase
+            .from('user_usage')
+            .upsert({
+                user_id: userId,
+                month_year: currentMonth,
+                [usageType]: currentValue + increment
+            }, {
+                onConflict: 'user_id, month_year'
+            });
 
         if (error) {
             console.error('Error incrementing usage:', error);
             return false;
         }
 
-        return data === true;
+        return true;
     } catch (error) {
         console.error('Error incrementing usage:', error);
         return false;
@@ -157,58 +162,83 @@ export async function getUserUsageStatus(
     userId: string
 ): Promise<{
     planType: string;
-    usage: CurrentUsage;
-    limits: UsageLimits;
+    usage: Record<string, number>;
+    limits: Record<string, number | null>;
     percentages: Record<string, number>;
 }> {
     try {
+        const currentMonth = new Date().toISOString().slice(0, 7);
+
         // Get user's current plan
         const { data: subscription } = await supabase
             .from('user_subscriptions')
             .select('plan_type')
             .eq('user_id', userId)
-            .eq('status', 'active')
-            .single();
+            .in('status', ['active', 'trialing'])
+            .limit(1)
+            .maybeSingle();
 
         const planType = subscription?.plan_type || 'free';
 
-        // Get plan limits
-        const { data: planLimits } = await supabase
-            .from('plan_limits')
+        // Get current usage
+        const { data: currentUsage } = await supabase
+            .from('user_usage')
             .select('*')
-            .eq('plan_type', planType)
+            .eq('user_id', userId)
+            .eq('month_year', currentMonth)
             .single();
 
-        // Get current usage
-        const { data: usageData } = await supabase.rpc('get_current_usage', {
-            user_uuid: userId
-        });
-
-        const usage: CurrentUsage = {
-            sops_created: usageData?.[0]?.sops_created || 0,
-            ai_improvements_used: usageData?.[0]?.ai_improvements_used || 0,
-            analytics_generated: usageData?.[0]?.analytics_generated || 0,
-            plagiarism_checks: usageData?.[0]?.plagiarism_checks || 0
+        const usage = {
+            sops_created: currentUsage?.sops_created || 0,
+            cover_letters_created: currentUsage?.cover_letters_created || 0,
+            personal_statements_created: currentUsage?.personal_statements_created || 0,
+            academic_cvs_created: currentUsage?.academic_cvs_created || 0,
+            ai_improvements_used: currentUsage?.ai_improvements_used || 0,
+            analytics_generated: currentUsage?.analytics_generated || 0,
+            plagiarism_checks: currentUsage?.plagiarism_checks || 0
         };
 
-        const limits: UsageLimits = {
-            sops_limit: planLimits?.sops_limit || 1,
-            ai_improvements_limit: planLimits?.ai_improvements_limit || 3,
-            analytics_limit: planLimits?.analytics_limit || 1,
-            plagiarism_checks_limit: planLimits?.plagiarism_checks_limit || 1
-        };
+        // Define limits based on plan type
+        const planLimits = {
+            free: {
+                sops_created: 2,
+                cover_letters_created: 2,
+                personal_statements_created: 1,
+                academic_cvs_created: 1,
+                ai_improvements_used: 2,
+                analytics_generated: 1,
+                plagiarism_checks: 1
+            },
+            professional: {
+                sops_created: 15,
+                cover_letters_created: 15,
+                personal_statements_created: 10,
+                academic_cvs_created: 10,
+                ai_improvements_used: 25,
+                analytics_generated: 10,
+                plagiarism_checks: 10
+            },
+            elite: {
+                sops_created: null,
+                cover_letters_created: null,
+                personal_statements_created: null,
+                academic_cvs_created: null,
+                ai_improvements_used: null,
+                analytics_generated: null,
+                plagiarism_checks: null
+            }
+        } as const;
 
-        // Calculate usage percentages
+        const limits = planLimits[planType as keyof typeof planLimits] || planLimits.free;
+
+        // Calculate percentages
         const percentages: Record<string, number> = {};
         Object.keys(usage).forEach(key => {
-            const usageKey = key as keyof CurrentUsage;
-            const limitKey = `${key.replace('_used', '').replace('_created', '').replace('_generated', '')}_limit` as keyof UsageLimits;
-            const limit = limits[limitKey];
-            
+            const limit = limits[key as keyof typeof limits];
             if (limit === null) {
                 percentages[key] = 0; // Unlimited
             } else {
-                percentages[key] = Math.min(100, (usage[usageKey] / limit) * 100);
+                percentages[key] = Math.min(100, (usage[key as keyof typeof usage] / limit) * 100);
             }
         });
 
@@ -223,9 +253,33 @@ export async function getUserUsageStatus(
         console.error('Error getting usage status:', error);
         return {
             planType: 'free',
-            usage: { sops_created: 0, ai_improvements_used: 0, analytics_generated: 0, plagiarism_checks: 0 },
-            limits: { sops_limit: 1, ai_improvements_limit: 3, analytics_limit: 1, plagiarism_checks_limit: 1 },
-            percentages: { sops_created: 0, ai_improvements_used: 0, analytics_generated: 0, plagiarism_checks: 0 }
+            usage: {
+                sops_created: 0,
+                cover_letters_created: 0,
+                personal_statements_created: 0,
+                academic_cvs_created: 0,
+                ai_improvements_used: 0,
+                analytics_generated: 0,
+                plagiarism_checks: 0
+            },
+            limits: {
+                sops_created: 2,
+                cover_letters_created: 2,
+                personal_statements_created: 1,
+                academic_cvs_created: 1,
+                ai_improvements_used: 2,
+                analytics_generated: 1,
+                plagiarism_checks: 1
+            },
+            percentages: {
+                sops_created: 0,
+                cover_letters_created: 0,
+                personal_statements_created: 0,
+                academic_cvs_created: 0,
+                ai_improvements_used: 0,
+                analytics_generated: 0,
+                plagiarism_checks: 0
+            }
         };
     }
 } 

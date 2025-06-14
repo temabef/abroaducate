@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
     import { onMount } from 'svelte';
     
     let loading = false;
@@ -33,10 +33,11 @@
         fetchUKUniversities();
     });
 
-    function formatCurrency(amount) {
-        return new Intl.NumberFormat('en-GB', {
+    function formatCurrency(amount: number) {
+        return new Intl.NumberFormat('en-US', {
             style: 'currency',
-            currency: 'GBP'
+            currency: 'USD',
+            minimumFractionDigits: 0
         }).format(amount);
     }
 
@@ -50,6 +51,23 @@
             'specialist': 'bg-indigo-100 text-indigo-800'
         };
         return colors[type] || 'bg-gray-100 text-gray-800';
+    }
+
+    // Generate internal university profile URL
+    function getUniversityProfileUrl(university: any): string {
+        if (university.website_url) {
+            // Extract hostname from website URL
+            try {
+                const url = new URL(university.website_url);
+                return `/universities/${url.hostname}`;
+            } catch {
+                // Fallback to name-based slug
+                return `/universities/${university.name.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '-')}`;
+            }
+        }
+        
+        // Fallback to name-based slug
+        return `/universities/${university.name.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '-')}`;
     }
 </script>
 
@@ -242,12 +260,10 @@
                                 Research: {university.research_opportunities || 'N/A'}
                             </span>
                             <a 
-                                href={university.website_url} 
-                                target="_blank" 
-                                rel="noopener"
+                                href={getUniversityProfileUrl(university)}
                                 class="text-blue-600 hover:text-blue-800 font-medium"
                             >
-                                Visit Website →
+                                🏫 View Profile →
                             </a>
                         </div>
                     </div>

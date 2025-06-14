@@ -1,31 +1,50 @@
 import { json } from '@sveltejs/kit';
-import { OPENAI_API_KEY } from '$env/static/private';
 import type { RequestHandler } from './$types';
+import { OPENAI_API_KEY } from '$env/static/private';
 
-export const POST: RequestHandler = async ({ request, locals: { safeGetSession } }) => {
-    const { session } = await safeGetSession();
+const openAIEndpoint = 'https://api.openai.com/v1/chat/completions';
 
-    if (!session) {
-        return json({ error: 'Unauthorized' }, { status: 401 });
-    }
+async function getCompletion(prompt: string, model = 'gpt-3.5-turbo') {
+	const response = await fetch(openAIEndpoint, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+			Authorization: `Bearer ${OPENAI_API_KEY}`
+		},
+		body: JSON.stringify({
+			model,
+			messages: [{ role: 'user', content: prompt }],
+			temperature: 0.7
+		})
+	});
 
-    try {
-        const { originalText, selectedText, improvementType } = await request.json();
+	const data = await response.json();
+	return data.choices[0].message.content;
+}
 
-        if (!selectedText || !improvementType) {
-            return json({ error: 'Missing required fields' }, { status: 400 });
-        }
+export const POST: RequestHandler = async ({ request, locals: { getSession } }) => {
+	const session = await getSession();
+	if (!session) {
+		return new Response('Unauthorized', { status: 401 });
+	}
 
-        // Create improvement prompt based on the type
-        const improvementPrompts = {
-            concise: 'Make this text more concise and to the point while preserving all important meaning.',
-            detailed: 'Expand this text with more specific details and examples while maintaining the same tone.',
-            research: 'Rewrite this text with a stronger research focus, adding more academic depth and scholarly language.',
-            academic: 'Make this text more academic and formal in tone, using sophisticated vocabulary and structure.',
-            technical: 'Enhance this text with more technical terminology and precise language appropriate for the field.'
-        };
+	try {
+		const { originalText, selectedText, improvementType } = await request.json();
 
-        const prompt = `You are helping improve a Statement of Purpose (SOP) for university application. 
+		if (!selectedText || !improvementType) {
+			return json({ error: 'Missing required fields' }, { status: 400 });
+		}
+
+		// Create improvement prompt based on the type
+		const improvementPrompts = {
+			concise: 'Make this text more concise and to the point while preserving all important meaning.',
+			detailed: 'Expand this text with more specific details and examples while maintaining the same tone.',
+			research: 'Rewrite this text with a stronger research focus, adding more academic depth and scholarly language.',
+			academic: 'Make this text more academic and formal in tone, using sophisticated vocabulary and structure.',
+			technical: 'Enhance this text with more technical terminology and precise language appropriate for the field.'
+		};
+
+		const prompt = `You are helping improve a Statement of Purpose (SOP) for university application. 
 
 TASK: ${improvementPrompts[improvementType as keyof typeof improvementPrompts] || improvementPrompts.concise}
 
@@ -44,38 +63,17 @@ REQUIREMENTS:
 
 Improved text:`;
 
-        const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${OPENAI_API_KEY}`
-            },
-            body: JSON.stringify({
-                model: "gpt-3.5-turbo",
-                messages: [{ role: "user", content: prompt }],
-                temperature: 0.7,
-                max_tokens: 500,
-            })
-        });
+		const improvedText = await getCompletion(prompt);
 
-        if (!openaiResponse.ok) {
-            const errorData = await openaiResponse.json();
-            console.error('OpenAI API error:', errorData);
-            return json({ error: 'Failed to improve text with AI.' }, { status: openaiResponse.status });
-        }
+		return json({ 
+			success: true, 
+			improvedText,
+			originalText: selectedText,
+			improvementType
+		});
 
-        const openaiData = await openaiResponse.json();
-        const improvedText = openaiData.choices[0].message.content.trim();
-
-        return json({ 
-            success: true, 
-            improvedText,
-            originalText: selectedText,
-            improvementType
-        });
-
-    } catch (error: any) {
-        console.error('Error in text improvement endpoint:', error);
-        return json({ error: error.message || 'Internal server error' }, { status: 500 });
-    }
+	} catch (error: any) {
+		console.error('Error in text improvement endpoint:', error);
+		return json({ error: error.message || 'Internal server error' }, { status: 500 });
+	}
 }; 

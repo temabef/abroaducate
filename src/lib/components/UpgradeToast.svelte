@@ -112,15 +112,18 @@
                             Running low on {toastConfig.feature}
                         {/if}
                     </h4>
-                    <p class="text-sm text-gray-600 mb-3">{toastConfig.message}</p>
-                    
-                    <!-- Progress bar -->
-                    <div class="w-full bg-gray-200 rounded-full h-2 mb-3">
-                        <div 
-                            class="h-2 rounded-full transition-all duration-500 {percentageUsed >= 90 ? 'bg-red-500' : percentageUsed >= 80 ? 'bg-yellow-500' : 'bg-blue-500'}"
-                            style="width: {Math.min(percentageUsed, 100)}%"
-                        ></div>
-                    </div>
+                    {#if !isAtLimit && percentageUsed > 0}
+                        <p class="text-sm text-gray-600 mb-3">{toastConfig.message}</p>
+                        <!-- Progress bar -->
+                        <div class="w-full bg-gray-200 rounded-full h-2 mb-3">
+                            <div 
+                                class="h-2 rounded-full transition-all duration-500 {percentageUsed >= 90 ? 'bg-red-500' : percentageUsed >= 80 ? 'bg-yellow-500' : 'bg-blue-500'}"
+                                style="width: {Math.min(percentageUsed, 100)}%"
+                            ></div>
+                        </div>
+                    {:else}
+                        <p class="text-sm text-gray-600 mb-4">Monthly limit reached! Upgrade for more access.</p>
+                    {/if}
                     
                     <!-- Action buttons -->
                     <div class="flex space-x-2">

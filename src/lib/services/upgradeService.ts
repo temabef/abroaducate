@@ -28,8 +28,17 @@ const defaultState: UpgradeState = {
     }
 };
 
-// Global store for upgrade state
+// Prevent automatic modal triggering on page load
+let hasUserInteracted = false;
+
+// Global store for upgrade state  
 export const upgradeState = writable<UpgradeState>(defaultState);
+
+// Function to reset upgrade state (useful for debugging)
+export function resetUpgradeState(): void {
+    upgradeState.set(defaultState);
+    hasUserInteracted = false;
+}
 
 // Feature type mapping for better UX
 const featureMapping = {
@@ -74,6 +83,9 @@ export function handleUpgradeRequired(errorData: {
         return false;
     }
     
+    // Mark that user has interacted with the app
+    hasUserInteracted = true;
+    
     // Determine feature type from usage type or message
     const usageType = errorData.usageType || extractUsageTypeFromMessage(errorData.message);
     const featureInfo = featureMapping[usageType as keyof typeof featureMapping] || featureMapping.unknown;
@@ -81,20 +93,25 @@ export function handleUpgradeRequired(errorData: {
     // Get optimal upgrade strategy
     const strategy = shouldShowUpgrade(featureInfo.limitType, featureInfo.featureType);
     
-    // Update global state
-    upgradeState.update(state => ({
-        ...state,
-        showModal: strategy.strategy === 'modal',
-        showToast: strategy.strategy === 'toast',
-        modalData: {
-            limitType: featureInfo.limitType,
-            featureType: featureInfo.featureType,
-            currentPlan: errorData.planType,
-            currentUsage: errorData.currentUsage,
-            limit: errorData.limit,
-            message: errorData.message
-        }
-    }));
+    // Only update global state with valid data
+    if (errorData.limit > 0 && errorData.currentUsage >= 0) {
+        upgradeState.update(state => ({
+            ...state,
+            showModal: strategy.strategy === 'modal',
+            showToast: strategy.strategy === 'toast',
+            modalData: {
+                limitType: featureInfo.limitType,
+                featureType: featureInfo.featureType,
+                currentPlan: errorData.planType,
+                currentUsage: errorData.currentUsage,
+                limit: errorData.limit,
+                message: errorData.message
+            }
+        }));
+    } else {
+        console.warn('Skipping upgrade modal for invalid data:', errorData);
+        return false;
+    }
     
     // Track the interaction
     trackInteraction(featureInfo.limitType, featureInfo.featureType, 'shown');
@@ -200,11 +217,12 @@ export function checkEarlyUpgradeWarning(
     limit: number, 
     usageType: string
 ): boolean {
-    if (limit === 0) return false;
+    // More strict validation
+    if (limit <= 0 || currentUsage < 0 || !hasUserInteracted) return false;
     
     const percentageUsed = (currentUsage / limit) * 100;
     
-    // Show warning at 80%+ usage
+    // Show warning at 80%+ usage (only after user has interacted)
     if (percentageUsed >= 80) {
         const featureInfo = featureMapping[usageType as keyof typeof featureMapping] || featureMapping.unknown;
         
@@ -226,6 +244,13 @@ export function checkEarlyUpgradeWarning(
     }
     
     return false;
+}
+
+/**
+ * Mark that user has interacted (call this on first user action)
+ */
+export function markUserInteraction(): void {
+    hasUserInteracted = true;
 }
 
 /**

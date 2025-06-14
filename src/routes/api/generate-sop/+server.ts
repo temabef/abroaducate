@@ -55,8 +55,8 @@ function buildPrompt(formData: FormData): string {
     return `${instruction}\n\n--- APPLICANT DATA ---\n${sections.join('\n')}`;
 }
 
-export const POST: RequestHandler = async ({ request, locals: { supabase, safeGetSession } }) => {
-    const { session } = await safeGetSession();
+export const POST: RequestHandler = async ({ request, locals: { supabase, getSession } }) => {
+    const session = await getSession();
 
     if (!session) {
         return json({ error: 'Unauthorized' }, { status: 401 });

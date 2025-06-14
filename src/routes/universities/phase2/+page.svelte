@@ -10,6 +10,23 @@
   let limit = 50;
   let metadata: any = null;
   
+  // Enhanced pagination and loading system
+  let currentPage = 1;
+  let totalPages = 1;
+  let totalUniversities = 0;
+  let loadingMore = false;
+  let enhancedMode = false; // Toggle for enhanced fetching (higher limits)
+  let pageSize = 24; // Universities per page
+  let displayedUniversities: any[] = []; // Universities for current page (typed)
+  
+  // Calculate pagination
+  $: {
+    totalPages = Math.ceil(universities.length / pageSize);
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    displayedUniversities = universities.slice(startIndex, endIndex);
+  }
+  
   // US States for filtering
   const US_STATES = [
     'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA',
@@ -19,18 +36,25 @@
     'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'
   ];
   
-  async function fetchUniversities() {
+    // Enhanced fetching with automatic pagination for large datasets
+  async function fetchUniversitiesEnhanced() {
     loading = true;
     error = '';
+    universities = [];
+    currentPage = 1;
+    metadata = null;
     
     try {
       const params = new URLSearchParams({
         source: selectedSource,
         type: selectedType,
-        limit: limit.toString()
+        limit: limit.toString(),
+        mode: enhancedMode ? 'comprehensive' : 'standard',
+        forceRefresh: 'true' // Force fresh data on each fetch
       });
       
-      if (selectedState) {
+      // Only add state parameter for countries that support it
+      if (selectedState && (selectedSource === 'us' || selectedSource === 'australia' || selectedSource === 'canada' || selectedSource === 'germany' || selectedSource === 'netherlands')) {
         params.append('state', selectedState);
       }
       
@@ -40,14 +64,64 @@
       if (data.success) {
         universities = data.universities;
         metadata = data.metadata;
+        console.log(`✅ Successfully fetched ${universities.length} universities from ${selectedSource}`);
       } else {
         error = data.error || 'Failed to fetch universities';
+        console.error('❌ Fetch error:', data.error);
       }
     } catch (err) {
       error = 'Network error: ' + (err instanceof Error ? err.message : 'Unknown error');
+      console.error('❌ Network error:', err);
     } finally {
       loading = false;
     }
+  }
+
+  async function fetchUniversities() {
+    loading = true;
+    error = '';
+    universities = [];
+    currentPage = 1;
+    metadata = null;
+    
+    try {
+      const params = new URLSearchParams({
+        source: selectedSource,
+        type: selectedType,
+        limit: limit.toString(),
+        forceRefresh: 'true' // Force fresh data on each fetch
+      });
+      
+      // Only add state parameter for countries that support it
+      if (selectedState && (selectedSource === 'us' || selectedSource === 'australia' || selectedSource === 'canada' || selectedSource === 'germany' || selectedSource === 'netherlands')) {
+        params.append('state', selectedState);
+      }
+      
+      const response = await fetch(`/api/universities/fetch?${params}`);
+      const data = await response.json();
+      
+      if (data.success) {
+        universities = data.universities;
+        metadata = data.metadata;
+        console.log(`✅ Successfully fetched ${universities.length} universities from ${selectedSource}`);
+      } else {
+        error = data.error || 'Failed to fetch universities';
+        console.error('❌ Fetch error:', data.error);
+      }
+    } catch (err) {
+      error = 'Network error: ' + (err instanceof Error ? err.message : 'Unknown error');
+      console.error('❌ Network error:', err);
+    } finally {
+      loading = false;
+    }
+  }
+  
+  // Reset state when source changes
+  $: if (selectedSource) {
+    selectedState = ''; // Clear state filter when switching countries
+    universities = []; // Clear previous results
+    error = ''; // Clear previous errors
+    metadata = null; // Clear previous metadata
   }
   
   onMount(() => {
@@ -69,6 +143,23 @@
       minimumFractionDigits: 0
     }).format(amount);
   }
+  
+  // Generate internal university profile URL
+  function getUniversityProfileUrl(university: any): string {
+    if (university.website_url) {
+      // Extract hostname from website URL
+      try {
+        const url = new URL(university.website_url);
+        return `/universities/${url.hostname}`;
+      } catch {
+        // Fallback to name-based slug
+        return `/universities/${university.name.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '-')}`;
+      }
+    }
+    
+    // Fallback to name-based slug
+    return `/universities/${university.name.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '-')}`;
+  }
 </script>
 
 <svelte:head>
@@ -89,68 +180,254 @@
       </p>
       
       <!-- Phase II Status Banner -->
-      <div class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg shadow-lg">
+      <div class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg shadow-lg mb-6">
         <span class="text-lg font-semibold">
           📊 Phase II: FREE API Integration Ready • 7,000+ US Universities Available
         </span>
       </div>
+      
+          <!-- Enhanced Database Controls -->
+    <div class="mb-6">
+      <button 
+        on:click={() => enhancedMode = !enhancedMode}
+        class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200"
+      >
+        <span class="text-lg mr-2">🚀</span>
+        <span class="font-semibold">
+          {#if enhancedMode}
+            Standard Mode (100 universities)
+          {:else}
+            Enhanced Mode (up to 1000 universities)
+          {/if}
+        </span>
+        <svg class="w-4 h-4 ml-2 transition-transform duration-200 {enhancedMode ? 'rotate-180' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+        </svg>
+      </button>
+    </div>
+    
+    {#if enhancedMode}
+      <div class="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200 rounded-lg p-4 mb-6">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="text-2xl">⚡</span>
+          <h3 class="text-lg font-semibold text-blue-900">Enhanced Database Mode</h3>
+        </div>
+        <p class="text-blue-800 text-sm">
+          Access up to 1,000 universities with smart pagination. Results load in batches for optimal performance.
+        </p>
+      </div>
+    {/if}
     </div>
     
     <!-- Controls -->
     <div class="bg-white rounded-lg shadow-md p-6 mb-8">
       <h2 class="text-xl font-semibold mb-4">🔧 Test University Fetching</h2>
       
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Data Source</label>
-          <select bind:value={selectedSource} class="w-full border border-gray-300 rounded-md px-3 py-2">
-            <option value="us">US Universities (College Scorecard)</option>
-            <option value="international">International (Coming Soon)</option>
-          </select>
-        </div>
-        
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">University Type</label>
-          <select bind:value={selectedType} class="w-full border border-gray-300 rounded-md px-3 py-2">
-            <option value="top">Top Universities (Most Selective)</option>
-            <option value="all">All Universities</option>
-            <option value="state">By State</option>
-          </select>
-        </div>
-        
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">State Filter (Optional)</label>
-          <select bind:value={selectedState} class="w-full border border-gray-300 rounded-md px-3 py-2">
-            <option value="">All States</option>
-            {#each US_STATES as state}
-              <option value={state}>{state}</option>
-            {/each}
-          </select>
-        </div>
-        
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Limit</label>
-          <input type="number" bind:value={limit} min="10" max="100" 
-                 class="w-full border border-gray-300 rounded-md px-3 py-2">
+      <!-- Enhanced Mode Toggle - Top Level -->
+      <div class="mb-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="font-semibold text-blue-900 flex items-center gap-2">
+              <span>🚀</span> Enhanced Mode
+            </h3>
+            <p class="text-sm text-blue-700 mt-1">
+              Access up to 1000 universities with smart pagination
+            </p>
+          </div>
+          <input type="checkbox" bind:checked={enhancedMode} class="toggle toggle-primary toggle-lg" />
         </div>
       </div>
       
-      <button 
-        on:click={fetchUniversities}
-        disabled={loading}
-        class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50"
-      >
-        {loading ? '🔄 Fetching...' : '🔍 Fetch Universities'}
-      </button>
+      <!-- Form Controls Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="form-control w-full">
+          <label class="label">
+            <span class="label-text font-medium">Data Source</span>
+          </label>
+          <select bind:value={selectedSource} class="select select-bordered w-full">
+            <option value="us">🇺🇸 US Universities (7,000+ available)</option>
+            <option value="uk">🇬🇧 UK Universities (70 available)</option>
+            <option value="australia">🇦🇺 Australia Universities (40 available)</option>
+            <option value="canada">🇨🇦 Canada Universities (50 available)</option>
+            <option value="germany">🇩🇪 Germany Universities (20+ available)</option>
+            <option value="netherlands">🇳🇱 Netherlands Universities (20+ available)</option>
+          </select>
+        </div>
+
+        <div class="form-control w-full">
+          <label class="label">
+            <span class="label-text font-medium">University Type</span>
+          </label>
+          <select bind:value={selectedType} class="select select-bordered w-full">
+            <option value="all">All Universities</option>
+            <option value="top">Top Universities (Most Selective)</option>
+            <option value="state">State Universities</option>
+            <option value="private">Private Universities</option>
+            <option value="research">Research Universities</option>
+          </select>
+        </div>
+
+        {#if selectedSource === 'us'}
+          <div class="form-control w-full">
+            <label class="label">
+              <span class="label-text font-medium">US State Filter (Optional)</span>
+            </label>
+            <select bind:value={selectedState} class="select select-bordered w-full">
+              <option value="">All States</option>
+              {#each US_STATES as state}
+                <option value={state}>{state}</option>
+              {/each}
+            </select>
+          </div>
+        {:else if selectedSource === 'australia'}
+          <div class="form-control w-full">
+            <label class="label">
+              <span class="label-text font-medium">Australian State Filter (Optional)</span>
+            </label>
+            <select bind:value={selectedState} class="select select-bordered w-full">
+              <option value="">All States</option>
+              <option value="New South Wales">New South Wales</option>
+              <option value="Victoria">Victoria</option>
+              <option value="Queensland">Queensland</option>
+              <option value="Western Australia">Western Australia</option>
+              <option value="South Australia">South Australia</option>
+              <option value="Tasmania">Tasmania</option>
+              <option value="Australian Capital Territory">Australian Capital Territory</option>
+              <option value="Northern Territory">Northern Territory</option>
+            </select>
+          </div>
+        {:else if selectedSource === 'canada'}
+          <div class="form-control w-full">
+            <label class="label">
+              <span class="label-text font-medium">Canadian Province Filter (Optional)</span>
+            </label>
+            <select bind:value={selectedState} class="select select-bordered w-full">
+              <option value="">All Provinces</option>
+              <option value="Ontario">Ontario</option>
+              <option value="Quebec">Quebec</option>
+              <option value="British Columbia">British Columbia</option>
+              <option value="Alberta">Alberta</option>
+              <option value="Manitoba">Manitoba</option>
+              <option value="Saskatchewan">Saskatchewan</option>
+              <option value="Nova Scotia">Nova Scotia</option>
+              <option value="New Brunswick">New Brunswick</option>
+              <option value="Newfoundland and Labrador">Newfoundland and Labrador</option>
+              <option value="Prince Edward Island">Prince Edward Island</option>
+            </select>
+          </div>
+        {:else if selectedSource === 'germany'}
+          <div class="form-control w-full">
+            <label class="label">
+              <span class="label-text font-medium">German State Filter (Optional)</span>
+            </label>
+            <select bind:value={selectedState} class="select select-bordered w-full">
+              <option value="">All States</option>
+              <option value="Bavaria">Bavaria (Bayern)</option>
+              <option value="Baden-Württemberg">Baden-Württemberg</option>
+              <option value="North Rhine-Westphalia">North Rhine-Westphalia</option>
+              <option value="Berlin">Berlin</option>
+              <option value="Saxony">Saxony (Sachsen)</option>
+              <option value="Lower Saxony">Lower Saxony</option>
+              <option value="Hesse">Hesse (Hessen)</option>
+              <option value="Hamburg">Hamburg</option>
+              <option value="Rhineland-Palatinate">Rhineland-Palatinate</option>
+              <option value="Schleswig-Holstein">Schleswig-Holstein</option>
+              <option value="Brandenburg">Brandenburg</option>
+              <option value="Saxony-Anhalt">Saxony-Anhalt</option>
+              <option value="Thuringia">Thuringia</option>
+              <option value="Mecklenburg-Vorpommern">Mecklenburg-Vorpommern</option>
+              <option value="Bremen">Bremen</option>
+              <option value="Saarland">Saarland</option>
+            </select>
+          </div>
+        {:else if selectedSource === 'netherlands'}
+          <div class="form-control w-full">
+            <label class="label">
+              <span class="label-text font-medium">Dutch Province Filter (Optional)</span>
+            </label>
+            <select bind:value={selectedState} class="select select-bordered w-full">
+              <option value="">All Provinces</option>
+              <option value="North Holland">North Holland (Amsterdam)</option>
+              <option value="South Holland">South Holland (Rotterdam, The Hague)</option>
+              <option value="Utrecht">Utrecht</option>
+              <option value="North Brabant">North Brabant (Eindhoven)</option>
+              <option value="Gelderland">Gelderland (Wageningen)</option>
+              <option value="Overijssel">Overijssel (Enschede)</option>
+              <option value="Limburg">Limburg (Maastricht)</option>
+              <option value="Groningen">Groningen</option>
+              <option value="Friesland">Friesland</option>
+              <option value="Drenthe">Drenthe</option>
+              <option value="Flevoland">Flevoland</option>
+              <option value="Zeeland">Zeeland</option>
+            </select>
+          </div>
+        {:else}
+          <div class="form-control w-full">
+            <label class="label">
+              <span class="label-text font-medium">Region Filter</span>
+            </label>
+            <select class="select select-bordered w-full" disabled>
+              <option>Not applicable for {selectedSource.toUpperCase()}</option>
+            </select>
+          </div>
+        {/if}
+
+        <div class="form-control w-full">
+          <label class="label">
+            <span class="label-text font-medium">
+              Limit 
+              {#if enhancedMode}
+                <span class="badge badge-primary badge-sm ml-2">Enhanced: up to 1000</span>
+              {:else}
+                <span class="badge badge-outline badge-sm ml-2">Standard: up to 100</span>
+              {/if}
+            </span>
+          </label>
+          <input 
+            type="number" 
+            bind:value={limit} 
+            min="10" 
+            max={enhancedMode ? 1000 : 100}
+            class="input input-bordered w-full" 
+            placeholder="Number of universities"
+          />
+          <div class="label">
+            <span class="label-text-alt text-gray-500">
+              {#if enhancedMode}
+                Enhanced mode: Results load with pagination
+              {:else}
+                Standard mode: Quick loading, limited to 100
+              {/if}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fetch Button -->
+      <div class="flex justify-center">
+        <button 
+          on:click={enhancedMode ? fetchUniversitiesEnhanced : fetchUniversities}
+          class="btn btn-primary btn-lg px-8"
+          disabled={loading}
+        >
+          {#if loading}
+            <span class="mr-2">⏳</span>
+            Fetching Universities...
+          {:else}
+            <span class="mr-2">🔍</span>
+            Fetch Universities
+          {/if}
+        </button>
+      </div>
     </div>
     
-    <!-- Metadata Display -->
+    <!-- Enhanced Metadata Display -->
     {#if metadata}
       <div class="bg-green-50 border border-green-200 rounded-lg p-6 mb-8">
-        <h3 class="text-lg font-semibold text-green-800 mb-2">📊 Fetch Results</h3>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+        <h3 class="text-lg font-semibold text-green-800 mb-4">📊 Database Expansion Results</h3>
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm mb-4">
           <div>
-            <span class="font-medium">Count:</span> {universities.length}
+            <span class="font-medium">Universities:</span> {universities.length.toLocaleString()}
           </div>
           <div>
             <span class="font-medium">Source:</span> {metadata.api_source}
@@ -159,9 +436,25 @@
             <span class="font-medium">Available:</span> {metadata.total_available}
           </div>
           <div>
-            <span class="font-medium">Fetched:</span> {new Date(metadata.fetched_at).toLocaleTimeString()}
+            <span class="font-medium">Mode:</span> {enhancedMode ? 'Enhanced' : 'Standard'}
+          </div>
+          <div>
+            <span class="font-medium">Updated:</span> {new Date(metadata.fetched_at).toLocaleTimeString()}
           </div>
         </div>
+        
+        {#if enhancedMode && universities.length > 100}
+          <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <div class="flex items-center gap-2">
+              <span class="text-blue-600">🚀</span>
+              <span class="font-semibold text-blue-900">Database Expansion Success!</span>
+            </div>
+            <p class="text-blue-800 text-sm mt-1">
+              Expanded from standard 100 to {universities.length.toLocaleString()} universities 
+              ({Math.round((universities.length / 100 - 1) * 100)}% increase)
+            </p>
+          </div>
+        {/if}
       </div>
     {/if}
     
@@ -176,20 +469,70 @@
     <!-- Loading State -->
     {#if loading}
       <div class="flex justify-center items-center py-12">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        <span class="ml-3 text-lg text-gray-600">Fetching universities from API...</span>
+        <div class="loading-dots mr-4">
+          <div class="w-2 h-2 bg-blue-600 rounded-full mr-2 dot"></div>
+          <div class="w-2 h-2 bg-blue-600 rounded-full mr-2 dot"></div>
+          <div class="w-2 h-2 bg-blue-600 rounded-full dot"></div>
+        </div>
+        <span class="text-lg text-gray-600">Fetching universities from API...</span>
       </div>
     {/if}
     
-    <!-- Universities Grid -->
+    <!-- Universities Grid with Pagination -->
     {#if universities.length > 0}
       <div class="mb-8">
-        <h2 class="text-2xl font-semibold mb-6">
-          🏫 Universities Found: {universities.length}
-        </h2>
+        <!-- Header with pagination info -->
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-2xl font-semibold">
+            🏫 Universities Found: {universities.length.toLocaleString()}
+          </h2>
+          
+          <!-- Pagination controls -->
+          {#if totalPages > 1}
+            <div class="flex items-center gap-4">
+              <span class="text-sm text-gray-600">
+                Page {currentPage} of {totalPages} 
+                (Showing {((currentPage - 1) * pageSize) + 1}-{Math.min(currentPage * pageSize, universities.length)} of {universities.length})
+              </span>
+              
+              <div class="btn-group">
+                <button 
+                  class="btn btn-sm"
+                  class:btn-disabled={currentPage === 1}
+                  on:click={() => currentPage = Math.max(1, currentPage - 1)}
+                >
+                  ←
+                </button>
+                
+                {#each Array.from({length: Math.min(5, totalPages)}, (_, i) => {
+                  const start = Math.max(1, currentPage - 2);
+                  const end = Math.min(totalPages, start + 4);
+                  return start + i;
+                }).filter(page => page <= totalPages) as page}
+                  <button 
+                    class="btn btn-sm"
+                    class:btn-active={page === currentPage}
+                    on:click={() => currentPage = page}
+                  >
+                    {page}
+                  </button>
+                {/each}
+                
+                <button 
+                  class="btn btn-sm"
+                  class:btn-disabled={currentPage === totalPages}
+                  on:click={() => currentPage = Math.min(totalPages, currentPage + 1)}
+                >
+                  →
+                </button>
+              </div>
+            </div>
+          {/if}
+        </div>
         
+        <!-- Universities Grid - Display only current page -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {#each universities as university}
+          {#each displayedUniversities as university}
             <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
               <!-- Header -->
               <div class="mb-4">
@@ -249,69 +592,56 @@
                 {/if}
               </div>
               
-              <!-- Website Link -->
-              {#if university.website_url}
-                <div class="mt-4 pt-3 border-t border-gray-200">
-                  <a href={university.website_url} target="_blank" rel="noopener noreferrer" 
-                     class="text-blue-600 hover:text-blue-800 text-sm font-medium">
-                    🔗 Visit Website →
-                  </a>
-                </div>
-              {/if}
+              <!-- University Profile Link -->
+              <div class="mt-4 pt-3 border-t border-gray-200">
+                <a href={getUniversityProfileUrl(university)} 
+                   class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                  🏫 View University Profile →
+                </a>
+              </div>
             </div>
           {/each}
         </div>
+        
+        <!-- Bottom pagination -->
+        {#if totalPages > 1}
+          <div class="flex justify-center mt-8">
+            <div class="btn-group">
+              <button 
+                class="btn btn-sm"
+                class:btn-disabled={currentPage === 1}
+                on:click={() => currentPage = 1}
+              >
+                First
+              </button>
+              <button 
+                class="btn btn-sm"
+                class:btn-disabled={currentPage === 1}
+                on:click={() => currentPage = Math.max(1, currentPage - 1)}
+              >
+                Previous
+              </button>
+              <span class="btn btn-sm btn-active">
+                {currentPage} / {totalPages}
+              </span>
+              <button 
+                class="btn btn-sm"
+                class:btn-disabled={currentPage === totalPages}
+                on:click={() => currentPage = Math.min(totalPages, currentPage + 1)}
+              >
+                Next
+              </button>
+              <button 
+                class="btn btn-sm"
+                class:btn-disabled={currentPage === totalPages}
+                on:click={() => currentPage = totalPages}
+              >
+                Last
+              </button>
+            </div>
+          </div>
+        {/if}
       </div>
     {/if}
-    
-    <!-- Phase II Information -->
-    <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-8 mb-8">
-      <h2 class="text-2xl font-semibold mb-4">🎯 Phase II Progress</h2>
-      
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="text-center">
-          <div class="text-3xl font-bold text-blue-600">9 → 1000+</div>
-          <div class="text-sm text-gray-600">University Database Expansion</div>
-        </div>
-        <div class="text-center">
-          <div class="text-3xl font-bold text-green-600">100% FREE</div>
-          <div class="text-sm text-gray-600">College Scorecard API</div>
-        </div>
-        <div class="text-center">
-          <div class="text-3xl font-bold text-purple-600">Real-Time</div>
-          <div class="text-sm text-gray-600">Live University Data</div>
-        </div>
-      </div>
-      
-      <div class="mt-6 text-sm text-gray-700">
-        <h3 class="font-semibold mb-2">🚀 Phase II Features Implemented:</h3>
-        <ul class="list-disc list-inside space-y-1">
-          <li>✅ US College Scorecard API Integration (7,000+ institutions)</li>
-          <li>✅ Hybrid system combining elite + API universities</li>
-          <li>✅ Real-time data fetching with caching</li>
-          <li>✅ State-based filtering and search</li>
-          <li>✅ Automatic duplicate detection</li>
-          <li>⏳ International university APIs (coming next)</li>
-        </ul>
-      </div>
-    </div>
-    
-    <!-- Back to Main System -->
-    <div class="text-center">
-      <a href="/universities" 
-         class="inline-flex items-center px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
-        ← Back to Main University Matching System
-      </a>
-    </div>
-    
   </div>
 </div>
-
-<style>
-  .line-clamp-2 {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-</style> 

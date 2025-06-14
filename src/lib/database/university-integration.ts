@@ -2,6 +2,8 @@
 // Free API Sources for Scaling to 1000+ Universities
 
 import type { UniversityData } from '$lib/types';
+import { germanUniversityManager } from './germany-university-integration';
+import { dutchUniversityManager } from './netherlands-university-integration';
 
 // US College Scorecard API Integration (FREE - 7,000+ institutions)
 export interface CollegeScorecardUniversity {
@@ -497,7 +499,278 @@ export class UniversityDataManager {
     private cache: Map<string, EnhancedUniversity[]> = new Map();
     private lastFetch: number = 0;
     private rateLimit: number = 3600000; // 1 hour in milliseconds
+    private batchCache: Map<string, EnhancedUniversity[]> = new Map();
+    private batchFetchInProgress: boolean = false;
     
+    // PHASE 1: BATCH FETCHING SYSTEM - Fetch ALL US Universities
+    async fetchAllUSUniversities(apiKey: string, options: {
+        forceRefresh?: boolean;
+        maxUniversities?: number;
+        states?: string[];
+        progressCallback?: (progress: { current: number; total: number; percentage: number }) => void;
+    } = {}): Promise<EnhancedUniversity[]> {
+        const { forceRefresh = false, maxUniversities = 10000, states = [], progressCallback } = options;
+        const cacheKey = `all-us-universities-${states.join(',') || 'all'}`;
+        
+        // Check cache first
+        if (!forceRefresh && this.batchCache.has(cacheKey)) {
+            console.log('🎯 Returning cached ALL US universities data');
+            return this.batchCache.get(cacheKey)!;
+        }
+        
+        // Prevent multiple simultaneous batch fetches
+        if (this.batchFetchInProgress) {
+            console.log('⏳ Batch fetch already in progress, waiting...');
+            return this.batchCache.get(cacheKey) || [];
+        }
+        
+        this.batchFetchInProgress = true;
+        
+        try {
+            console.log('🚀 PHASE 1: Starting comprehensive US university batch fetch...');
+            console.log(`📊 Target: ${maxUniversities} universities from College Scorecard API`);
+            
+            const allUniversities: EnhancedUniversity[] = [];
+            const batchSize = 100; // Maximum per API request
+            let page = 0;
+            let totalFetched = 0;
+            let consecutiveEmptyPages = 0;
+            const maxConsecutiveEmptyPages = 3;
+            
+            // Calculate rate limiting: 1000 requests/hour = 3.6 seconds between requests
+            const rateLimitDelay = 4000; // 4 seconds to be safe
+            
+            while (totalFetched < maxUniversities && consecutiveEmptyPages < maxConsecutiveEmptyPages) {
+                try {
+                    console.log(`📡 Fetching batch ${page + 1} (${totalFetched} universities collected so far)`);
+                    
+                    // Fetch batch with pagination
+                    const batchUniversities = await this.fetchUSUniversitiesBatch(
+                        page, 
+                        batchSize, 
+                        apiKey, 
+                        states.length > 0 ? states : undefined
+                    );
+                    
+                    if (batchUniversities.length === 0) {
+                        consecutiveEmptyPages++;
+                        console.log(`⚠️ Empty batch ${page + 1} (${consecutiveEmptyPages}/${maxConsecutiveEmptyPages} consecutive empty pages)`);
+                    } else {
+                        consecutiveEmptyPages = 0;
+                        allUniversities.push(...batchUniversities);
+                        totalFetched += batchUniversities.length;
+                        
+                        console.log(`✅ Batch ${page + 1}: Added ${batchUniversities.length} universities (Total: ${totalFetched})`);
+                        
+                        // Progress callback
+                        if (progressCallback) {
+                            const estimatedTotal = Math.min(maxUniversities, totalFetched * 10); // Rough estimate
+                            progressCallback({
+                                current: totalFetched,
+                                total: estimatedTotal,
+                                percentage: Math.min(100, (totalFetched / estimatedTotal) * 100)
+                            });
+                        }
+                    }
+                    
+                    page++;
+                    
+                    // Rate limiting: Respect 1000 requests/hour limit
+                    if (page < 50) { // Only add delay if we're continuing
+                        console.log(`⏱️ Rate limiting: Waiting ${rateLimitDelay/1000}s before next batch...`);
+                        await new Promise(resolve => setTimeout(resolve, rateLimitDelay));
+                    }
+                    
+                } catch (batchError) {
+                    console.error(`❌ Error in batch ${page + 1}:`, batchError);
+                    // Continue with next batch instead of failing completely
+                    page++;
+                    consecutiveEmptyPages++;
+                    
+                    // Longer delay after error
+                    await new Promise(resolve => setTimeout(resolve, rateLimitDelay * 2));
+                }
+            }
+            
+            // Remove duplicates based on university ID
+            const uniqueUniversities = Array.from(
+                new Map(allUniversities.map(uni => [uni.id, uni])).values()
+            );
+            
+            console.log('🎉 PHASE 1 COMPLETE: Batch fetch summary:');
+            console.log(`📊 Total universities fetched: ${uniqueUniversities.length}`);
+            console.log(`🏛️ Unique institutions: ${uniqueUniversities.length}`);
+            console.log(`📈 Database expansion: ${uniqueUniversities.length > 100 ? ((uniqueUniversities.length / 100) * 100).toFixed(0) + '%' : 'N/A'} increase`);
+            
+            // Cache the results
+            this.batchCache.set(cacheKey, uniqueUniversities);
+            this.lastFetch = Date.now();
+            
+            // Progress callback - complete
+            if (progressCallback) {
+                progressCallback({
+                    current: uniqueUniversities.length,
+                    total: uniqueUniversities.length,
+                    percentage: 100
+                });
+            }
+            
+            return uniqueUniversities;
+            
+        } catch (error) {
+            console.error('💥 PHASE 1 ERROR: Failed to fetch all US universities:', error);
+            // Return any partial results if available
+            return this.batchCache.get(cacheKey) || [];
+        } finally {
+            this.batchFetchInProgress = false;
+        }
+    }
+    
+    // Helper method for batch fetching with pagination
+    private async fetchUSUniversitiesBatch(
+        page: number, 
+        batchSize: number, 
+        apiKey: string, 
+        states?: string[]
+    ): Promise<EnhancedUniversity[]> {
+        let url = `${COLLEGE_SCORECARD_CONFIG.base_url}?fields=${COLLEGE_SCORECARD_CONFIG.fields}&per_page=${batchSize}&page=${page}`;
+        
+        // Add API key
+        url += `&api_key=${apiKey}`;
+        
+        // Add state filters if specified
+        if (states && states.length > 0) {
+            url += `&school.state=${states.join(',')}`;
+        }
+        
+        // Enhanced filters for quality institutions
+        url += `&school.main_campus=1`; // Main campus only
+        url += `&school.ownership=1,2`; // Public or private nonprofit
+        url += `&school.operating=1`; // Currently operating
+        url += `&admissions.admission_rate.overall__range=0.01..0.99`; // Has admission data
+        url += `&cost.tuition.out_of_state__range=1000..150000`; // Reasonable tuition range
+        url += `&student.size__range=100..100000`; // Reasonable student body size
+        
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'User-Agent': 'SOP-GPT-UniversityMatcher/2.0',
+                'Accept': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`College Scorecard API error: ${response.status} - ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        
+        if (!data.results || data.results.length === 0) {
+            return [];
+        }
+        
+        return transformCollegeScorecardData(data.results);
+    }
+    
+    // PHASE 1: Smart US Universities Fetcher - Combines batch and targeted fetching
+    async fetchUSUniversitiesEnhanced(options: {
+        state?: string;
+        limit?: number;
+        type?: 'all' | 'top' | 'comprehensive';
+        apiKey?: string;
+        progressCallback?: (progress: { current: number; total: number; percentage: number }) => void;
+    } = {}): Promise<EnhancedUniversity[]> {
+        const { 
+            state, 
+            limit = 1000, 
+            type = 'comprehensive', 
+            apiKey, 
+            progressCallback 
+        } = options;
+        
+        if (!apiKey) {
+            console.warn('⚠️ No API key provided, falling back to mock data');
+            return this.getMockUniversities(state, Math.min(limit, 10));
+        }
+        
+        switch (type) {
+            case 'comprehensive':
+                // Fetch ALL universities for comprehensive database
+                return await this.fetchAllUSUniversities(apiKey, {
+                    maxUniversities: limit,
+                    states: state ? [state] : undefined,
+                    progressCallback
+                });
+                
+            case 'top':
+                // Fetch top-tier universities
+                return await this.fetchTopUSUniversities(Math.min(limit, 500), apiKey);
+                
+            case 'all':
+            default:
+                // Enhanced method - allow higher limits for better results
+                return await this.fetchUSUniversities(state, Math.min(limit, 500), apiKey);
+        }
+    }
+    
+    // PHASE 1: University Statistics
+    async getUSUniversityStats(apiKey: string): Promise<{
+        total_available: number;
+        total_fetched: number;
+        states_covered: string[];
+        institution_types: { [key: string]: number };
+        cost_ranges: { [key: string]: number };
+        last_updated: string;
+    }> {
+        try {
+            const universities = await this.fetchAllUSUniversities(apiKey, { maxUniversities: 5000 });
+            
+            const stats = {
+                total_available: 7000, // Approximate total in College Scorecard
+                total_fetched: universities.length,
+                states_covered: [...new Set(universities.map(uni => uni.state).filter(Boolean) as string[])],
+                institution_types: universities.reduce((acc, uni) => {
+                    const type = uni.ownership_type || 'unknown';
+                    acc[type] = (acc[type] || 0) + 1;
+                    return acc;
+                }, {} as { [key: string]: number }),
+                cost_ranges: universities.reduce((acc, uni) => {
+                    const cost = uni.cost;
+                    let range = 'unknown';
+                    if (cost < 20000) range = 'under_20k';
+                    else if (cost < 40000) range = '20k_40k';
+                    else if (cost < 60000) range = '40k_60k';
+                    else range = 'over_60k';
+                    
+                    acc[range] = (acc[range] || 0) + 1;
+                    return acc;
+                }, {} as { [key: string]: number }),
+                last_updated: new Date().toISOString()
+            };
+            
+            return stats;
+        } catch (error) {
+            console.error('Error getting US university stats:', error);
+            return {
+                total_available: 0,
+                total_fetched: 0,
+                states_covered: [],
+                institution_types: {},
+                cost_ranges: {},
+                last_updated: new Date().toISOString()
+            };
+        }
+    }
+    
+    // Clear all caches
+    clearAllCaches(): void {
+        this.cache.clear();
+        this.batchCache.clear();
+        this.lastFetch = 0;
+        this.batchFetchInProgress = false;
+        console.log('🧹 All university caches cleared');
+    }
+
     async fetchUSUniversities(state?: string, limit: number = 100, apiKey?: string): Promise<EnhancedUniversity[]> {
         const cacheKey = `us-universities-${state || 'all'}-${limit}`;
         
@@ -733,11 +1006,47 @@ export class UniversityDataManager {
     private getMockTopUniversities(limit: number): EnhancedUniversity[] {
         return this.getMockUniversities(undefined, limit).filter(uni => uni.acceptance_rate! < 30);
     }
-    
-    // Clear cache manually if needed
-    clearCache(): void {
-        this.cache.clear();
-        this.lastFetch = 0;
+
+    // GERMAN UNIVERSITY METHODS
+    async fetchGermanUniversities(state?: string, limit: number = 50): Promise<EnhancedUniversity[]> {
+        console.log(`🇩🇪 Fetching German universities from database for ${state || 'all states'}`);
+        return await germanUniversityManager.fetchGermanUniversities(state, limit);
+    }
+
+    getGermanStats(): {
+        total_universities: number;
+        tu9_universities: number;
+        u15_universities: number;
+        average_tuition: number;
+        top_states: string[];
+    } {
+        return germanUniversityManager.getGermanStats();
+    }
+
+    clearGermanCache(): void {
+        germanUniversityManager.clearCache();
+    }
+
+    // DUTCH UNIVERSITY METHODS
+    async fetchDutchUniversities(province?: string, limit: number = 30): Promise<EnhancedUniversity[]> {
+        console.log(`🇳🇱 Fetching Dutch universities from database for ${province || 'all provinces'}`);
+        return await dutchUniversityManager.fetchDutchUniversities(province, limit);
+    }
+
+    getDutchStats(): {
+        total_universities: number;
+        research_universities: number;
+        applied_sciences_universities: number;
+        guild_universities: number;
+        average_tuition_eu: number;
+        average_tuition_non_eu: number;
+        top_provinces: string[];
+    } {
+        return dutchUniversityManager.getDutchStats();
+    }
+
+    clearDutchCache(): void {
+        dutchUniversityManager.clearCache();
     }
 }
 

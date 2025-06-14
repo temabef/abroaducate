@@ -227,43 +227,47 @@
           </svg>
         </button>
         {#if aiToolsDropdownOpen}
-          <div class="absolute top-full left-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2">
-            <a href="/sop-review" class="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition duration-200">
-              <span class="text-lg mr-3">🔍</span>
-              <div>
-                <div class="font-medium">Document Review</div>
-                <div class="text-sm text-gray-500">AI-powered analysis</div>
+          <div class="absolute top-full left-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2">
+            <!-- Featured: AI Hub -->
+            <a href="/ai-features-demo" class="flex items-center px-4 py-4 text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:text-blue-600 transition duration-200 border-b border-gray-100 mb-2">
+              <span class="text-xl mr-3">🤖</span>
+              <div class="flex-1">
+                <div class="font-semibold text-base">AI Features Hub</div>
+                <div class="text-sm text-gray-500">Try all tools in one place</div>
               </div>
+              <span class="ml-2 px-2 py-1 text-xs font-medium bg-gradient-to-r from-blue-100 to-purple-100 text-blue-800 rounded-full">NEW</span>
             </a>
+            
+            <!-- Quick Access Tools -->
+            <div class="px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wide">Quick Access</div>
+            
             <a href="/text-enhancement" class="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition duration-200">
               <span class="text-lg mr-3">✨</span>
               <div>
                 <div class="font-medium">Text Enhancement</div>
-                <div class="text-sm text-gray-500">Improve your writing</div>
+                <div class="text-sm text-gray-500">Grammar, style & clarity</div>
               </div>
             </a>
-            <a href="/word-optimization" class="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition duration-200">
-              <span class="text-lg mr-3">📊</span>
+            
+            <a href="/sop-review" class="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition duration-200">
+              <span class="text-lg mr-3">🔍</span>
               <div>
-                <div class="font-medium">Word Optimization</div>
-                <div class="text-sm text-gray-500">Perfect word count</div>
+                <div class="font-medium">Document Review</div>
+                <div class="text-sm text-gray-500">Comprehensive analysis</div>
               </div>
             </a>
-            <a href="/cold-email-generator" class="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition duration-200">
-              <span class="text-lg mr-3">📧</span>
-              <div>
-                <div class="font-medium">Cold Email Generator</div>
-                <div class="text-sm text-gray-500">Reach out to professors</div>
-              </div>
-            </a>
-            <a href="/visa-interview-practice" class="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition duration-200">
-              <span class="text-lg mr-3">🎯</span>
-              <div>
-                <div class="font-medium">Visa Interview Practice</div>
-                <div class="text-sm text-gray-500">F-1 visa interview simulator</div>
-              </div>
-              <span class="ml-auto px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">NEW</span>
-            </a>
+            
+            <!-- More Tools Link -->
+            <div class="border-t border-gray-100 mt-2 pt-2">
+              <a href="/ai-features-demo" class="flex items-center px-4 py-3 text-blue-600 hover:bg-blue-50 transition duration-200">
+                <span class="text-lg mr-3">🔧</span>
+                <div>
+                  <div class="font-medium">More AI Tools</div>
+                  <div class="text-sm text-blue-500">Word optimization, cold emails & more</div>
+                </div>
+                <span class="ml-auto">→</span>
+              </a>
+            </div>
 
           </div>
         {/if}
@@ -381,11 +385,12 @@
             </svg>
           </summary>
           <div class="pl-4 space-y-1">
+            <a href="/ai-features-demo" class="block py-2 text-blue-300 hover:text-white transition duration-300">🤖 AI Features Hub</a>
             <a href="/sop-review" class="block py-2 text-gray-300 hover:text-white transition duration-300">🔍 Document Review</a>
             <a href="/text-enhancement" class="block py-2 text-gray-300 hover:text-white transition duration-300">✨ Text Enhancement</a>
-            <a href="/word-optimization" class="block py-2 text-gray-300 hover:text-white transition duration-300">📊 Word Optimization</a>
+            <a href="/word-optimization" class="block py-2 text-gray-300 hover:text-white transition duration-300">📝 Word Optimization</a>
             <a href="/cold-email-generator" class="block py-2 text-gray-300 hover:text-white transition duration-300">📧 Cold Email Generator</a>
-
+            <a href="/visa-interview-practice" class="block py-2 text-gray-300 hover:text-white transition duration-300">🎯 Visa Interview Practice</a>
           </div>
         </details>
 

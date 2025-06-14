@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit';
 import { OPENAI_API_KEY } from '$env/static/private';
 import type { RequestHandler } from './$types';
+import { checkUsageLimit, incrementUsage } from '$lib/usage-limits';
 
 // University-specific word count requirements database
 const UNIVERSITY_REQUIREMENTS = new Map([
@@ -64,8 +65,8 @@ interface WordCountOptimization {
     optimized_content?: string;
 }
 
-export const POST: RequestHandler = async ({ request, locals: { supabase, safeGetSession } }) => {
-    const { session } = await safeGetSession();
+export const POST: RequestHandler = async ({ request, locals: { supabase, getSession } }) => {
+    const session = await getSession();
 
     if (!session) {
         return json({ error: 'Unauthorized' }, { status: 401 });

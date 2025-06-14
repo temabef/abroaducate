@@ -90,8 +90,8 @@
     
     function getPlanPrice(planType: string): string {
         switch (planType) {
-            case 'professional': return '$9.99';
-            case 'elite': return '$24.99';
+            case 'professional': return '$12';
+            case 'elite': return '$29';
             default: return '$0';
         }
     }

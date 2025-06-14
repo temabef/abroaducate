@@ -1,11 +1,11 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
-export const GET: RequestHandler = async ({ locals: { supabase, safeGetSession } }) => {
-    const { session } = await safeGetSession();
+export const GET: RequestHandler = async ({ locals: { supabase, getSession } }) => {
+    const session = await getSession();
 
     if (!session) {
-        return json({ error: 'Unauthorized' }, { status: 401 });
+        return json({ error: 'Not authenticated' }, { status: 401 });
     }
 
     try {

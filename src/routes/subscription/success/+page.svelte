@@ -103,7 +103,7 @@
     
     function getPlanPrice(): string {
         const planType: PlanType = subscription?.plan_type || planFromUrl || 'professional';
-        return planType === 'professional' ? '$9.99' : '$19.99';
+        return planType === 'professional' ? '$12' : '$29';
     }
     
     function getPlanEmoji(): string {

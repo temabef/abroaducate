@@ -99,10 +99,11 @@ export function shouldShowUpgrade(limitType: string, featureType: string): {
 } {
     let currentStrategy: UpgradeStrategy = defaultStrategy;
     
-    // Get current strategy value
-    upgradeStrategy.subscribe(s => {
+    // Get current strategy value properly (without creating subscription leak)
+    const unsubscribe = upgradeStrategy.subscribe(s => {
         currentStrategy = s;
-    })();
+    });
+    unsubscribe(); // Clean up immediately
     
     const now = Date.now();
     const hoursSinceLastPrompt = (now - currentStrategy.lastUpgradePrompt) / (60 * 60 * 1000);

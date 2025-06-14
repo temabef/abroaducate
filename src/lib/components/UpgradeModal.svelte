@@ -120,13 +120,15 @@
                     <p class="text-blue-100 text-lg">{content.subtitle}</p>
                 </div>
                 
-                <!-- Progress Bar -->
-                <div class="mt-6 bg-white bg-opacity-20 rounded-full h-3">
-                    <div class="bg-white rounded-full h-3 transition-all duration-500" style="width: 100%"></div>
-                </div>
-                <p class="text-center text-sm text-blue-100 mt-2">
-                    {currentUsage}/{limit} {content.feature.toLowerCase()} used this month
-                </p>
+                {#if limit !== undefined && limit !== null && limit > 1}
+                    <!-- Progress Bar -->
+                    <div class="mt-6 bg-white bg-opacity-20 rounded-full h-3">
+                        <div class="bg-white rounded-full h-3 transition-all duration-500" style="width: 100%"></div>
+                    </div>
+                    <p class="text-center text-sm text-blue-100 mt-2">
+                        {currentUsage}/{limit} {content.feature.toLowerCase()} used this month
+                    </p>
+                {/if}
             </div>
             
             <!-- Content Section -->
@@ -151,7 +153,7 @@
                         
                         <div class="text-center mb-4">
                             <h4 class="text-xl font-bold text-gray-800">Academic Professional</h4>
-                            <div class="text-3xl font-bold text-blue-600 my-2">$7.99<span class="text-sm text-gray-500">/month</span></div>
+                            <div class="text-3xl font-bold text-blue-600 my-2">$12<span class="text-sm text-gray-500">/month</span></div>
                         </div>
                         
                         <ul class="space-y-3 mb-6">
@@ -197,7 +199,7 @@
                         
                         <div class="text-center mb-4">
                             <h4 class="text-xl font-bold text-gray-800">Academic Elite</h4>
-                            <div class="text-3xl font-bold text-purple-600 my-2">$19.99<span class="text-sm text-gray-500">/month</span></div>
+                            <div class="text-3xl font-bold text-purple-600 my-2">$29<span class="text-sm text-gray-500">/month</span></div>
                         </div>
                         
                         <ul class="space-y-3 mb-6">

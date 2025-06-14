@@ -4,9 +4,9 @@ import PlagiarismDetector from '$lib/ai/plagiarism-detector';
 import { OPENAI_API_KEY } from '$env/static/private';
 import { checkUsageLimit, incrementUsage } from '$lib/usage-limits';
 
-export const POST: RequestHandler = async ({ request, locals: { supabase, safeGetSession } }) => {
+export const POST: RequestHandler = async ({ request, locals: { supabase, getSession } }) => {
     try {
-        const { session } = await safeGetSession();
+        const session = await getSession();
 
         if (!session) {
             return json({ error: 'Unauthorized' }, { status: 401 });

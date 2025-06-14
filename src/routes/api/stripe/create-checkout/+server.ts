@@ -1,23 +1,23 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import Stripe from 'stripe';
+import { Stripe } from 'stripe';
 import { STRIPE_SECRET_KEY } from '$env/static/private';
 import { SUBSCRIPTION_PLANS } from '$lib/stripe';
+import { PUBLIC_STRIPE_PUBLISHABLE_KEY } from '$env/static/public';
 
 const stripe = new Stripe(STRIPE_SECRET_KEY, {
     apiVersion: '2024-06-20' as any
 });
 
-export const POST: RequestHandler = async ({ request, locals: { supabase, safeGetSession }, url }) => {
+export const POST: RequestHandler = async ({ request, locals: { supabase, getSession }, url }) => {
     try {
-        const { session } = await safeGetSession();
+        const { planType, quantity, customerId, metadata } = await request.json();
+        const session = await getSession();
 
-        if (!session) {
-            return json({ error: 'Unauthorized' }, { status: 401 });
+        if (!session?.user) {
+            return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
         }
 
-        const { planType } = await request.json();
-        
         // Validate plan type for production plans
         if (!planType || !(planType in SUBSCRIPTION_PLANS)) {
             return json({ error: 'Invalid plan type. Please choose "professional" or "elite".' }, { status: 400 });

@@ -102,12 +102,12 @@
                 <!-- Quick Pricing -->
                 <div class="grid grid-cols-2 gap-2 mb-4">
                     <div class="border border-blue-200 rounded-lg p-3 text-center">
-                        <div class="text-blue-600 font-bold">$7.99</div>
+                        <div class="text-blue-600 font-bold">$12</div>
                         <div class="text-xs text-gray-600">Professional</div>
                         <div class="text-xs text-gray-500">50 docs/month</div>
                     </div>
                     <div class="border border-purple-200 rounded-lg p-3 text-center">
-                        <div class="text-purple-600 font-bold">$19.99</div>
+                        <div class="text-purple-600 font-bold">$29</div>
                         <div class="text-xs text-gray-600">Elite</div>
                         <div class="text-xs text-gray-500">Unlimited</div>
                     </div>

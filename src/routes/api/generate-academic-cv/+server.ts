@@ -9,8 +9,8 @@ const openai = new OpenAI({
     apiKey: OPENAI_API_KEY
 });
 
-export const POST: RequestHandler = async ({ request, locals: { supabase, safeGetSession } }) => {
-    const { session } = await safeGetSession();
+export const POST: RequestHandler = async ({ request, locals: { supabase, getSession } }) => {
+    const session = await getSession();
 
     if (!session) {
         return json({ error: 'Unauthorized' }, { status: 401 });

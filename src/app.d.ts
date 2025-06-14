@@ -10,8 +10,10 @@ declare global {
 		// interface PageState {}
 		// interface Platform {}
 		interface Locals {
-			supabase: SupabaseClient
+			supabase: SupabaseClient<Database>
+			supabaseServiceRole: SupabaseClient<Database>
 			safeGetSession(): Promise<{ session: Session | null; user: User | null }>
+			getSession(): Promise<Session | null>
 		}
 		interface PageData {
 			session: Session | null

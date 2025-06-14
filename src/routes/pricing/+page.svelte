@@ -4,6 +4,37 @@
   let { data } = $props();
   let { session, supabase } = $derived(data);
 
+  let billingCycle = $state<'monthly' | 'annual'>('monthly');
+
+  let monthlyBtnEl: HTMLButtonElement;
+  let annualBtnEl: HTMLButtonElement;
+  let sliderStyle = $state('');
+
+  $effect(() => {
+    if (billingCycle === 'monthly' && monthlyBtnEl) {
+      const rect = monthlyBtnEl.getBoundingClientRect();
+      const parentRect = monthlyBtnEl.parentElement!.getBoundingClientRect();
+      const relativeLeft = monthlyBtnEl.offsetLeft;
+      sliderStyle = `width: ${monthlyBtnEl.offsetWidth}px; transform: translateX(${relativeLeft}px);`;
+    } else if (billingCycle === 'annual' && annualBtnEl) {
+      const rect = annualBtnEl.getBoundingClientRect();
+      const parentRect = annualBtnEl.parentElement!.getBoundingClientRect();
+      const relativeLeft = annualBtnEl.offsetLeft;
+      sliderStyle = `width: ${annualBtnEl.offsetWidth}px; transform: translateX(${relativeLeft}px);`;
+    }
+  });
+
+  const prices = {
+    professional: {
+      monthly: 12,
+      annual: 10
+    },
+    elite: {
+      monthly: 29,
+      annual: 24
+    }
+  };
+
   async function handleUpgrade(plan: string) {
     if (!session) {
       // Redirect to login or show login modal
@@ -14,8 +45,9 @@
       return;
     }
     
-    // Handle upgrade logic here
-    console.log(`Upgrading to ${plan} plan`);
+    // TODO: Pass the full price ID to your Stripe checkout
+    const planId = `${plan}-${billingCycle}`;
+    console.log(`Upgrading to ${planId}`);
   }
 </script>
 
@@ -36,8 +68,6 @@
         Start with our free tier and upgrade as your applications grow.
       </p>
     </div>
-
-
 
     <!-- Pay-as-you-grow Banner -->
     <div class="max-w-4xl mx-auto mb-12 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
@@ -64,6 +94,81 @@
       </div>
     </div>
 
+    <!-- Enhanced Billing Cycle Toggle -->
+    <div class="flex justify-center mb-12">
+      <div class="bg-white rounded-2xl shadow-lg border border-gray-200 p-2 inline-flex items-center relative overflow-hidden pricing-toggle">
+        <!-- Background gradient animation -->
+        <div class="absolute inset-0 bg-gradient-to-r from-blue-50 via-purple-50 to-blue-50 opacity-50 animated-gradient"></div>
+        
+        <!-- Animated sliding background -->
+        <div
+          class="absolute bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg rounded-xl h-[calc(100%-16px)] top-[8px] transition-all duration-500 ease-out transform animated-gradient"
+          style={sliderStyle}
+        ></div>
+        
+        <!-- Monthly Button -->
+        <button
+          bind:this={monthlyBtnEl}
+          onclick={() => (billingCycle = 'monthly')}
+          class="relative z-10 px-8 py-4 font-semibold text-lg transition-all duration-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-200 group toggle-button"
+          class:text-white={billingCycle === 'monthly'}
+          class:text-gray-700={billingCycle !== 'monthly'}
+        >
+          <div class="flex flex-col items-center">
+            <span class="mb-1">💳 Monthly</span>
+            <span class="text-xs opacity-75 font-normal">
+              Pay as you go
+            </span>
+          </div>
+        </button>
+
+        <!-- Divider -->
+        <div class="relative z-10 mx-2 h-12 w-px bg-gray-200"></div>
+        
+        <!-- Annual Button -->
+        <button
+          bind:this={annualBtnEl}
+          onclick={() => (billingCycle = 'annual')}
+          class="relative z-10 px-8 py-4 font-semibold text-lg transition-all duration-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-200 group toggle-button"
+          class:text-white={billingCycle === 'annual'}
+          class:text-gray-700={billingCycle !== 'annual'}
+        >
+          <div class="flex flex-col items-center">
+            <div class="flex items-center gap-2 mb-1">
+              <span>🎯 Annual</span>
+              <span class="bg-gradient-to-r from-green-400 to-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md transform rotate-3 pulse-glow">
+                Save 20%!
+              </span>
+            </div>
+            <span class="text-xs opacity-75 font-normal">
+              Best value
+            </span>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <!-- Pricing Comparison Hint -->
+    <div class="text-center mb-8">
+      <div class="inline-flex items-center gap-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-full px-6 py-3">
+        <span class="text-green-800 font-medium">
+          {#if billingCycle === 'annual'}
+            🎉 You're saving $48/year with annual billing!
+          {:else}
+            💡 Switch to annual and save $48/year
+          {/if}
+        </span>
+        {#if billingCycle === 'monthly'}
+          <button 
+            onclick={() => (billingCycle = 'annual')}
+            class="text-green-700 hover:text-green-800 font-semibold underline underline-offset-2 transition-colors"
+          >
+            See annual pricing →
+          </button>
+        {/if}
+      </div>
+    </div>
+
     <!-- Pricing Cards -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
       
@@ -80,13 +185,13 @@
             <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
             </svg>
-            <span class="text-gray-700"><strong>6 Documents/Month:</strong> 2 SOPs, 2 Cover Letters, 1 Personal Statement, 1 Academic CV</span>
+            <span class="text-gray-700"><strong>4 Documents/Month:</strong> 1 SOPs, 1 Cover Letters, 1 Personal Statement, 1 Academic CV</span>
           </li>
           <li class="flex items-start">
             <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
             </svg>
-            <span class="text-gray-700"><strong>AI Features:</strong> 3 Reviews, 5 Text Enhancements, 3 Word Optimizations</span>
+            <span class="text-gray-700"><strong>AI Features:</strong> 1 Review, 1 Text Enhancement, 1 Word Optimization, 1 Grammar Check, 1 Plagiarism Check, 1 Tone Analysis</span>
           </li>
           <li class="flex items-start">
             <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -163,8 +268,12 @@
         
         <div class="text-center mb-6">
           <h3 class="text-2xl font-bold text-gray-900 mb-2">Academic Professional</h3>
-          <div class="text-4xl font-bold text-blue-600 mb-2">$7.99</div>
-          <p class="text-gray-500">per month</p>
+          <div class="text-4xl font-bold text-blue-600 mb-2">
+            ${prices.professional[billingCycle]}
+          </div>
+          <p class="text-gray-500">
+            per month{#if billingCycle === 'annual'}, billed annually{/if}
+          </p>
         </div>
 
         <ul class="space-y-4 mb-8">
@@ -178,7 +287,7 @@
             <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
             </svg>
-            <span class="text-gray-700"><strong>Enhanced AI:</strong> 15 Reviews, 25 Text Enhancements, 15 Word Optimizations</span>
+            <span class="text-gray-700"><strong>Enhanced AI:</strong> 15 Reviews, 25 Text Enhancements, 15 Word Optimizations, 25 Grammar Checks, 10 Plagiarism Checks, 25 Tone Analyses</span>
           </li>
           <li class="flex items-start">
             <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -261,8 +370,12 @@
       <div class="bg-white rounded-lg shadow-lg border-2 border-gray-200 p-8 relative">
         <div class="text-center mb-6">
           <h3 class="text-2xl font-bold text-gray-900 mb-2">Academic Elite</h3>
-          <div class="text-4xl font-bold text-blue-600 mb-2">$19.99</div>
-          <p class="text-gray-500">per month</p>
+          <div class="text-4xl font-bold text-blue-600 mb-2">
+            ${prices.elite[billingCycle]}
+          </div>
+          <p class="text-gray-500">
+            per month{#if billingCycle === 'annual'}, billed annually{/if}
+          </p>
         </div>
 
         <ul class="space-y-4 mb-8">
@@ -276,7 +389,7 @@
             <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
             </svg>
-            <span class="text-gray-700"><strong>UNLIMITED AI:</strong> Unlimited reviews, enhancements, and optimizations</span>
+            <span class="text-gray-700"><strong>Unlimited AI:</strong> Unlimited reviews, enhancements, optimizations, grammar checks, plagiarism checks, and tone analyses</span>
           </li>
           <li class="flex items-start">
             <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -355,7 +468,7 @@
 
         <button 
           onclick={() => handleUpgrade('elite')}
-          class="w-full py-3 px-4 bg-purple-600 text-white font-medium rounded-md hover:bg-purple-700 transition duration-300"
+          class="w-full py-3 px-4 bg-gray-600 text-white font-medium rounded-md hover:bg-gray-700 transition duration-300"
         >
           Upgrade to Elite
         </button>
@@ -380,14 +493,14 @@
             <tbody class="divide-y divide-gray-200">
               <tr>
                 <td class="px-6 py-4 text-sm text-gray-900 font-medium">Documents per Month</td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600">6 documents</td>
+                <td class="px-6 py-4 text-sm text-center text-gray-600">4 documents</td>
                 <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>50 documents</strong></td>
                 <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>UNLIMITED</strong></td>
               </tr>
               <tr class="bg-gray-50">
-                <td class="px-6 py-4 text-sm text-gray-900 font-medium">AI Reviews per Month</td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600">3 reviews</td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>15 reviews</strong></td>
+                <td class="px-6 py-4 text-sm text-gray-900 font-medium">AI Features per Month</td>
+                <td class="px-6 py-4 text-sm text-center text-gray-600">6 features</td>
+                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>115 features</strong></td>
                 <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>UNLIMITED</strong></td>
               </tr>
               <tr>
