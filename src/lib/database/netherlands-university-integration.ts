@@ -780,12 +780,18 @@ export class DutchUniversityDataManager {
      * Convert Dutch university data to enhanced format
      */
     private convertToEnhanced(nlUni: DutchUniversityData): EnhancedUniversity {
+        // Ensure website URL has a protocol
+        let websiteUrl = nlUni.website;
+        if (websiteUrl && !websiteUrl.startsWith('http://') && !websiteUrl.startsWith('https://')) {
+            websiteUrl = 'https://' + websiteUrl;
+        }
+        
         // Generate program scores based on notable programs
         const programScores = this.generateProgramScores(nlUni);
 
         // Calculate total cost (tuition + living)
         const totalCost = nlUni.tuition_non_eu + nlUni.living_cost;
-
+        
         return {
             id: nlUni.id,
             name: nlUni.name,
@@ -820,7 +826,7 @@ export class DutchUniversityDataManager {
             research_opportunities: this.getResearchOpportunities(nlUni.research_intensity),
             student_size: nlUni.total_students,
             ownership_type: 'public',
-            website_url: nlUni.website,
+            website_url: websiteUrl,
             data_source: 'hardcoded',
             last_updated: new Date().toISOString()
         };

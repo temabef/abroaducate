@@ -153,15 +153,36 @@
   
   // Generate internal university profile URL
   function getUniversityProfileUrl(university: any): string {
+    // Special case for Bishop Grosseteste University
+    if (university.name === 'Bishop Grosseteste University') {
+      return `/universities/bishopg.ac.uk`;
+    }
+    
     if (university.website_url) {
       // Extract hostname from website URL
       try {
-        const url = new URL(university.website_url);
+        // Add protocol if missing
+        let websiteUrl = university.website_url;
+        if (!websiteUrl.startsWith('http://') && !websiteUrl.startsWith('https://')) {
+            websiteUrl = 'https://' + websiteUrl;
+        }
+        
+        const url = new URL(websiteUrl);
         return `/universities/${url.hostname}`;
-      } catch {
+      } catch (error) {
+        console.error(`Error generating URL for ${university.name}:`, error);
+        // Create a more reliable slug using the university ID if available
+        if (university.id) {
+          return `/universities/${university.id.replace(/^(uk-|de-|nl-)/, '')}`;
+        }
         // Fallback to name-based slug
         return `/universities/${university.name.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '-')}`;
       }
+    }
+    
+    // Use university ID if available (often more reliable than name-based slugs)
+    if (university.id) {
+      return `/universities/${university.id.replace(/^(uk-|de-|nl-)/, '')}`;
     }
     
     // Fallback to name-based slug
@@ -170,8 +191,8 @@
 </script>
 
 <svelte:head>
-  <title>Phase II: University Database Expansion - Abroaducate</title>
-  <meta name="description" content="Testing Phase II expansion from 9 to 1000+ universities using free APIs" />
+  <title>Global University Database - Abroaducate</title>
+  <meta name="description" content="Explore our comprehensive database of 1000+ universities across USA, UK, Canada, Australia and more. Find detailed information on admissions, programs, and costs." />
 </svelte:head>
 
 <div class="min-h-screen bg-gray-50 py-20">
@@ -180,55 +201,55 @@
     <!-- Header -->
     <div class="text-center mb-12">
       <h1 class="text-4xl font-bold text-gray-900 mb-4">
-        🚀 Phase II: University Database Expansion
+        Global University Database
       </h1>
       <p class="text-xl text-gray-600 max-w-3xl mx-auto mb-6">
-        Testing expansion from 9 hardcoded universities to 1000+ universities using the free US College Scorecard API
+        Explore 7500+ universities across USA, UK, Canada, Australia and more with detailed information on admissions, programs, and costs
       </p>
       
-      <!-- Phase II Status Banner -->
+      <!-- Global Coverage Banner -->
       <div class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg shadow-lg mb-6">
         <span class="text-lg font-semibold">
-          📊 Phase II: FREE API Integration Ready • 7,000+ US Universities Available
+          📊 7,000+ USA Universities Available
         </span>
       </div>
       
-          <!-- Enhanced Database Controls -->
-    <div class="mb-6">
-      <button 
-        on:click={() => enhancedMode = !enhancedMode}
-        class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200"
-      >
-        <span class="text-lg mr-2">🚀</span>
-        <span class="font-semibold">
-          {#if enhancedMode}
-            Standard Mode (100 universities)
-          {:else}
-            Enhanced Mode (up to 1000 universities)
-          {/if}
-        </span>
-        <svg class="w-4 h-4 ml-2 transition-transform duration-200 {enhancedMode ? 'rotate-180' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-        </svg>
-      </button>
-    </div>
-    
-    {#if enhancedMode}
-      <div class="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200 rounded-lg p-4 mb-6">
-        <div class="flex items-center gap-2 mb-2">
-          <span class="text-2xl">⚡</span>
-          <h3 class="text-lg font-semibold text-blue-900">Enhanced Database Mode</h3>
-        </div>
-        <p class="text-blue-800 text-sm">
-          Access up to 1,000 universities with smart pagination. Results load in batches for optimal performance.
-        </p>
+      <!-- Enhanced Database Controls -->
+      <div class="mb-6">
+        <button 
+          on:click={() => enhancedMode = !enhancedMode}
+          class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200"
+        >
+          <span class="text-lg mr-2">🚀</span>
+          <span class="font-semibold">
+            {#if enhancedMode}
+              Standard Mode (100 universities)
+            {:else}
+              Enhanced Mode (up to 1000 universities)
+            {/if}
+          </span>
+          <svg class="w-4 h-4 ml-2 transition-transform duration-200 {enhancedMode ? 'rotate-180' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+          </svg>
+        </button>
       </div>
-    {/if}
+    
+      {#if enhancedMode}
+        <div class="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200 rounded-lg p-4 mb-6">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-2xl">⚡</span>
+            <h3 class="text-lg font-semibold text-blue-900">Enhanced Database Mode</h3>
+          </div>
+          <p class="text-blue-800 text-sm">
+            Access up to 1,000 universities with smart pagination. Results load in batches for optimal performance.
+          </p>
+        </div>
+      {/if}
     </div>
     
     <!-- Controls -->
     <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-      <h2 class="text-xl font-semibold mb-4">🔧 Test University Fetching</h2>
+      <h2 class="text-xl font-semibold mb-4">🔍 Search Universities</h2>
       
       <!-- Enhanced Mode Toggle - Top Level -->
       <div class="mb-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border">
@@ -249,18 +270,18 @@
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div class="form-control w-full">
           <label class="label">
-            <span class="label-text font-medium">Data Source</span>
+            <span class="label-text font-medium">Country</span>
           </label>
           <select bind:value={selectedSource} class="select select-bordered w-full">
-            <option value="us">🇺🇸 US Universities (7,000+ available)</option>
-            <option value="uk">🇬🇧 UK Universities (97 available)</option>
-            <option value="australia">🇦🇺 Australia Universities (40 available)</option>
-            <option value="canada">🇨🇦 Canada Universities (70 available)</option>
-            <option value="germany">🇩🇪 Germany Universities (20+ available)</option>
-            <option value="netherlands">🇳🇱 Netherlands Universities (20+ available)</option>
-            <option value="japan">🇯🇵 Japan Universities (30 available)</option>
-            <option value="france">🇫🇷 France Universities (50 available)</option>
-            <option value="italy">🇮🇹 Italy Universities (45 available)</option>
+            <option value="us">🇺🇸 United States (7,000+ available)</option>
+            <option value="uk">🇬🇧 United Kingdom (116 available)</option>
+            <option value="australia">🇦🇺 Australia (48 available)</option>
+            <option value="canada">🇨🇦 Canada (89 available)</option>
+            <option value="germany">🇩🇪 Germany (85 available)</option>
+            <option value="netherlands">🇳🇱 Netherlands (29 available)</option>
+            <option value="japan">🇯🇵 Japan (59 available)</option>
+            <option value="france">🇫🇷 France (49 available)</option>
+            <option value="italy">🇮🇹 Italy (47 available)</option>
           </select>
         </div>
 
@@ -675,5 +696,84 @@
         {/if}
       </div>
     {/if}
+    
+    <!-- Call to Action Section -->
+    <div class="mt-16 bg-gradient-to-r from-blue-600 to-indigo-700 rounded-lg p-8 text-center text-white">
+      <h3 class="text-2xl font-bold mb-4">Ready to Start Your Application Journey?</h3>
+      <p class="text-blue-100 mb-6">
+        Use our AI-powered tools to craft perfect application documents for your target universities
+      </p>
+      
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <a href="/sop" class="bg-white text-blue-600 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-blue-50 transition duration-300 shadow-lg">
+          Create Your Statement of Purpose
+        </a>
+        <a href="/scholarships" class="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-white hover:text-blue-600 transition duration-300">
+          Find Scholarships
+        </a>
+      </div>
+    </div>
+    
+    <!-- Additional Resources Section -->
+    <div class="mt-16">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl font-bold text-gray-900 mb-4">Application Resources</h2>
+        <p class="text-lg text-gray-600">Tools to help you succeed in your university applications</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <!-- Resource 1 -->
+        <div class="bg-white p-6 rounded-lg shadow-sm border">
+          <div class="text-3xl mb-4">📝</div>
+          <h3 class="text-xl font-bold text-gray-900 mb-3">Statement of Purpose</h3>
+          <p class="text-gray-600 mb-4">Create a compelling SOP tailored to your target universities and programs.</p>
+          <a href="/sop" class="text-blue-600 hover:text-blue-800 font-medium">Create Your SOP →</a>
+        </div>
+
+        <!-- Resource 2 -->
+        <div class="bg-white p-6 rounded-lg shadow-sm border">
+          <div class="text-3xl mb-4">💰</div>
+          <h3 class="text-xl font-bold text-gray-900 mb-3">Scholarship Finder</h3>
+          <p class="text-gray-600 mb-4">Discover scholarships and funding opportunities for your education abroad.</p>
+          <a href="/scholarships" class="text-blue-600 hover:text-blue-800 font-medium">Find Scholarships →</a>
+        </div>
+
+        <!-- Resource 3 -->
+        <div class="bg-white p-6 rounded-lg shadow-sm border">
+          <div class="text-3xl mb-4">📊</div>
+          <h3 class="text-xl font-bold text-gray-900 mb-3">GPA Converter</h3>
+          <p class="text-gray-600 mb-4">Convert your local grades to the GPA scale used by international universities.</p>
+          <a href="/gpa-converter" class="text-blue-600 hover:text-blue-800 font-medium">Convert Your GPA →</a>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
+
+<style>
+  .loading-dots {
+    display: flex;
+    align-items: center;
+  }
+  
+  .dot {
+    animation: bounce 1.4s infinite ease-in-out both;
+  }
+  
+  .dot:nth-child(1) {
+    animation-delay: -0.32s;
+  }
+  
+  .dot:nth-child(2) {
+    animation-delay: -0.16s;
+  }
+  
+  @keyframes bounce {
+    0%, 80%, 100% {
+      transform: scale(0);
+    }
+    40% {
+      transform: scale(1);
+    }
+  }
+</style>

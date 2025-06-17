@@ -137,46 +137,51 @@ export async function toggleScholarshipSaved(
   scholarshipId: string,
   userProfile?: UserProfile
 ): Promise<boolean> {
-  // Get current interaction
-  const { data: existingInteraction } = await supabase
-    .from('user_scholarship_interactions')
-    .select('*')
-    .eq('user_id', userId)
-    .eq('scholarship_id', scholarshipId)
-    .single();
-
-  const isCurrentlySaved = existingInteraction?.is_saved || false;
-  
-  // Get scholarship for match calculation
-  let matchScore = existingInteraction?.match_score;
-  if (!matchScore && userProfile) {
-    const { data: scholarship } = await supabase
-      .from('scholarships')
+  try {
+    // Get current interaction
+    const { data: existingInteraction } = await supabase
+      .from('user_scholarship_interactions')
       .select('*')
-      .eq('id', scholarshipId)
+      .eq('user_id', userId)
+      .eq('scholarship_id', scholarshipId)
       .single();
+
+    const isCurrentlySaved = existingInteraction?.is_saved || false;
     
-    if (scholarship) {
-      matchScore = calculateScholarshipMatch(userProfile, scholarship);
+    // Get scholarship for match calculation
+    let matchScore = existingInteraction?.match_score;
+    if (!matchScore && userProfile) {
+      const { data: scholarship } = await supabase
+        .from('scholarships')
+        .select('*')
+        .eq('id', scholarshipId)
+        .single();
+      
+      if (scholarship) {
+        matchScore = calculateScholarshipMatch(userProfile, scholarship);
+      }
     }
-  }
 
-  const { error } = await supabase
-    .from('user_scholarship_interactions')
-    .upsert({
-      user_id: userId,
-      scholarship_id: scholarshipId,
-      is_saved: !isCurrentlySaved,
-      is_applied: existingInteraction?.is_applied || false,
-      match_score: matchScore
-    });
+    const { error } = await supabase
+      .from('user_scholarship_interactions')
+      .upsert({
+        user_id: userId,
+        scholarship_id: scholarshipId,
+        is_saved: !isCurrentlySaved,
+        is_applied: existingInteraction?.is_applied || false,
+        match_score: matchScore
+      });
 
-  if (error) {
-    console.error('Error toggling scholarship saved:', error);
+    if (error) {
+      console.error('Error toggling scholarship saved:', error);
+      return false;
+    }
+
+    return true;
+  } catch (err) {
+    console.error('Error in toggleScholarshipSaved:', err);
     return false;
   }
-
-  return true;
 }
 
 /**

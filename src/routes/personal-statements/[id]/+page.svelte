@@ -35,6 +35,11 @@
     { label: 'Concise', value: 'concise', icon: '✂️' }
   ];
   
+  // Add state variables for the AI analysis
+  let analyzing = false;
+  let analysisResult = null;
+  let analysisError = '';
+  
   onMount(async () => {
     updateWordCount();
     setupTextSelection();
@@ -51,6 +56,7 @@
     if (autoSaveInterval) clearInterval(autoSaveInterval);
     if (saveTimeout) clearTimeout(saveTimeout);
     document.removeEventListener('mouseup', handleTextSelection);
+    document.removeEventListener('touchend', handleTextSelection);
     document.removeEventListener('click', handleDocumentClick);
     document.removeEventListener('selectionchange', handleSelectionChange);
   });
@@ -58,6 +64,7 @@
   function setupTextSelection() {
     if (typeof document !== 'undefined') {
       document.addEventListener('mouseup', handleTextSelection);
+      document.addEventListener('touchend', handleTextSelection);
       document.addEventListener('click', handleDocumentClick);
       document.addEventListener('selectionchange', handleSelectionChange);
     }
@@ -68,7 +75,8 @@
     const personalStatementContent = document.getElementById('personal-statement-content');
     const popup = document.querySelector('.edit-popup');
     
-    if (!personalStatementContent?.contains(target) && !popup?.contains(target)) {
+    if ((!personalStatementContent?.contains(target) || !target.closest('#personal-statement-content')) && 
+        (!popup || !popup.contains(target))) {
       showEditPopup = false;
       selectedText = '';
     }
@@ -154,7 +162,14 @@
   
   function clearSelection() {
     if (window.getSelection) {
-      window.getSelection()?.removeAllRanges();
+      const selection = window.getSelection();
+      if (selection) {
+        if (selection.removeAllRanges) {
+          selection.removeAllRanges();
+        } else if (selection.empty) {
+          selection.empty();
+        }
+      }
     }
     selectedText = '';
     showEditPopup = false;
@@ -216,14 +231,296 @@
     }, 2000);
   }
   
-  async function copyToClipboard() {
+  function copyToClipboard(): void {
+    navigator.clipboard.writeText(content)
+      .then(() => {
+        alert('Personal statement copied to clipboard!');
+        trackAnalytics('copy_personal_statement');
+      })
+      .catch(err => {
+        console.error('Error copying text: ', err);
+        alert('Failed to copy personal statement. Please try again.');
+      });
+  }
+  
+  // Add export function
+  async function exportPersonalStatement(): Promise<void> {
     try {
-      await navigator.clipboard.writeText(content);
-      alert('Personal statement copied to clipboard!');
+      // Create a blob from the content
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <title>${title}</title>
+          <style>
+            body {
+              font-family: 'Times New Roman', Times, serif;
+              line-height: 1.6;
+              margin: 1in;
+              font-size: 12pt;
+            }
+            h1 {
+              text-align: center;
+              font-size: 14pt;
+              margin-bottom: 24pt;
+            }
+            p {
+              text-indent: 0.5in;
+              margin-bottom: 12pt;
+            }
+          </style>
+        </head>
+        <body>
+          <h1>${title}</h1>
+          ${content.split('\n').map((para: string) => `<p>${para}</p>`).join('')}
+        </body>
+        </html>
+      `;
+      
+      const blob = new Blob([htmlContent], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      
+      // Create a link and trigger download
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${title.replace(/[^\w\s]/gi, '')}_personal_statement.html`;
+      document.body.appendChild(a);
+      a.click();
+      
+      // Clean up
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      // Track analytics
+      await trackAnalytics('export_personal_statement');
+      
     } catch (error) {
-      console.error('Failed to copy:', error);
-      alert('Failed to copy personal statement. Please select and copy manually.');
+      console.error('Error exporting personal statement:', error);
+      alert('Failed to export personal statement. Please try again.');
     }
+  }
+  
+  // Add analytics tracking function
+  async function trackAnalytics(eventType: string): Promise<void> {
+    try {
+      await fetch('/api/analytics', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          eventType,
+          documentType: 'personal_statement',
+          documentId: personalStatement.id
+        })
+      });
+    } catch (error) {
+      console.error('Error tracking analytics:', error);
+    }
+  }
+  
+  // Add the runAnalysis function
+  async function runAnalysis(analysisType: string) {
+    if (analyzing) return;
+    
+    analyzing = true;
+    analysisError = '';
+    
+    const resultsDiv = document.getElementById('analysis-results');
+    if (resultsDiv) {
+      resultsDiv.innerHTML = `
+        <div class="flex items-center justify-center p-8">
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mr-3"></div>
+          <span class="text-gray-600">Analyzing your personal statement...</span>
+        </div>
+      `;
+    }
+    
+    try {
+      const response = await fetch('/api/analyze-sop', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: content,
+          analysisType: analysisType,
+          documentType: 'personal_statement',
+          institutionName: personalStatement.institution_name,
+          programName: personalStatement.program_name
+        })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Analysis failed');
+      }
+      
+      const result = await response.json();
+      analysisResult = result;
+      
+      // Display the analysis results
+      displayAnalysisResults(analysisType, result);
+      
+      // Track the analysis event
+      trackAnalytics(`analyze_${analysisType}`);
+      
+    } catch (error: any) {
+      console.error('Analysis error:', error);
+      analysisError = error.message || 'Failed to analyze personal statement';
+      
+      if (resultsDiv) {
+        resultsDiv.innerHTML = `
+          <div class="p-4 bg-red-50 border border-red-200 rounded-lg">
+            <div class="flex items-center gap-2 text-red-800">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              ${analysisError}
+            </div>
+          </div>
+        `;
+      }
+    } finally {
+      analyzing = false;
+    }
+  }
+  
+  // Function to get appropriate color for scores
+  function getScoreColor(score: number): string {
+    if (score >= 80) return 'text-green-600';
+    if (score >= 60) return 'text-yellow-600';
+    return 'text-red-600';
+  }
+  
+  // Function to display analysis results
+  function displayAnalysisResults(type: string, result: any) {
+    const resultsDiv = document.getElementById('analysis-results');
+    if (!resultsDiv) return;
+    
+    let html = '';
+    
+    if (type === 'comprehensive') {
+      html = `
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="lg:col-span-2 text-center p-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg">
+            <div class="text-4xl font-bold ${getScoreColor(result.overall_score)} mb-2">
+              ${result.overall_score}%
+            </div>
+            <div class="text-gray-600">Overall Quality Score</div>
+          </div>
+          
+          <div class="space-y-4">
+            <div class="flex justify-between items-center">
+              <span class="font-medium">Originality</span>
+              <span class="${getScoreColor(result.plagiarism.originality_score)}">${result.plagiarism.originality_score}%</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="font-medium">Grammar</span>
+              <span class="${getScoreColor(result.grammar.score)}">${result.grammar.score}%</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="font-medium">Tone</span>
+              <span class="${getScoreColor(result.tone.score)}">${result.tone.score}%</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="font-medium">Readability</span>
+              <span class="${getScoreColor(result.readability.score)}">${result.readability.score}%</span>
+            </div>
+          </div>
+          
+          <div class="space-y-3">
+            <h4 class="font-semibold">Key Insights</h4>
+            <div class="text-sm text-gray-600 space-y-2">
+              <div>• Readability Level: ${result.readability.readability_level}</div>
+              <div>• Primary Tone: ${result.tone.tone_analysis.primary_tone}</div>
+              <div>• Risk Level: ${result.plagiarism.risk_level}</div>
+              <div>• Grade Level: ${result.readability.grade_level}</div>
+            </div>
+          </div>
+        </div>
+      `;
+    } else if (type === 'plagiarism') {
+      html = `
+        <div class="bg-gray-50 rounded-lg p-6">
+          <h3 class="text-lg font-semibold mb-4">📝 Originality Analysis</h3>
+          <div class="text-center mb-4">
+            <div class="text-3xl font-bold ${getScoreColor(result.originality_score)} mb-2">
+              ${result.originality_score}%
+            </div>
+            <div class="text-gray-600">Originality Score</div>
+          </div>
+          <div class="text-center">
+            <span class="px-3 py-1 rounded-full text-sm font-medium ${
+              result.risk_level === 'low' ? 'bg-green-100 text-green-800' :
+              result.risk_level === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+              'bg-red-100 text-red-800'
+            }">
+              Risk Level: ${result.risk_level.toUpperCase()}
+            </span>
+          </div>
+        </div>
+      `;
+    } else if (type === 'grammar') {
+      html = `
+        <div class="bg-gray-50 rounded-lg p-6">
+          <h3 class="text-lg font-semibold mb-4">✏️ Grammar & Style Analysis</h3>
+          <div class="text-center mb-4">
+            <div class="text-3xl font-bold ${getScoreColor(result.score)} mb-2">
+              ${result.score}%
+            </div>
+            <div class="text-gray-600">Grammar Score</div>
+          </div>
+          <div class="grid grid-cols-2 gap-4 text-sm">
+            <div class="text-center">
+              <div class="font-semibold">${result.errors?.length || 0}</div>
+              <div class="text-gray-600">Issues Found</div>
+            </div>
+            <div class="text-center">
+              <div class="font-semibold">${result.readability?.grade_level || 'N/A'}</div>
+              <div class="text-gray-600">Grade Level</div>
+            </div>
+          </div>
+        </div>
+      `;
+    } else if (type === 'tone') {
+      html = `
+        <div class="bg-gray-50 rounded-lg p-6">
+          <h3 class="text-lg font-semibold mb-4">🎭 Tone Analysis</h3>
+          <div class="text-center mb-4">
+            <div class="text-3xl font-bold ${getScoreColor(result.score)} mb-2">
+              ${result.score}%
+            </div>
+            <div class="text-gray-600">Tone Score</div>
+          </div>
+          <div class="space-y-2 text-sm">
+            <div>Primary Tone: <strong>${result.tone_analysis?.primary_tone || 'N/A'}</strong></div>
+            <div>Confidence: ${result.tone_analysis?.confidence_level || 0}%</div>
+          </div>
+        </div>
+      `;
+    } else if (type === 'readability') {
+      html = `
+        <div class="bg-gray-50 rounded-lg p-6">
+          <h3 class="text-lg font-semibold mb-4">📊 Readability Analysis</h3>
+          <div class="text-center mb-4">
+            <div class="text-2xl font-bold ${getScoreColor(result.score)} mb-2">
+              ${result.readability_level}
+            </div>
+            <div class="text-gray-600">Readability Level</div>
+          </div>
+          <div class="grid grid-cols-2 gap-4 text-sm">
+            <div class="text-center">
+              <div class="font-semibold">${result.statistics?.total_words || 0}</div>
+              <div class="text-gray-600">Words</div>
+            </div>
+            <div class="text-center">
+              <div class="font-semibold">${result.statistics?.total_sentences || 0}</div>
+              <div class="text-gray-600">Sentences</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+    
+    resultsDiv.innerHTML = html;
   }
 </script>
 
@@ -267,6 +564,14 @@
           >
             📎 Copy Personal Statement
           </button>
+          
+          <!-- Export Button -->
+          <button
+            onclick={exportPersonalStatement}
+            class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+          >
+            📄 Export as PDF
+          </button>
         </div>
       </div>
     </div>
@@ -293,6 +598,87 @@
         >
           {content}
         </div>
+      </div>
+    </div>
+
+    <!-- AI Analysis Section -->
+    <div class="mt-8 bg-white rounded-lg shadow-sm border">
+      <div class="border-b bg-gradient-to-r from-blue-50 to-purple-50 px-6 py-4">
+        <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2">
+          🤖 AI Analysis Tools
+          <span class="text-sm font-normal text-gray-600">Improve your Personal Statement with advanced AI insights</span>
+        </h2>
+      </div>
+      
+      <div class="p-6">
+        <!-- Analysis Type Selection -->
+        <div class="mb-6">
+          <h3 class="text-lg font-semibold mb-3">Choose Analysis Type</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            <button 
+              class="p-3 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-left transition-all"
+              onclick={() => runAnalysis('comprehensive')}
+            >
+              <div class="font-medium mb-1">🔍 Comprehensive Analysis</div>
+              <div class="text-sm text-gray-600">Complete analysis with all features</div>
+            </button>
+            <button 
+              class="p-3 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-left transition-all"
+              onclick={() => runAnalysis('plagiarism')}
+            >
+              <div class="font-medium mb-1">📝 Plagiarism Check</div>
+              <div class="text-sm text-gray-600">Check for originality and similar content</div>
+            </button>
+            <button 
+              class="p-3 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-left transition-all"
+              onclick={() => runAnalysis('grammar')}
+            >
+              <div class="font-medium mb-1">✏️ Grammar & Style</div>
+              <div class="text-sm text-gray-600">Grammar, spelling, and writing style</div>
+            </button>
+            <button 
+              class="p-3 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-left transition-all"
+              onclick={() => runAnalysis('tone')}
+            >
+              <div class="font-medium mb-1">🎭 Tone Analysis</div>
+              <div class="text-sm text-gray-600">Analyze writing tone and personality</div>
+            </button>
+            <button 
+              class="p-3 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-left transition-all"
+              onclick={() => runAnalysis('readability')}
+            >
+              <div class="font-medium mb-1">📊 Readability Score</div>
+              <div class="text-sm text-gray-600">Reading difficulty and clarity metrics</div>
+            </button>
+          </div>
+        </div>
+        
+        <!-- Analysis Results Display -->
+        <div id="analysis-results" class="mt-4">
+          <!-- Results will be displayed here -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Additional AI Features Card -->
+    <div class="mt-8 bg-white rounded-lg shadow-sm border overflow-hidden">
+      <div class="bg-gradient-to-r from-purple-50 to-indigo-50 px-6 py-4 border-b">
+        <h3 class="text-lg font-bold text-gray-900">✨ Looking for More AI Features?</h3>
+      </div>
+      <div class="p-6">
+        <p class="text-gray-700 mb-4">
+          Explore our full suite of AI tools including Word Optimization, Grammar Check, 
+          and more in our dedicated AI Features section.
+        </p>
+        <a 
+          href="/ai-features-demo" 
+          class="inline-flex items-center gap-2 bg-purple-600 text-white px-5 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+        >
+          <span>Explore AI Features</span>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+          </svg>
+        </a>
       </div>
     </div>
 

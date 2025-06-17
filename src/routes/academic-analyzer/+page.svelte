@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { browser } from '$app/environment';
   import { goto } from '$app/navigation';
+  import CompactUpgradeModal from '$lib/components/CompactUpgradeModal.svelte';
 
   // State variables
   let hasData = false;
@@ -13,6 +14,11 @@
 
   // UI state
   let showAnalysis = false;
+  
+  // Premium access control
+  let showUpgradeModal = false;
+  let userPlan = 'free'; // Default to free, will be updated if authenticated
+  let isPremiumUser = false;
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: '📊' },
@@ -25,7 +31,29 @@
 
   onMount(() => {
     loadAcademicData();
+    checkUserSubscription();
   });
+  
+  async function checkUserSubscription() {
+    try {
+      // Try to fetch the user's current subscription plan
+      const response = await fetch('/api/get-user-profile');
+      if (response.ok) {
+        const userData = await response.json();
+        userPlan = userData.subscription?.plan_type || 'free';
+        isPremiumUser = userPlan === 'professional' || userPlan === 'elite';
+      } else {
+        // Default to free if we can't verify
+        isPremiumUser = false;
+      }
+      
+      // Never show the upgrade modal - we have the locked content page instead
+      showUpgradeModal = false;
+    } catch (error) {
+      console.error('Error checking subscription:', error);
+      isPremiumUser = false;
+    }
+  }
 
   async function loadAcademicData() {
     loading = true;
@@ -43,7 +71,9 @@
           // Import and run analysis
           const module = await import('$lib/academicAnalyzer/analysisEngine.js');
           analysis = module.analyzeAcademicProfile(academicProfile);
-          showAnalysis = true;
+          
+          // Only show analysis if user is premium
+          showAnalysis = isPremiumUser;
         }
       }
       
@@ -248,6 +278,11 @@
   function goToGPAConverter() {
     goto('/gpa-converter');
   }
+
+  function handleUpgrade(event: CustomEvent) {
+    // Redirect to pricing page
+    goto('/pricing');
+  }
 </script>
 
 <svelte:head>
@@ -298,288 +333,140 @@
       </div>
     </div>
   {:else if !hasData}
-    <!-- Quick Academic Assessment Form -->
-    <div class="max-w-4xl mx-auto space-y-8">
-      <!-- Introduction -->
-      <div class="text-center">
-        <div class="mb-4">
-          <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-            ⚡ Quick Assessment - FREE
-          </span>
-        </div>
-        <h2 class="text-3xl font-bold text-gray-900 mb-4">
-          Quick Academic Profile Assessment
+    <!-- No Data State -->
+    <div class="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-2xl p-8 text-center">
+      <div class="max-w-2xl mx-auto">
+        <div class="text-6xl mb-6">📚</div>
+        <h2 class="text-2xl font-bold text-gray-900 mb-4">
+          No Academic Data Found
         </h2>
-        <p class="text-xl text-gray-600 max-w-2xl mx-auto">
-          Get instant insights into your study abroad competitiveness in just 3 minutes. No transcript upload required!
+        <p class="text-gray-600 mb-6 text-lg">
+          To use the Academic Profile Analyzer, you need to first convert your transcript using our GPA Converter.
         </p>
-        <div class="mt-6 flex justify-center">
-          <div class="flex items-center space-x-6 text-sm text-gray-500">
-            <div class="flex items-center space-x-1">
-              <span>⚡</span>
-              <span>3-minute setup</span>
+        <div class="bg-white rounded-xl p-6 mb-6 text-left">
+          <h3 class="font-semibold text-gray-900 mb-3">📋 Quick Steps:</h3>
+          <ol class="list-decimal list-inside space-y-2 text-gray-700">
+            <li>Go to the <strong>GPA Converter</strong> tool</li>
+            <li>Upload your transcript or add courses manually</li>
+            <li>Complete the conversion process</li>
+            <li>Return here for comprehensive analysis</li>
+          </ol>
             </div>
-            <div class="flex items-center space-x-1">
-              <span>🎯</span>
-              <span>Instant results</span>
+        <a 
+          href="/gpa-converter" 
+          class="inline-flex items-center bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+        >
+          Convert Transcript First
+          <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+          </svg>
+        </a>
             </div>
-            <div class="flex items-center space-x-1">
-              <span>🆓</span>
-              <span>Completely free</span>
             </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Quick Assessment Form -->
-      <div class="bg-white rounded-xl shadow-lg border p-8 space-y-8">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <!-- Basic Academic Info -->
-          <div class="space-y-6">
-            <h3 class="text-lg font-semibold text-gray-900 border-b pb-2">📋 Basic Information</h3>
-            
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
-              <input 
-                type="text" 
-                placeholder="Enter your full name"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Current University/College</label>
-              <input 
-                type="text" 
-                placeholder="e.g., University of Ghana"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Field of Study</label>
-              <select class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                <option value="">Select your field...</option>
-                <option value="computer_science">Computer Science</option>
-                <option value="engineering">Engineering</option>
-                <option value="business">Business Administration</option>
-                <option value="medicine">Medicine</option>
-                <option value="law">Law</option>
-                <option value="economics">Economics</option>
-                <option value="psychology">Psychology</option>
-                <option value="biology">Biology</option>
-                <option value="chemistry">Chemistry</option>
-                <option value="physics">Physics</option>
-                <option value="mathematics">Mathematics</option>
-                <option value="literature">Literature</option>
-                <option value="history">History</option>
-                <option value="political_science">Political Science</option>
-                <option value="sociology">Sociology</option>
-                <option value="education">Education</option>
-                <option value="other">Other</option>
-              </select>
+  {:else if !isPremiumUser}
+    <!-- Free User with Data - Show Premium Feature Teaser -->
+    <div class="bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl shadow-lg p-8 text-center">
+      <div class="max-w-2xl mx-auto">
+        <div class="text-6xl mb-6">🔒</div>
+        <h2 class="text-2xl font-bold text-gray-900 mb-4">
+          Professional Feature
+        </h2>
+        <p class="text-gray-700 mb-6 text-lg">
+          The comprehensive Academic Profile Analyzer is available to Professional and Elite plans only.
+        </p>
+        
+        <div class="bg-white rounded-xl p-6 mb-6 text-left">
+          <h3 class="font-semibold text-gray-900 mb-3">✨ What you'll get:</h3>
+          <ul class="space-y-3 text-gray-700">
+            <li class="flex items-start">
+              <svg class="w-5 h-5 text-green-500 mt-1 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+              </svg>
+              <span><strong>Comprehensive academic strengths</strong> analysis tailored to your transcript</span>
+            </li>
+            <li class="flex items-start">
+              <svg class="w-5 h-5 text-green-500 mt-1 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+              </svg>
+              <span><strong>Personalized improvement recommendations</strong> for studying abroad</span>
+            </li>
+            <li class="flex items-start">
+              <svg class="w-5 h-5 text-green-500 mt-1 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+              </svg>
+              <span><strong>University competitiveness assessment</strong> based on your GPA and academic profile</span>
+            </li>
+            <li class="flex items-start">
+              <svg class="w-5 h-5 text-green-500 mt-1 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+              </svg>
+              <span><strong>Detailed academic trends</strong> showing your progress over time</span>
+            </li>
+          </ul>
             </div>
 
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Academic Year Level</label>
-              <select class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                <option value="">Select year level...</option>
-                <option value="year1">1st Year</option>
-                <option value="year2">2nd Year</option>
-                <option value="year3">3rd Year</option>
-                <option value="year4">4th Year</option>
-                <option value="year5">5th Year</option>
-                <option value="final">Final Year</option>
-                <option value="graduate">Graduate/Recent Graduate</option>
-              </select>
-            </div>
-          </div>
-
-          <!-- Academic Performance -->
-          <div class="space-y-6">
-            <h3 class="text-lg font-semibold text-gray-900 border-b pb-2">📊 Academic Performance</h3>
-            
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Current GPA/Grade</label>
-              <div class="grid grid-cols-2 gap-3">
-                <input 
-                  type="number" 
-                  step="0.01"
-                  placeholder="e.g., 3.85"
-                  class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                <select class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                  <option value="4.0">4.0 Scale</option>
-                  <option value="5.0">5.0 Scale</option>
-                  <option value="percentage">Percentage</option>
-                  <option value="letter">Letter Grade</option>
-                  <option value="other">Other</option>
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Academic Strengths (Select up to 3)</label>
-              <div class="space-y-2">
-                <label class="flex items-center">
-                  <input type="checkbox" class="rounded text-blue-600 mr-2">
-                  <span class="text-sm">Mathematics & Quantitative Skills</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="checkbox" class="rounded text-blue-600 mr-2">
-                  <span class="text-sm">Research & Analytical Thinking</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="checkbox" class="rounded text-blue-600 mr-2">
-                  <span class="text-sm">Communication & Writing</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="checkbox" class="rounded text-blue-600 mr-2">
-                  <span class="text-sm">Leadership & Teamwork</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="checkbox" class="rounded text-blue-600 mr-2">
-                  <span class="text-sm">Technical/Laboratory Skills</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="checkbox" class="rounded text-blue-600 mr-2">
-                  <span class="text-sm">Languages & Cultural Competency</span>
-                </label>
-              </div>
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Areas for Improvement</label>
-              <select class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                <option value="">Select area to improve...</option>
-                <option value="gpa">Overall GPA</option>
-                <option value="research">Research Experience</option>
-                <option value="extracurricular">Extracurricular Activities</option>
-                <option value="language">English Proficiency</option>
-                <option value="test_scores">Standardized Test Scores</option>
-                <option value="work_experience">Work Experience</option>
-                <option value="none">No significant areas</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <!-- Study Abroad Goals -->
-        <div class="border-t pt-6 space-y-6">
-          <h3 class="text-lg font-semibold text-gray-900">🎯 Study Abroad Goals</h3>
-          
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Target Degree Level</label>
-              <select class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                <option value="">Select degree level...</option>
-                <option value="bachelors">Bachelor's Degree</option>
-                <option value="masters">Master's Degree</option>
-                <option value="phd">PhD/Doctorate</option>
-                <option value="certificate">Certificate Program</option>
-                <option value="exchange">Exchange Program</option>
-              </select>
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Priority Countries (Select up to 3)</label>
-              <div class="grid grid-cols-2 gap-2 text-sm">
-                <label class="flex items-center">
-                  <input type="checkbox" class="rounded text-blue-600 mr-2">
-                  <span>🇺🇸 United States</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="checkbox" class="rounded text-blue-600 mr-2">
-                  <span>🇨🇦 Canada</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="checkbox" class="rounded text-blue-600 mr-2">
-                  <span>🇬🇧 United Kingdom</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="checkbox" class="rounded text-blue-600 mr-2">
-                  <span>🇦🇺 Australia</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="checkbox" class="rounded text-blue-600 mr-2">
-                  <span>🇩🇪 Germany</span>
-                </label>
-                <label class="flex items-center">
-                  <input type="checkbox" class="rounded text-blue-600 mr-2">
-                  <span>🇳🇱 Netherlands</span>
-                </label>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Scholarship Interest Level</label>
-            <div class="flex space-x-4">
-              <label class="flex items-center">
-                <input type="radio" name="scholarship_interest" class="mr-2">
-                <span class="text-sm">💰 Must have full funding</span>
-              </label>
-              <label class="flex items-center">
-                <input type="radio" name="scholarship_interest" class="mr-2">
-                <span class="text-sm">📊 Partial funding preferred</span>
-              </label>
-              <label class="flex items-center">
-                <input type="radio" name="scholarship_interest" class="mr-2">
-                <span class="text-sm">💳 Can self-fund</span>
-              </label>
-            </div>
-          </div>
-        </div>
-
-        <!-- Action Buttons -->
-        <div class="border-t pt-6 flex flex-col sm:flex-row gap-4 justify-center">
-          <button class="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium">
-            🎯 Generate My Profile Assessment
-          </button>
-          <button 
-            on:click={goToGPAConverter}
-            class="border border-gray-300 text-gray-700 px-8 py-3 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <a 
+            href="/pricing" 
+            class="inline-flex items-center justify-center px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
           >
-            📊 Or Upload Full Transcript
-          </button>
+            Upgrade to Professional
+          </a>
+          <a 
+            href="/gpa-converter" 
+            class="inline-flex items-center justify-center px-6 py-3 border border-purple-300 text-purple-700 rounded-lg hover:bg-purple-50 transition-colors font-medium"
+          >
+            Get Free Basic Analysis
+          </a>
+              </div>
+            </div>
+
+      <!-- Success Stats Section -->
+      <div class="mt-16 bg-gray-100 rounded-lg p-8">
+        <div class="text-center mb-8">
+          <h3 class="text-2xl font-bold text-gray-900 mb-4">Trusted Academic Analysis for African Students</h3>
+          <p class="text-gray-600">Empowering students with data-driven insights for study abroad success</p>
+            </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+            <div>
+            <div class="text-3xl font-bold text-blue-600">50+</div>
+            <div class="text-sm text-gray-600">Academic Systems</div>
+            </div>
+            <div>
+            <div class="text-3xl font-bold text-green-600">1,200+</div>
+            <div class="text-sm text-gray-600">Profiles Analyzed</div>
+            </div>
+            <div>
+            <div class="text-3xl font-bold text-purple-600">100%</div>
+            <div class="text-sm text-gray-600">FREE Analysis</div>
+              </div>
+          <div>
+            <div class="text-3xl font-bold text-yellow-600">7,000+</div>
+            <div class="text-sm text-gray-600">Universities Tracked</div>
+            </div>
+          </div>
         </div>
-      </div>
 
-      <!-- Feature Comparison -->
-      <div class="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-8">
-        <h3 class="text-xl font-bold text-gray-900 text-center mb-6">Choose Your Analysis Level</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <!-- Quick Assessment -->
-          <div class="bg-white rounded-lg p-6 border">
-            <div class="text-center mb-4">
-              <div class="text-2xl mb-2">⚡</div>
-              <h4 class="font-bold text-gray-900">Quick Assessment</h4>
-              <div class="text-green-600 font-medium">FREE</div>
-            </div>
-            <ul class="space-y-2 text-sm text-gray-600">
-              <li class="flex items-center"><span class="text-green-500 mr-2">✓</span>Competitiveness analysis</li>
-              <li class="flex items-center"><span class="text-green-500 mr-2">✓</span>University tier recommendations</li>
-              <li class="flex items-center"><span class="text-green-500 mr-2">✓</span>General improvement areas</li>
-              <li class="flex items-center"><span class="text-green-500 mr-2">✓</span>Scholarship readiness score</li>
-              <li class="flex items-center"><span class="text-green-500 mr-2">✓</span>Country-specific insights</li>
-            </ul>
-          </div>
-
-          <!-- Comprehensive Analysis -->
-          <div class="bg-white rounded-lg p-6 border border-purple-200">
-            <div class="text-center mb-4">
-              <div class="text-2xl mb-2">🔬</div>
-              <h4 class="font-bold text-gray-900">Comprehensive Analysis</h4>
-              <div class="text-purple-600 font-medium">PREMIUM</div>
-            </div>
-            <ul class="space-y-2 text-sm text-gray-600">
-              <li class="flex items-center"><span class="text-purple-500 mr-2">✓</span>Full transcript analysis</li>
-              <li class="flex items-center"><span class="text-purple-500 mr-2">✓</span>Subject-specific insights</li>
-              <li class="flex items-center"><span class="text-purple-500 mr-2">✓</span>Grade trend analysis</li>
-              <li class="flex items-center"><span class="text-purple-500 mr-2">✓</span>Advanced recommendations</li>
-              <li class="flex items-center"><span class="text-purple-500 mr-2">✓</span>Course-level feedback</li>
-            </ul>
-          </div>
+      <!-- Call to Action Section -->
+      <div class="mt-16 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg p-8 text-center text-white">
+        <h3 class="text-2xl font-bold mb-4">Ready to Take the Next Step in Your Study Abroad Journey?</h3>
+        <p class="text-purple-100 mb-6">
+          Use our comprehensive suite of tools to find the perfect universities and secure funding for your dreams.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <a href="/universities" class="bg-white text-purple-600 px-6 py-3 rounded-lg font-medium hover:bg-gray-100 transition duration-200">
+            🏛️ Find Matching Universities
+          </a>
+          <a href="/scholarships" class="border-2 border-white text-white px-6 py-3 rounded-lg font-medium hover:bg-white hover:text-purple-600 transition duration-200">
+            💰 Discover Scholarships
+          </a>
+          <a href="/sop" class="border-2 border-white text-white px-6 py-3 rounded-lg font-medium hover:bg-white hover:text-purple-600 transition duration-200">
+            📝 Generate Statement of Purpose
+          </a>
+          <a href="/gpa-converter" class="border-2 border-white text-white px-6 py-3 rounded-lg font-medium hover:bg-white hover:text-purple-600 transition duration-200">
+            📊 Enter Your GPA Data
+          </a>
         </div>
       </div>
     </div>
@@ -1053,7 +940,7 @@
             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
             </svg>
-            Update Transcript
+            Enter GPA Data
           </button>
           <a 
             href="/universities" 
@@ -1099,7 +986,7 @@
     <div class="mt-16 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg p-8 text-center text-white">
       <h3 class="text-2xl font-bold mb-4">Ready to Take the Next Step in Your Study Abroad Journey?</h3>
       <p class="text-purple-100 mb-6">
-        Now that you understand your academic profile, use our comprehensive suite of tools to find the perfect universities and secure funding for your dreams.
+        Use our comprehensive suite of tools to find the perfect universities and secure funding for your dreams.
       </p>
       <div class="flex flex-col sm:flex-row gap-4 justify-center">
         <a href="/universities" class="bg-white text-purple-600 px-6 py-3 rounded-lg font-medium hover:bg-gray-100 transition duration-200">
@@ -1112,7 +999,7 @@
           📝 Generate Statement of Purpose
         </a>
         <a href="/gpa-converter" class="border-2 border-white text-white px-6 py-3 rounded-lg font-medium hover:bg-white hover:text-purple-600 transition duration-200">
-          📊 Update Your GPA Data
+          📊 Enter Your GPA Data
         </a>
       </div>
     </div>

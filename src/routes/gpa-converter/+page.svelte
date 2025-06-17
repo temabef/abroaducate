@@ -559,12 +559,8 @@
       if (!proceed) return;
     }
 
-    // Check if courses have valid grades and GPA values
-    const validCourses = courses.filter(course => course.grade && course.usGPA !== undefined && course.usGPA > 0);
-    if (validCourses.length < courses.length * 0.8) {
-      alert('Some courses are missing grades or GPA values. Please complete your course information for better analysis.');
-      return;
-    }
+    // Check if courses have valid grades and GPA values - removing this validation since it's causing false positives
+    // All courses added through the UI will always have valid grades and GPA values
 
     try {
       // Create academic profile from current session data
@@ -2649,7 +2645,7 @@
           <div id="academic-analysis-section" class="mt-8 bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl shadow-lg p-6">
             <div class="text-center mb-6">
               <h3 class="text-2xl font-bold text-gray-900 mb-2">🎯 Your Academic Profile Analysis</h3>
-              <p class="text-gray-600">Comprehensive insights into your academic strengths and opportunities</p>
+              <p class="text-gray-600">Quick insights into your academic strengths and opportunities</p>
             </div>
 
             <!-- Quick Stats -->
@@ -2676,14 +2672,14 @@
               </div>
             </div>
 
-            <!-- Strengths Section -->
+            <!-- Preview of Strengths - Limited to just 2 for free users -->
             {#if analysis.strengths.length > 0}
               <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
                 <h4 class="text-lg font-semibold text-green-900 mb-4 flex items-center">
                   <span class="mr-2">💪</span> Your Academic Strengths
                 </h4>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {#each analysis.strengths.slice(0, 4) as strength}
+                  {#each analysis.strengths.slice(0, 2) as strength}
                     <div class="bg-green-50 border border-green-200 rounded-lg p-4">
                       <div class="flex items-start space-x-3">
                         <div class="text-xl">{strength.icon}</div>
@@ -2697,18 +2693,33 @@
                       </div>
                     </div>
                   {/each}
+
+                  {#if analysis.strengths.length > 2}
+                    <!-- Locked strengths teaser -->
+                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                      <div class="flex items-center justify-center h-full">
+                        <div class="text-center">
+                          <div class="text-xl mb-2">🔒</div>
+                          <p class="text-gray-600 text-sm">
+                            {analysis.strengths.length - 2} more strengths available with
+                            <span class="font-medium">Professional Plan</span>
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  {/if}
                 </div>
               </div>
             {/if}
 
-            <!-- Growth Areas Section -->
+            <!-- Preview of Weaknesses - Limited to just 1 for free users -->
             {#if analysis.weaknesses.length > 0}
               <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
                 <h4 class="text-lg font-semibold text-orange-900 mb-4 flex items-center">
                   <span class="mr-2">📈</span> Areas for Growth
                 </h4>
                 <div class="space-y-3">
-                  {#each analysis.weaknesses.slice(0, 3) as weakness}
+                  {#each analysis.weaknesses.slice(0, 1) as weakness}
                     <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
                       <div class="flex items-start space-x-3">
                         <div class="text-lg">{weakness.icon}</div>
@@ -2728,80 +2739,44 @@
                       </div>
                     </div>
                   {/each}
-                </div>
-              </div>
-            {/if}
-
-            <!-- Competitiveness Overview -->
-            <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
-              <h4 class="text-lg font-semibold text-purple-900 mb-4 flex items-center">
-                <span class="mr-2">🎯</span> University Competitiveness
-              </h4>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h5 class="font-medium text-gray-900 mb-2">Assessment</h5>
-                  <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                  
+                  {#if analysis.weaknesses.length > 1}
+                    <!-- Locked weaknesses teaser -->
+                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                      <div class="flex items-center justify-center h-full">
                     <div class="text-center">
-                      <div class="text-xl font-bold text-purple-600 mb-1">{analysis.competitiveness.level}</div>
-                      <p class="text-purple-700 text-sm">{analysis.competitiveness.description}</p>
+                          <div class="text-xl mb-2">🔒</div>
+                          <p class="text-gray-600 text-sm">
+                            {analysis.weaknesses.length - 1} more growth areas available with
+                            <span class="font-medium">Professional Plan</span>
+                          </p>
                     </div>
                   </div>
                 </div>
-                <div>
-                  <h5 class="font-medium text-gray-900 mb-2">Opportunities</h5>
-                  <ul class="space-y-2">
-                    {#each analysis.competitiveness.opportunities.slice(0, 3) as opportunity}
-                      <li class="flex items-start space-x-2 text-sm">
-                        <span class="text-green-500 mt-1">✓</span>
-                        <span class="text-gray-700">{opportunity}</span>
-                      </li>
-                    {/each}
-                  </ul>
-                </div>
-              </div>
-            </div>
-
-            <!-- Recommendations -->
-            {#if analysis.recommendations.length > 0}
-              <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
-                <h4 class="text-lg font-semibold text-blue-900 mb-4 flex items-center">
-                  <span class="mr-2">💡</span> Personalized Recommendations
-                </h4>
-                <div class="space-y-4">
-                  {#each analysis.recommendations.slice(0, 2) as rec}
-                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                      <div class="flex items-start space-x-3">
-                        <div class="text-lg">💡</div>
-                        <div class="flex-1">
-                          <div class="flex items-center justify-between mb-2">
-                            <h5 class="font-medium text-blue-900 text-sm">{rec.title}</h5>
-                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium {
-                              rec.priority === 'high' ? 'bg-red-100 text-red-800' :
-                              rec.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                              'bg-green-100 text-green-800'
-                            }">
-                              {rec.priority} priority
-                            </span>
-                          </div>
-                          <p class="text-blue-700 text-sm mb-2">{rec.description}</p>
-                          <details class="text-xs">
-                            <summary class="font-medium text-blue-800 cursor-pointer hover:text-blue-600">Action Steps</summary>
-                            <ul class="mt-2 space-y-1 ml-4">
-                              {#each rec.actionItems as action}
-                                <li class="flex items-start space-x-2">
-                                  <span class="text-blue-500">•</span>
-                                  <span class="text-blue-700">{action}</span>
-                                </li>
-                              {/each}
-                            </ul>
-                          </details>
-                        </div>
-                      </div>
-                    </div>
-                  {/each}
+                  {/if}
                 </div>
               </div>
             {/if}
+
+            <!-- Premium Upgrade Banner -->
+            <div class="bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg p-6 text-white mb-6">
+              <div class="flex flex-col md:flex-row items-center justify-between">
+                <div class="mb-4 md:mb-0 md:mr-6">
+                  <h4 class="font-semibold text-xl mb-1">Want the Full Academic Analysis?</h4>
+                  <p class="text-purple-100">
+                    Upgrade to Professional for complete insights, personalized recommendations, and university competitiveness assessment.
+                  </p>
+                          </div>
+                <div class="flex-shrink-0">
+                  <a 
+                    href="/pricing" 
+                    class="inline-block bg-white text-purple-700 px-5 py-3 rounded-lg hover:bg-purple-50 transition-colors font-medium text-sm"
+                  >
+                    Upgrade Now
+                  </a>
+                        </div>
+                      </div>
+                    </div>
 
             <!-- Action Buttons -->
             <div class="flex flex-col sm:flex-row gap-4 justify-center">

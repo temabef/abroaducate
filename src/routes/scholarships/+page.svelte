@@ -69,94 +69,102 @@
   let currentPage = $state(1);
   let itemsPerPage = $state(10);
 
-  // Function to get filtered scholarships based on current state
-  function getFilteredScholarships(): Scholarship[] {
-    let filtered = [...allScholarships];
+  // Functions for pagination
+  function updateScholarships() {
+    console.log("🔍 Filtering - Mode:", viewMode, "Total:", allScholarships.length);
     
-    console.log('🔍 Filtering - Mode:', viewMode, 'Total:', allScholarships.length);
-
-    // Apply view mode filter
+    // First filter by view mode (all, saved, applied)
+    let filtered = [...allScholarships]; // Create a copy to avoid mutation
+    
     if (viewMode === 'saved') {
       filtered = filtered.filter(s => s.saved);
-      console.log('📋 Saved filter result:', filtered.length);
     } else if (viewMode === 'applied') {
       filtered = filtered.filter(s => s.applied);
-      console.log('✅ Applied filter result:', filtered.length);
     }
-
-    // Apply search filter
+    
+    // Then apply search query filter
     if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(s => 
-        s.title.toLowerCase().includes(query) ||
-        s.provider.toLowerCase().includes(query) ||
-        s.field.toLowerCase().includes(query) ||
-        s.location.toLowerCase().includes(query) ||
-        s.description.toLowerCase().includes(query)
+      const query = searchQuery.trim().toLowerCase();
+      filtered = filtered.filter(
+        s => s.title.toLowerCase().includes(query) || 
+             s.provider.toLowerCase().includes(query) || 
+             s.description.toLowerCase().includes(query)
       );
     }
-
-    // Apply other filters
+    
+    // Apply dropdown filters when set
     if (filters.location) {
-      filtered = filtered.filter(s => s.location.toLowerCase().includes(filters.location.toLowerCase()));
+      filtered = filtered.filter(s => s.location === filters.location);
     }
     if (filters.level) {
-      filtered = filtered.filter(s => s.level.toLowerCase().includes(filters.level.toLowerCase()));
+      filtered = filtered.filter(s => s.level === filters.level);
     }
     if (filters.field) {
-      filtered = filtered.filter(s => s.field.toLowerCase().includes(filters.field.toLowerCase()));
+      filtered = filtered.filter(s => s.field === filters.field || s.field === 'All Fields');
     }
     if (filters.type) {
-      filtered = filtered.filter(s => s.type.toLowerCase().includes(filters.type.toLowerCase()));
+      filtered = filtered.filter(s => s.type === filters.type);
     }
     if (filters.funding_category) {
-      filtered = filtered.filter(s => 
-        (s.funding_category || 'Traditional Scholarship') === filters.funding_category
-      );
-    }
-
-    // Apply sorting
-    filtered.sort((a, b) => {
-      if (sortBy === 'matchScore') return (b.matchScore || 0) - (a.matchScore || 0);
-      if (sortBy === 'deadline') return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
-      if (sortBy === 'title') return a.title.localeCompare(b.title);
-      if (sortBy === 'created_at') return new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime();
-      return 0;
-    });
-
-    return filtered;
-  }
-
-  // Update what scholarships to display for current page
-  function updateDisplayScholarships() {
-    totalPages = Math.ceil(filteredScholarships.length / itemsPerPage);
-    if (currentPage > totalPages && totalPages > 0) {
-      currentPage = 1;
+      filtered = filtered.filter(s => s.funding_category === filters.funding_category);
     }
     
+    // Sort scholarships
+    if (sortBy === 'deadline') {
+      filtered.sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime());
+    } else if (sortBy === 'match') {
+      filtered.sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0));
+    } else if (sortBy === 'created_at') {
+      filtered.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
+    }
+    
+    // Update state
+    filteredScholarships = filtered;
+    
+    // Calculate total pages
+    totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
+    
+    // Update display scholarships based on pagination
     const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    displayScholarships = filteredScholarships.slice(startIndex, endIndex);
-    
-    console.log('📄 Display updated - Page:', currentPage, 'Showing:', displayScholarships.length);
+    displayScholarships = filtered.slice(startIndex, startIndex + itemsPerPage);
+    console.log("📄 Display updated - Page:", currentPage, "Showing:", displayScholarships.length);
   }
 
-  // Update filtered scholarships (called by reactive effects)
-  function updateFiltered() {
-    filteredScholarships = getFilteredScholarships();
-    updateDisplayScholarships();
+  function goToPage(page: number) {
+    if (page >= 1 && page <= totalPages) {
+      currentPage = page;
+      const startIndex = (currentPage - 1) * itemsPerPage;
+      displayScholarships = filteredScholarships.slice(startIndex, startIndex + itemsPerPage);
+    }
   }
 
+  function nextPage() {
+    if (currentPage < totalPages) {
+      currentPage++;
+      const startIndex = (currentPage - 1) * itemsPerPage;
+      displayScholarships = filteredScholarships.slice(startIndex, startIndex + itemsPerPage);
+    }
+  }
+
+  function prevPage() {
+    if (currentPage > 1) {
+      currentPage--;
+      const startIndex = (currentPage - 1) * itemsPerPage;
+      displayScholarships = filteredScholarships.slice(startIndex, startIndex + itemsPerPage);
+    }
+  }
+  
   // Simple function to switch view modes
-  function switchViewMode(newMode: string) {
-    console.log('🔄 View Mode Change:', viewMode, '->', newMode);
-    viewMode = newMode;
-    currentPage = 1;
-    
-    // Trigger immediate filtering
-    updateFiltered();
-    
-    console.log('✅ View mode switched to:', viewMode, 'Results:', filteredScholarships.length);
+  function switchViewMode(mode: 'all' | 'saved' | 'applied') {
+    viewMode = mode;
+    currentPage = 1; // Reset to first page
+    updateScholarships();
+  }
+  
+  // Filter change handler
+  function handleFilterChange() {
+    currentPage = 1; // Reset to first page
+    updateScholarships();
   }
 
   async function loadScholarships() {
@@ -205,7 +213,7 @@
       });
       
       // Initial filtering after loading
-      updateFiltered();
+      updateScholarships();
     } catch (err) {
       console.error('Error:', err);
       error = 'Failed to load scholarships. Please try again.';
@@ -214,125 +222,10 @@
     }
   }
 
-  // Auto-update filtering when dependencies change
-  $effect(() => {
-    if (allScholarships.length > 0) {
-      console.log('🔄 Auto-filtering triggered:', {
-        viewMode,
-        searchQuery: searchQuery.length,
-        filtersActive: Object.values(filters).some(f => f.length > 0),
-        sortBy
-      });
-      updateFiltered();
-    }
-  });
-
-  // Reset to page 1 when filters change  
-  $effect(() => {
-    if (currentPage > totalPages && totalPages > 0) {
-      currentPage = 1;
-    }
-  });
-
   onMount(async () => {
     await loadScholarships();
+    updateScholarships(); // Initial filtering
   });
-
-  function goToPage(page: number) {
-    if (page >= 1 && page <= totalPages) {
-      currentPage = page;
-    }
-  }
-
-  function nextPage() {
-    if (currentPage < totalPages) {
-      currentPage++;
-    }
-  }
-
-  function prevPage() {
-    if (currentPage > 1) {
-      currentPage--;
-    }
-  }
-
-  async function toggleSaved(scholarshipId: string) {
-    if (!session?.user?.id) {
-      alert('Please log in to save scholarships');
-      return;
-    }
-
-    const scholarship = allScholarships.find(s => s.id === scholarshipId);
-    if (scholarship) {
-      // Import the service function
-      const { toggleScholarshipSaved } = await import('$lib/services/scholarshipService');
-      
-      const success = await toggleScholarshipSaved(supabase, session.user.id, scholarshipId);
-      
-      if (success) {
-        scholarship.saved = !scholarship.saved;
-        allScholarships = [...allScholarships]; // Trigger reactivity
-        console.log('✅ Scholarship saved state updated in database');
-      } else {
-        alert('Failed to save scholarship. Please try again.');
-      }
-    }
-  }
-
-  async function applyToScholarship(scholarshipId: string) {
-    if (!session?.user?.id) {
-      alert('Please log in to apply to scholarships');
-      return;
-    }
-
-    const scholarship = allScholarships.find(s => s.id === scholarshipId);
-    if (scholarship) {
-      // Open external application website
-      if (scholarship.website) {
-        window.open(scholarship.website, '_blank');
-      }
-      
-      // Import the service function
-      const { applyToScholarship: applyService } = await import('$lib/services/scholarshipService');
-      
-      const success = await applyService(supabase, session.user.id, scholarshipId);
-      
-      if (success) {
-        // Mark as applied and saved
-        scholarship.applied = true;
-        scholarship.saved = true;
-        allScholarships = [...allScholarships]; // Trigger reactivity
-        console.log('✅ Scholarship application status updated in database');
-      } else {
-        alert('Failed to mark scholarship as applied. Please try again.');
-      }
-    }
-  }
-
-  async function unapplyToScholarship(scholarshipId: string) {
-    if (!session?.user?.id) {
-      alert('Please log in to manage applications');
-      return;
-    }
-
-    const scholarship = allScholarships.find(s => s.id === scholarshipId);
-    if (scholarship) {
-      // Update database - just mark as not applied but keep saved
-      const { error } = await supabase
-        .from('user_scholarship_interactions')
-        .update({ is_applied: false })
-        .eq('user_id', session.user.id)
-        .eq('scholarship_id', scholarshipId);
-
-      if (!error) {
-        scholarship.applied = false;
-        allScholarships = [...allScholarships]; // Trigger reactivity
-        console.log('✅ Scholarship unapplied in database');
-      } else {
-        alert('Failed to update application status. Please try again.');
-      }
-    }
-  }
 
   function getDeadlineStatus(deadline: string) {
     const deadlineDate = new Date(deadline);
@@ -439,12 +332,6 @@
           class="px-4 py-2 rounded-md text-sm font-medium transition-colors {viewMode === 'saved' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'}"
         >
           Saved ({allScholarships.filter(s => s.saved).length})
-        </button>
-        <button
-          onclick={() => switchViewMode('applied')}
-          class="px-4 py-2 rounded-md text-sm font-medium transition-colors {viewMode === 'applied' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'}"
-        >
-          Applied ({allScholarships.filter(s => s.applied).length})
         </button>
       </div>
     </div>
@@ -591,9 +478,11 @@
                 {/if}
                 
                 <!-- Header -->
-                <div class="flex justify-between items-start mb-4">
+                <div class="flex items-start justify-between">
                   <div class="flex-1 mr-4">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-1">{scholarship.title}</h3>
+                    <a href={`/scholarships/${scholarship.id}`} class="block hover:text-blue-600">
+                      <h3 class="text-lg font-semibold text-gray-900 mb-1">{scholarship.title}</h3>
+                    </a>
                     <p class="text-gray-600">{scholarship.provider}</p>
                     
                     <!-- Additional info for graduate programs -->
@@ -603,36 +492,26 @@
                       <p class="text-sm text-purple-600 mt-1">Prof. {scholarship.professor_name}</p>
                     {/if}
                   </div>
-                  <div class="flex flex-col items-end gap-2">
+                  <div class="flex flex-col items-end">
                     {#if scholarship.matchScore}
                       <span class="text-sm font-medium {getMatchScoreColor(scholarship.matchScore)}">
                         {scholarship.matchScore}% match
                       </span>
                     {/if}
-                    <button
-                      onclick={() => toggleSaved(scholarship.id)}
-                      class="p-2 rounded-full hover:bg-gray-100 transition-colors duration-200"
-                      aria-label={scholarship.saved ? 'Remove scholarship from saved list' : 'Save scholarship to your list'}
-                      title={scholarship.saved ? 'Remove from saved' : 'Save scholarship'}
-                    >
-                      <svg class="w-5 h-5 {scholarship.saved ? 'text-yellow-500 fill-current' : 'text-gray-400'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path>
-                      </svg>
-                    </button>
                   </div>
                 </div>
 
-                                 <!-- Amount and Deadline -->
-                 <div class="flex items-center justify-between mb-4">
-                   <div class="text-xl font-bold text-yellow-600">{scholarship.amount}</div>
-                   {#each [getDeadlineStatus(scholarship.deadline)] as status}
-                     <div>
-                       <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {status.class}">
-                         {status.text}
-                       </span>
-                     </div>
-                   {/each}
-                 </div>
+                <!-- Amount and Deadline -->
+                <div class="flex items-center justify-between mb-4">
+                  <div class="text-xl font-bold text-yellow-600">{scholarship.amount}</div>
+                  {#each [getDeadlineStatus(scholarship.deadline)] as status}
+                    <div>
+                      <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {status.class}">
+                        {status.text}
+                      </span>
+                    </div>
+                  {/each}
+                </div>
 
                 <!-- Details -->
                 <div class="grid grid-cols-2 gap-4 mb-4 text-sm">
@@ -676,19 +555,31 @@
 
                 <!-- Actions -->
                 <div class="flex gap-3 pt-4 border-t">
-                  {#if scholarship.applied}
+                  <a href={`/scholarships/${scholarship.id}`} 
+                    class="flex-1 px-4 py-2 bg-yellow-600 text-white hover:bg-yellow-700 rounded-lg transition duration-200 text-center"
+                  >
+                    View Details
+                  </a>
+                  
+                  {#if scholarship.saved}
                     <button
-                      onclick={() => unapplyToScholarship(scholarship.id)}
-                      class="flex-1 px-4 py-2 bg-green-100 text-green-700 border border-green-300 rounded-lg hover:bg-green-200 transition duration-200"
+                      onclick={() => toggleSaved(scholarship.id)}
+                      class="flex-1 px-4 py-2 bg-gray-100 text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-200 transition duration-200 flex items-center justify-center"
                     >
-                      Applied ✓ (Click to Unmark)
+                      <svg class="w-5 h-5 mr-1 text-yellow-500 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor" fill="none">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path>
+                      </svg>
+                      Saved
                     </button>
                   {:else}
                     <button
-                      onclick={() => applyToScholarship(scholarship.id)}
-                      class="flex-1 px-4 py-2 bg-yellow-600 text-white hover:bg-yellow-700 rounded-lg transition duration-200"
+                      onclick={() => toggleSaved(scholarship.id)}
+                      class="flex-1 px-4 py-2 border border-gray-300 text-gray-800 rounded-lg hover:bg-gray-100 transition duration-200 flex items-center justify-center"
                     >
-                      Apply Now
+                      <svg class="w-5 h-5 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path>
+                      </svg>
+                      Save
                     </button>
                   {/if}
                 </div>

@@ -29,8 +29,6 @@
   let versions: any[] = [];
   let showVersionHistory = false;
   
-
-  
   // Inline editing - Professional context
   let selectedText = '';
   let showEditPopup = false;
@@ -324,21 +322,16 @@
     }
   }
   
-
-  
-  async function trackAnalytics(actionType: string) {
+  async function trackAnalytics(eventType: string) {
     try {
-      await supabase
-        .from('cover_letter_analytics')
-        .insert({
-          user_id: session.user.id,
-          cover_letter_id: coverLetter.id,
-          action_type: actionType,
-          session_data: {
-            word_count: wordCount,
-            time_spent: null // Could track time spent editing
-          },
-          created_at: new Date().toISOString()
+      await fetch('/api/analytics', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          eventType,
+          documentType: 'cover_letter',
+          documentId: coverLetter.id
+        })
         });
     } catch (error) {
       console.error('Error tracking analytics:', error);
@@ -427,6 +420,51 @@
   </div>
 {/if}
 
+<!-- Version History Modal -->
+{#if showVersionHistory}
+  <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick={() => showVersionHistory = false}>
+    <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-96 overflow-hidden" onclick={(e) => e.stopPropagation()}>
+      <div class="p-6 border-b border-gray-200">
+        <div class="flex items-center justify-between">
+          <h3 class="text-lg font-medium text-gray-900">Version History</h3>
+          <button onclick={() => showVersionHistory = false} class="text-gray-400 hover:text-gray-600">
+            ✕
+          </button>
+        </div>
+      </div>
+      <div class="overflow-y-auto max-h-64">
+        {#each versions as version, index}
+          <div class="p-4 border-b border-gray-100 hover:bg-gray-50">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm font-medium text-gray-900">
+                  Version {version.version_number}
+                </p>
+                <p class="text-xs text-gray-500">
+                  {formatDate(version.created_at)}
+                </p>
+                <p class="text-xs text-gray-600 mt-1">
+                  {version.changes_summary}
+                </p>
+              </div>
+              <button
+                onclick={() => restoreVersion(version)}
+                class="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
+              >
+                Restore
+              </button>
+            </div>
+          </div>
+        {:else}
+          <div class="p-4 text-center text-gray-500">
+            No version history available
+          </div>
+        {/each}
+      </div>
+    </div>
+  </div>
+{/if}
+
 <div class="min-h-screen bg-gray-50">
   <!-- Header -->
   <div class="bg-white border-b border-gray-200 sticky top-0 z-10">
@@ -466,10 +504,6 @@
           >
             📊 Versions ({versions.length})
           </button>
-          
-
-          
-
         </div>
       </div>
     </div>
@@ -586,6 +620,28 @@
           </p>
         </div>
         
+        <!-- Additional AI Features Card -->
+        <div class="bg-white rounded-lg border overflow-hidden shadow border-gray-200">
+          <div class="bg-gradient-to-r from-purple-50 to-indigo-50 px-4 py-3 border-b">
+            <h3 class="text-sm font-bold text-gray-900">✨ Looking for More AI Features?</h3>
+          </div>
+          <div class="p-4">
+            <p class="text-xs text-gray-700 mb-3">
+              Explore our full suite of AI tools including Word Optimization, Grammar Check, 
+              and more in our dedicated AI Features section.
+            </p>
+            <a 
+              href="/ai-features-demo" 
+              class="inline-flex items-center gap-2 bg-purple-600 text-white px-3 py-1 text-xs rounded-lg hover:bg-purple-700 transition-colors"
+            >
+              <span>Explore AI Features</span>
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+              </svg>
+            </a>
+          </div>
+        </div>
+        
         <!-- Writing Tips -->
         <div class="bg-white rounded-lg shadow border border-gray-200 p-4">
           <h3 class="font-medium text-gray-900 mb-3">📝 Professional Tips</h3>
@@ -603,51 +659,6 @@
     </div>
   </div>
 </div>
-
-<!-- Version History Modal -->
-{#if showVersionHistory}
-  <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick={() => showVersionHistory = false}>
-    <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-96 overflow-hidden" onclick={(e) => e.stopPropagation()}>
-      <div class="p-6 border-b border-gray-200">
-        <div class="flex items-center justify-between">
-          <h3 class="text-lg font-medium text-gray-900">Version History</h3>
-          <button onclick={() => showVersionHistory = false} class="text-gray-400 hover:text-gray-600">
-            ✕
-          </button>
-        </div>
-      </div>
-      <div class="overflow-y-auto max-h-64">
-        {#each versions as version, index}
-          <div class="p-4 border-b border-gray-100 hover:bg-gray-50">
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-sm font-medium text-gray-900">
-                  Version {version.version_number}
-                </p>
-                <p class="text-xs text-gray-500">
-                  {formatDate(version.created_at)}
-                </p>
-                <p class="text-xs text-gray-600 mt-1">
-                  {version.changes_summary}
-                </p>
-              </div>
-              <button
-                onclick={() => restoreVersion(version)}
-                class="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
-              >
-                Restore
-              </button>
-            </div>
-          </div>
-        {:else}
-          <div class="p-4 text-center text-gray-500">
-            No version history available
-          </div>
-        {/each}
-      </div>
-    </div>
-  </div>
-{/if}
 
 <style>
   @media print {

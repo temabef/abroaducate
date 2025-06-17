@@ -1,6 +1,11 @@
 <script lang="ts">
   import UniversityMatcher from '$lib/components/UniversityMatcher.svelte';
+  import { page } from '$app/stores';
+  import { onMount } from 'svelte';
   let { data } = $props();
+  
+  // Check if we're coming from a UK university redirect
+  const isUkUniversityView = $derived($page.url.searchParams.get('source') === 'uk');
 </script>
 
 <svelte:head>
@@ -24,44 +29,52 @@
           <span class="text-3xl">🌍</span>
           <div class="text-center">
             <h3 class="text-lg font-bold text-gray-900">NEW: Global University Database</h3>
-            <p class="text-sm text-gray-700">Access 400+ universities across USA, UK, Canada, Australia, Germany & more!</p>
+            <p class="text-sm text-gray-700">Access 1,500+ universities across USA, UK, Canada, Australia, Germany & more!</p>
           </div>
           <span class="text-3xl">🎓</span>
         </div>
         
-        <!-- Country Coverage Grid -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <div class="bg-white p-4 rounded-lg shadow-sm text-center">
+        <!-- Country Coverage Grid - First Row -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 mb-3">
+          <div class="bg-white p-3 rounded-lg shadow-sm text-center">
+            <div class="font-bold text-blue-600">🇺🇸 United States</div>
+            <div class="text-sm text-gray-600">1000 Universities</div>
+          </div>
+          <div class="bg-white p-3 rounded-lg shadow-sm text-center">
             <div class="font-bold text-blue-600">🇬🇧 United Kingdom</div>
-            <div class="text-sm text-gray-600">97 Universities</div>
+            <div class="text-sm text-gray-600">109 Universities</div>
           </div>
-          <div class="bg-white p-4 rounded-lg shadow-sm text-center">
+          <div class="bg-white p-3 rounded-lg shadow-sm text-center">
             <div class="font-bold text-blue-600">🇨🇦 Canada</div>
-            <div class="text-sm text-gray-600">78 Universities</div>
+            <div class="text-sm text-gray-600">89 Universities</div>
           </div>
-          <div class="bg-white p-4 rounded-lg shadow-sm text-center">
+          <div class="bg-white p-3 rounded-lg shadow-sm text-center">
             <div class="font-bold text-blue-600">🇩🇪 Germany</div>
-            <div class="text-sm text-gray-600">50 Universities</div>
+            <div class="text-sm text-gray-600">89 Universities</div>
           </div>
-          <div class="bg-white p-4 rounded-lg shadow-sm text-center">
+          <div class="bg-white p-3 rounded-lg shadow-sm text-center">
             <div class="font-bold text-blue-600">🇫🇷 France</div>
-            <div class="text-sm text-gray-600">50 Universities</div>
+            <div class="text-sm text-gray-600">49 Universities</div>
           </div>
-          <div class="bg-white p-4 rounded-lg shadow-sm text-center">
+        </div>
+        
+        <!-- Country Coverage Grid - Second Row (Centered) -->
+        <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 mb-6 mx-auto max-w-3xl">
+          <div class="bg-white p-3 rounded-lg shadow-sm text-center">
             <div class="font-bold text-blue-600">🇮🇹 Italy</div>
             <div class="text-sm text-gray-600">47 Universities</div>
           </div>
-          <div class="bg-white p-4 rounded-lg shadow-sm text-center">
+          <div class="bg-white p-3 rounded-lg shadow-sm text-center">
             <div class="font-bold text-blue-600">🇯🇵 Japan</div>
-            <div class="text-sm text-gray-600">39 Universities</div>
+            <div class="text-sm text-gray-600">59 Universities</div>
           </div>
-          <div class="bg-white p-4 rounded-lg shadow-sm text-center">
+          <div class="bg-white p-3 rounded-lg shadow-sm text-center">
             <div class="font-bold text-blue-600">🇦🇺 Australia</div>
-            <div class="text-sm text-gray-600">39 Universities</div>
+            <div class="text-sm text-gray-600">48 Universities</div>
           </div>
-          <div class="bg-white p-4 rounded-lg shadow-sm text-center">
+          <div class="bg-white p-3 rounded-lg shadow-sm text-center">
             <div class="font-bold text-blue-600">🇳🇱 Netherlands</div>
-            <div class="text-sm text-gray-600">30 Universities</div>
+            <div class="text-sm text-gray-600">29 Universities</div>
           </div>
         </div>
 
@@ -90,6 +103,52 @@
         </div>
       </div>
     </div>
+
+    {#if isUkUniversityView}
+      <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
+        <h2 class="text-2xl font-bold text-blue-800 mb-4 flex items-center gap-2">
+          <span class="text-3xl">🇬🇧</span> UK Universities
+        </h2>
+        
+        <p class="mb-4">
+          We have a comprehensive database of UK universities. Some specialized institutions or newer campuses 
+          might not be fully integrated yet, but we're constantly expanding our coverage.
+        </p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
+          <a href="/universities/oxford" class="p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow">
+            <h3 class="font-bold">University of Oxford</h3>
+            <p class="text-sm text-gray-600">Oxford, South East England</p>
+          </a>
+          <a href="/universities/cambridge" class="p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow">
+            <h3 class="font-bold">University of Cambridge</h3>
+            <p class="text-sm text-gray-600">Cambridge, East of England</p>
+          </a>
+          <a href="/universities/st-andrews" class="p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow">
+            <h3 class="font-bold">University of St Andrews</h3>
+            <p class="text-sm text-gray-600">St Andrews, Scotland</p>
+          </a>
+          <a href="/universities/lse" class="p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow">
+            <h3 class="font-bold">London School of Economics</h3>
+            <p class="text-sm text-gray-600">London, England</p>
+          </a>
+          <a href="/universities/imperial" class="p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow">
+            <h3 class="font-bold">Imperial College London</h3>
+            <p class="text-sm text-gray-600">London, England</p>
+          </a>
+          <a href="/universities/durham" class="p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow">
+            <h3 class="font-bold">Durham University</h3>
+            <p class="text-sm text-gray-600">Durham, North East England</p>
+          </a>
+        </div>
+        
+        <div class="mt-6 text-center">
+          <a href="/universities/database?selectedSource=uk" class="btn btn-primary">
+            View All UK Universities
+          </a>
+        </div>
+      </div>
+    {/if}
 
     <!-- Enhanced University Matcher with Global Coverage -->
     <UniversityMatcher />
@@ -174,7 +233,7 @@
       
       <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
         <div>
-          <div class="text-3xl font-bold text-blue-600">428+</div>
+          <div class="text-3xl font-bold text-blue-600">1,520</div>
           <div class="text-sm text-gray-600">Universities Available</div>
         </div>
         <div>
@@ -194,7 +253,7 @@
 
     <!-- Call to Action -->
     <div class="text-center">
-      <a href="/search" class="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+      <a href="/universities/database" class="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
         Explore All Universities
         <svg class="ml-2 -mr-1 w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />

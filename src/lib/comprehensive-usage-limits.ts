@@ -23,7 +23,8 @@ const AI_FEATURE_LIMITS: Record<string, Record<string, number | null>> = {
 		word_optimizations: 1,
 		grammar_check: 1,
 		plagiarism_checks: 1,
-		tone_analysis: 1
+		tone_analysis: 1,
+		university_matching: 25 // Reduced from 50 to prevent performance issues
 	},
 	professional: {
 		reviews: 15,
@@ -31,7 +32,8 @@ const AI_FEATURE_LIMITS: Record<string, Record<string, number | null>> = {
 		word_optimizations: 15,
 		grammar_check: 25,
 		plagiarism_checks: 10,
-		tone_analysis: 25
+		tone_analysis: 25,
+		university_matching: 200 // Reduced from 500 to prevent performance issues
 	},
 	elite: {
 		reviews: null,
@@ -39,7 +41,8 @@ const AI_FEATURE_LIMITS: Record<string, Record<string, number | null>> = {
 		word_optimizations: null,
 		grammar_check: null,
 		plagiarism_checks: null,
-		tone_analysis: null
+		tone_analysis: null,
+		university_matching: 500 // Reduced from 1500 to prevent performance issues
 	}
 };
 
@@ -82,7 +85,7 @@ export async function checkComprehensiveUsageLimit(
 
 		// If the limit is null, usage is unlimited.
 		if (limit === null) {
-			return { allowed: true, planType, currentUsage: Infinity, limit: null };
+			return { allowed: true, planType, currentUsage: 0, limit: null };
 		}
 		
 		// 3. Count the user's current usage from the new log table.

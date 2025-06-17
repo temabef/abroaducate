@@ -5,7 +5,6 @@
     import type { PageData } from './$types';
     import { formatDistanceToNow, parseISO } from 'date-fns';
     import WordCountOptimizer from '$lib/components/WordCountOptimizer.svelte';
-    import InlineAIEditor from '$lib/components/InlineAIEditor.svelte';
     import AIFeatureWidget from '$lib/components/AIFeatureWidget.svelte';
     
     export let data: PageData;
@@ -61,6 +60,9 @@
         { value: 'tone', label: '🎭 Tone Analysis', description: 'Analyze writing tone and personality' },
         { value: 'readability', label: '📊 Readability Score', description: 'Reading difficulty and clarity metrics' }
     ];
+    
+    // Export variables
+    let exporting = false;
     
     onMount(async () => {
         sopId = $page.params.id;
@@ -139,7 +141,8 @@
         const sopContent = document.getElementById('sop-content');
         const popup = document.querySelector('.edit-popup');
         
-        if (!sopContent?.contains(target) && !popup?.contains(target)) {
+        if ((!sopContent?.contains(target) || !target.closest('#sop-content')) && 
+            (!popup || !popup.contains(target))) {
             showEditPopup = false;
             selectedText = '';
         }
@@ -203,10 +206,48 @@
         clearSelection();
     }
     
-        async function handleEditOption(editType: string) {
-        // Legacy function - now handled by InlineAIEditor
-        // Just trigger the inline editor with the edit type
-        showEditPopup = true;
+    async function handleEditOption(editType: string) {
+        if (!selectedText || !sop) return;
+        
+        editingText = true;
+        showEditPopup = false;
+        
+        try {
+            const response = await fetch('/api/edit-text', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    text: selectedText,
+                    editType,
+                    context: sop.content,
+                    documentType: 'sop',
+                    programType: 'academic'
+                })
+            });
+            
+            if (!response.ok) throw new Error('Failed to edit text');
+            
+            const result = await response.json();
+            
+            // Replace selected text in SOP content
+            sop.content = sop.content.replace(selectedText, result.editedText);
+            
+            // Update word count
+            sop.word_count = sop.content.split(/\s+/).filter(w => w.length > 0).length;
+            
+            // Save changes
+            await saveSOP();
+            
+            // Record edit history
+            await recordEdit(selectedText, result.editedText, editType);
+            
+        } catch (error) {
+            console.error('Error editing text:', error);
+            alert('Failed to edit text. Please try again.');
+        } finally {
+            editingText = false;
+            clearSelection();
+        }
     }
     
     async function saveSOP() {
@@ -230,21 +271,33 @@
     async function recordEdit(originalText: string, editedText: string, editType: string) {
         if (!sop) return;
         
-        await supabase
-            .from('sop_edits')
-            .insert({
-                sop_id: sop.id,
-                user_id: session?.user?.id,
-                original_text: originalText,
-                edited_text: editedText,
-                edit_type: editType,
-                position_start: sop.content.indexOf(originalText),
-                position_end: sop.content.indexOf(originalText) + originalText.length
-            });
+        try {
+            await supabase
+                .from('sop_edits')
+                .insert({
+                    sop_id: sop.id,
+                    user_id: session?.user?.id,
+                    original_text: originalText.substring(0, 100), // Truncate for storage
+                    edited_text: editedText.substring(0, 100),
+                    edit_type: editType,
+                    created_at: new Date().toISOString()
+                });
+        } catch (error) {
+            console.error('Error recording edit:', error);
+        }
     }
     
     function clearSelection() {
-        window.getSelection()?.removeAllRanges();
+        if (window.getSelection) {
+            const selection = window.getSelection();
+            if (selection) {
+                if (selection.removeAllRanges) {
+                    selection.removeAllRanges();
+                } else if (selection.empty) {
+                    selection.empty();
+                }
+            }
+        }
         selectedText = '';
         showEditPopup = false;
     }
@@ -260,10 +313,6 @@
             alert('Failed to copy SOP. Please select and copy manually.');
         }
     }
-    
-
-    
-
     
     function reviewSOP() {
         if (!sop) return;
@@ -302,25 +351,15 @@
     }
     
     // Handle content optimization from WordCountOptimizer
-    async function handleContentOptimized(event: CustomEvent) {
+    function handleContentOptimized(event: CustomEvent) {
         if (!sop) return;
         
-        const { optimizedContent, originalWordCount, newWordCount } = event.detail;
+        const { optimizedContent } = event.detail;
+        sop.content = optimizedContent;
+        sop.word_count = optimizedContent.split(/\s+/).filter(w => w.length > 0).length;
         
-        // Update SOP content
-        const updatedSop = { ...sop };
-        updatedSop.content = optimizedContent;
-        updatedSop.word_count = newWordCount;
-        sop = updatedSop;
-        
-        // Save to database
-        try {
-            await saveSOP();
-            alert(`Content optimized! Word count changed from ${originalWordCount} to ${newWordCount} words.`);
-        } catch (error) {
-            console.error('Error saving optimized content:', error);
-            alert('Failed to save optimized content. Please try again.');
-        }
+        // Save the optimized content
+        saveSOP();
     }
     
     function getProgressColor(score: number): string {
@@ -328,38 +367,125 @@
         if (score >= 60) return 'bg-yellow-500';
         return 'bg-red-500';
     }
+
+    async function exportSOP() {
+        if (!sop) return;
+        exporting = true;
+        
+        try {
+            // Create a blob from the content
+            const htmlContent = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="utf-8">
+                    <title>${sop.university_name} - ${sop.program_name} SOP</title>
+                    <style>
+                        body {
+                            font-family: 'Times New Roman', Times, serif;
+                            line-height: 1.6;
+                            margin: 1in;
+                            font-size: 12pt;
+                        }
+                        h1 {
+                            text-align: center;
+                            font-size: 14pt;
+                            margin-bottom: 24pt;
+                        }
+                        p {
+                            text-indent: 0.5in;
+                            margin-bottom: 12pt;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <h1>Statement of Purpose - ${sop.university_name} ${sop.program_name}</h1>
+                    ${sop.content.split('\n').map((para: string) => `<p>${para}</p>`).join('')}
+                </body>
+                </html>
+            `;
+            
+            const blob = new Blob([htmlContent], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            
+            // Create a link and trigger download
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${sop.university_name}_${sop.program_name}_SOP.html`;
+            document.body.appendChild(a);
+            a.click();
+            
+            // Clean up
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+        } catch (error) {
+            console.error('Error exporting SOP:', error);
+            alert('Failed to export SOP. Please try again.');
+        } finally {
+            exporting = false;
+        }
+    }
+
+    // Add a function to run analysis
+    async function runAnalysis() {
+        if (!sop || analyzing) return;
+        
+        analyzing = true;
+        analysisError = '';
+        
+        try {
+            // Call the appropriate analysis endpoint based on selected analysis type
+            const response = await fetch('/api/analyze-sop', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    content: sop.content,
+                    analysisType: selectedAnalysis,
+                    universityName: sop.university_name,
+                    programName: sop.program_name
+                })
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Analysis failed');
+            }
+            
+            const result = await response.json();
+            analysisResult = result;
+            
+        } catch (error: any) {
+            console.error('Analysis error:', error);
+            analysisError = error.message || 'Failed to analyze SOP';
+        } finally {
+            analyzing = false;
+        }
+    }
 </script>
 
 <svelte:head>
     <title>{sop ? `${sop.university_name} SOP` : 'Loading SOP'} - SOP Generator</title>
 </svelte:head>
 
-
-
 <!-- Edit Popup -->
 {#if showEditPopup}
     <div 
-        class="edit-popup fixed z-40 bg-white rounded-lg shadow-xl border p-4"
+        class="fixed bg-white border border-gray-300 rounded-lg shadow-lg p-2 z-50 edit-popup"
         style="left: {popupPosition.x - 100}px; top: {popupPosition.y - 60}px;"
     >
-        <div class="flex flex-wrap gap-2">
+        <div class="flex gap-1">
             {#each editOptions as option}
                 <button
                     onclick={() => handleEditOption(option.value)}
-                    class="flex items-center gap-2 px-3 py-2 text-sm bg-gray-100 hover:bg-blue-100 rounded-lg transition-colors"
                     disabled={editingText}
+                    class="px-3 py-1 text-xs bg-blue-100 hover:bg-blue-200 text-blue-800 rounded transition-colors disabled:opacity-50"
+                    title={option.label}
                 >
-                    <span>{option.icon}</span>
-                    <span>{option.label}</span>
+                    {option.icon} {option.label}
                 </button>
             {/each}
         </div>
-        <button
-            onclick={clearSelection}
-            class="absolute -top-2 -right-2 w-6 h-6 bg-gray-500 text-white rounded-full text-xs hover:bg-gray-600"
-        >
-            ×
-        </button>
     </div>
 {/if}
 
@@ -434,7 +560,6 @@
                         >
                             🔍 Review SOP
                         </button>
-
                     </div>
                 </div>
             </div>
@@ -467,20 +592,6 @@
                     {/each}
                 </div>
             </div>
-            
-            <!-- Word Count Optimization Section -->
-            {#if sop}
-                <div class="mt-8">
-                    <WordCountOptimizer
-                        sopContent={sop.content}
-                        universityName={sop.university_name}
-                        programName={sop.program_name}
-                        programType="masters"
-                        currentWordCount={sop.word_count || 0}
-                        on:contentOptimized={handleContentOptimized}
-                    />
-                </div>
-            {/if}
             
             <!-- AI Analysis Section -->
             <div class="mt-8 bg-white rounded-lg shadow-sm border">
@@ -661,37 +772,52 @@
                 </div>
             </div>
             
-            <!-- New Inline AI Editor -->
-            <InlineAIEditor 
-                {selectedText}
-                editType="improve"
-                context={sop?.content || ''}
-                show={showEditPopup}
-                position={popupPosition}
-                on:textEdited={handleTextEdited}
-                on:close={closeInlineEditor}
-            />
-            
-            <!-- SOP Analysis Section -->
-            {#if sop && sop.content}
-                <div class="mt-8">
-                    <h3 class="text-lg font-semibold mb-4">🔍 AI Analysis</h3>
-                    
-                    <AIFeatureWidget 
-                        featureType="sop_review"
-                        content={sop.content}
-                        options={{
-                            universityName: sop.university_name,
-                            programName: sop.program_name,
-                            reviewMode: selectedAnalysis
-                        }}
-                        placeholder="SOP content will be analyzed..."
-                        buttonText="🔍 Analyze SOP"
-                        showUsageInfo={true}
-                        on:success={handleAnalysisSuccess}
-                    />
+            <!-- Additional AI Features Card -->
+            <div class="mt-8 bg-white rounded-lg shadow-sm border overflow-hidden">
+                <div class="bg-gradient-to-r from-purple-50 to-indigo-50 px-6 py-4 border-b">
+                    <h3 class="text-lg font-bold text-gray-900">✨ Looking for More AI Features?</h3>
                 </div>
-            {/if}
+                <div class="p-6">
+                    <p class="text-gray-700 mb-4">
+                        Explore our full suite of AI tools including Word Optimization, SOP Review, 
+                        Grammar Check, and more in our dedicated AI Features section.
+                    </p>
+                    <a 
+                        href="/ai-features-demo" 
+                        class="inline-flex items-center gap-2 bg-purple-600 text-white px-5 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+                    >
+                        <span>Explore AI Features</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Export Button -->
+            <div class="mt-8 mb-6">
+                <button 
+                    onclick={exportSOP}
+                    class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    disabled={exporting}
+                >
+                    {#if exporting}
+                        <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        Exporting...
+                    {:else}
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                        </svg>
+                        Export as PDF
+                    {/if}
+                </button>
+            </div>
         </div>
     {/if}
-</div> 
+</div>
+
+<style>
+    /* ... existing styles ... */
+    
+    
+</style> 

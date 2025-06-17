@@ -11,10 +11,12 @@ import { italianUniversityManager } from '$lib/database/italy-university-integra
 import { COLLEGE_SCORECARD_API_KEY } from '$env/static/private';
 import type { EnhancedUniversity } from '$lib/database/university-integration';
 
-export const load = async ({ params }) => {
+export const load = async ({ params, url }) => {
     const slug = params.slug;
     
     console.log(`🔍 Looking for university with slug: ${slug}`);
+    
+    // These problematic universities have been removed from the database
     
     try {
         // Search across ALL university databases
@@ -40,6 +42,17 @@ export const load = async ({ params }) => {
                         university: harvardUni
                     };
                 }
+            }
+            
+            // Check if it's a UK university domain that we don't have complete data for
+            if (slug.includes('.ac.uk')) {
+                console.log(`🇬🇧 UK university domain detected but not found: ${slug}`);
+                return {
+                    university: null,
+                    error: `University not found. We searched for "${slug}" but couldn't find a matching university in our database.`,
+                    isUkUniversity: true,
+                    suggestedName: getCleanUniversityName(slug)
+                };
             }
             
             console.log(`❌ University not found for slug: ${slug}`);
@@ -69,7 +82,8 @@ async function findUniversityBySlug(slug: string): Promise<EnhancedUniversity | 
     const searchStrategies = [
         () => searchByWebsiteUrl(cleanSlug),
         () => searchByUniversityName(cleanSlug),
-        () => searchByPartialName(cleanSlug)
+        () => searchByPartialName(cleanSlug),
+        () => searchByUKUniversityId(cleanSlug)
     ];
     
     for (const strategy of searchStrategies) {
@@ -91,24 +105,31 @@ async function searchByWebsiteUrl(slug: string): Promise<EnhancedUniversity | nu
     // Get all universities from all sources
     const allUniversities = await getAllUniversities();
     
-    // Look for Harvard specifically first
-    const harvardUniversities = allUniversities.filter(uni => 
-        uni.name.toLowerCase().includes('harvard')
-    );
-    console.log(`🎓 Found ${harvardUniversities.length} Harvard universities:`);
-    harvardUniversities.forEach(uni => {
-        console.log(`  - ${uni.name}: ${uni.website_url}`);
-        const websiteSlug = extractSlugFromUrl(uni.website_url || '');
-        console.log(`    Slug: "${websiteSlug}" vs "${slug}"`);
-    });
+    // Special cases for UK universities have been removed as the problematic universities were deleted
     
     // Look for exact website URL matches
     for (const university of allUniversities) {
         if (university.website_url) {
-            const websiteSlug = extractSlugFromUrl(university.website_url);
-            if (websiteSlug === slug) {
-                console.log(`✅ Found match: ${university.name}`);
-                return university;
+            try {
+                // Clean and standardize both URLs for comparison
+                const websiteSlug = extractSlugFromUrl(university.website_url);
+                
+                // Debug logging for all UK universities to help diagnose issues
+                if (university.country === 'United Kingdom') {
+                    console.log(`🇬🇧 ${university.name}: URL="${university.website_url}", Slug="${websiteSlug}", ID="${university.id}"`);
+                }
+                
+                // Compare slugs with various possible formats
+                if (websiteSlug === slug || 
+                    (websiteSlug === `www.${slug}`) || 
+                    (slug === `www.${websiteSlug}`) ||
+                    (slug.includes(websiteSlug.replace('www.', ''))) ||
+                    (websiteSlug.includes(slug.replace('www.', '')))) {
+                    console.log(`✅ Found match: ${university.name}`);
+                    return university;
+                }
+            } catch (error) {
+                console.error(`❌ Error processing website URL for ${university.name}: ${university.website_url}`, error);
             }
         }
     }
@@ -175,6 +196,55 @@ async function searchByPartialName(slug: string): Promise<EnhancedUniversity | n
 }
 
 /**
+ * Special search for UK universities by ID
+ * This is a fallback method for UK universities that might have complex domain structures
+ */
+async function searchByUKUniversityId(slug: string): Promise<EnhancedUniversity | null> {
+    console.log(`🇬🇧 Searching UK universities by ID for: ${slug}`);
+    
+    // Get all universities
+    const allUniversities = await getAllUniversities();
+    const ukUniversities = allUniversities.filter(uni => uni.country === 'United Kingdom');
+    
+    // Extract potential university name from the slug
+    let potentialName = slug
+        .replace(/^www\./, '')
+        .replace(/\.ac\.uk$/, '')
+        .replace(/[-_.]/g, ' ');
+    
+    console.log(`🔍 Extracted potential name: "${potentialName}"`);
+    
+    // First try direct ID match
+    for (const uni of ukUniversities) {
+        if (uni.id.toLowerCase() === potentialName.toLowerCase()) {
+            console.log(`✅ Found exact ID match: ${uni.name} (ID: ${uni.id})`);
+            return uni;
+        }
+    }
+    
+    // Then try fuzzy ID match
+    for (const uni of ukUniversities) {
+        // Try to match parts of the ID
+        const idParts = uni.id.toLowerCase().split('-');
+        const nameParts = potentialName.toLowerCase().split(' ');
+        
+        // Check for significant overlap
+        const matchingParts = idParts.filter(part => 
+            nameParts.some(namePart => 
+                namePart.includes(part) || part.includes(namePart)
+            )
+        );
+        
+        if (matchingParts.length >= Math.min(1, idParts.length * 0.5)) {
+            console.log(`✅ Found fuzzy ID match: ${uni.name} (ID: ${uni.id})`);
+            return uni;
+        }
+    }
+    
+    return null;
+}
+
+/**
  * Get all universities from all sources
  */
 async function getAllUniversities(): Promise<EnhancedUniversity[]> {
@@ -228,8 +298,27 @@ function extractSlugFromUrl(url: string): string {
         }
         
         const urlObj = new URL(cleanUrl);
-        return urlObj.hostname.toLowerCase();
-    } catch {
+        
+        // Special handling for UK university URLs that often have complex subdomains
+        const hostname = urlObj.hostname.toLowerCase();
+        
+        // Handle common UK university URL patterns
+        if (hostname.endsWith('.ac.uk')) {
+            // Extract the main part of the domain for .ac.uk domains
+            const parts = hostname.split('.');
+            if (parts.length >= 3) {
+                // For URLs like www.bishopg.ac.uk, return bishopg.ac.uk
+                if (parts[0] === 'www') {
+                    return parts.slice(1).join('.');
+                }
+            }
+        }
+        
+        return hostname;
+    } catch (error) {
+        // Log error for debugging
+        console.error(`❌ Error extracting slug from URL: ${url}`, error);
+        
         // Fallback: clean the URL manually
         return url
             .replace(/^https?:\/\//, '') // Remove protocol
@@ -248,4 +337,20 @@ function convertNameToSlug(name: string): string {
         .replace(/[^a-z0-9\s]/g, '') // Remove special characters
         .replace(/\s+/g, '-') // Replace spaces with hyphens
         .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
+}
+
+/**
+ * Extract clean university name from slug for display purposes
+ */
+function getCleanUniversityName(slug: string): string {
+    // Special cases for UK universities have been removed
+    
+    // Remove www., .edu, .ac.uk, etc. and clean up
+    return slug
+      .replace(/^www\./, '')
+      .replace(/\.(edu|ac\.uk|ca|nl|de)$/, '')
+      .replace(/[-_]/g, ' ')
+      .split('.')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
 } 

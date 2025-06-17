@@ -131,7 +131,7 @@
                 <div class="text-sm text-gray-500">Smart university + scholarship pairing</div>
               </div>
             </a>
-            <a href="/universities/phase2" class="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition duration-200">
+            <a href="/universities/database" class="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition duration-200">
               <span class="text-lg mr-3">🚀</span>
               <div>
                 <div class="font-medium">Phase II Testing</div>

@@ -1,16 +1,54 @@
 <script lang="ts">
   import { page } from '$app/stores';
-  import { onMount } from 'svelte';
+  import { onMount, afterUpdate } from 'svelte';
+  import { goto } from '$app/navigation';
   import type { EnhancedUniversity } from '$lib/database/university-integration';
   
-  export let data: { university: EnhancedUniversity | null; error?: string };
+  export let data: { 
+    university: EnhancedUniversity | null; 
+    error?: string;
+    isUkUniversity?: boolean;
+    suggestedName?: string;
+    redirect?: string;
+    status?: number;
+  };
   
   let university = data.university;
   let error = data.error;
   let loading = false;
   
+  // Handle redirects
+  afterUpdate(() => {
+    if (data.redirect) {
+      goto(data.redirect);
+    }
+  });
+  
   // Extract clean university name from slug
   function getCleanUniversityName(slug: string): string {
+    // Special cases for UK universities
+    const ukSpecialCases: {[key: string]: string} = {
+      'bishopg.ac.uk': 'Bishop Grosseteste University',
+      'www.bishopg.ac.uk': 'Bishop Grosseteste University',
+      'marjon.ac.uk': 'Plymouth Marjon University',
+      'www.marjon.ac.uk': 'Plymouth Marjon University',
+      'stmarys.ac.uk': 'St Mary\'s University, Twickenham',
+      'www.stmarys.ac.uk': 'St Mary\'s University, Twickenham',
+      'newman.ac.uk': 'Newman University',
+      'www.newman.ac.uk': 'Newman University',
+      'roehampton.ac.uk': 'University of Roehampton',
+      'www.roehampton.ac.uk': 'University of Roehampton',
+      'beds.ac.uk': 'University of Bedfordshire',
+      'www.beds.ac.uk': 'University of Bedfordshire',
+      'falmouth.ac.uk': 'Falmouth University',
+      'www.falmouth.ac.uk': 'Falmouth University'
+    };
+    
+    // Check special cases first
+    if (ukSpecialCases[slug]) {
+      return ukSpecialCases[slug];
+    }
+    
     // Remove www., .edu, .ac.uk, etc. and clean up
     return slug
       .replace(/^www\./, '')
@@ -67,13 +105,15 @@
   {#if university}
     <title>{university.name} - University Profile | Abroaducate</title>
     <meta name="description" content="Complete profile for {university.name} including rankings, programs, costs, admission requirements, and application guidance." />
+  {:else if data.redirect}
+    <title>Redirecting...</title>
   {:else}
     <title>University Profile | Abroaducate</title>
   {/if}
 </svelte:head>
 
 <div class="min-h-screen bg-gray-50">
-  {#if loading}
+  {#if loading || data.redirect}
     <div class="flex items-center justify-center min-h-screen">
       <div class="text-center">
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
@@ -88,12 +128,28 @@
         <p class="text-red-600 mb-6">{error}</p>
         <div class="space-y-2 text-sm text-red-700">
           <p><strong>Requested:</strong> {$page.params.slug}</p>
-          <p><strong>Suggested Name:</strong> {getCleanUniversityName($page.params.slug)}</p>
+          <p><strong>Suggested Name:</strong> {data.suggestedName || getCleanUniversityName($page.params.slug)}</p>
         </div>
-        <div class="mt-6">
+        
+        {#if data.isUkUniversity || $page.params.slug.includes('.ac.uk')}
+          <div class="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-left">
+            <h3 class="font-medium text-yellow-800 mb-2">UK University Website Detected</h3>
+            <p class="text-yellow-700 mb-2">We've detected a UK university website. If you're looking for a specific UK university, try these options:</p>
+            <ul class="list-disc list-inside text-yellow-700 space-y-1">
+              <li>Try searching for the university by name instead of website</li>
+              <li>Check our <a href="/universities?source=uk" class="text-blue-600 underline">UK Universities Database</a></li>
+              <li>If this is a newer or specialized institution, we may be updating our database</li>
+            </ul>
+          </div>
+        {/if}
+        
+        <div class="mt-6 space-y-4">
           <a href="/universities" class="btn btn-primary">
             Browse All Universities
           </a>
+          <div class="text-sm text-gray-600">
+            <p>Can't find your university? <a href="/contact" class="text-blue-600 underline">Contact us</a> and we'll add it.</p>
+          </div>
         </div>
       </div>
     </div>

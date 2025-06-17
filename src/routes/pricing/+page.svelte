@@ -209,7 +209,7 @@
             <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
             </svg>
-            <span class="text-gray-700">Basic templates & PDF/RTF export</span>
+            <span class="text-gray-700">Basic document generation with standard academic format</span>
           </li>
           <li class="flex items-start">
             <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -247,6 +247,12 @@
               <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
             </svg>
             <span class="text-gray-700"><strong>GPT-3.5 AI Engine</strong> - Reliable and efficient AI</span>
+          </li>
+          <li class="flex items-start">
+            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+            </svg>
+            <span class="text-gray-700"><strong>Scholarship Access:</strong> Free access to all scholarship listings</span>
           </li>
         </ul>
 
@@ -305,8 +311,9 @@
             <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
             </svg>
-            <span class="text-gray-700">All templates & PDF/RTF export</span>
+            <span class="text-gray-700">Generate alternative versions of your documents to compare approaches</span>
           </li>
+          
           <li class="flex items-start">
             <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
@@ -342,6 +349,12 @@
               <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
             </svg>
             <span class="text-gray-700"><strong>Cold Email Generator</strong> - Professional outreach templates</span>
+          </li>
+          <li class="flex items-start">
+            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+            </svg>
+            <span class="text-gray-700"><strong>Scholarship Access:</strong> Free access to all scholarship listings with personalized recommendations</span>
           </li>
           <li class="flex items-start">
             <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -407,14 +420,9 @@
             <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
             </svg>
-            <span class="text-gray-700">All templates + custom template creation (coming soon)</span>
+            <span class="text-gray-700">Generate multiple alternative versions simultaneously for comprehensive options</span>
           </li>
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-700">Enhanced export (PDF, RTF + more formats coming)</span>
-          </li>
+          
           <li class="flex items-start">
             <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
@@ -450,6 +458,12 @@
               <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
             </svg>
             <span class="text-gray-700"><strong>Advanced Cold Email Suite</strong> - Smart templates + professional guidance</span>
+          </li>
+          <li class="flex items-start">
+            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+            </svg>
+            <span class="text-gray-700"><strong>Scholarship Access:</strong> Priority access to all scholarship listings with custom alerts and personalized recommendations</span>
           </li>
           <li class="flex items-start">
             <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -509,12 +523,6 @@
                 <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>500+ universities</strong></td>
                 <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>1500+ universities + priority access</strong></td>
               </tr>
-              <tr class="bg-gray-50">
-                <td class="px-6 py-4 text-sm text-gray-900 font-medium">Export Formats</td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600">PDF + RTF</td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600">PDF + RTF</td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600">PDF + RTF + more formats coming</td>
-              </tr>
               <tr>
                 <td class="px-6 py-4 text-sm text-gray-900 font-medium">AI Model</td>
                 <td class="px-6 py-4 text-sm text-center text-gray-600">GPT-3.5</td>
@@ -542,9 +550,9 @@
               </tr>
               <tr class="bg-gray-50">
                 <td class="px-6 py-4 text-sm text-gray-900 font-medium">Templates & Customization</td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600">6 basic templates</td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>All templates + subject-specific</strong></td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>Custom creation (coming soon)</strong></td>
+                <td class="px-6 py-4 text-sm text-center text-gray-600">Standard format</td>
+                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>Alternative versions</strong></td>
+                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>Multiple alternatives</strong></td>
               </tr>
               <tr>
                 <td class="px-6 py-4 text-sm text-gray-900 font-medium">Analytics & Features</td>
@@ -557,6 +565,12 @@
                 <td class="px-6 py-4 text-sm text-center text-gray-600">-</td>
                 <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>🚀 New features included</strong></td>
                 <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>🚀 Auto-expanding limits</strong></td>
+              </tr>
+              <tr>
+                <td class="px-6 py-4 text-sm text-gray-900 font-medium">Scholarship Access</td>
+                <td class="px-6 py-4 text-sm text-center text-gray-600">✅ Free Access</td>
+                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>✅ Free Access + Personalized</strong></td>
+                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>✅ Priority Access + Custom Alerts</strong></td>
               </tr>
             </tbody>
           </table>
@@ -587,6 +601,33 @@
         </div>
         <a href="/gpa-converter" class="inline-block mt-4 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition duration-300 font-semibold">
           Try GPA Converter Free →
+        </a>
+      </div>
+    </div>
+
+    <!-- Scholarship Highlight -->
+    <div class="mt-8 max-w-4xl mx-auto mb-20 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg p-6">
+      <div class="text-center">
+        <h2 class="text-2xl font-bold text-yellow-900 mb-3">🏆 Scholarship Access - 100% FREE for Everyone!</h2>
+        <p class="text-yellow-700 text-lg mb-4">
+          Access our growing database of scholarships completely free with any plan. Find and apply for financial aid opportunities worldwide.
+        </p>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+          <div class="bg-white rounded-lg p-4 border border-yellow-100">
+            <div class="font-semibold text-yellow-900">All Plans Include</div>
+            <div class="text-yellow-700">Unlimited scholarship browsing</div>
+          </div>
+          <div class="bg-white rounded-lg p-4 border border-yellow-100">
+            <div class="font-semibold text-yellow-900">Save & Track</div>
+            <div class="text-yellow-700">Mark favorites and track applications</div>
+          </div>
+          <div class="bg-white rounded-lg p-4 border border-yellow-100">
+            <div class="font-semibold text-yellow-900">Apply Directly</div>
+            <div class="text-yellow-700">Easy application process</div>
+          </div>
+        </div>
+        <a href="/scholarships" class="inline-block mt-4 bg-yellow-600 text-white px-6 py-3 rounded-lg hover:bg-yellow-700 transition duration-300 font-semibold">
+          Browse Scholarships →
         </a>
       </div>
     </div>
