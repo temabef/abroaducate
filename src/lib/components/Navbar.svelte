@@ -1,5 +1,6 @@
 <script lang="ts">
   import { page } from '$app/stores';
+  import AuthenticationFlow from './AuthenticationFlow.svelte';
   
   let { data } = $props<{ data: { session: any; supabase: any } }>();
   let { session, supabase } = $derived(data);
@@ -10,17 +11,19 @@
   let applicationsDropdownOpen = $state(false);
   let aiToolsDropdownOpen = $state(false);
   let mobileMenuOpen = $state(false);
+  let showAuthModal = $state(false);
+  let authMode = $state<'login' | 'signup'>('login');
 
-  async function signInWithGoogle() {
-    const currentPath = $page.url.pathname;
-    const redirectUrl = `${location.origin}/auth/callback?next=${encodeURIComponent(currentPath)}`;
-    
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: redirectUrl
-      }
-    });
+  function showLogin() {
+    authMode = 'login';
+    showAuthModal = true;
+    mobileMenuOpen = false; // Close mobile menu if open
+  }
+
+  function showSignup() {
+    authMode = 'signup';
+    showAuthModal = true;
+    mobileMenuOpen = false; // Close mobile menu if open
   }
 
   async function signOut() {
@@ -293,21 +296,16 @@
       {:else}
         <div class="hidden lg:flex items-center space-x-2">
           <button 
-            onclick={() => {
-              if (typeof document !== 'undefined') {
-                const formSection = document.getElementById('form-section');
-                if (formSection) {
-                  formSection.scrollIntoView({ behavior: 'smooth' });
-                }
-              }
-            }}
+            onclick={showLogin}
+            class="px-4 py-2 text-sm font-medium text-white bg-transparent border border-white rounded-md hover:bg-white hover:text-[#0A192F] transition duration-300 ease-in-out"
+          >
+            Login
+          </button>
+          <button 
+            onclick={showSignup}
             class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition duration-300 ease-in-out"
           >
-            Get Started
-          </button>
-          <button onclick={signInWithGoogle} class="px-4 py-2 text-sm font-medium text-white bg-transparent border border-white rounded-md hover:bg-white hover:text-[#0A192F] flex items-center space-x-3 transition duration-300 ease-in-out">
-            <img src="https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg" alt="Google G Logo" class="w-4 h-4">
-            Login
+            Create Account
           </button>
         </div>
       {/if}
@@ -410,26 +408,28 @@
         {:else}
           <div class="pt-2 border-t border-gray-700 space-y-2">
             <button 
-              onclick={() => {
-                if (typeof document !== 'undefined') {
-                  const formSection = document.getElementById('form-section');
-                  if (formSection) {
-                    formSection.scrollIntoView({ behavior: 'smooth' });
-                  }
-                }
-                mobileMenuOpen = false;
-              }}
-              class="block w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition duration-300"
+              onclick={showLogin}
+              class="block w-full px-4 py-2 text-sm font-medium text-white bg-transparent border border-white rounded-md hover:bg-white hover:text-[#0A192F] transition duration-300 text-center"
             >
-              Get Started
+              Login
             </button>
-            <button onclick={signInWithGoogle} class="flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-white bg-transparent border border-white rounded-md hover:bg-white hover:text-[#0A192F] transition duration-300 space-x-2">
-              <img src="https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg" alt="Google G Logo" class="w-4 h-4">
-              <span>Login</span>
+            <button 
+              onclick={showSignup}
+              class="block w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition duration-300 text-center"
+            >
+              Create Account
             </button>
           </div>
         {/if}
       </div>
     </div>
   {/if}
-</header> 
+</header>
+
+<!-- Authentication Modal -->
+<AuthenticationFlow 
+  bind:show={showAuthModal} 
+  {supabase} 
+  mode={authMode} 
+  returnUrl={$page.url.pathname}
+/> 

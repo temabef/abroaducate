@@ -1,22 +1,20 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
+  import AuthenticationFlow from '$lib/components/AuthenticationFlow.svelte';
 
   let { data } = $props();
   let { session, supabase } = $derived(data);
-
-  async function signInWithGoogle() {
-    const redirectUrl = `${location.origin}/auth/callback?next=${encodeURIComponent('/dashboard')}`;
-    
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: redirectUrl }
-    });
-  }
+  
+  let showAuthModal = $state(false);
 
   function scrollToSection(sectionId: string) {
     if (typeof document !== 'undefined') {
       document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
     }
+  }
+  
+  function showSignup() {
+    showAuthModal = true;
   }
 </script>
 
@@ -50,11 +48,10 @@
             </a>
           {:else}
             <button 
-              onclick={signInWithGoogle}
-              class="bg-white text-blue-900 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-blue-50 transition duration-300 shadow-lg flex items-center space-x-3"
+              onclick={showSignup}
+              class="bg-white text-blue-900 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-blue-50 transition duration-300 shadow-lg"
             >
-              <img src="https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg" alt="Google" class="w-6 h-6">
-              <span>Get Started Free</span>
+              Create Account - Free
             </button>
           {/if}
           
@@ -421,11 +418,10 @@
           </a>
         {:else}
           <button 
-            onclick={signInWithGoogle}
-            class="bg-white text-blue-600 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-blue-50 transition duration-300 shadow-lg flex items-center justify-center space-x-3"
+            onclick={showSignup}
+            class="bg-white text-blue-600 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-blue-50 transition duration-300 shadow-lg"
           >
-            <img src="https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg" alt="Google" class="w-6 h-6">
-            <span>Start Free Today</span>
+            Create Account - Free
           </button>
           
           <a href="/pricing" class="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-white hover:text-blue-600 transition duration-300">
@@ -484,3 +480,11 @@
     </div>
   </footer>
 </div>
+
+<!-- Authentication Modal -->
+<AuthenticationFlow 
+  bind:show={showAuthModal} 
+  {supabase} 
+  mode="signup" 
+  returnUrl="/dashboard"
+/>

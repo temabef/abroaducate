@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { isUserAdmin } from '$lib/utils/adminHelper';
   
   let { data } = $props();
   let { supabase, session } = $derived(data);
@@ -56,6 +57,13 @@
   let bulkCsvData = $state('');
   let showBulkImport = $state(false);
 
+  // Pagination state
+  let currentPage = $state(1);
+  let pageSize = $state(10);
+  let totalScholarships = $state(0);
+  let totalPages = $state(1);
+  let paginatedScholarships = $state<Scholarship[]>([]);
+
   // Form data
   let formData = $state({
     title: '',
@@ -95,23 +103,86 @@
   let isImporting = $state(false);
   let importResults: ImportResult[] = $state([]);
 
+  let isAdmin = $state(false);
+  let showTextImport = $state(false);
+  let textImportData = $state('');
+  let textImportType = $state<'traditional' | 'graduate' | 'advertised'>('traditional');
+
   onMount(async () => {
-    await loadScholarships();
+    // Check if user can manage scholarships
+    const { data: canManage, error: permissionError } = await supabase.rpc('can_manage_scholarships');
+    
+    if (permissionError) {
+      console.error('Error checking scholarship permissions:', permissionError);
+      isAdmin = false;
+    } else if (canManage) {
+      isAdmin = true;
+      await loadScholarships();
+    } else {
+      isAdmin = false;
+    }
+    
+    // Log permission status
+    console.log('Scholarship admin check result:', isAdmin);
+  });
+
+  // Legacy admin check as fallback during transition
+  $effect(() => {
+    if (session?.user) {
+      const legacyCheck = 
+        session?.user?.email === 'solakolawole62@gmail.com' || 
+        session?.user?.email === 'admin@abroaducate.com' || 
+        session?.user?.email?.includes('admin') ||
+        session?.user?.user_metadata?.role === 'admin';
+        
+      // Use either the async check or legacy check
+      isAdmin = isAdmin || legacyCheck;
+    }
   });
 
   async function loadScholarships() {
     isLoading = true;
+    
+    // First get count for pagination
+    const { count, error: countError } = await supabase
+      .from('scholarships')
+      .select('*', { count: 'exact', head: true });
+    
+    if (countError) {
+      console.error('Error counting scholarships:', countError);
+    } else {
+      totalScholarships = count || 0;
+      totalPages = Math.ceil(totalScholarships / pageSize);
+      
+      // Adjust current page if it's out of bounds
+      if (currentPage > totalPages && totalPages > 0) {
+        currentPage = totalPages;
+      }
+    }
+    
+    // Then get paginated data
     const { data: scholarshipData, error } = await supabase
       .from('scholarships')
       .select('*')
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .range((currentPage - 1) * pageSize, currentPage * pageSize - 1);
 
     if (error) {
       console.error('Error loading scholarships:', error);
     } else {
       scholarships = scholarshipData || [];
+      paginatedScholarships = scholarships;
     }
+    
     isLoading = false;
+  }
+  
+  // Function to change page
+  function goToPage(page: number) {
+    if (page >= 1 && page <= totalPages) {
+      currentPage = page;
+      loadScholarships();
+    }
   }
 
   function handleSaveScholarship(event: SubmitEvent) {
@@ -536,20 +607,7 @@
     csvData = [];
     csvHeaders = [];
     importResults = [];
-    
-    // Clear file input
-    const fileInput = document.getElementById('csv-file') as HTMLInputElement;
-    if (fileInput) fileInput.value = '';
   }
-
-  // Check if user is admin - enhanced for role-based access
-  let isAdmin = $derived(
-    session?.user?.email === 'solakolawole62@gmail.com' || 
-    session?.user?.email === 'admin@abroaducate.com' || 
-    session?.user?.email?.includes('admin') ||
-    session?.user?.user_metadata?.role === 'admin' ||
-    session?.user?.user_metadata?.role === 'admin'
-  );
 
   // Auto-populate logic for overlapping fields
   $effect(() => {
@@ -608,842 +666,1110 @@
       previousCategory = formData.funding_category;
     }
   });
+
+  // Text-based import function
+  async function processTextImport() {
+    if (!textImportData.trim()) {
+      alert('Please enter scholarship data');
+      return;
+    }
+
+    try {
+      // Parse the text input based on the selected type
+      let scholarshipData: Partial<Scholarship> = {};
+      
+      if (textImportType === 'traditional') {
+        // Format: Title | Provider | Amount | Deadline | Location | Field | Level | Type | Description
+        const parts = textImportData.split('|').map(part => part.trim());
+        
+        if (parts.length < 9) {
+          alert('Invalid format for traditional scholarship. Please follow the format shown in the guide.');
+          return;
+        }
+        
+        scholarshipData = {
+          funding_category: 'Traditional Scholarship',
+          title: parts[0],
+          provider: parts[1],
+          amount: parts[2],
+          deadline: parts[3], // Expects YYYY-MM-DD format
+          location: parts[4],
+          field: parts[5],
+          level: parts[6],
+          type: parts[7],
+          description: parts[8],
+          requirements: parts[9] ? parts[9].split(';').filter(r => r.trim()) : [],
+          website: parts[10] || undefined,
+          is_active: true
+        };
+      } else if (textImportType === 'graduate') {
+        // Format: University | Program | Funding Type | Application Method | Amount | Deadline | Description
+        const parts = textImportData.split('|').map(part => part.trim());
+        
+        if (parts.length < 7) {
+          alert('Invalid format for graduate funding. Please follow the format shown in the guide.');
+          return;
+        }
+        
+        scholarshipData = {
+          funding_category: 'Graduate Program Funding',
+          title: `${parts[1]} at ${parts[0]}`,
+          provider: parts[0],
+          university_name: parts[0],
+          program_name: parts[1],
+          funding_type: parts[2],
+          application_method: parts[3],
+          amount: parts[4],
+          deadline: parts[5], // Expects YYYY-MM-DD format
+          description: parts[6],
+          department: parts[7] || undefined,
+          field: 'Graduate Studies',
+          level: 'Graduate',
+          type: 'Research-based',
+          requirements: [],
+          is_active: true
+        };
+      } else if (textImportType === 'advertised') {
+        // Format: University | Professor Name | Professor Email | Position Type | Amount | Deadline | Field | Position Details
+        const parts = textImportData.split('|').map(part => part.trim());
+        
+        if (parts.length < 8) {
+          alert('Invalid format for advertised position. Please follow the format shown in the guide.');
+          return;
+        }
+        
+        scholarshipData = {
+          funding_category: 'Advertised Position',
+          title: `${parts[3]} with ${parts[1]}`,
+          provider: parts[0],
+          university_name: parts[0],
+          professor_name: parts[1],
+          professor_email: parts[2],
+          funding_type: parts[3],
+          amount: parts[4],
+          deadline: parts[5], // Expects YYYY-MM-DD format
+          field: parts[6],
+          position_details: parts[7],
+          level: parts[3] === 'Postdoc' ? 'Postgraduate' : 'PhD',
+          type: 'Research-based',
+          description: parts[7],
+          requirements: [],
+          is_active: true
+        };
+      }
+
+      // Insert the scholarship
+      const { error } = await supabase
+        .from('scholarships')
+        .insert(scholarshipData);
+
+      if (error) {
+        alert(`Error adding scholarship: ${error.message}`);
+        return;
+      }
+
+      alert('Scholarship added successfully!');
+      textImportData = '';
+      await loadScholarships();
+    } catch (err) {
+      alert(`Error: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    }
+  }
+
+  function clearTextImport() {
+    textImportData = '';
+  }
 </script>
 
 <svelte:head>
-  <title>Scholarship Admin - Abroaducate</title>
+  <title>Scholarship Administration - Abroaducate</title>
 </svelte:head>
 
-<div class="min-h-screen bg-gray-50">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <!-- Header -->
-    <div class="mb-8">
-      <h1 class="text-3xl font-bold text-gray-900 mb-2">Scholarship Administration</h1>
-      <p class="text-gray-600">Manage scholarship listings and import data</p>
-      
-      {#if !isAdmin}
-        <div class="mt-4 p-4 bg-red-100 border border-red-300 rounded-lg">
-          <p class="text-red-800">⚠️ Admin access required. Please contact administrator.</p>
+<div class="container mx-auto px-4 py-8">
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-900">Scholarship Administration</h1>
+    <p class="text-gray-600 mt-2">Manage scholarship listings and import data</p>
+  </div>
+  
+  {#if !isAdmin}
+    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6" role="alert">
+      <div class="flex items-center">
+        <div class="py-1"><svg class="h-6 w-6 mr-4 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg></div>
+        <div>
+          <p class="font-bold">Admin access required. Please contact administrator.</p>
+          <p class="text-sm">User: {session?.user?.email || 'Not logged in'}</p>
         </div>
-      {/if}
+      </div>
     </div>
-
-    {#if isAdmin}
-      <div class="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-        <p class="text-sm text-blue-800">
-          Debug: showAddForm = {showAddForm}, isAdmin = {isAdmin}
-        </p>
+  {:else}
+    <div class="mb-6 flex flex-wrap gap-4">
+      <button
+        onclick={() => { showAddForm = !showAddForm; showBulkImport = false; showTextImport = false; }}
+        class="bg-yellow-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-yellow-700 transition duration-200"
+      >
+        {showAddForm ? 'Cancel' : '+ Add New Scholarship'}
+      </button>
+      <button
+        onclick={() => { showBulkImport = !showBulkImport; showAddForm = false; showTextImport = false; }}
+        class="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition duration-200"
+      >
+        {showBulkImport ? 'Cancel' : '📊 CSV Bulk Import'}
+      </button>
+      <button
+        onclick={() => { showTextImport = !showTextImport; showAddForm = false; showBulkImport = false; }}
+        class="bg-green-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-green-700 transition duration-200"
+      >
+        {showTextImport ? 'Cancel' : '📝 Text Entry Import'}
+      </button>
+      <button
+        onclick={loadScholarships}
+        class="bg-gray-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-gray-700 transition duration-200"
+      >
+        🔄 Refresh
+      </button>
+    </div>
+    
+    <!-- Bulk Import Panel -->
+    {#if showBulkImport}
+      <div class="bg-white rounded-lg shadow-sm border p-6 mb-8">
+        <h3 class="text-lg font-semibold mb-4">Bulk Import from CSV</h3>
+        <div class="mb-4">
+          <p class="text-sm text-gray-600 mb-2">
+            Expected CSV format: title, provider, amount, deadline, location, field, level, type, description, website, requirements (separated by semicolons)
+          </p>
+          <p class="text-xs text-gray-500 mb-4">
+            <strong>Test with this simple example:</strong><br/>
+            title,provider,amount,deadline,location,field,level,type,description<br/>
+            Fulbright Program,US Dept of State,$50000,2024-05-15,United States,All Fields,Graduate,Merit-based,Graduate funding program
+          </p>
+        </div>
+        <textarea
+          bind:value={bulkCsvData}
+          placeholder="Paste your CSV data here..."
+          rows="10"
+          class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 font-mono text-sm"
+        ></textarea>
+        <div class="mt-4 flex gap-4">
+          <button
+            onclick={processBulkImport}
+            class="bg-green-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-green-700 transition duration-200"
+          >
+            Import Scholarships
+          </button>
+          <button
+            onclick={() => { showBulkImport = false; bulkCsvData = ''; }}
+            class="bg-gray-500 text-white px-6 py-2 rounded-lg font-medium hover:bg-gray-600 transition duration-200"
+          >
+            Cancel
+          </button>
+        </div>
       </div>
 
-      <!-- Action Buttons -->
-      <div class="mb-8 flex flex-wrap gap-4">
-        <button
-          type="button"
-          onclick={() => { 
-            console.log('Add button clicked!');
-            showAddForm = true; 
-            editingScholarship = null;
-            formData = {
-              title: '',
-              provider: '',
-              amount: '',
-              deadline: '',
-              location: '',
-              field: '',
-              level: '',
-              type: '',
-              description: '',
-              requirements: '',
-              website: '',
-              min_gpa: '',
-              min_ielts: '',
-              min_toefl: '',
-              age_limit: '',
-              nationality_restrictions: '',
-              is_active: true,
-              // Graduate funding fields
-              funding_category: 'Traditional Scholarship',
-              university_name: '',
-              program_name: '',
-              department: '',
-              funding_type: '',
-              application_method: '',
-              professor_name: '',
-              professor_email: '',
-              position_details: '',
-              has_automatic_funding: false
-            };
-          }}
-          class="bg-yellow-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-yellow-700 transition duration-200 cursor-pointer"
-        >
-          + Add New Scholarship
-        </button>
-        <button
-          onclick={() => showBulkImport = !showBulkImport}
-          class="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition duration-200"
-        >
-          📁 Bulk Import CSV
-        </button>
-        <button
-          onclick={loadScholarships}
-          class="bg-gray-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-gray-700 transition duration-200"
-        >
-          🔄 Refresh
-        </button>
-      </div>
-
-      <!-- Bulk Import Panel -->
-      {#if showBulkImport}
-        <div class="bg-white rounded-lg shadow-sm border p-6 mb-8">
-          <h3 class="text-lg font-semibold mb-4">Bulk Import from CSV</h3>
-          <div class="mb-4">
-            <p class="text-sm text-gray-600 mb-2">
-              Expected CSV format: title, provider, amount, deadline, location, field, level, type, description, website, requirements (separated by semicolons)
-            </p>
-            <p class="text-xs text-gray-500 mb-4">
-              <strong>Test with this simple example:</strong><br/>
-              title,provider,amount,deadline,location,field,level,type,description<br/>
-              Fulbright Program,US Dept of State,$50000,2024-05-15,United States,All Fields,Graduate,Merit-based,Graduate funding program
-            </p>
-          </div>
-          <textarea
-            bind:value={bulkCsvData}
-            placeholder="Paste your CSV data here..."
-            rows="10"
-            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 font-mono text-sm"
-          ></textarea>
-          <div class="mt-4 flex gap-4">
-            <button
-              onclick={processBulkImport}
-              class="bg-green-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-green-700 transition duration-200"
-            >
-              Import Scholarships
-            </button>
-            <button
-              onclick={() => { showBulkImport = false; bulkCsvData = ''; }}
-              class="bg-gray-500 text-white px-6 py-2 rounded-lg font-medium hover:bg-gray-600 transition duration-200"
-            >
-              Cancel
-            </button>
-          </div>
+      <!-- Modern CSV Import -->
+      <div class="bg-white rounded-lg shadow-sm border mb-8">
+        <div class="px-6 py-4 border-b">
+          <h3 class="text-lg font-semibold text-gray-900">📊 CSV File Import</h3>
+          <p class="text-sm text-gray-600 mt-1">Import multiple scholarships/funding opportunities from CSV files</p>
         </div>
-      {/if}
-
-      <!-- Add/Edit Form -->
-      {#if showAddForm}
-        <div class="bg-white rounded-lg shadow-sm border p-6 mb-8">
-          <h3 class="text-lg font-semibold mb-4">
-            {editingScholarship ? 'Edit Scholarship' : 'Add New Scholarship'}
-          </h3>
-          
-          <form onsubmit={handleSaveScholarship} class="space-y-4">
-            <!-- Funding Category Selection -->
-            <div class="bg-blue-50 p-4 rounded-lg">
-              <label for="funding_category" class="block text-sm font-medium text-gray-700 mb-2">Funding Category *</label>
-              <select
-                id="funding_category"
-                bind:value={formData.funding_category}
-                required
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-              >
-                <option value="Traditional Scholarship">🏆 Traditional Scholarship</option>
-                <option value="Graduate Program Funding">🎓 Graduate Program Funding</option>
-                <option value="Advertised Position">🔬 Advertised Research Position</option>
-              </select>
-              <p class="text-xs text-gray-600 mt-1">
-                {#if formData.funding_category === 'Traditional Scholarship'}
-                  External scholarships from organizations, governments, foundations
-                {:else if formData.funding_category === 'Graduate Program Funding'}
-                  University programs with automatic RA/TA/GA funding consideration
-                {:else}
-                  Specific research positions advertised by professors
-                {/if}
-              </p>
-            </div>
-
-            <!-- Traditional Scholarship Form -->
-            {#if formData.funding_category === 'Traditional Scholarship'}
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label for="title" class="block text-sm font-medium text-gray-700 mb-1">Scholarship Title *</label>
-                  <input
-                    id="title"
-                    type="text"
-                    bind:value={formData.title}
-                    required
-                    placeholder="e.g., Fulbright Program"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-                  />
-                </div>
-                <div>
-                  <label for="provider" class="block text-sm font-medium text-gray-700 mb-1">Organization/Provider *</label>
-                  <input
-                    id="provider"
-                    type="text"
-                    bind:value={formData.provider}
-                    required
-                    placeholder="e.g., US Department of State"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-                  />
-                </div>
-                <div>
-                  <label for="amount" class="block text-sm font-medium text-gray-700 mb-1">Award Amount *</label>
-                  <input
-                    id="amount"
-                    type="text"
-                    bind:value={formData.amount}
-                    required
-                    placeholder="e.g., $50,000/year"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-                  />
-                </div>
-                <div>
-                  <label for="deadline" class="block text-sm font-medium text-gray-700 mb-1">Application Deadline *</label>
-                  <input
-                    id="deadline"
-                    type="date"
-                    bind:value={formData.deadline}
-                    required
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-                  />
-                </div>
-                <div>
-                  <label for="location" class="block text-sm font-medium text-gray-700 mb-1">Study Location *</label>
-                  <input
-                    id="location"
-                    type="text"
-                    bind:value={formData.location}
-                    required
-                    placeholder="e.g., United States"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-                  />
-                </div>
-                <div>
-                  <label for="field" class="block text-sm font-medium text-gray-700 mb-1">Field of Study *</label>
-                  <input
-                    id="field"
-                    type="text"
-                    bind:value={formData.field}
-                    required
-                    placeholder="e.g., All Fields, Engineering"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-                  />
-                </div>
-                <div>
-                  <label for="level" class="block text-sm font-medium text-gray-700 mb-1">Academic Level *</label>
-                  <select
-                    id="level"
-                    bind:value={formData.level}
-                    required
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-                  >
-                    <option value="">Select Level</option>
-                    <option value="Bachelor">Bachelor's</option>
-                    <option value="Master's">Master's</option>
-                    <option value="PhD">PhD</option>
-                    <option value="Graduate">Graduate</option>
-                    <option value="Postgraduate">Postgraduate</option>
-                  </select>
-                </div>
-                <div>
-                  <label for="type" class="block text-sm font-medium text-gray-700 mb-1">Scholarship Type *</label>
-                  <select
-                    id="type"
-                    bind:value={formData.type}
-                    required
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-                  >
-                    <option value="">Select Type</option>
-                    <option value="Merit-based">Merit-based</option>
-                    <option value="Research-based">Research-based</option>
-                    <option value="Need-based">Need-based</option>
-                    <option value="Field-specific">Field-specific</option>
-                    <option value="Development-focused">Development-focused</option>
-                  </select>
-                </div>
-              </div>
-            {/if}
-
-            <!-- Graduate Program Funding Form -->
-            {#if formData.funding_category === 'Graduate Program Funding'}
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label for="university_name" class="block text-sm font-medium text-gray-700 mb-1">University *</label>
-                  <input
-                    id="university_name"
-                    type="text"
-                    bind:value={formData.university_name}
-                    required
-                    placeholder="e.g., MIT"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-                  />
-                </div>
-                <div>
-                  <label for="program_name" class="block text-sm font-medium text-gray-700 mb-1">Program *</label>
-                  <input
-                    id="program_name"
-                    type="text"
-                    bind:value={formData.program_name}
-                    required
-                    placeholder="e.g., PhD in Computer Science"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-                  />
-                </div>
-                <div>
-                  <label for="department" class="block text-sm font-medium text-gray-700 mb-1">Department</label>
-                  <input
-                    id="department"
-                    type="text"
-                    bind:value={formData.department}
-                    placeholder="e.g., EECS Department"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-                  />
-                </div>
-                <div>
-                  <label for="funding_type" class="block text-sm font-medium text-gray-700 mb-1">Funding Type *</label>
-                  <select
-                    id="funding_type"
-                    bind:value={formData.funding_type}
-                    required
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-                  >
-                    <option value="">Select Funding Type</option>
-                    <option value="RA">Research Assistantship (RA)</option>
-                    <option value="TA">Teaching Assistantship (TA)</option>
-                    <option value="GA">Graduate Assistantship (GA)</option>
-                    <option value="Full Funding">Full Funding Package</option>
-                    <option value="Tuition Waiver">Tuition Waiver Only</option>
-                    <option value="Mixed">Mixed (RA/TA/Fellowship)</option>
-                  </select>
-                </div>
-                <div>
-                  <label for="application_method" class="block text-sm font-medium text-gray-700 mb-1">Application Method *</label>
-                  <select
-                    id="application_method"
-                    bind:value={formData.application_method}
-                    required
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-                  >
-                    <option value="">Select Method</option>
-                    <option value="Direct Apply">Direct Apply (Automatic Consideration)</option>
-                    <option value="Contact Professor First">Contact Professor First</option>
-                  </select>
-                </div>
-                <div>
-                  <label for="amount" class="block text-sm font-medium text-gray-700 mb-1">Stipend/Funding Amount *</label>
-                  <input
-                    id="amount"
-                    type="text"
-                    bind:value={formData.amount}
-                    required
-                    placeholder="e.g., $35,000/year + tuition"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-                  />
-                </div>
-                <div>
-                  <label for="deadline" class="block text-sm font-medium text-gray-700 mb-1">Application Deadline *</label>
-                  <input
-                    id="deadline"
-                    type="date"
-                    bind:value={formData.deadline}
-                    required
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-                  />
-                </div>
-                <div class="md:col-span-2">
-                  <label for="has_automatic_funding" class="flex items-center space-x-2">
-                    <input
-                      id="has_automatic_funding"
-                      type="checkbox"
-                      bind:checked={formData.has_automatic_funding}
-                      class="h-4 w-4 text-yellow-600 focus:ring-yellow-500 border-gray-300 rounded"
-                    />
-                    <span class="text-sm font-medium text-gray-700">Program automatically considers all applicants for funding</span>
-                  </label>
-                </div>
-              </div>
-            {/if}
-
-            <!-- Advertised Position Form -->
-            {#if formData.funding_category === 'Advertised Position'}
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label for="university_name" class="block text-sm font-medium text-gray-700 mb-1">University *</label>
-                  <input
-                    id="university_name"
-                    type="text"
-                    bind:value={formData.university_name}
-                    required
-                    placeholder="e.g., Stanford University"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-                  />
-                </div>
-                <div>
-                  <label for="professor_name" class="block text-sm font-medium text-gray-700 mb-1">Professor Name *</label>
-                  <input
-                    id="professor_name"
-                    type="text"
-                    bind:value={formData.professor_name}
-                    required
-                    placeholder="e.g., Dr. John Smith"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-                  />
-                </div>
-                <div>
-                  <label for="professor_email" class="block text-sm font-medium text-gray-700 mb-1">Professor Email *</label>
-                  <input
-                    id="professor_email"
-                    type="email"
-                    bind:value={formData.professor_email}
-                    required
-                    placeholder="e.g., john.smith@stanford.edu"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-                  />
-                </div>
-                <div>
-                  <label for="department" class="block text-sm font-medium text-gray-700 mb-1">Department/Lab</label>
-                  <input
-                    id="department"
-                    type="text"
-                    bind:value={formData.department}
-                    placeholder="e.g., AI Lab, CS Department"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-                  />
-                </div>
-                <div>
-                  <label for="funding_type" class="block text-sm font-medium text-gray-700 mb-1">Position Type *</label>
-                  <select
-                    id="funding_type"
-                    bind:value={formData.funding_type}
-                    required
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-                  >
-                    <option value="">Select Position Type</option>
-                    <option value="RA">Research Assistantship (RA)</option>
-                    <option value="Full Funding">PhD with Full Funding</option>
-                    <option value="Postdoc">Postdoc Position</option>
-                  </select>
-                </div>
-                <div>
-                  <label for="amount" class="block text-sm font-medium text-gray-700 mb-1">Funding Amount *</label>
-                  <input
-                    id="amount"
-                    type="text"
-                    bind:value={formData.amount}
-                    required
-                    placeholder="e.g., $40,000/year + benefits"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-                  />
-                </div>
-                <div>
-                  <label for="deadline" class="block text-sm font-medium text-gray-700 mb-1">Application Deadline *</label>
-                  <input
-                    id="deadline"
-                    type="date"
-                    bind:value={formData.deadline}
-                    required
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-                  />
-                </div>
-                <div>
-                  <label for="field" class="block text-sm font-medium text-gray-700 mb-1">Research Area *</label>
-                  <input
-                    id="field"
-                    type="text"
-                    bind:value={formData.field}
-                    required
-                    placeholder="e.g., Machine Learning, Robotics"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-                  />
-                </div>
-                <div>
-                  <label for="application_method" class="block text-sm font-medium text-gray-700 mb-1">How to Apply *</label>
-                  <select
-                    id="application_method"
-                    bind:value={formData.application_method}
-                    required
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-                  >
-                    <option value="">Select Method</option>
-                    <option value="Contact Professor First">Email Professor Directly</option>
-                    <option value="Apply Online">Apply Through University Portal</option>
-                  </select>
-                </div>
-                <div class="md:col-span-2">
-                  <label for="position_details" class="block text-sm font-medium text-gray-700 mb-1">Position Details *</label>
-                  <textarea
-                    id="position_details"
-                    bind:value={formData.position_details}
-                    required
-                    rows="4"
-                    placeholder="Describe the research project, lab, requirements, and what the position offers..."
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-                  ></textarea>
-                </div>
-              </div>
-            {/if}
-
-            <!-- Common Fields -->
-            <div>
-              <label for="description" class="block text-sm font-medium text-gray-700 mb-1">
-                {formData.funding_category === 'Advertised Position' ? 'Additional Information' : 'Description'} *
-              </label>
-              <textarea
-                id="description"
-                bind:value={formData.description}
-                required
-                rows="3"
-                placeholder={formData.funding_category === 'Advertised Position' 
-                  ? 'Any additional details about the position or application process...'
-                  : 'Describe the scholarship/funding opportunity...'}
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-              ></textarea>
-            </div>
-
-            <div>
-              <label for="requirements" class="block text-sm font-medium text-gray-700 mb-1">Requirements (one per line)</label>
-              <textarea
-                id="requirements"
-                bind:value={formData.requirements}
-                rows="4"
-                placeholder={formData.funding_category === 'Advertised Position'
-                  ? 'PhD in Computer Science&#10;Experience with Python&#10;Strong publication record'
-                  : 'Bachelor\'s degree&#10;English proficiency&#10;Leadership experience'}
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-              ></textarea>
-            </div>
-
-            <!-- Optional Fields -->
-            {#if formData.funding_category !== 'Advertised Position'}
-              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div>
-                  <label for="website" class="block text-sm font-medium text-gray-700 mb-1">Website</label>
-                  <input
-                    id="website"
-                    type="url"
-                    bind:value={formData.website}
-                    placeholder="https://..."
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-                  />
-                </div>
-                <div>
-                  <label for="min_gpa" class="block text-sm font-medium text-gray-700 mb-1">Min GPA</label>
-                  <input
-                    id="min_gpa"
-                    type="number"
-                    step="0.01"
-                    max="4.0"
-                    bind:value={formData.min_gpa}
-                    placeholder="3.0"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-                  />
-                </div>
-                <div>
-                  <label for="min_ielts" class="block text-sm font-medium text-gray-700 mb-1">Min IELTS</label>
-                  <input
-                    id="min_ielts"
-                    type="number"
-                    step="0.5"
-                    max="9.0"
-                    bind:value={formData.min_ielts}
-                    placeholder="6.5"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-                  />
-                </div>
-                <div>
-                  <label for="min_toefl" class="block text-sm font-medium text-gray-700 mb-1">Min TOEFL</label>
-                  <input
-                    id="min_toefl"
-                    type="number"
-                    max="120"
-                    bind:value={formData.min_toefl}
-                    placeholder="80"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-                  />
-                </div>
-              </div>
-
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label for="age_limit" class="block text-sm font-medium text-gray-700 mb-1">Age Limit</label>
-                  <input
-                    id="age_limit"
-                    type="number"
-                    bind:value={formData.age_limit}
-                    placeholder="30"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-                  />
-                </div>
-                <div>
-                  <label for="nationality_restrictions" class="block text-sm font-medium text-gray-700 mb-1">Nationality Restrictions (comma-separated)</label>
-                  <input
-                    id="nationality_restrictions"
-                    type="text"
-                    bind:value={formData.nationality_restrictions}
-                    placeholder="India, Pakistan, Bangladesh"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-                  />
-                </div>
-              </div>
-            {/if}
-
-            <div class="flex items-center">
-              <input
-                type="checkbox"
-                bind:checked={formData.is_active}
-                id="is_active"
-                class="h-4 w-4 text-yellow-600 focus:ring-yellow-500 border-gray-300 rounded"
-              />
-              <label for="is_active" class="ml-2 block text-sm text-gray-700">
-                Active (visible to users)
-              </label>
-            </div>
-
-            <div class="flex gap-4 pt-4">
-              <button
-                type="submit"
-                class="bg-yellow-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-yellow-700 transition duration-200"
-              >
-                {editingScholarship ? 'Update Scholarship' : 'Add Scholarship'}
-              </button>
-              <button
-                type="button"
-                onclick={resetForm}
-                class="bg-gray-500 text-white px-6 py-2 rounded-lg font-medium hover:bg-gray-600 transition duration-200"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        </div>
-      {/if}
-
-      <!-- Scholarships List -->
-      <div class="bg-white rounded-lg shadow-sm border">
-        <div class="p-6 border-b">
-          <h3 class="text-lg font-semibold">Scholarship Listings ({scholarships.length})</h3>
-        </div>
-        
-        {#if isLoading}
-          <div class="p-8 text-center">
-            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-600 mx-auto"></div>
-            <p class="mt-2 text-gray-600">Loading scholarships...</p>
-          </div>
-        {:else if scholarships.length === 0}
-          <div class="p-8 text-center">
-            <p class="text-gray-600">No scholarships found. Add your first scholarship!</p>
-          </div>
-        {:else}
-          <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-              <thead class="bg-gray-50">
-                <tr>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Scholarship</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Details</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Deadline</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                </tr>
-              </thead>
-              <tbody class="bg-white divide-y divide-gray-200">
-                {#each scholarships as scholarship}
-                  <tr class="hover:bg-gray-50">
-                    <td class="px-6 py-4">
-                      <div>
-                        <div class="text-sm font-medium text-gray-900">{scholarship.title}</div>
-                        <div class="text-sm text-gray-500">{scholarship.provider}</div>
-                        <div class="text-sm text-yellow-600 font-medium">{scholarship.amount}</div>
-                      </div>
-                    </td>
-                    <td class="px-6 py-4">
-                      <div class="text-sm text-gray-900">{scholarship.location}</div>
-                      <div class="text-sm text-gray-500">{scholarship.level} • {scholarship.field}</div>
-                      <div class="text-sm text-gray-500">{scholarship.type}</div>
-                    </td>
-                    <td class="px-6 py-4 text-sm text-gray-900">
-                      {new Date(scholarship.deadline).toLocaleDateString()}
-                    </td>
-                    <td class="px-6 py-4">
-                      <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {scholarship.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
-                        {scholarship.is_active ? 'Active' : 'Inactive'}
-                      </span>
-                    </td>
-                    <td class="px-6 py-4 text-sm font-medium">
-                      <div class="flex space-x-2">
-                        <button
-                          onclick={() => editScholarship(scholarship)}
-                          class="text-yellow-600 hover:text-yellow-700"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onclick={() => deleteScholarship(scholarship.id!)}
-                          class="text-red-600 hover:text-red-700"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                {/each}
-              </tbody>
-            </table>
-          </div>
-        {/if}
-      </div>
-    {/if}
-
-    <!-- CSV Bulk Import Section -->
-    <div class="bg-white rounded-lg shadow-sm border mb-8">
-      <div class="px-6 py-4 border-b">
-        <h3 class="text-lg font-semibold text-gray-900">📊 CSV Bulk Import</h3>
-        <p class="text-sm text-gray-600 mt-1">Import multiple scholarships/funding opportunities from CSV files</p>
-      </div>
-      <div class="p-6">
-        <!-- Import Type Selection -->
-        <div class="mb-6">
-          <label class="block text-sm font-medium text-gray-700 mb-3">Import Type</label>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div class="border rounded-lg p-4 cursor-pointer transition-colors {importType === 'traditional' ? 'border-yellow-500 bg-yellow-50' : 'border-gray-200 hover:border-gray-300'}"
-                 onclick={() => importType = 'traditional'}>
-              <div class="flex items-center">
-                <input type="radio" bind:group={importType} value="traditional" class="mr-3 text-yellow-600">
-                <div>
-                  <div class="font-medium">🏆 Traditional Scholarships</div>
-                  <div class="text-sm text-gray-600">External scholarships from organizations</div>
-                </div>
-              </div>
-            </div>
-            <div class="border rounded-lg p-4 cursor-pointer transition-colors {importType === 'graduate' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}"
-                 onclick={() => importType = 'graduate'}>
-              <div class="flex items-center">
-                <input type="radio" bind:group={importType} value="graduate" class="mr-3 text-blue-600">
-                <div>
-                  <div class="font-medium">🎓 Graduate Program Funding</div>
-                  <div class="text-sm text-gray-600">University RA/TA/GA positions</div>
-                </div>
-              </div>
-            </div>
-            <div class="border rounded-lg p-4 cursor-pointer transition-colors {importType === 'advertised' ? 'border-purple-500 bg-purple-50' : 'border-gray-200 hover:border-gray-300'}"
-                 onclick={() => importType = 'advertised'}>
-              <div class="flex items-center">
-                <input type="radio" bind:group={importType} value="advertised" class="mr-3 text-purple-600">
-                <div>
-                  <div class="font-medium">🔬 Advertised Positions</div>
-                  <div class="text-sm text-gray-600">Professor research positions</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- CSV Format Guide -->
-        <div class="mb-6 p-4 bg-gray-50 rounded-lg">
-          <h4 class="font-medium text-gray-900 mb-2">📋 CSV Format Guide</h4>
-          <div class="text-sm text-gray-600">
-            {#if importType === 'traditional'}
-              <p class="mb-2"><strong>Required columns (in order):</strong> title, provider, amount, deadline, location, field, level, type, description</p>
-              <p class="mb-2"><strong>Optional columns:</strong> requirements, website, min_gpa, min_ielts, min_toefl, age_limit, nationality_restrictions</p>
-              <p><strong>Example:</strong> "Fulbright Program","US State Dept","$50,000/year","2024-05-15","United States","All Fields","Graduate","Merit-based","Funding for graduate study..."</p>
-            {:else if importType === 'graduate'}
-              <p class="mb-2"><strong>Required columns (in order):</strong> university_name, program_name, funding_type, application_method, amount, deadline, description</p>
-              <p class="mb-2"><strong>Optional columns:</strong> department, has_automatic_funding, requirements, field</p>
-              <p class="mb-2"><strong>Column Headers Required:</strong> Use exact column names above</p>
-                <p><strong>Example:</strong> <br/>Headers: university_name,program_name,funding_type,application_method,amount,deadline,description<br/>Data: "MIT","PhD Computer Science","Full Funding","Direct Apply","$40,000/year","2024-12-15","Automatic funding consideration..."</p>
-            {:else if importType === 'advertised'}
-              <p class="mb-2"><strong>Required columns (in order):</strong> university_name, professor_name, professor_email, funding_type, amount, deadline, field, position_details</p>
-              <p class="mb-2"><strong>Optional columns:</strong> department, requirements</p>
-              <p class="mb-2"><strong>Column Headers Required:</strong> Use exact column names above</p>
-              <p><strong>Example:</strong> <br/>Headers: university_name,professor_name,professor_email,funding_type,amount,deadline,field,position_details<br/>Data: "Stanford","Dr. Jane Smith","jane@stanford.edu","RA","$45,000/year","2024-08-01","Machine Learning","Research in deep learning..."</p>
-            {/if}
-          </div>
-        </div>
-
-        <!-- File Upload -->
-        <div class="mb-6">
-          <label for="csv-file" class="block text-sm font-medium text-gray-700 mb-2">Upload CSV File</label>
-          <input
-            id="csv-file"
-            type="file"
-            accept=".csv"
-            onchange={handleFileUpload}
-            class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-yellow-50 file:text-yellow-700 hover:file:bg-yellow-100"
-          />
-        </div>
-
-        <!-- Preview and Import -->
-        {#if csvData.length > 0}
+        <div class="p-6">
+          <!-- Import Type Selection -->
           <div class="mb-6">
-            <h4 class="font-medium text-gray-900 mb-3">📊 Preview ({csvData.length} rows)</h4>
-            <div class="overflow-x-auto border rounded-lg">
-              <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                  <tr>
-                    {#each csvHeaders as header}
-                      <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        {header}
-                      </th>
-                    {/each}
-                  </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                  {#each csvData.slice(0, 5) as row}
-                    <tr>
-                      {#each csvHeaders as header}
-                        <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 max-w-xs truncate">
-                          {row[header] || ''}
-                        </td>
-                      {/each}
-                    </tr>
-                  {/each}
-                </tbody>
-              </table>
-              {#if csvData.length > 5}
-                <div class="px-3 py-2 bg-gray-50 text-sm text-gray-600">
-                  ... and {csvData.length - 5} more rows
+            <label class="block text-sm font-medium text-gray-700 mb-3">Import Type</label>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div class="border rounded-lg p-4 cursor-pointer transition-colors {importType === 'traditional' ? 'border-yellow-500 bg-yellow-50' : 'border-gray-200 hover:border-gray-300'}"
+                   onclick={() => importType = 'traditional'}>
+                <div class="flex items-center">
+                  <input type="radio" bind:group={importType} value="traditional" class="mr-3 text-yellow-600">
+                  <div>
+                    <div class="font-medium">🏆 Traditional Scholarships</div>
+                    <div class="text-sm text-gray-600">External scholarships from organizations</div>
+                  </div>
                 </div>
+              </div>
+              <div class="border rounded-lg p-4 cursor-pointer transition-colors {importType === 'graduate' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}"
+                   onclick={() => importType = 'graduate'}>
+                <div class="flex items-center">
+                  <input type="radio" bind:group={importType} value="graduate" class="mr-3 text-blue-600">
+                  <div>
+                    <div class="font-medium">🎓 Graduate Program Funding</div>
+                    <div class="text-sm text-gray-600">University RA/TA/GA positions</div>
+                  </div>
+                </div>
+              </div>
+              <div class="border rounded-lg p-4 cursor-pointer transition-colors {importType === 'advertised' ? 'border-purple-500 bg-purple-50' : 'border-gray-200 hover:border-gray-300'}"
+                   onclick={() => importType = 'advertised'}>
+                <div class="flex items-center">
+                  <input type="radio" bind:group={importType} value="advertised" class="mr-3 text-purple-600">
+                  <div>
+                    <div class="font-medium">🔬 Advertised Positions</div>
+                    <div class="text-sm text-gray-600">Professor research positions</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- CSV Format Guide -->
+          <div class="mb-6 p-4 bg-gray-50 rounded-lg">
+            <h4 class="font-medium text-gray-900 mb-2">📋 CSV Format Guide</h4>
+            <div class="text-sm text-gray-600">
+              {#if importType === 'traditional'}
+                <p class="mb-2"><strong>Required columns (in order):</strong> title, provider, amount, deadline, location, field, level, type, description</p>
+                <p class="mb-2"><strong>Optional columns:</strong> requirements, website, min_gpa, min_ielts, min_toefl, age_limit, nationality_restrictions</p>
+                <p><strong>Example:</strong> "Fulbright Program","US State Dept","$50,000/year","2024-05-15","United States","All Fields","Graduate","Merit-based","Funding for graduate study..."</p>
+              {:else if importType === 'graduate'}
+                <p class="mb-2"><strong>Required columns (in order):</strong> university_name, program_name, funding_type, application_method, amount, deadline, description</p>
+                <p class="mb-2"><strong>Optional columns:</strong> department, has_automatic_funding, requirements, field</p>
+                <p class="mb-2"><strong>Column Headers Required:</strong> Use exact column names above</p>
+                <p><strong>Example:</strong> <br/>Headers: university_name,program_name,funding_type,application_method,amount,deadline,description<br/>Data: "MIT","PhD Computer Science","Full Funding","Direct Apply","$40,000/year","2024-12-15","Automatic funding consideration..."</p>
+              {:else if importType === 'advertised'}
+                <p class="mb-2"><strong>Required columns (in order):</strong> university_name, professor_name, professor_email, funding_type, amount, deadline, field, position_details</p>
+                <p class="mb-2"><strong>Optional columns:</strong> department, requirements</p>
+                <p class="mb-2"><strong>Column Headers Required:</strong> Use exact column names above</p>
+                <p><strong>Example:</strong> <br/>Headers: university_name,professor_name,professor_email,funding_type,amount,deadline,field,position_details<br/>Data: "Stanford","Dr. Jane Smith","jane@stanford.edu","RA","$45,000/year","2024-08-01","Machine Learning","Research in deep learning..."</p>
               {/if}
             </div>
+          </div>
+
+          <!-- File Upload -->
+          <div class="mb-6">
+            <label for="csv-file" class="block text-sm font-medium text-gray-700 mb-2">Upload CSV File</label>
+            <input
+              id="csv-file"
+              type="file"
+              accept=".csv"
+              onchange={handleFileUpload}
+              class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-yellow-50 file:text-yellow-700 hover:file:bg-yellow-100"
+            />
+          </div>
+
+          <!-- Preview and Import -->
+          {#if csvData.length > 0}
+            <div class="mb-6">
+              <h4 class="font-medium text-gray-900 mb-3">📊 Preview ({csvData.length} rows)</h4>
+              <div class="overflow-x-auto border rounded-lg">
+                <table class="min-w-full divide-y divide-gray-200">
+                  <thead class="bg-gray-50">
+                    <tr>
+                      {#each csvHeaders as header}
+                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          {header}
+                        </th>
+                      {/each}
+                    </tr>
+                  </thead>
+                  <tbody class="bg-white divide-y divide-gray-200">
+                    {#each csvData.slice(0, 5) as row}
+                      <tr>
+                        {#each csvHeaders as header}
+                          <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 max-w-xs truncate">
+                            {row[header] || ''}
+                          </td>
+                        {/each}
+                      </tr>
+                    {/each}
+                  </tbody>
+                </table>
+                {#if csvData.length > 5}
+                  <div class="px-3 py-2 bg-gray-50 text-sm text-gray-600">
+                    ... and {csvData.length - 5} more rows
+                  </div>
+                {/if}
+              </div>
+            </div>
+
+            <!-- Import Actions -->
+            <div class="flex gap-4">
+              <button
+                onclick={processImport}
+                disabled={isImporting}
+                class="flex-1 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200"
+              >
+                {isImporting ? 'Importing...' : `Import ${csvData.length} Records`}
+              </button>
+              <button
+                onclick={clearImport}
+                class="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition duration-200"
+              >
+                Clear
+              </button>
+            </div>
+
+            <!-- Import Results -->
+            {#if importResults.length > 0}
+              <div class="mt-6 p-4 bg-gray-50 rounded-lg">
+                <h4 class="font-medium text-gray-900 mb-3">Import Results</h4>
+                <div class="space-y-1 text-sm">
+                  {#each importResults as result}
+                    <div class="flex items-center gap-2">
+                      {#if result.success}
+                        <span class="text-green-600">✅</span>
+                        <span>Row {result.row}: {result.title} - Success</span>
+                      {:else}
+                        <span class="text-red-600">❌</span>
+                        <span>Row {result.row}: {result.error}</span>
+                      {/if}
+                    </div>
+                  {/each}
+                </div>
+              </div>
+            {/if}
+          {/if}
+        </div>
+      </div>
+    {/if}
+    
+    <!-- Text-based Import Section -->
+    {#if showTextImport}
+      <div class="bg-white rounded-lg shadow-sm border mb-8">
+        <div class="px-6 py-4 border-b">
+          <h3 class="text-lg font-semibold text-gray-900">📝 Text Entry Import</h3>
+          <p class="text-sm text-gray-600 mt-1">Add a scholarship using text format</p>
+        </div>
+        <div class="p-6">
+          <!-- Import Type Selection -->
+          <div class="mb-6">
+            <label class="block text-sm font-medium text-gray-700 mb-3">Import Type</label>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div class="border rounded-lg p-4 cursor-pointer transition-colors {textImportType === 'traditional' ? 'border-yellow-500 bg-yellow-50' : 'border-gray-200 hover:border-gray-300'}"
+                   onclick={() => textImportType = 'traditional'}>
+                <div class="flex items-center">
+                  <input type="radio" bind:group={textImportType} value="traditional" class="mr-3 text-yellow-600">
+                  <div>
+                    <div class="font-medium">🏆 Traditional Scholarships</div>
+                    <div class="text-sm text-gray-600">External scholarships from organizations</div>
+                  </div>
+                </div>
+              </div>
+              <div class="border rounded-lg p-4 cursor-pointer transition-colors {textImportType === 'graduate' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}"
+                   onclick={() => textImportType = 'graduate'}>
+                <div class="flex items-center">
+                  <input type="radio" bind:group={textImportType} value="graduate" class="mr-3 text-blue-600">
+                  <div>
+                    <div class="font-medium">🎓 Graduate Program Funding</div>
+                    <div class="text-sm text-gray-600">University RA/TA/GA positions</div>
+                  </div>
+                </div>
+              </div>
+              <div class="border rounded-lg p-4 cursor-pointer transition-colors {textImportType === 'advertised' ? 'border-purple-500 bg-purple-50' : 'border-gray-200 hover:border-gray-300'}"
+                   onclick={() => textImportType = 'advertised'}>
+                <div class="flex items-center">
+                  <input type="radio" bind:group={textImportType} value="advertised" class="mr-3 text-purple-600">
+                  <div>
+                    <div class="font-medium">🔬 Advertised Positions</div>
+                    <div class="text-sm text-gray-600">Professor research positions</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Format Guide -->
+          <div class="mb-6 p-4 bg-gray-50 rounded-lg">
+            <h4 class="font-medium text-gray-900 mb-2">📋 Format Guide</h4>
+            <div class="text-sm text-gray-600">
+              {#if textImportType === 'traditional'}
+                <p class="mb-2"><strong>Format:</strong> Title | Provider | Amount | Deadline | Location | Field | Level | Type | Description | Requirements (optional) | Website (optional)</p>
+                <p class="mb-2"><strong>Example:</strong> Fulbright Program | US State Dept | $50,000/year | 2024-05-15 | United States | All Fields | Graduate | Merit-based | Funding for graduate study... | GPA 3.5+; Research experience | https://fulbright.org</p>
+                <p class="mb-2"><strong>Note:</strong> Separate fields with | character. For requirements, separate with semicolons (;)</p>
+              {:else if textImportType === 'graduate'}
+                <p class="mb-2"><strong>Format:</strong> University | Program | Funding Type | Application Method | Amount | Deadline | Description</p>
+                <p class="mb-2"><strong>Example:</strong> MIT | PhD Computer Science | Full Funding | Direct Apply | $40,000/year | 2024-12-15 | Automatic funding consideration...</p>
+                <p class="mb-2"><strong>Note:</strong> Separate fields with | character</p>
+              {:else if textImportType === 'advertised'}
+                <p class="mb-2"><strong>Format:</strong> University | Professor Name | Professor Email | Position Type | Amount | Deadline | Field | Position Details</p>
+                <p class="mb-2"><strong>Example:</strong> Stanford | Dr. Jane Smith | jane@stanford.edu | RA | $45,000/year | 2024-08-01 | Machine Learning | Research in deep learning...</p>
+                <p class="mb-2"><strong>Note:</strong> Separate fields with | character</p>
+              {/if}
+            </div>
+          </div>
+
+          <!-- Text Input -->
+          <div class="mb-6">
+            <label for="text-import" class="block text-sm font-medium text-gray-700 mb-2">Enter Scholarship Data</label>
+            <textarea
+              id="text-import"
+              bind:value={textImportData}
+              rows="5"
+              placeholder={textImportType === 'traditional' 
+                ? "Fulbright Program | US State Dept | $50,000/year | 2024-05-15 | United States | All Fields | Graduate | Merit-based | Funding for graduate study..." 
+                : textImportType === 'graduate'
+                ? "MIT | PhD Computer Science | Full Funding | Direct Apply | $40,000/year | 2024-12-15 | Automatic funding consideration..."
+                : "Stanford | Dr. Jane Smith | jane@stanford.edu | RA | $45,000/year | 2024-08-01 | Machine Learning | Research in deep learning..."}
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+            ></textarea>
           </div>
 
           <!-- Import Actions -->
           <div class="flex gap-4">
             <button
-              onclick={processImport}
-              disabled={isImporting}
-              class="flex-1 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200"
+              onclick={processTextImport}
+              class="flex-1 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-200"
             >
-              {isImporting ? 'Importing...' : `Import ${csvData.length} Records`}
+              Add Scholarship
             </button>
             <button
-              onclick={clearImport}
+              onclick={clearTextImport}
               class="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition duration-200"
             >
               Clear
             </button>
           </div>
+        </div>
+      </div>
+    {/if}
+    
+    <!-- Add/Edit Form -->
+    {#if showAddForm}
+      <div class="bg-white rounded-lg shadow-sm border p-6 mb-8">
+        <h3 class="text-lg font-semibold mb-4">
+          {editingScholarship ? 'Edit Scholarship' : 'Add New Scholarship'}
+        </h3>
+        
+        <form onsubmit={handleSaveScholarship} class="space-y-4">
+          <!-- Funding Category Selection -->
+          <div class="bg-blue-50 p-4 rounded-lg">
+            <label for="funding_category" class="block text-sm font-medium text-gray-700 mb-2">Funding Category *</label>
+            <select
+              id="funding_category"
+              bind:value={formData.funding_category}
+              required
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+            >
+              <option value="Traditional Scholarship">🏆 Traditional Scholarship</option>
+              <option value="Graduate Program Funding">🎓 Graduate Program Funding</option>
+              <option value="Advertised Position">🔬 Advertised Research Position</option>
+            </select>
+            <p class="text-xs text-gray-600 mt-1">
+              {#if formData.funding_category === 'Traditional Scholarship'}
+                External scholarships from organizations, governments, foundations
+              {:else if formData.funding_category === 'Graduate Program Funding'}
+                University programs with automatic RA/TA/GA funding consideration
+              {:else}
+                Specific research positions advertised by professors
+              {/if}
+            </p>
+          </div>
 
-          <!-- Import Results -->
-          {#if importResults.length > 0}
-            <div class="mt-6 p-4 bg-gray-50 rounded-lg">
-              <h4 class="font-medium text-gray-900 mb-3">Import Results</h4>
-              <div class="space-y-1 text-sm">
-                {#each importResults as result}
-                  <div class="flex items-center gap-2">
-                    {#if result.success}
-                      <span class="text-green-600">✅</span>
-                      <span>Row {result.row}: {result.title} - Success</span>
-                    {:else}
-                      <span class="text-red-600">❌</span>
-                      <span>Row {result.row}: {result.error}</span>
-                    {/if}
-                  </div>
-                {/each}
+          <!-- Traditional Scholarship Form -->
+          {#if formData.funding_category === 'Traditional Scholarship'}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label for="title" class="block text-sm font-medium text-gray-700 mb-1">Scholarship Title *</label>
+                <input
+                  id="title"
+                  type="text"
+                  bind:value={formData.title}
+                  required
+                  placeholder="e.g., Fulbright Program"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+                />
+              </div>
+              <div>
+                <label for="provider" class="block text-sm font-medium text-gray-700 mb-1">Organization/Provider *</label>
+                <input
+                  id="provider"
+                  type="text"
+                  bind:value={formData.provider}
+                  required
+                  placeholder="e.g., US Department of State"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+                />
+              </div>
+              <div>
+                <label for="amount" class="block text-sm font-medium text-gray-700 mb-1">Award Amount *</label>
+                <input
+                  id="amount"
+                  type="text"
+                  bind:value={formData.amount}
+                  required
+                  placeholder="e.g., $50,000/year"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+                />
+              </div>
+              <div>
+                <label for="deadline" class="block text-sm font-medium text-gray-700 mb-1">Application Deadline *</label>
+                <input
+                  id="deadline"
+                  type="date"
+                  bind:value={formData.deadline}
+                  required
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+                />
+              </div>
+              <div>
+                <label for="location" class="block text-sm font-medium text-gray-700 mb-1">Study Location *</label>
+                <input
+                  id="location"
+                  type="text"
+                  bind:value={formData.location}
+                  required
+                  placeholder="e.g., United States"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+                />
+              </div>
+              <div>
+                <label for="field" class="block text-sm font-medium text-gray-700 mb-1">Field of Study *</label>
+                <input
+                  id="field"
+                  type="text"
+                  bind:value={formData.field}
+                  required
+                  placeholder="e.g., All Fields, Engineering"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+                />
+              </div>
+              <div>
+                <label for="level" class="block text-sm font-medium text-gray-700 mb-1">Academic Level *</label>
+                <select
+                  id="level"
+                  bind:value={formData.level}
+                  required
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+                >
+                  <option value="">Select Level</option>
+                  <option value="Bachelor">Bachelor's</option>
+                  <option value="Master's">Master's</option>
+                  <option value="PhD">PhD</option>
+                  <option value="Graduate">Graduate</option>
+                  <option value="Postgraduate">Postgraduate</option>
+                </select>
+              </div>
+              <div>
+                <label for="type" class="block text-sm font-medium text-gray-700 mb-1">Scholarship Type *</label>
+                <select
+                  id="type"
+                  bind:value={formData.type}
+                  required
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+                >
+                  <option value="">Select Type</option>
+                  <option value="Merit-based">Merit-based</option>
+                  <option value="Research-based">Research-based</option>
+                  <option value="Need-based">Need-based</option>
+                  <option value="Field-specific">Field-specific</option>
+                  <option value="Development-focused">Development-focused</option>
+                </select>
               </div>
             </div>
           {/if}
-        {/if}
+
+          <!-- Graduate Program Funding Form -->
+          {#if formData.funding_category === 'Graduate Program Funding'}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label for="university_name" class="block text-sm font-medium text-gray-700 mb-1">University *</label>
+                <input
+                  id="university_name"
+                  type="text"
+                  bind:value={formData.university_name}
+                  required
+                  placeholder="e.g., MIT"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+                />
+              </div>
+              <div>
+                <label for="program_name" class="block text-sm font-medium text-gray-700 mb-1">Program *</label>
+                <input
+                  id="program_name"
+                  type="text"
+                  bind:value={formData.program_name}
+                  required
+                  placeholder="e.g., PhD in Computer Science"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+                />
+              </div>
+              <div>
+                <label for="department" class="block text-sm font-medium text-gray-700 mb-1">Department</label>
+                <input
+                  id="department"
+                  type="text"
+                  bind:value={formData.department}
+                  placeholder="e.g., EECS Department"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+                />
+              </div>
+              <div>
+                <label for="funding_type" class="block text-sm font-medium text-gray-700 mb-1">Funding Type *</label>
+                <select
+                  id="funding_type"
+                  bind:value={formData.funding_type}
+                  required
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+                >
+                  <option value="">Select Funding Type</option>
+                  <option value="RA">Research Assistantship (RA)</option>
+                  <option value="TA">Teaching Assistantship (TA)</option>
+                  <option value="GA">Graduate Assistantship (GA)</option>
+                  <option value="Full Funding">Full Funding Package</option>
+                  <option value="Tuition Waiver">Tuition Waiver Only</option>
+                  <option value="Mixed">Mixed (RA/TA/Fellowship)</option>
+                </select>
+              </div>
+              <div>
+                <label for="application_method" class="block text-sm font-medium text-gray-700 mb-1">Application Method *</label>
+                <select
+                  id="application_method"
+                  bind:value={formData.application_method}
+                  required
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+                >
+                  <option value="">Select Method</option>
+                  <option value="Direct Apply">Direct Apply (Automatic Consideration)</option>
+                  <option value="Contact Professor First">Contact Professor First</option>
+                </select>
+              </div>
+              <div>
+                <label for="amount" class="block text-sm font-medium text-gray-700 mb-1">Stipend/Funding Amount *</label>
+                <input
+                  id="amount"
+                  type="text"
+                  bind:value={formData.amount}
+                  required
+                  placeholder="e.g., $35,000/year + tuition"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+                />
+              </div>
+              <div>
+                <label for="deadline" class="block text-sm font-medium text-gray-700 mb-1">Application Deadline *</label>
+                <input
+                  id="deadline"
+                  type="date"
+                  bind:value={formData.deadline}
+                  required
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+                />
+              </div>
+              <div class="md:col-span-2">
+                <label for="has_automatic_funding" class="flex items-center space-x-2">
+                  <input
+                    id="has_automatic_funding"
+                    type="checkbox"
+                    bind:checked={formData.has_automatic_funding}
+                    class="h-4 w-4 text-yellow-600 focus:ring-yellow-500 border-gray-300 rounded"
+                  />
+                  <span class="text-sm font-medium text-gray-700">Program automatically considers all applicants for funding</span>
+                </label>
+              </div>
+            </div>
+          {/if}
+
+          <!-- Advertised Position Form -->
+          {#if formData.funding_category === 'Advertised Position'}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label for="university_name" class="block text-sm font-medium text-gray-700 mb-1">University *</label>
+                <input
+                  id="university_name"
+                  type="text"
+                  bind:value={formData.university_name}
+                  required
+                  placeholder="e.g., Stanford University"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+                />
+              </div>
+              <div>
+                <label for="professor_name" class="block text-sm font-medium text-gray-700 mb-1">Professor Name *</label>
+                <input
+                  id="professor_name"
+                  type="text"
+                  bind:value={formData.professor_name}
+                  required
+                  placeholder="e.g., Dr. John Smith"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+                />
+              </div>
+              <div>
+                <label for="professor_email" class="block text-sm font-medium text-gray-700 mb-1">Professor Email *</label>
+                <input
+                  id="professor_email"
+                  type="email"
+                  bind:value={formData.professor_email}
+                  required
+                  placeholder="e.g., john.smith@stanford.edu"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+                />
+              </div>
+              <div>
+                <label for="department" class="block text-sm font-medium text-gray-700 mb-1">Department/Lab</label>
+                <input
+                  id="department"
+                  type="text"
+                  bind:value={formData.department}
+                  placeholder="e.g., AI Lab, CS Department"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+                />
+              </div>
+              <div>
+                <label for="funding_type" class="block text-sm font-medium text-gray-700 mb-1">Position Type *</label>
+                <select
+                  id="funding_type"
+                  bind:value={formData.funding_type}
+                  required
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+                >
+                  <option value="">Select Position Type</option>
+                  <option value="RA">Research Assistantship (RA)</option>
+                  <option value="Full Funding">PhD with Full Funding</option>
+                  <option value="Postdoc">Postdoc Position</option>
+                </select>
+              </div>
+              <div>
+                <label for="amount" class="block text-sm font-medium text-gray-700 mb-1">Funding Amount *</label>
+                <input
+                  id="amount"
+                  type="text"
+                  bind:value={formData.amount}
+                  required
+                  placeholder="e.g., $40,000/year + benefits"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+                />
+              </div>
+              <div>
+                <label for="deadline" class="block text-sm font-medium text-gray-700 mb-1">Application Deadline *</label>
+                <input
+                  id="deadline"
+                  type="date"
+                  bind:value={formData.deadline}
+                  required
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+                />
+              </div>
+              <div>
+                <label for="field" class="block text-sm font-medium text-gray-700 mb-1">Research Area *</label>
+                <input
+                  id="field"
+                  type="text"
+                  bind:value={formData.field}
+                  required
+                  placeholder="e.g., Machine Learning, Robotics"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+                />
+              </div>
+              <div>
+                <label for="application_method" class="block text-sm font-medium text-gray-700 mb-1">How to Apply *</label>
+                <select
+                  id="application_method"
+                  bind:value={formData.application_method}
+                  required
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+                >
+                  <option value="">Select Method</option>
+                  <option value="Contact Professor First">Email Professor Directly</option>
+                  <option value="Apply Online">Apply Through University Portal</option>
+                </select>
+              </div>
+              <div class="md:col-span-2">
+                <label for="position_details" class="block text-sm font-medium text-gray-700 mb-1">Position Details *</label>
+                <textarea
+                  id="position_details"
+                  bind:value={formData.position_details}
+                  required
+                  rows="4"
+                  placeholder="Describe the research project, lab, requirements, and what the position offers..."
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+                ></textarea>
+              </div>
+            </div>
+          {/if}
+
+          <!-- Common Fields -->
+          <div>
+            <label for="description" class="block text-sm font-medium text-gray-700 mb-1">
+              {formData.funding_category === 'Advertised Position' ? 'Additional Information' : 'Description'} *
+            </label>
+            <textarea
+              id="description"
+              bind:value={formData.description}
+              required
+              rows="3"
+              placeholder={formData.funding_category === 'Advertised Position' 
+                ? 'Any additional details about the position or application process...'
+                : 'Describe the scholarship/funding opportunity...'}
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+            ></textarea>
+          </div>
+
+          <div>
+            <label for="requirements" class="block text-sm font-medium text-gray-700 mb-1">Requirements (one per line)</label>
+            <textarea
+              id="requirements"
+              bind:value={formData.requirements}
+              rows="4"
+              placeholder={formData.funding_category === 'Advertised Position'
+                ? 'PhD in Computer Science&#10;Experience with Python&#10;Strong publication record'
+                : 'Bachelor\'s degree&#10;English proficiency&#10;Leadership experience'}
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+            ></textarea>
+          </div>
+
+          <!-- Optional Fields -->
+          {#if formData.funding_category !== 'Advertised Position'}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div>
+                <label for="website" class="block text-sm font-medium text-gray-700 mb-1">Website</label>
+                <input
+                  id="website"
+                  type="url"
+                  bind:value={formData.website}
+                  placeholder="https://..."
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+                />
+              </div>
+              <div>
+                <label for="min_gpa" class="block text-sm font-medium text-gray-700 mb-1">Min GPA</label>
+                <input
+                  id="min_gpa"
+                  type="number"
+                  step="0.01"
+                  max="4.0"
+                  bind:value={formData.min_gpa}
+                  placeholder="3.0"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+                />
+              </div>
+              <div>
+                <label for="min_ielts" class="block text-sm font-medium text-gray-700 mb-1">Min IELTS</label>
+                <input
+                  id="min_ielts"
+                  type="number"
+                  step="0.5"
+                  max="9.0"
+                  bind:value={formData.min_ielts}
+                  placeholder="6.5"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+                />
+              </div>
+              <div>
+                <label for="min_toefl" class="block text-sm font-medium text-gray-700 mb-1">Min TOEFL</label>
+                <input
+                  id="min_toefl"
+                  type="number"
+                  max="120"
+                  bind:value={formData.min_toefl}
+                  placeholder="80"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+                />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label for="age_limit" class="block text-sm font-medium text-gray-700 mb-1">Age Limit</label>
+                <input
+                  id="age_limit"
+                  type="number"
+                  bind:value={formData.age_limit}
+                  placeholder="30"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+                />
+              </div>
+              <div>
+                <label for="nationality_restrictions" class="block text-sm font-medium text-gray-700 mb-1">Nationality Restrictions (comma-separated)</label>
+                <input
+                  id="nationality_restrictions"
+                  type="text"
+                  bind:value={formData.nationality_restrictions}
+                  placeholder="India, Pakistan, Bangladesh"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+                />
+              </div>
+            </div>
+          {/if}
+
+          <div class="flex items-center">
+            <input
+              type="checkbox"
+              bind:checked={formData.is_active}
+              id="is_active"
+              class="h-4 w-4 text-yellow-600 focus:ring-yellow-500 border-gray-300 rounded"
+            />
+            <label for="is_active" class="ml-2 block text-sm text-gray-700">
+              Active (visible to users)
+            </label>
+          </div>
+
+          <div class="flex gap-4 pt-4">
+            <button
+              type="submit"
+              class="bg-yellow-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-yellow-700 transition duration-200"
+            >
+              {editingScholarship ? 'Update Scholarship' : 'Add Scholarship'}
+            </button>
+            <button
+              type="button"
+              onclick={resetForm}
+              class="bg-gray-500 text-white px-6 py-2 rounded-lg font-medium hover:bg-gray-600 transition duration-200"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
       </div>
+    {/if}
+
+    <!-- Scholarships List -->
+    <div class="bg-white rounded-lg shadow-sm border">
+      <div class="p-6 border-b flex justify-between items-center">
+        <h3 class="text-lg font-semibold">Scholarship Listings ({totalScholarships})</h3>
+        <div class="flex items-center space-x-2">
+          <label for="pageSize" class="text-sm text-gray-600">Items per page:</label>
+          <select 
+            id="pageSize" 
+            bind:value={pageSize}
+            onclick={() => { currentPage = 1; loadScholarships(); }}
+            class="border rounded px-2 py-1 text-sm"
+          >
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+          </select>
+        </div>
+      </div>
+      
+      {#if isLoading}
+        <div class="p-8 text-center">
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-600 mx-auto"></div>
+          <p class="mt-2 text-gray-600">Loading scholarships...</p>
+        </div>
+      {:else if scholarships.length === 0}
+        <div class="p-8 text-center">
+          <p class="text-gray-600">No scholarships found. Add your first scholarship!</p>
+        </div>
+      {:else}
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Scholarship</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Details</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Deadline</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              {#each scholarships as scholarship}
+                <tr class="hover:bg-gray-50">
+                  <td class="px-6 py-4">
+                    <div>
+                      <div class="text-sm font-medium text-gray-900">{scholarship.title}</div>
+                      <div class="text-sm text-gray-500">{scholarship.provider}</div>
+                      <div class="text-sm text-yellow-600 font-medium">{scholarship.amount}</div>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4">
+                    <div class="text-sm text-gray-900">{scholarship.location}</div>
+                    <div class="text-sm text-gray-500">{scholarship.level} • {scholarship.field}</div>
+                    <div class="text-sm text-gray-500">{scholarship.type}</div>
+                  </td>
+                  <td class="px-6 py-4 text-sm text-gray-900">
+                    {new Date(scholarship.deadline).toLocaleDateString()}
+                  </td>
+                  <td class="px-6 py-4">
+                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {scholarship.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                      {scholarship.is_active ? 'Active' : 'Inactive'}
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 text-sm font-medium">
+                    <div class="flex space-x-2">
+                      <button
+                        onclick={() => editScholarship(scholarship)}
+                        class="text-yellow-600 hover:text-yellow-700"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onclick={() => deleteScholarship(scholarship.id!)}
+                        class="text-red-600 hover:text-red-700"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              {/each}
+            </tbody>
+          </table>
+        </div>
+        
+        <!-- Pagination Controls -->
+        <div class="px-6 py-4 border-t flex items-center justify-between">
+          <div class="text-sm text-gray-600">
+            Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, totalScholarships)} of {totalScholarships} scholarships
+          </div>
+          <div class="flex space-x-1">
+            <button 
+              onclick={() => goToPage(1)} 
+              disabled={currentPage === 1}
+              class="px-3 py-1 border rounded text-sm {currentPage === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'hover:bg-gray-100'}"
+            >
+              «
+            </button>
+            <button 
+              onclick={() => goToPage(currentPage - 1)} 
+              disabled={currentPage === 1}
+              class="px-3 py-1 border rounded text-sm {currentPage === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'hover:bg-gray-100'}"
+            >
+              ‹
+            </button>
+            
+            {#each Array(Math.min(5, totalPages)) as _, i}
+              {#if totalPages <= 5}
+                <!-- Show all pages if 5 or fewer -->
+                <button 
+                  onclick={() => goToPage(i + 1)}
+                  class="px-3 py-1 border rounded text-sm {currentPage === i + 1 ? 'bg-yellow-100 border-yellow-300' : 'hover:bg-gray-100'}"
+                >
+                  {i + 1}
+                </button>
+              {:else if currentPage <= 3}
+                <!-- Near start -->
+                <button 
+                  onclick={() => goToPage(i + 1)}
+                  class="px-3 py-1 border rounded text-sm {currentPage === i + 1 ? 'bg-yellow-100 border-yellow-300' : 'hover:bg-gray-100'}"
+                >
+                  {i + 1}
+                </button>
+              {:else if currentPage >= totalPages - 2}
+                <!-- Near end -->
+                <button 
+                  onclick={() => goToPage(totalPages - 4 + i)}
+                  class="px-3 py-1 border rounded text-sm {currentPage === totalPages - 4 + i ? 'bg-yellow-100 border-yellow-300' : 'hover:bg-gray-100'}"
+                >
+                  {totalPages - 4 + i}
+                </button>
+              {:else}
+                <!-- Middle -->
+                <button 
+                  onclick={() => goToPage(currentPage - 2 + i)}
+                  class="px-3 py-1 border rounded text-sm {i === 2 ? 'bg-yellow-100 border-yellow-300' : 'hover:bg-gray-100'}"
+                >
+                  {currentPage - 2 + i}
+                </button>
+              {/if}
+            {/each}
+            
+            <button 
+              onclick={() => goToPage(currentPage + 1)} 
+              disabled={currentPage === totalPages}
+              class="px-3 py-1 border rounded text-sm {currentPage === totalPages ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'hover:bg-gray-100'}"
+            >
+              ›
+            </button>
+            <button 
+              onclick={() => goToPage(totalPages)} 
+              disabled={currentPage === totalPages}
+              class="px-3 py-1 border rounded text-sm {currentPage === totalPages ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'hover:bg-gray-100'}"
+            >
+              »
+            </button>
+          </div>
+        </div>
+      {/if}
     </div>
-  </div>
+  {/if}
 </div> 
