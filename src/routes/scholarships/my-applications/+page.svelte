@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import LoginModal from '$lib/components/LoginModal.svelte';
+  import AuthenticationFlow from '$lib/components/AuthenticationFlow.svelte';
   
   let { data } = $props();
   let { supabase, session } = $derived(data);
@@ -585,6 +585,6 @@
     {/if}
 
     <!-- Login Modal -->
-    <LoginModal bind:show={showLoginModal} {supabase} />
+    <AuthenticationFlow bind:show={showLoginModal} {supabase} mode="login" returnUrl="/scholarships/my-applications" />
   </div>
 </div> 

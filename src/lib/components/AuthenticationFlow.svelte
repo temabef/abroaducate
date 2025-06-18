@@ -165,6 +165,25 @@
                 loading = false;
                 return;
             }
+
+            // Additional database check for registration blocking
+            try {
+                const domain = email.split('@')[1];
+                const { data: shouldBlock } = await supabase.rpc('should_block_registration', {
+                    p_ip_address: '0.0.0.0', // IP would be detected server-side
+                    p_email_domain: domain,
+                    p_device_fingerprint: deviceFingerprint
+                });
+
+                if (shouldBlock) {
+                    error = 'Email rate limit exceeded. Please try again later or contact support.';
+                    loading = false;
+                    return;
+                }
+            } catch (blockCheckError) {
+                console.warn('Failed to check registration blocking:', blockCheckError);
+                // Continue with registration if the check fails
+            }
         }
 
         try {
@@ -296,6 +315,27 @@
             handleEmailAuth();
         }
     }
+
+    // Auto-scroll to message when it appears
+    function scrollToMessage() {
+        if (browser) {
+            setTimeout(() => {
+                const messageElement = document.getElementById('auth-message');
+                if (messageElement) {
+                    messageElement.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'center',
+                        inline: 'nearest'
+                    });
+                }
+            }, 100);
+        }
+    }
+
+    // Watch for message changes and auto-scroll
+    $: if ((success || error) && browser) {
+        scrollToMessage();
+    }
 </script>
 
 <svelte:window on:keydown={handleKeydown} />
@@ -323,24 +363,7 @@
                 </p>
             </div>
 
-            <!-- Success/Error Messages -->
-            {#if success}
-                <div class="message success">
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                    </svg>
-                    {success}
-                </div>
-            {/if}
-
-            {#if error}
-                <div class="message error">
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-                    </svg>
-                    {error}
-                </div>
-            {/if}
+            <!-- Messages removed from top - will be shown after submit button -->
 
             <!-- Risk Warning -->
             {#if riskAssessment?.riskScore > 40 && riskAssessment?.riskScore <= 60}
@@ -536,6 +559,25 @@
                             {mode === 'signup' ? 'Create Account' : 'Sign In'}
                         </button>
 
+                        <!-- Success/Error Messages - positioned right after submit button for immediate visibility -->
+                        {#if success}
+                            <div class="message success message-under-button" id="auth-message">
+                                <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                </svg>
+                                {success}
+                            </div>
+                        {/if}
+
+                        {#if error}
+                            <div class="message error message-under-button" id="auth-message">
+                                <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                </svg>
+                                {error}
+                            </div>
+                        {/if}
+
                         {#if mode === 'login'}
                             <button type="button" class="forgot-password" on:click={handleForgotPassword}>
                                 Forgot your password?
@@ -657,6 +699,26 @@
         background-color: #FEF3C7;
         color: #D97706;
         border: 1px solid #FDE68A;
+    }
+
+    .message-under-button {
+        margin-top: 1rem;
+        margin-bottom: 0.5rem;
+        animation: slideDown 0.3s ease-out;
+        border: 2px solid;
+        font-weight: 600;
+        line-height: 1.4;
+    }
+
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
     .auth-tabs {

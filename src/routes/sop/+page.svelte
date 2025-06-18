@@ -22,10 +22,19 @@
         research interests, and career goals with our comprehensive AI-powered form.
       </p>
       
-      <!-- Free Trial Info -->
-      <div class="bg-blue-100 text-blue-800 px-6 py-3 rounded-lg inline-block mb-8">
-        <span class="font-semibold">🎯 Step-by-Step Process:</span> Complete 4 detailed sections • 
-        <span class="font-semibold">💎 Free Trial:</span> 1 credit included
+      <!-- AI Guidance Notice -->
+      <div class="bg-amber-50 border border-amber-200 text-amber-800 px-6 py-4 rounded-lg inline-block mb-8 max-w-4xl">
+        <div class="flex items-start gap-3">
+          <span class="text-2xl">⚠️</span>
+          <div>
+            <div class="font-semibold mb-1">Important Disclaimer</div>
+            <p class="text-sm leading-relaxed">
+              This AI-generated SOP should be used as a <strong>guide and starting point</strong> for your application. 
+              Please review, personalize, and adapt the content to reflect your unique voice and experiences. 
+              <strong>Do not submit AI-generated content directly without thorough review and modification.</strong>
+            </p>
+          </div>
+        </div>
       </div>
     </div>
 

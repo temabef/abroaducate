@@ -3,6 +3,13 @@
   import { goto } from '$app/navigation';
   import { page } from '$app/stores';
   import type { PageData } from './$types';
+  import VersionHistoryIndicator from '$lib/components/VersionHistoryIndicator.svelte';
+  import { 
+    createVersionSnapshot as createVersionSnapshotWithLimits,
+    getVersionHistory,
+    isVersionHistoryAllowed,
+    type VersionHistoryConfig 
+  } from '$lib/versionHistory';
   
   export let data: PageData;
   let { coverLetter, supabase, session } = data;
@@ -20,20 +27,25 @@
   let wordCount = 0;
   let characterCount = 0;
   let showSaveToast = false;
+  let showCopyToast = false;
   
   // Auto-save
   let autoSaveInterval: NodeJS.Timeout;
   let saveTimeout: NodeJS.Timeout;
   
-  // Version history
+  // Version history with plan-based limits
   let versions: any[] = [];
   let showVersionHistory = false;
+  let versionHistoryAllowed = true;
+  let versionUpgradeMessage = '';
+  let planType = 'free'; // Will be populated from user data
   
   // Inline editing - Professional context
   let selectedText = '';
   let showEditPopup = false;
   let editingText = false;
   let popupPosition = { x: 0, y: 0 };
+  let selectedRange: Range | null = null;
   
   // Professional edit options for cover letters
   const editOptions = [
@@ -45,7 +57,8 @@
   
   onMount(async () => {
     updateWordCount();
-    loadVersionHistory();
+    await loadUserPlan();
+    await loadVersionHistoryWithLimits();
     setupTextSelection();
     
     // Set up auto-save every 30 seconds
@@ -86,6 +99,7 @@
     if (!coverLetterContent?.contains(target) && !popup?.contains(target)) {
       showEditPopup = false;
       selectedText = '';
+      selectedRange = null;
     }
   }
   
@@ -95,6 +109,7 @@
     if (!selection || selection.toString().trim() === '') {
       showEditPopup = false;
       selectedText = '';
+      selectedRange = null;
     }
   }
   
@@ -125,6 +140,9 @@
       return;
     }
     
+    // Store the range for precise replacement later
+    selectedRange = range.cloneRange();
+    
     console.log('Showing popup at position:', rect);
     
     // Position popup near selection
@@ -139,7 +157,16 @@
   }
   
   async function handleEditOption(editType: string) {
-    if (!selectedText || !coverLetter) return;
+    console.log('Starting handleEditOption with:', { editType, selectedText, hasRange: !!selectedRange });
+    
+    if (!selectedText || !coverLetter || !selectedRange) {
+      console.log('Missing required data:', { selectedText: !!selectedText, coverLetter: !!coverLetter, selectedRange: !!selectedRange });
+      return;
+    }
+    
+    // Store the range before we clear the popup/selection
+    const rangeToUse = selectedRange.cloneRange();
+    console.log('Cloned range for editing');
     
     editingText = true;
     showEditPopup = false;
@@ -160,21 +187,23 @@
       if (!response.ok) throw new Error('Failed to edit text');
       
       const result = await response.json();
+      console.log('Got API result:', result);
       
-      // Replace selected text in cover letter content
-      content = content.replace(selectedText, result.editedText);
+      // Replace text at exact selected position using DOM Range
+      console.log('About to replace text with:', result.editedText);
+      replaceTextInRange(rangeToUse, result.editedText);
       
-      // Force update of the contenteditable div
+      // Update the content variable from the DOM
       const contentDiv = document.getElementById('cover-letter-content');
       if (contentDiv) {
-        contentDiv.innerHTML = content.replace(/\n/g, '<br>');
+        content = contentDiv.textContent || '';
       }
       
       updateWordCount();
       hasUnsavedChanges = true;
       
-      // Auto-save after edit
-      await saveDocument();
+      // Save document and create version for AI edits (these are significant changes)
+      await saveDocumentWithVersion(true); // true = significant change
       
       // Record edit history
       await recordEdit(selectedText, result.editedText, editType);
@@ -191,7 +220,58 @@
   function clearSelection() {
     window.getSelection()?.removeAllRanges();
     selectedText = '';
+    selectedRange = null;
     showEditPopup = false;
+  }
+  
+  function replaceTextInRange(range: Range, newText: string) {
+    console.log('replaceTextInRange called with:', { newText, rangeValid: !!range });
+    
+    try {
+      // Validate the range is still valid
+      if (!range || !range.startContainer || !range.endContainer) {
+        console.log('Range validation failed:', { range: !!range, startContainer: !!range?.startContainer, endContainer: !!range?.endContainer });
+        throw new Error('Invalid range provided');
+      }
+      
+      // Delete the selected content
+      range.deleteContents();
+      
+      // Create a text node with the new content
+      const textNode = document.createTextNode(newText);
+      
+      // Insert the new text at the selection point
+      range.insertNode(textNode);
+      
+      // Move cursor to end of inserted text
+      range.setStartAfter(textNode);
+      range.setEndAfter(textNode);
+      
+      // Clear the selection
+      const selection = window.getSelection();
+      if (selection) {
+        selection.removeAllRanges();
+        selection.addRange(range);
+        selection.collapseToEnd();
+      }
+    } catch (error) {
+      console.error('Error replacing text in range:', error);
+      console.log('Falling back to simple text replacement');
+      
+      // Fallback: Use simple string replacement
+      const firstOccurrence = content.indexOf(selectedText);
+      if (firstOccurrence !== -1) {
+        content = content.substring(0, firstOccurrence) + 
+                 newText + 
+                 content.substring(firstOccurrence + selectedText.length);
+        
+        // Update the DOM manually
+        const contentDiv = document.getElementById('cover-letter-content');
+        if (contentDiv) {
+          contentDiv.textContent = content;
+        }
+      }
+    }
   }
   
   async function recordEdit(originalText: string, editedText: string, editType: string) {
@@ -237,6 +317,10 @@
   }
   
   async function saveDocument() {
+    await saveDocumentWithVersion(false); // false = auto-save (smart versioning)
+  }
+  
+  async function saveDocumentWithVersion(isSignificantChange = false) {
     if (saving) return;
     
     saving = true;
@@ -259,8 +343,8 @@
       showSaveToast = true;
       setTimeout(() => showSaveToast = false, 3000);
       
-      // Create version snapshot
-      await createVersionSnapshot();
+      // Create version snapshot 
+      await createVersionSnapshot(isSignificantChange);
       await trackAnalytics('edited');
       
     } catch (error) {
@@ -271,44 +355,86 @@
     }
   }
   
-  async function createVersionSnapshot() {
+  async function createVersionSnapshot(isSignificantChange = false) {
     try {
-      await supabase
-        .from('document_versions')
-        .insert({
-          document_id: coverLetter.id,
-          document_type: 'cover_letter',
-          version_number: coverLetter.version + 1,
-          content: content,
-          changes_summary: `Auto-saved version`,
-          created_at: new Date().toISOString()
-        });
-      
-      // Update version number
-      await supabase
-        .from('cover_letters')
-        .update({ version: coverLetter.version + 1 })
-        .eq('id', coverLetter.id);
+      if (!versionHistoryAllowed) {
+        console.log('Version history not allowed for this plan/document type');
+        return;
+      }
+
+      const config: VersionHistoryConfig = {
+        planType,
+        documentType: 'cover_letter',
+        userId: session?.user?.id || ''
+      };
+
+      const result = await createVersionSnapshotWithLimits(
+        supabase,
+        config,
+        coverLetter.id,
+        content,
+        isSignificantChange,
+        versions
+      );
+
+      if (result.success && result.versionCreated) {
+        // Update version number
+        await supabase
+          .from('cover_letters')
+          .update({ version: coverLetter.version + 1 })
+          .eq('id', coverLetter.id);
+          
+        coverLetter.version += 1;
         
-      coverLetter.version += 1;
+        // Refresh version history
+        await loadVersionHistoryWithLimits();
+        
+        console.log(result.message);
+      } else if (result.upgradeRequired) {
+        versionUpgradeMessage = result.message || '';
+      }
+      
     } catch (error) {
       console.error('Error creating version snapshot:', error);
     }
   }
   
-  async function loadVersionHistory() {
+  async function loadUserPlan() {
     try {
-      const { data: versionData } = await supabase
-        .from('document_versions')
-        .select('*')
-        .eq('document_id', coverLetter.id)
-        .eq('document_type', 'cover_letter')
-        .order('created_at', { ascending: false })
-        .limit(10);
+      const { data: userData } = await supabase
+        .from('user_subscriptions')
+        .select('plan_type')
+        .eq('user_id', session?.user?.id)
+        .eq('status', 'active')
+        .single();
       
-      versions = versionData || [];
+      planType = userData?.plan_type || 'free';
+    } catch (error) {
+      console.error('Error loading user plan:', error);
+      planType = 'free';
+    }
+  }
+
+  async function loadVersionHistoryWithLimits() {
+    try {
+      const config: VersionHistoryConfig = {
+        planType,
+        documentType: 'cover_letter',
+        userId: session?.user?.id || ''
+      };
+
+      const result = await getVersionHistory(supabase, config, coverLetter.id);
+      
+      versions = result.versions;
+      versionHistoryAllowed = result.hasAccess;
+      
+      if (result.upgradeMessage) {
+        versionUpgradeMessage = result.upgradeMessage;
+      }
+      
     } catch (error) {
       console.error('Error loading version history:', error);
+      versions = [];
     }
   }
   
@@ -360,9 +486,62 @@
   
   function copyToClipboard() {
     navigator.clipboard.writeText(content).then(() => {
-      alert('Cover letter copied to clipboard!');
+      // Show custom toast instead of alert
+      showCopyToast = true;
+      setTimeout(() => showCopyToast = false, 3000);
       trackAnalytics('copied');
+    }).catch(err => {
+      console.error('Error copying text: ', err);
+      alert('Failed to copy cover letter. Please try again.');
     });
+  }
+  
+  // Add export functionality
+  let exporting = false;
+  
+
+  
+  async function exportToWord() {
+    if (!coverLetter) return;
+    exporting = true;
+    
+    try {
+      const response = await fetch('/api/export-word', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: content,
+          title: `${coverLetter.job_title} - ${coverLetter.company_name}`,
+          type: 'cover_letter',
+          metadata: {
+            author: session?.user?.user_metadata?.full_name || session?.user?.email,
+            company: coverLetter.company_name,
+            date: new Date().toLocaleDateString()
+          }
+        })
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${coverLetter.job_title}_${coverLetter.company_name}_Cover_Letter.rtf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        
+        await trackAnalytics('exported_word');
+      } else {
+        throw new Error('Failed to export Word document');
+      }
+    } catch (error) {
+      console.error('Error exporting Word:', error);
+      alert('Failed to export Word document. Please try again.');
+    } finally {
+      exporting = false;
+    }
   }
 </script>
 
@@ -420,6 +599,14 @@
   </div>
 {/if}
 
+<!-- Copy Toast Notification -->
+{#if showCopyToast}
+  <div class="fixed top-20 right-6 bg-blue-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center gap-2">
+    <span>📋</span>
+    <span>Cover letter copied to clipboard!</span>
+  </div>
+{/if}
+
 <!-- Version History Modal -->
 {#if showVersionHistory}
   <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick={() => showVersionHistory = false}>
@@ -457,7 +644,23 @@
           </div>
         {:else}
           <div class="p-4 text-center text-gray-500">
-            No version history available
+            {#if !versionHistoryAllowed}
+              <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div class="flex items-center gap-2 text-blue-700 mb-2">
+                  <span>🔒</span>
+                  <span class="font-medium">Version History Unavailable</span>
+                </div>
+                <p class="text-sm text-blue-600 mb-3">{versionUpgradeMessage}</p>
+                <button 
+                  onclick={() => window.location.href = '/pricing'}
+                  class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors text-sm"
+                >
+                  Upgrade Plan
+                </button>
+              </div>
+            {:else}
+              No version history available
+            {/if}
           </div>
         {/each}
       </div>
@@ -498,12 +701,18 @@
           </div>
           
           <!-- Version History -->
-          <button
-            onclick={() => showVersionHistory = !showVersionHistory}
-            class="px-3 py-1.5 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
-          >
-            📊 Versions ({versions.length})
-          </button>
+          {#if versionHistoryAllowed}
+            <button
+              onclick={() => showVersionHistory = !showVersionHistory}
+              class="px-3 py-1.5 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+            >
+              📊 Versions ({versions.length})
+            </button>
+          {:else}
+            <div class="px-3 py-1.5 text-sm font-medium text-gray-500 bg-gray-50 rounded-md border border-gray-300">
+              📊 Versions (Upgrade Required)
+            </div>
+          {/if}
         </div>
       </div>
     </div>
@@ -593,6 +802,13 @@
           </div>
         </div>
         
+        <!-- Version Usage -->
+        <VersionHistoryIndicator 
+          planType={planType}
+          currentVersionCount={versions.length}
+          documentType="cover_letter"
+        />
+        
         <!-- Quick Actions -->
         <div class="bg-white rounded-lg shadow border border-gray-200 p-4">
           <h3 class="font-medium text-gray-900 mb-3">Quick Actions</h3>
@@ -608,6 +824,17 @@
               class="w-full text-left px-3 py-2 text-sm bg-blue-50 hover:bg-blue-100 rounded-md transition-colors"
             >
               📎 Copy Cover Letter
+            </button>
+            <button
+              onclick={exportToWord}
+              disabled={exporting}
+              class="w-full text-left px-3 py-2 text-sm bg-green-50 hover:bg-green-100 rounded-md transition-colors disabled:opacity-50"
+            >
+              {#if exporting}
+                ⏳ Generating Word...
+              {:else}
+                📝 Export as Word
+              {/if}
             </button>
           </div>
         </div>

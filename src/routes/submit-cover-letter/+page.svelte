@@ -3,7 +3,7 @@
     import { goto } from '$app/navigation';
     import { page } from '$app/stores';
     import AuthenticationFlow from '$lib/components/AuthenticationFlow.svelte';
-    import { formStore, loadStateFromSessionStorage, pendingGeneration, clearStateFromSessionStorage } from '$lib/stores';
+    import { coverLetterFormStore, loadCoverLetterStateFromSessionStorage, coverLetterPendingGeneration, clearCoverLetterStateFromSessionStorage } from '$lib/stores/coverLetterStore';
     import { get } from 'svelte/store';
     import { handleUpgradeRequired } from '$lib/services/upgradeService';
 
@@ -22,23 +22,23 @@
             handleAuthenticatedUser();
         } else if (!session) {
             showLogin = true;
-            status = 'Almost there! Please log in with Google to generate your Statement of Purpose.';
+            status = 'Almost there! Please log in to generate your Cover Letter.';
         }
     }
 
     onMount(async () => {
-        console.log('Submit SOP page mounted');
+        console.log('Submit Cover Letter page mounted');
         console.log('Session:', session);
-        console.log('Pending generation:', get(pendingGeneration));
+        console.log('Pending generation:', get(coverLetterPendingGeneration));
         
         // Check if we have form data
-        const savedState = loadStateFromSessionStorage();
+        const savedState = loadCoverLetterStateFromSessionStorage();
         console.log('Saved form state:', savedState);
         
         if (Object.keys(savedState).length === 0) {
-            console.log('No form data found, redirecting to homepage');
+            console.log('No form data found, redirecting to cover letters page');
             status = 'No form data found. Redirecting to the form...';
-            setTimeout(() => goto('/'), 2000);
+            setTimeout(() => goto('/cover-letters'), 2000);
             return;
         }
 
@@ -66,24 +66,24 @@
         isGenerating = true;
         
         try {
-            console.log('Starting SOP generation');
-            status = 'Generating your Statement of Purpose... This may take a moment.';
+            console.log('Starting Cover Letter generation');
+            status = 'Generating your Cover Letter... This may take a moment.';
             
             // Load and validate form data
-            const savedState = loadStateFromSessionStorage();
+            const savedState = loadCoverLetterStateFromSessionStorage();
             if (Object.keys(savedState).length === 0) {
                 throw new Error('Could not find form data. Please start over.');
             }
             
             // Update the form store with saved data
-            formStore.set({ ...$formStore, ...savedState });
-            console.log('Form data loaded:', $formStore);
+            coverLetterFormStore.set({ ...$coverLetterFormStore, ...savedState });
+            console.log('Form data loaded:', $coverLetterFormStore);
 
-            // Make API call to generate SOP
-            const response = await fetch('/api/generate-sop', {
+            // Make API call to generate Cover Letter
+            const response = await fetch('/api/generate-cover-letter', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify($formStore),
+                body: JSON.stringify($coverLetterFormStore),
             });
 
             if (!response.ok) {
@@ -100,25 +100,25 @@
                     return;
                 }
                 
-                throw new Error(errorData.error || 'Failed to generate SOP.');
+                throw new Error(errorData.error || 'Failed to generate Cover Letter.');
             }
 
             const result = await response.json();
-            console.log('SOP generation result:', result);
+            console.log('Cover Letter generation result:', result);
 
             // Clear temporary data
-            clearStateFromSessionStorage();
-            pendingGeneration.set(false);
+            clearCoverLetterStateFromSessionStorage();
+            coverLetterPendingGeneration.set(false);
             
-            status = 'SOP generated successfully! Redirecting to your SOP...';
+            status = 'Cover Letter generated successfully! Redirecting to your Cover Letter...';
             
-            // Redirect directly to the generated SOP for editing
+            // Redirect directly to the generated Cover Letter for editing
             setTimeout(() => {
-                goto(`/sop/${result.sopId}`);
+                goto(`/cover-letters/${result.coverLetterId}`);
             }, 1500);
 
         } catch (error: any) {
-            console.error('SOP generation error:', error);
+            console.error('Cover Letter generation error:', error);
             status = `Error: ${error.message}`;
             isGenerating = false;
             hasTriedGeneration = false;
@@ -144,11 +144,11 @@
 <div class="submission-container">
     <div class="status-box">
         {#if !session}
-            <h1 class="title">Ready to Generate Your SOP!</h1>
+            <h1 class="title">Ready to Generate Your Cover Letter!</h1>
             <p class="status-message">{status}</p>
             <p class="sub-message">We've saved your form data. Just log in to continue.</p>
         {:else}
-            <h1 class="title">Processing Your SOP</h1>
+            <h1 class="title">Processing Your Cover Letter</h1>
             <p class="status-message">{status}</p>
             {#if isGenerating}
                 <div class="spinner"></div>
@@ -161,7 +161,7 @@
     </div>
 </div>
 
-<AuthenticationFlow bind:show={showLogin} {supabase} mode="login" returnUrl="/submit-sop" />
+<AuthenticationFlow bind:show={showLogin} {supabase} mode="login" returnUrl="/submit-cover-letter" />
 
 <style>
     .submission-container {
@@ -199,26 +199,26 @@
         margin: 0 auto;
         width: 40px;
         height: 40px;
-        border: 4px solid rgba(0,0,0,0.1);
-        border-left-color: #4F46E5;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #3498db;
         border-radius: 50%;
         animation: spin 1s linear infinite;
     }
     .retry-button {
-        background-color: #4F46E5;
+        background-color: #3B82F6;
         color: white;
-        border: none;
         padding: 0.75rem 1.5rem;
+        border: none;
         border-radius: 0.5rem;
-        font-size: 1rem;
         font-weight: 600;
         cursor: pointer;
-        transition: background-color 0.2s ease;
+        transition: background-color 0.2s;
     }
     .retry-button:hover {
-        background-color: #4338CA;
+        background-color: #2563EB;
     }
     @keyframes spin {
-        to { transform: rotate(360deg); }
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
     }
 </style> 

@@ -196,6 +196,21 @@
 
 <div id="form-section" class="max-w-4xl mx-auto p-4 sm:p-6 md:p-8 bg-white rounded-lg shadow-xl my-8">
     
+    <!-- AI Usage Disclaimer -->
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+        <div class="flex items-start gap-3">
+            <span class="text-xl">🤖</span>
+            <div class="text-sm text-blue-800">
+                <div class="font-semibold mb-1">AI-Powered Guidance Tool</div>
+                <p class="leading-relaxed">
+                    This form helps generate an SOP draft to <strong>guide your writing process</strong>. 
+                    The AI output should be thoroughly reviewed, personalized, and adapted to reflect your unique voice 
+                    before submission to any academic institution.
+                </p>
+            </div>
+        </div>
+    </div>
+
     <!-- Main Title -->
     <div class="text-center mb-8">
         <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">Ready to Generate Your SOP</h1>

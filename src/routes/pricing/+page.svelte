@@ -205,12 +205,7 @@
             </svg>
             <span class="text-gray-700"><strong>Academic Analysis:</strong> Quick profile assessment only</span>
           </li>
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-700">Basic document generation with standard academic format</span>
-          </li>
+
           <li class="flex items-start">
             <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
@@ -221,13 +216,13 @@
             <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
             </svg>
-            <span class="text-gray-700">6 basic templates per document type</span>
+            <span class="text-gray-700"><strong>Inline Text Editing:</strong> 5 AI-powered edits per month</span>
           </li>
           <li class="flex items-start">
             <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
             </svg>
-            <span class="text-gray-700">Version history (cover letters only)</span>
+            <span class="text-gray-700"><strong>Version History:</strong> 3 versions (cover letters only, 30-day retention)</span>
           </li>
           <li class="flex items-start">
             <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -307,12 +302,7 @@
             </svg>
             <span class="text-gray-700"><strong>Academic Analysis:</strong> Comprehensive transcript analysis + Quick assessment</span>
           </li>
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-700">Generate alternative versions of your documents to compare approaches</span>
-          </li>
+
           
           <li class="flex items-start">
             <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -336,7 +326,13 @@
             <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
             </svg>
-            <span class="text-gray-700">Complete version history & document tracking</span>
+            <span class="text-gray-700"><strong>Inline Text Editing:</strong> 50 AI-powered edits per month</span>
+          </li>
+          <li class="flex items-start">
+            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+            </svg>
+            <span class="text-gray-700"><strong>Version History:</strong> 50 versions (all document types, 90-day retention)</span>
           </li>
           <li class="flex items-start">
             <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -416,12 +412,7 @@
             </svg>
             <span class="text-gray-700"><strong>Academic Analysis:</strong> Comprehensive transcript analysis + Quick assessment</span>
           </li>
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-700">Generate multiple alternative versions simultaneously for comprehensive options</span>
-          </li>
+
           
           <li class="flex items-start">
             <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -439,7 +430,13 @@
             <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
             </svg>
-            <span class="text-gray-700">Complete version history & document tracking</span>
+            <span class="text-gray-700"><strong>Inline Text Editing:</strong> UNLIMITED AI-powered edits</span>
+          </li>
+          <li class="flex items-start">
+            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+            </svg>
+            <span class="text-gray-700"><strong>Version History:</strong> 100 versions (all document types, 1-year retention)</span>
           </li>
           <li class="flex items-start">
             <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -530,6 +527,18 @@
                 <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>GPT-4o</strong></td>
               </tr>
               <tr class="bg-gray-50">
+                <td class="px-6 py-4 text-sm text-gray-900 font-medium">Inline Text Editing</td>
+                <td class="px-6 py-4 text-sm text-center text-gray-600">5 edits/month</td>
+                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>50 edits/month</strong></td>
+                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>UNLIMITED</strong></td>
+              </tr>
+              <tr>
+                <td class="px-6 py-4 text-sm text-gray-900 font-medium">Version History</td>
+                <td class="px-6 py-4 text-sm text-center text-gray-600">3 versions (cover letters only)</td>
+                            <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>50 versions (all documents)</strong></td>
+            <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>100 versions (all documents)</strong></td>
+              </tr>
+              <tr class="bg-gray-50">
                 <td class="px-6 py-4 text-sm text-gray-900 font-medium">Cold Email Generator</td>
                 <td class="px-6 py-4 text-sm text-center text-gray-600">❌</td>
                 <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>✅ Basic Templates</strong></td>
@@ -548,12 +557,7 @@
                 <td class="px-6 py-4 text-sm text-center text-gray-600">Email (48h)</td>
                 <td class="px-6 py-4 text-sm text-center text-gray-600">Priority Email (24h)</td>
               </tr>
-              <tr class="bg-gray-50">
-                <td class="px-6 py-4 text-sm text-gray-900 font-medium">Templates & Customization</td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600">Standard format</td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>Alternative versions</strong></td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>Multiple alternatives</strong></td>
-              </tr>
+
               <tr>
                 <td class="px-6 py-4 text-sm text-gray-900 font-medium">Analytics & Features</td>
                 <td class="px-6 py-4 text-sm text-center text-gray-600">Basic tracking</td>

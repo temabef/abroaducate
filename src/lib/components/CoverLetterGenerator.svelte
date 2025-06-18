@@ -2,6 +2,8 @@
     import { createEventDispatcher } from 'svelte';
     import { goto } from '$app/navigation';
     import { handleUpgradeRequired } from '$lib/services/upgradeService';
+    import { coverLetterFormStore, saveCoverLetterStateToSessionStorage, coverLetterPendingGeneration } from '$lib/stores/coverLetterStore';
+    import { get } from 'svelte/store';
     
     export let existingUserData: any = null;
     export let existingSOPData: any = null;
@@ -145,40 +147,31 @@
     }
     
     async function generateCoverLetter() {
-        generating = true;
+        console.log('=== COVER LETTER GENERATION START ===');
+        console.log('Generate Cover Letter button clicked');
+        console.log('Current form data:', coverLetterData);
         
-        try {
-            const response = await fetch('/api/generate-cover-letter', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(coverLetterData)
-            });
-            
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-                console.error('Server error:', errorData);
-                
-                // Handle usage limit exceeded
-                if (response.status === 403 && errorData.upgradeRequired) {
-                    // Use new beautiful upgrade system
-                    handleUpgradeRequired(errorData);
-                    return;
-                }
-                
-                throw new Error(errorData.details || errorData.error || 'Failed to generate cover letter');
-            }
-            
-            const data = await response.json();
-            generatedCoverLetter = data.coverLetter;
-            currentStep = totalSteps + 1; // Move to results step
-            
-        } catch (error) {
-            console.error('Error generating cover letter:', error);
-            const errorMessage = error instanceof Error ? error.message : 'Failed to generate cover letter. Please try again.';
-            alert(errorMessage);
-        } finally {
-            generating = false;
-        }
+        // Update the store with current form data
+        coverLetterFormStore.set(coverLetterData);
+        
+        // Save form data to session storage
+        saveCoverLetterStateToSessionStorage(coverLetterData);
+        console.log('✓ Cover letter data saved to session storage');
+        
+        // Set pending generation flag
+        coverLetterPendingGeneration.set(true);
+        console.log('✓ Pending generation set to true');
+        
+        console.log('About to redirect to /submit-cover-letter');
+        
+        // Redirect to the submission page
+        goto('/submit-cover-letter').then(() => {
+            console.log('✓ goto completed successfully');
+        }).catch((error) => {
+            console.error('✗ goto failed:', error);
+        });
+        
+        console.log('=== COVER LETTER GENERATION END ===');
     }
     
     function startOver() {
@@ -565,15 +558,10 @@
                 <!-- Generate Button -->
                 <button
                     onclick={generateCoverLetter}
-                    disabled={generating || !coverLetterData.jobTitle || !coverLetterData.companyName}
+                    disabled={!coverLetterData.jobTitle || !coverLetterData.companyName}
                     class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-indigo-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
                 >
-                    {#if generating}
-                        <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                        Generating Your Cover Letter...
-                    {:else}
-                        ✨ Generate Cover Letter
-                    {/if}
+                    ✨ Generate Cover Letter
                 </button>
             </div>
             

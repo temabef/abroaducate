@@ -3,12 +3,19 @@
   import { goto } from '$app/navigation';
   import { page } from '$app/stores';
   import type { PageData } from './$types';
+  import VersionHistoryIndicator from '$lib/components/VersionHistoryIndicator.svelte';
+  import { 
+    createVersionSnapshot as createVersionSnapshotWithLimits,
+    getVersionHistory,
+    isVersionHistoryAllowed,
+    type VersionHistoryConfig 
+  } from '$lib/versionHistory';
   
   export let data: PageData;
   let { personalStatement, supabase, session } = data;
   
   // Editor state
-  let content = personalStatement?.generated_content || '';
+  let content = personalStatement?.generated_content || personalStatement?.content || '';
   let title = `${personalStatement?.program_name || 'Personal Statement'} - ${personalStatement?.institution_name || 'Institution'}`;
   let hasUnsavedChanges = false;
   let saving = false;
@@ -16,6 +23,14 @@
   let wordCount = 0;
   let characterCount = 0;
   let showSaveToast = false;
+  let showCopyToast = false;
+  
+  // Version history with plan-based limits
+  let versions: any[] = [];
+  let showVersionHistory = false;
+  let versionHistoryAllowed = true;
+  let versionUpgradeMessage = '';
+  let planType = 'free'; // Will be populated from user data
   
   // Auto-save
   let autoSaveInterval: NodeJS.Timeout;
@@ -26,6 +41,7 @@
   let showEditPopup = false;
   let editingText = false;
   let popupPosition = { x: 0, y: 0 };
+  let selectedRange: Range | null = null;
   
   // Personal statement edit options
   const editOptions = [
@@ -41,7 +57,16 @@
   let analysisError = '';
   
   onMount(async () => {
+    // Check if personalStatement exists
+    if (!personalStatement) {
+      console.error('Personal statement not found');
+      goto('/dashboard');
+      return;
+    }
+    
     updateWordCount();
+    await loadUserPlan();
+    await loadVersionHistoryWithLimits();
     setupTextSelection();
     
     // Set up auto-save every 30 seconds
@@ -79,6 +104,7 @@
         (!popup || !popup.contains(target))) {
       showEditPopup = false;
       selectedText = '';
+      selectedRange = null;
     }
   }
   
@@ -87,6 +113,7 @@
     if (!selection || selection.toString().trim() === '') {
       showEditPopup = false;
       selectedText = '';
+      selectedRange = null;
     }
   }
   
@@ -106,6 +133,9 @@
       return;
     }
     
+    // Store the range for precise replacement later
+    selectedRange = range.cloneRange();
+    
     popupPosition = {
       x: rect.left + rect.width / 2,
       y: rect.top - 10
@@ -116,7 +146,10 @@
   }
   
   async function handleEditOption(editType: string) {
-    if (!selectedText || !personalStatement) return;
+    if (!selectedText || !personalStatement || !selectedRange) return;
+    
+    // Store the range before we clear the popup/selection
+    const rangeToUse = selectedRange.cloneRange();
     
     editingText = true;
     showEditPopup = false;
@@ -138,18 +171,20 @@
       
       const result = await response.json();
       
-      // Replace selected text in personal statement content
-      content = content.replace(selectedText, result.editedText);
+      // Replace text at exact selected position using DOM Range
+      replaceTextInRange(rangeToUse, result.editedText);
       
-      // Force update of the contenteditable div
+      // Update the content variable from the DOM
       const contentDiv = document.getElementById('personal-statement-content');
       if (contentDiv) {
-        contentDiv.innerHTML = content.replace(/\n/g, '<br>');
+        content = contentDiv.textContent || '';
       }
       
       updateWordCount();
       hasUnsavedChanges = true;
-      await saveDocument();
+      
+      // Save document and create version for AI edits (these are significant changes)
+      await saveDocumentWithVersion(true);
       
     } catch (error) {
       console.error('Error editing text:', error);
@@ -172,7 +207,55 @@
       }
     }
     selectedText = '';
+    selectedRange = null;
     showEditPopup = false;
+  }
+  
+  function replaceTextInRange(range: Range, newText: string) {
+    try {
+      // Validate the range is still valid
+      if (!range || !range.startContainer || !range.endContainer) {
+        throw new Error('Invalid range provided');
+      }
+      
+      // Delete the selected content
+      range.deleteContents();
+      
+      // Create a text node with the new content
+      const textNode = document.createTextNode(newText);
+      
+      // Insert the new text at the selection point
+      range.insertNode(textNode);
+      
+      // Move cursor to end of inserted text
+      range.setStartAfter(textNode);
+      range.setEndAfter(textNode);
+      
+      // Clear the selection
+      const selection = window.getSelection();
+      if (selection) {
+        selection.removeAllRanges();
+        selection.addRange(range);
+        selection.collapseToEnd();
+      }
+    } catch (error) {
+      console.error('Error replacing text in range:', error);
+      console.log('Falling back to simple text replacement');
+      
+      // Fallback: Use simple string replacement
+      const firstOccurrence = content.indexOf(selectedText);
+      if (firstOccurrence !== -1) {
+        content = content.substring(0, firstOccurrence) + 
+                 newText + 
+                 content.substring(firstOccurrence + selectedText.length);
+        
+        // Update the DOM manually
+        const contentDiv = document.getElementById('personal-statement-content');
+        if (contentDiv) {
+          contentDiv.textContent = content;
+        }
+      }
+    }
   }
   
   function updateWordCount() {
@@ -182,6 +265,10 @@
   }
   
   async function saveDocument() {
+    await saveDocumentWithVersion(false); // false = auto-save (smart versioning)
+  }
+
+  async function saveDocumentWithVersion(isSignificantChange = false) {
     if (saving) return;
     
     saving = true;
@@ -212,11 +299,101 @@
       showSaveToast = true;
       setTimeout(() => showSaveToast = false, 3000);
       
+      // Create version snapshot
+      await createVersionSnapshot(isSignificantChange);
+      
     } catch (error) {
       console.error('Error saving:', error);
       alert('Failed to save. Please try again.');
     } finally {
       saving = false;
+    }
+  }
+  
+  async function createVersionSnapshot(isSignificantChange = false) {
+    if (!personalStatement) return;
+    
+    try {
+      if (!versionHistoryAllowed) {
+        console.log('Version history not allowed for this plan/document type');
+        return;
+      }
+
+      const config: VersionHistoryConfig = {
+        planType,
+        documentType: 'personal_statement',
+        userId: session?.user?.id || ''
+      };
+
+      const result = await createVersionSnapshotWithLimits(
+        supabase,
+        config,
+        personalStatement.id,
+        content,
+        isSignificantChange,
+        versions
+      );
+
+      if (result.success && result.versionCreated) {
+        // Update version number
+        await supabase
+          .from('personal_statements')
+          .update({ version: (personalStatement.version || 0) + 1 })
+          .eq('id', personalStatement.id);
+          
+        personalStatement.version = (personalStatement.version || 0) + 1;
+        
+        // Refresh version history
+        await loadVersionHistoryWithLimits();
+        
+        console.log(result.message);
+      } else if (result.upgradeRequired) {
+        versionUpgradeMessage = result.message || '';
+      }
+      
+    } catch (error) {
+      console.error('Error creating Personal Statement version snapshot:', error);
+    }
+  }
+  
+  async function loadUserPlan() {
+    try {
+      const { data: userData } = await supabase
+        .from('user_subscriptions')
+        .select('plan_type')
+        .eq('user_id', session?.user?.id)
+        .eq('status', 'active')
+        .single();
+      
+      planType = userData?.plan_type || 'free';
+    } catch (error) {
+      console.error('Error loading user plan:', error);
+      planType = 'free';
+    }
+  }
+
+  async function loadVersionHistoryWithLimits() {
+    if (!personalStatement) return;
+    
+    try {
+      const config: VersionHistoryConfig = {
+        planType,
+        documentType: 'personal_statement',
+        userId: session?.user?.id || ''
+      };
+
+      const result = await getVersionHistory(supabase, config, personalStatement.id);
+      
+      versions = result.versions;
+      versionHistoryAllowed = result.hasAccess;
+      
+      if (result.upgradeMessage) {
+        versionUpgradeMessage = result.upgradeMessage;
+      }
+      
+    } catch (error) {
+      console.error('Error loading Personal Statement version history:', error);
+      versions = [];
     }
   }
   
@@ -234,7 +411,9 @@
   function copyToClipboard(): void {
     navigator.clipboard.writeText(content)
       .then(() => {
-        alert('Personal statement copied to clipboard!');
+        // Show custom toast instead of alert
+        showCopyToast = true;
+        setTimeout(() => showCopyToast = false, 3000);
         trackAnalytics('copy_personal_statement');
       })
       .catch(err => {
@@ -243,61 +422,52 @@
       });
   }
   
-  // Add export function
-  async function exportPersonalStatement(): Promise<void> {
+  // Add export functionality
+  let exporting = false;
+  
+
+  
+  async function exportToWord(): Promise<void> {
+    if (!personalStatement) return;
+    exporting = true;
+    
     try {
-      // Create a blob from the content
-      const htmlContent = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <title>${title}</title>
-          <style>
-            body {
-              font-family: 'Times New Roman', Times, serif;
-              line-height: 1.6;
-              margin: 1in;
-              font-size: 12pt;
-            }
-            h1 {
-              text-align: center;
-              font-size: 14pt;
-              margin-bottom: 24pt;
-            }
-            p {
-              text-indent: 0.5in;
-              margin-bottom: 12pt;
-            }
-          </style>
-        </head>
-        <body>
-          <h1>${title}</h1>
-          ${content.split('\n').map((para: string) => `<p>${para}</p>`).join('')}
-        </body>
-        </html>
-      `;
-      
-      const blob = new Blob([htmlContent], { type: 'text/html' });
-      const url = URL.createObjectURL(blob);
-      
-      // Create a link and trigger download
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${title.replace(/[^\w\s]/gi, '')}_personal_statement.html`;
-      document.body.appendChild(a);
-      a.click();
-      
-      // Clean up
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      
-      // Track analytics
-      await trackAnalytics('export_personal_statement');
-      
+      const response = await fetch('/api/export-word', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: content,
+          title: title,
+          type: 'personal_statement',
+          metadata: {
+            author: session?.user?.user_metadata?.full_name || session?.user?.email,
+            institution: personalStatement.institution_name,
+            program: personalStatement.program_name,
+            date: new Date().toLocaleDateString()
+          }
+        })
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${title.replace(/[^\w\s]/gi, '')}_Personal_Statement.rtf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        
+        await trackAnalytics('exported_word');
+      } else {
+        throw new Error('Failed to export Word document');
+      }
     } catch (error) {
-      console.error('Error exporting personal statement:', error);
-      alert('Failed to export personal statement. Please try again.');
+      console.error('Error exporting Word:', error);
+      alert('Failed to export Word document. Please try again.');
+    } finally {
+      exporting = false;
     }
   }
   
@@ -522,6 +692,18 @@
     
     resultsDiv.innerHTML = html;
   }
+
+  async function restoreVersion(version: any) {
+    if (!personalStatement) return;
+    
+    if (confirm('Are you sure you want to restore this version? Current changes will be lost.')) {
+      content = version.content;
+      hasUnsavedChanges = true;
+      showVersionHistory = false;
+      updateWordCount();
+      await saveDocument();
+    }
+  }
 </script>
 
 <svelte:head>
@@ -567,13 +749,25 @@
           
           <!-- Export Button -->
           <button
-            onclick={exportPersonalStatement}
-            class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+            onclick={exportToWord}
+            disabled={exporting}
+            class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium disabled:opacity-50"
           >
-            📄 Export as PDF
+            {#if exporting}
+              ⏳ Generating Word...
+            {:else}
+              📝 Export as Word
+            {/if}
           </button>
         </div>
       </div>
+      
+      <!-- Version History Indicator -->
+      <VersionHistoryIndicator
+        currentVersionCount={versions.length}
+        {planType}
+        documentType="personal_statement"
+      />
     </div>
 
     <!-- Editing Instructions -->
@@ -747,6 +941,14 @@
   <div class="fixed top-20 right-6 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center gap-2">
     <span>✅</span>
     <span>Personal statement saved successfully!</span>
+  </div>
+{/if}
+
+<!-- Copy Toast Notification -->
+{#if showCopyToast}
+  <div class="fixed top-20 right-6 bg-blue-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center gap-2">
+    <span>📋</span>
+    <span>Personal statement copied to clipboard!</span>
   </div>
 {/if}
 

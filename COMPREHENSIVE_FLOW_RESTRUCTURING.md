@@ -7,7 +7,7 @@ This document outlines a strategic plan to restructure the Abroaducate platform'
 ## Current Challenges
 
 1. **Feature Abundance without Clear Progression**: The platform offers numerous valuable tools but doesn't clearly guide users through the logical sequence of using them.
-
+ 
 2. **Navigational Complexity**: The current navigation doesn't represent the chronological journey of an international student.
 
 3. **Cognitive Overload**: Users may feel overwhelmed by seeing all features at once without understanding their place in the journey.

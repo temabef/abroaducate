@@ -84,10 +84,25 @@
             <!-- Page Header -->
             <div class="text-center mb-8">
                 <h1 class="text-4xl font-bold text-gray-900 mb-4">💭 Personal Statement Generator</h1>
-                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
                     Create compelling personal statements that tell your unique story for college applications, 
                     scholarships, professional programs, and more.
                 </p>
+                
+                <!-- AI Guidance Notice -->
+                <div class="bg-amber-50 border border-amber-200 text-amber-800 px-6 py-4 rounded-lg inline-block mb-8 max-w-4xl">
+                    <div class="flex items-start gap-3">
+                        <span class="text-2xl">⚠️</span>
+                        <div>
+                            <div class="font-semibold mb-1">Important Disclaimer</div>
+                            <p class="text-sm leading-relaxed">
+                                This AI-generated personal statement should be used as a <strong>guide and starting point</strong> for your application. 
+                                Please review, personalize, and adapt the content to reflect your unique voice and experiences. 
+                                <strong>Do not submit AI-generated content directly without thorough review and modification.</strong>
+                            </p>
+                        </div>
+                    </div>
+                </div>
                 
                 <!-- Key Benefits -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8 mb-12">
@@ -116,6 +131,16 @@
                         {existingUserData} 
                         {existingSOPData} 
                     />
+                </div>
+            {:else}
+                <!-- CTA Section for Anonymous Users -->
+                <div class="text-center mb-12">
+                    <button
+                        onclick={() => showGenerator = true}
+                        class="px-8 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all font-semibold text-lg shadow-lg"
+                    >
+                        ✨ Start Creating Your Personal Statement
+                    </button>
                 </div>
             {/if}
             

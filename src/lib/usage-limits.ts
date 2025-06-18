@@ -20,7 +20,7 @@ export interface CurrentUsage {
 export async function checkUsageLimit(
     supabase: SupabaseClient,
     userId: string,
-    usageType: 'sops_created' | 'cover_letters_created' | 'personal_statements_created' | 'academic_cvs_created' | 'ai_improvements_used' | 'analytics_generated' | 'plagiarism_checks',
+    usageType: 'sops_created' | 'cover_letters_created' | 'personal_statements_created' | 'academic_cvs_created' | 'ai_improvements_used' | 'analytics_generated' | 'plagiarism_checks' | 'inline_edits_used',
     increment: number = 1
 ): Promise<{ allowed: boolean; planType: string; currentUsage: number; limit: number | null; message?: string }> {
     try {
@@ -53,7 +53,8 @@ export async function checkUsageLimit(
                 academic_cvs_created: 1,
                 ai_improvements_used: 2,
                 analytics_generated: 1,
-                plagiarism_checks: 1
+                plagiarism_checks: 1,
+                inline_edits_used: 5
             },
             professional: {
                 sops_created: 15,
@@ -62,7 +63,8 @@ export async function checkUsageLimit(
                 academic_cvs_created: 10,
                 ai_improvements_used: 25,
                 analytics_generated: 10,
-                plagiarism_checks: 10
+                plagiarism_checks: 10,
+                inline_edits_used: 50
             },
             elite: {
                 sops_created: null,
@@ -71,7 +73,8 @@ export async function checkUsageLimit(
                 academic_cvs_created: null,
                 ai_improvements_used: null,
                 analytics_generated: null,
-                plagiarism_checks: null
+                plagiarism_checks: null,
+                inline_edits_used: null
             }
         } as const;
 
@@ -108,7 +111,7 @@ export async function checkUsageLimit(
 export async function incrementUsage(
     supabase: SupabaseClient,
     userId: string,
-    usageType: 'sops_created' | 'cover_letters_created' | 'personal_statements_created' | 'academic_cvs_created' | 'ai_improvements_used' | 'analytics_generated' | 'plagiarism_checks',
+    usageType: 'sops_created' | 'cover_letters_created' | 'personal_statements_created' | 'academic_cvs_created' | 'ai_improvements_used' | 'analytics_generated' | 'plagiarism_checks' | 'inline_edits_used',
     increment: number = 1
 ): Promise<boolean> {
     try {
@@ -195,7 +198,8 @@ export async function getUserUsageStatus(
             academic_cvs_created: currentUsage?.academic_cvs_created || 0,
             ai_improvements_used: currentUsage?.ai_improvements_used || 0,
             analytics_generated: currentUsage?.analytics_generated || 0,
-            plagiarism_checks: currentUsage?.plagiarism_checks || 0
+            plagiarism_checks: currentUsage?.plagiarism_checks || 0,
+            inline_edits_used: currentUsage?.inline_edits_used || 0
         };
 
         // Define limits based on plan type

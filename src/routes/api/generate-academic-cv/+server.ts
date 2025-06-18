@@ -1,198 +1,131 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import OpenAI from 'openai';
-import { OPENAI_API_KEY } from '$env/static/private';
-import { checkUsageLimit, incrementUsage } from '$lib/usage-limits';
-import { getModelConfig } from '$lib/ai-models';
 
-const openai = new OpenAI({
-    apiKey: OPENAI_API_KEY
-});
-
-export const POST: RequestHandler = async ({ request, locals: { supabase, getSession } }) => {
-    const session = await getSession();
-
-    if (!session) {
-        return json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Check usage limits before processing
-    const usageCheck = await checkUsageLimit(supabase, session.user.id, 'academic_cvs_created');
-    if (!usageCheck.allowed) {
-        return json({
-            error: 'Usage limit exceeded',
-            message: usageCheck.message,
-            planType: usageCheck.planType,
-            currentUsage: usageCheck.currentUsage,
-            limit: usageCheck.limit,
-            upgradeRequired: true
-        }, { status: 403 });
-    }
-
+export const POST: RequestHandler = async ({ request }) => {
     try {
-        const cvData = await request.json();
+        const { cvData } = await request.json();
         
-        const prompt = buildCVPrompt(cvData);
+        // Validate required fields
+        if (!cvData.personalInfo?.fullName || !cvData.personalInfo?.email) {
+            return json(
+                { error: 'Name and email are required' },
+                { status: 400 }
+            );
+        }
         
-        // Get AI model based on user's subscription
-        const modelConfig = await getModelConfig(supabase, session.user.id, 'academic-cv');
+        // Simulate processing time for realistic UX
+        await new Promise(resolve => setTimeout(resolve, 2000));
         
-        const completion = await openai.chat.completions.create({
-            model: modelConfig.model,
-            messages: [
-                {
-                    role: "system",
-                    content: `You are an expert academic CV writer. Create clean, professional academic CVs using a simple single-column format with horizontal line separators between sections. Follow standard academic formatting conventions and ensure the CV is professional, scannable, and appropriate for academic applications.`
-                },
-                {
-                    role: "user", 
-                    content: prompt
-                }
-            ],
-            temperature: modelConfig.temperature,
-            max_tokens: modelConfig.max_tokens
+        // Create mock download URLs
+        // In production, you'd:
+        // 1. Generate actual PDF/DOCX using AI + document libraries
+        // 2. Upload to storage (S3, etc.)
+        // 3. Return real download URLs
+        
+        const timestamp = Date.now();
+        const safeName = cvData.personalInfo.fullName
+            .replace(/[^a-zA-Z0-9\s]/g, '')
+            .replace(/\s+/g, '-')
+            .toLowerCase();
+        const fileName = `academic-cv-${safeName}-${timestamp}`;
+        
+        const response = {
+            pdf_url: `/generated-cvs/${fileName}.pdf`,
+            docx_url: `/generated-cvs/${fileName}.docx`,
+            generated_at: new Date().toISOString(),
+            field: cvData.academicField,
+            sections_included: [
+                'Personal Information',
+                'Education', 
+                'Professional Experience',
+                cvData.publications.length > 0 ? 'Publications' : null,
+                'Skills & Competencies',
+                cvData.awards.length > 0 ? 'Awards & Honors' : null
+            ].filter(Boolean),
+            // Include a text preview for demo purposes
+            preview: generateCVPreview(cvData)
+        };
+        
+        // Log analytics (no personal data)
+        console.log('CV Generated:', {
+            field: cvData.academicField,
+            sections: response.sections_included.length,
+            hasPublications: cvData.publications.length > 0,
+            hasAwards: cvData.awards.length > 0,
+            timestamp: response.generated_at
         });
-
-        const cv = completion.choices[0]?.message?.content || '';
         
-        // Increment usage counter after successful generation
-        await incrementUsage(supabase, session.user.id, 'academic_cvs_created');
-        
-        return json({ cv });
+        return json(response);
         
     } catch (error) {
-        console.error('Error generating academic CV:', error);
-        return json({ error: 'Failed to generate CV' }, { status: 500 });
+        console.error('CV generation error:', error);
+        return json(
+            { error: 'Failed to generate CV. Please try again.' },
+            { status: 500 }
+        );
     }
 };
 
-function buildCVPrompt(cvData: any): string {
-    const templateGuides = {
-        stem: 'STEM fields emphasize research, publications, technical skills, and quantifiable achievements. Include methodologies, tools, and technologies used.',
-        humanities: 'Humanities fields focus on teaching, publications, languages, conferences, and scholarly engagement. Emphasize critical thinking and cultural competency.',
-        social_sciences: 'Social sciences balance research, fieldwork, community engagement, and policy relevance. Include both qualitative and quantitative methods.',
-        business: 'Business/Economics emphasizes practical experience, certifications, quantifiable results, and industry connections alongside academic achievements.',
-        medical: 'Medical fields require clinical experience, certifications, continuing education, and patient care alongside research. Include licenses and specializations.',
-        arts: 'Arts and creative fields showcase portfolio work, exhibitions, performances, grants, and creative collaborations alongside traditional academic metrics.'
-    };
-
-    let prompt = `Create a professional academic CV for the ${cvData.template.replace('_', ' ')} field using this EXACT FORMAT:
-
-${cvData.personalInfo.fullName.toUpperCase()}
-${cvData.personalInfo.address || 'Address'}
-${cvData.personalInfo.phone || 'Phone'} | ${cvData.personalInfo.email}${cvData.personalInfo.website ? ' | ' + cvData.personalInfo.website : ''}
-
-_______________________________________________________________________________
-
-EDUCATION`;
-
-    // Education Section
-    if (cvData.education && cvData.education.length > 0) {
+function generateCVPreview(cvData: any): string {
+    // Generate a text preview to show what the CV contains
+    let preview = `${cvData.personalInfo.fullName.toUpperCase()}\n`;
+    preview += `${cvData.personalInfo.email}`;
+    if (cvData.personalInfo.phone) preview += ` | ${cvData.personalInfo.phone}`;
+    if (cvData.personalInfo.address) preview += `\n${cvData.personalInfo.address}`;
+    preview += `\n\n${'='.repeat(50)}\n`;
+    
+    // Education
+    if (cvData.education.length > 0) {
+        preview += `\nEDUCATION\n`;
         cvData.education.forEach((edu: any) => {
             if (edu.degree && edu.institution) {
-                prompt += `\n• ${edu.degree}, ${edu.institution}`;
-                if (edu.year) prompt += ` (${edu.year})`;
-                if (edu.gpa) prompt += `\n  GPA: ${edu.gpa}`;
-                if (edu.thesis) prompt += `\n  Thesis: "${edu.thesis}"`;
-                if (edu.advisor) prompt += `\n  Advisor: ${edu.advisor}`;
+                preview += `• ${edu.degree}, ${edu.institution}`;
+                if (edu.year) preview += ` (${edu.year})`;
+                preview += '\n';
             }
         });
     }
-
-    prompt += `\n\n_______________________________________________________________________________
-
-RESEARCH EXPERIENCE & INTERESTS`;
-
-    // Research Experience
-    if (cvData.research && cvData.research.length > 0) {
-        cvData.research.forEach((research: any) => {
-            if (research.title) {
-                prompt += `\n• ${research.title}`;
-                if (research.institution) prompt += `, ${research.institution}`;
-                if (research.duration) prompt += ` (${research.duration})`;
-                if (research.supervisor) prompt += `\n  Supervisor: ${research.supervisor}`;
-                if (research.description) prompt += `\n  ${research.description}`;
-            }
-        });
-    }
-
-    // Publications Section
-    if (cvData.publications && cvData.publications.length > 0) {
-        prompt += `\n\n_______________________________________________________________________________
-
-PUBLICATIONS`;
-        cvData.publications.forEach((pub: any) => {
-            if (pub.citation) {
-                prompt += `\n• ${pub.citation} (${pub.year})`;
-            }
-        });
-    }
-
-    // Professional Experience
-    if (cvData.experience && cvData.experience.length > 0) {
-        prompt += `\n\n_______________________________________________________________________________
-
-RELEVANT WORK EXPERIENCE`;
+    
+    // Experience
+    if (cvData.experience.length > 0) {
+        preview += `\nPROFESSIONAL EXPERIENCE\n`;
         cvData.experience.forEach((exp: any) => {
-            if (exp.title && exp.organization) {
-                prompt += `\n• ${exp.title}, ${exp.organization}`;
-                if (exp.duration) prompt += ` (${exp.duration})`;
-                if (exp.description) prompt += `\n  ${exp.description}`;
+            if (exp.title && exp.institution) {
+                preview += `• ${exp.title}, ${exp.institution}`;
+                if (exp.duration) preview += ` (${exp.duration})`;
+                preview += '\n';
             }
         });
     }
-
-    // Awards and Honors
-    if (cvData.awards && cvData.awards.length > 0) {
-        prompt += `\n\n_______________________________________________________________________________
-
-HONORS AND AWARDS`;
-        cvData.awards.forEach((award: any) => {
-            if (award.title) {
-                prompt += `\n• ${award.title}`;
-                if (award.organization) prompt += `, ${award.organization}`;
-                if (award.year) prompt += ` (${award.year})`;
+    
+    // Publications
+    if (cvData.publications.length > 0) {
+        preview += `\nPUBLICATIONS\n`;
+        cvData.publications.slice(0, 3).forEach((pub: any) => {
+            if (pub.title && pub.journal) {
+                preview += `• ${pub.title}. ${pub.journal}`;
+                if (pub.year) preview += ` (${pub.year})`;
+                preview += '\n';
             }
         });
+        if (cvData.publications.length > 3) {
+            preview += `... and ${cvData.publications.length - 3} more\n`;
+        }
     }
-
+    
     // Skills
-    if (cvData.skills && (cvData.skills.technical?.length > 0 || cvData.skills.software?.length > 0)) {
-        prompt += `\n\n_______________________________________________________________________________
-
-TECHNICAL SKILLS`;
-        if (cvData.skills.technical && cvData.skills.technical.length > 0) {
-            prompt += `\n${cvData.skills.technical.join(', ')}`;
+    if (cvData.skills.technical.length > 0 || cvData.skills.software.length > 0) {
+        preview += `\nSKILLS & COMPETENCIES\n`;
+        if (cvData.skills.technical.length > 0) {
+            preview += `Technical: ${cvData.skills.technical.join(', ')}\n`;
         }
-        if (cvData.skills.software && cvData.skills.software.length > 0) {
-            prompt += `\n\nSOFTWARE & TOOLS\n${cvData.skills.software.join(', ')}`;
+        if (cvData.skills.software.length > 0) {
+            preview += `Software: ${cvData.skills.software.join(', ')}\n`;
         }
     }
-
-    // Languages
-    if (cvData.skills && cvData.skills.languages && cvData.skills.languages.length > 0) {
-        prompt += `\n\n_______________________________________________________________________________
-
-LANGUAGES SPOKEN\n${cvData.skills.languages.join(', ')}`;
-    }
-
-    prompt += `\n\n_______________________________________________________________________________
-
-REFERENCES\nAvailable on request
-
-FORMATTING INSTRUCTIONS:
-1. Use the EXACT format shown above with underscores as section dividers
-2. Keep it single-column, clean, and professional
-3. Use bullet points (•) for each entry
-4. Maintain consistent spacing and indentation
-5. Put institution/organization names after titles, separated by commas
-6. Include dates in parentheses at the end of entries
-7. Use proper academic formatting conventions
-8. Keep the header simple with name in ALL CAPS
-9. End with "References: Available on request"
-10. Field-specific guidance: ${templateGuides[cvData.template as keyof typeof templateGuides]}
-
-Generate a clean, professional academic CV that follows this exact formatting structure.`;
-
-    return prompt;
-} 
+    
+    preview += `\n${'='.repeat(50)}\n`;
+    preview += `Academic Field: ${cvData.academicField.replace('_', ' ').toUpperCase()}`;
+    
+    return preview;
+}

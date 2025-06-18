@@ -2,6 +2,8 @@
     import { createEventDispatcher } from 'svelte';
     import { goto } from '$app/navigation';
     import { handleUpgradeRequired } from '$lib/services/upgradeService';
+    import { personalStatementFormStore, savePersonalStatementStateToSessionStorage, personalStatementPendingGeneration } from '$lib/stores/personalStatementStore';
+    import { get } from 'svelte/store';
     
     export let existingUserData: any = null;
     export let existingSOPData: any = null;
@@ -156,38 +158,31 @@
     }
     
     async function generatePersonalStatement() {
-        generating = true;
+        console.log('=== PERSONAL STATEMENT GENERATION START ===');
+        console.log('Generate Personal Statement button clicked');
+        console.log('Current form data:', personalStatementData);
         
-        try {
-            const response = await fetch('/api/generate-personal-statement', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(personalStatementData)
-            });
-            
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-                
-                // Handle usage limit exceeded
-                if (response.status === 403 && errorData.upgradeRequired) {
-                    // Use new beautiful upgrade system
-                    handleUpgradeRequired(errorData);
-                    return;
-                }
-                
-                throw new Error(errorData.error || 'Failed to generate personal statement');
-            }
-            
-            const data = await response.json();
-            generatedPersonalStatement = data.personalStatement;
-            currentStep = totalSteps + 1; // Move to results step
-            
-        } catch (error) {
-            console.error('Error generating personal statement:', error);
-            alert('Failed to generate personal statement. Please try again.');
-        } finally {
-            generating = false;
-        }
+        // Update the store with current form data
+        personalStatementFormStore.set(personalStatementData);
+        
+        // Save form data to session storage
+        savePersonalStatementStateToSessionStorage(personalStatementData);
+        console.log('✓ Personal statement data saved to session storage');
+        
+        // Set pending generation flag
+        personalStatementPendingGeneration.set(true);
+        console.log('✓ Pending generation set to true');
+        
+        console.log('About to redirect to /submit-personal-statement');
+        
+        // Redirect to the submission page
+        goto('/submit-personal-statement').then(() => {
+            console.log('✓ goto completed successfully');
+        }).catch((error) => {
+            console.error('✗ goto failed:', error);
+        });
+        
+        console.log('=== PERSONAL STATEMENT GENERATION END ===');
     }
     
     async function savePersonalStatement() {
@@ -602,18 +597,28 @@
                     ></textarea>
                 </div>
                 
+                <!-- AI Usage Disclaimer -->
+                <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+                    <div class="flex items-start gap-3">
+                        <span class="text-xl">⚠️</span>
+                        <div class="text-sm text-amber-800">
+                            <div class="font-semibold mb-1">Important Disclaimer</div>
+                            <p class="leading-relaxed">
+                                This AI-generated personal statement should be used as a <strong>guide and starting point</strong> for your application. 
+                                Please review, personalize, and adapt the content to reflect your unique voice and experiences. 
+                                <strong>Do not submit AI-generated content directly without thorough review and modification.</strong>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Generate Button -->
                 <button
                     onclick={generatePersonalStatement}
-                    disabled={generating || !personalStatementData.institutionName || !personalStatementData.personalDetails.formativeExperience}
+                    disabled={!personalStatementData.institutionName || !personalStatementData.personalDetails.formativeExperience}
                     class="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-purple-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
                 >
-                    {#if generating}
-                        <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                        Crafting Your Personal Statement...
-                    {:else}
-                        ✨ Generate Personal Statement
-                    {/if}
+                    ✨ Generate Personal Statement
                 </button>
             </div>
             

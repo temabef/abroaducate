@@ -6,6 +6,13 @@
     import { formatDistanceToNow, parseISO } from 'date-fns';
     import WordCountOptimizer from '$lib/components/WordCountOptimizer.svelte';
     import AIFeatureWidget from '$lib/components/AIFeatureWidget.svelte';
+    import VersionHistoryIndicator from '$lib/components/VersionHistoryIndicator.svelte';
+    import { 
+        createVersionSnapshot as createVersionSnapshotWithLimits,
+        getVersionHistory,
+        isVersionHistoryAllowed,
+        type VersionHistoryConfig 
+    } from '$lib/versionHistory';
     
     export let data: PageData;
     let { supabase, session } = data;
@@ -22,6 +29,7 @@
         created_at: string;
         updated_at: string;
         word_count: number;
+        version?: number;
         application_notes?: string;
         submission_date?: string;
         form_data?: any;
@@ -34,6 +42,7 @@
     let showEditPopup = false;
     let editingText = false;
     let popupPosition = { x: 0, y: 0 };
+    let selectedRange: Range | null = null;
 
     
     // Edit options
@@ -63,6 +72,21 @@
     
     // Export variables
     let exporting = false;
+    let showCopyToast = false;
+    
+    // Version history with plan-based limits
+    let versions: any[] = [];
+    let showVersionHistory = false;
+    let versionHistoryAllowed = true;
+    let versionUpgradeMessage = '';
+    let planType = 'free'; // Will be populated from user data
+    
+    // Content editing variables
+    let content = '';
+    let saving = false;
+    let lastSaved: Date | null = null;
+    let hasUnsavedChanges = false;
+    let autoSaveTimeout: ReturnType<typeof setTimeout> | null = null;
     
     onMount(async () => {
         sopId = $page.params.id;
@@ -73,6 +97,8 @@
         }
         
         await loadSOP();
+        await loadUserPlan();
+        await loadVersionHistoryWithLimits();
         
         // Setup text selection detection
         setupTextSelection();
@@ -101,20 +127,25 @@
             
             sop = sopData;
             
-            // Handle both old and new schema - check for content or generated_sop field
-            if (!sop.content && (sopData as any).generated_sop) {
-                sop.content = (sopData as any).generated_sop;
-            }
-            
-            // If still no content, show error
-            if (!sop.content) {
-                error = 'SOP content not found. Please regenerate your SOP.';
-                return;
-            }
-            
-            // Calculate word count if not stored
-            if (!sop.word_count) {
-                sop.word_count = sop.content.split(/\s+/).length;
+            if (sop) {
+                // Handle both old and new schema - check for content or generated_sop field
+                if (!sop.content && (sopData as any).generated_sop) {
+                    sop.content = (sopData as any).generated_sop;
+                }
+                
+                // If still no content, show error
+                if (!sop.content) {
+                    error = 'SOP content not found. Please regenerate your SOP.';
+                    return;
+                }
+                
+                // Calculate word count if not stored
+                if (!sop.word_count) {
+                    sop.word_count = sop.content.split(/\s+/).length;
+                }
+                
+                // Initialize content variable for binding
+                content = sop.content;
             }
             
         } catch (err) {
@@ -145,6 +176,7 @@
             (!popup || !popup.contains(target))) {
             showEditPopup = false;
             selectedText = '';
+            selectedRange = null;
         }
     }
     
@@ -154,6 +186,7 @@
         if (!selection || selection.toString().trim() === '') {
             showEditPopup = false;
             selectedText = '';
+            selectedRange = null;
         }
     }
     
@@ -170,6 +203,9 @@
         // Check if selection is within SOP content
         const sopContent = document.getElementById('sop-content');
         if (!sopContent || !sopContent.contains(range.commonAncestorContainer)) return;
+        
+        // Store the range for precise replacement later
+        selectedRange = range.cloneRange();
         
         // Position popup near selection
         popupPosition = {
@@ -189,7 +225,7 @@
         
         // Replace selected text in SOP content
         sop.content = sop.content.replace(originalText, editedText);
-        sop.word_count = sop.content.split(/\s+/).filter(w => w.length > 0).length;
+                        sop.word_count = sop.content.split(/\s+/).filter((w: string) => w.length > 0).length;
         
         // Save changes
         saveSOP();
@@ -207,7 +243,10 @@
     }
     
     async function handleEditOption(editType: string) {
-        if (!selectedText || !sop) return;
+        if (!selectedText || !sop || !selectedRange) return;
+        
+        // Store the range before we clear the popup/selection
+        const rangeToUse = selectedRange.cloneRange();
         
         editingText = true;
         showEditPopup = false;
@@ -229,14 +268,19 @@
             
             const result = await response.json();
             
-            // Replace selected text in SOP content
-            sop.content = sop.content.replace(selectedText, result.editedText);
+            // Replace text at exact selected position using DOM Range
+            replaceTextInRange(rangeToUse, result.editedText);
             
-            // Update word count
-            sop.word_count = sop.content.split(/\s+/).filter(w => w.length > 0).length;
+            // Update the content variable from the DOM
+            const sopContent = document.getElementById('sop-content');
+            if (sopContent && sop) {
+                content = sopContent.textContent || '';
+                sop.content = content;
+                sop.word_count = content.split(/\s+/).filter((w: string) => w.length > 0).length;
+            }
             
-            // Save changes
-            await saveSOP();
+            // Save document and create version for AI edits (these are significant changes)
+            await saveSOPWithVersion(true); // true = significant change
             
             // Record edit history
             await recordEdit(selectedText, result.editedText, editType);
@@ -251,6 +295,10 @@
     }
     
     async function saveSOP() {
+        await saveSOPWithVersion(false); // false = auto-save (smart versioning)
+    }
+    
+    async function saveSOPWithVersion(isSignificantChange = false) {
         if (!sop) return;
         
         const { error } = await supabase
@@ -265,6 +313,132 @@
         if (error) {
             console.error('Error saving SOP:', error);
             throw error;
+        }
+        
+        // Create version snapshot 
+        await createVersionSnapshot(isSignificantChange);
+    }
+    
+    async function createVersionSnapshot(isSignificantChange = false) {
+        if (!sop) return;
+        
+        try {
+            console.log('📝 Creating version snapshot for SOP:', {
+                sopId: sop.id,
+                contentLength: sop.content.length,
+                isSignificantChange,
+                currentVersions: versions.length,
+                planType,
+                versionHistoryAllowed
+            });
+
+            if (!versionHistoryAllowed) {
+                console.log('Version history not allowed for this plan/document type');
+                return;
+            }
+
+            const config: VersionHistoryConfig = {
+                planType,
+                documentType: 'sop',
+                userId: session?.user?.id || ''
+            };
+
+            const result = await createVersionSnapshotWithLimits(
+                supabase,
+                config,
+                sop.id,
+                sop.content,
+                isSignificantChange,
+                versions
+            );
+
+            console.log('✅ Version creation result:', result);
+
+            if (result.success && result.versionCreated) {
+                // Update version number
+                await supabase
+                    .from('sops')
+                    .update({ version: (sop.version || 0) + 1 })
+                    .eq('id', sop.id);
+                    
+                sop.version = (sop.version || 0) + 1;
+                
+                // Refresh version history
+                await loadVersionHistoryWithLimits();
+                
+                console.log(result.message);
+            } else if (result.upgradeRequired) {
+                versionUpgradeMessage = result.message || '';
+            }
+            
+        } catch (error) {
+            console.error('Error creating SOP version snapshot:', error);
+        }
+    }
+    
+    async function loadUserPlan() {
+        try {
+            const { data: userData } = await supabase
+                .from('user_subscriptions')
+                .select('plan_type')
+                .eq('user_id', session?.user?.id)
+                .eq('status', 'active')
+                .single();
+            
+            planType = userData?.plan_type || 'free';
+        } catch (error) {
+            console.error('Error loading user plan:', error);
+            planType = 'free';
+        }
+    }
+
+    async function loadVersionHistoryWithLimits() {
+        if (!sop) return;
+        
+        try {
+            console.log('🔍 Loading version history for SOP:', {
+                sopId: sop.id,
+                planType,
+                userId: session?.user?.id
+            });
+
+            const config: VersionHistoryConfig = {
+                planType,
+                documentType: 'sop',
+                userId: session?.user?.id || ''
+            };
+
+            const result = await getVersionHistory(supabase, config, sop.id);
+            
+            console.log('📊 Version history result:', {
+                versionsCount: result.versions.length,
+                hasAccess: result.hasAccess,
+                upgradeMessage: result.upgradeMessage,
+                versions: result.versions
+            });
+            
+            versions = result.versions;
+            versionHistoryAllowed = result.hasAccess;
+            
+            if (result.upgradeMessage) {
+                versionUpgradeMessage = result.upgradeMessage;
+            }
+            
+        } catch (error) {
+            console.error('Error loading SOP version history:', error);
+            versions = [];
+        }
+    }
+
+    async function restoreVersion(version: any) {
+        if (!sop) return;
+        
+        if (confirm('Are you sure you want to restore this version? Current changes will be lost.')) {
+            content = version.content;
+            sop.content = content;
+            sop.word_count = content.split(/\s+/).filter((w: string) => w.length > 0).length;
+            showVersionHistory = false;
+            await saveSOP();
         }
     }
     
@@ -299,15 +473,103 @@
             }
         }
         selectedText = '';
+        selectedRange = null;
         showEditPopup = false;
+    }
+
+    function handleContentChange() {
+        if (!sop) return;
+        
+        // Update the SOP content
+        sop.content = content;
+        sop.word_count = content.split(/\s+/).filter((w: string) => w.length > 0).length;
+        
+        hasUnsavedChanges = true;
+        
+        // Clear existing timeout
+        if (autoSaveTimeout) {
+            clearTimeout(autoSaveTimeout);
+        }
+        
+        // Set new auto-save timeout
+        autoSaveTimeout = setTimeout(async () => {
+            await autoSaveSOP();
+        }, 2000); // Auto-save after 2 seconds of inactivity
+    }
+    
+    async function autoSaveSOP() {
+        if (!sop || !hasUnsavedChanges) return;
+        
+        saving = true;
+        try {
+            await saveSOP();
+            lastSaved = new Date();
+            hasUnsavedChanges = false;
+        } catch (error) {
+            console.error('Auto-save failed:', error);
+        } finally {
+            saving = false;
+        }
+    }
+    
+    function replaceTextInRange(range: Range, newText: string) {
+        try {
+            // Validate the range is still valid
+            if (!range || !range.startContainer || !range.endContainer) {
+                throw new Error('Invalid range provided');
+            }
+            
+            // Delete the selected content
+            range.deleteContents();
+            
+            // Create a text node with the new content
+            const textNode = document.createTextNode(newText);
+            
+            // Insert the new text at the selection point
+            range.insertNode(textNode);
+            
+            // Move cursor to end of inserted text
+            range.setStartAfter(textNode);
+            range.setEndAfter(textNode);
+            
+            // Clear the selection
+            const selection = window.getSelection();
+            if (selection) {
+                selection.removeAllRanges();
+                selection.addRange(range);
+                selection.collapseToEnd();
+            }
+        } catch (error) {
+            console.error('Error replacing text in range:', error);
+            console.log('Falling back to simple text replacement');
+            
+            // Fallback: Use simple string replacement
+            if (sop) {
+                const firstOccurrence = sop.content.indexOf(selectedText);
+                if (firstOccurrence !== -1) {
+                    sop.content = sop.content.substring(0, firstOccurrence) + 
+                                 newText + 
+                                 sop.content.substring(firstOccurrence + selectedText.length);
+                    
+                    // Update the DOM manually
+                    const sopContent = document.getElementById('sop-content');
+                    if (sopContent) {
+                        sopContent.textContent = sop.content;
+                    }
+                }
+            }
+        }
     }
     
     async function copySOP() {
         if (!sop) return;
         
         try {
-            await navigator.clipboard.writeText(sop.content);
-            alert('SOP copied to clipboard!');
+            // Use the current content from the editor
+            await navigator.clipboard.writeText(content || sop.content);
+            // Show custom toast instead of alert
+            showCopyToast = true;
+            setTimeout(() => showCopyToast = false, 3000);
         } catch (error) {
             console.error('Failed to copy:', error);
             alert('Failed to copy SOP. Please select and copy manually.');
@@ -356,7 +618,7 @@
         
         const { optimizedContent } = event.detail;
         sop.content = optimizedContent;
-        sop.word_count = optimizedContent.split(/\s+/).filter(w => w.length > 0).length;
+        sop.word_count = optimizedContent.split(/\s+/).filter((w: string) => w.length > 0).length;
         
         // Save the optimized content
         saveSOP();
@@ -368,60 +630,45 @@
         return 'bg-red-500';
     }
 
-    async function exportSOP() {
+    
+    
+    async function exportSOPToWord() {
         if (!sop) return;
         exporting = true;
         
         try {
-            // Create a blob from the content
-            const htmlContent = `
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <meta charset="utf-8">
-                    <title>${sop.university_name} - ${sop.program_name} SOP</title>
-                    <style>
-                        body {
-                            font-family: 'Times New Roman', Times, serif;
-                            line-height: 1.6;
-                            margin: 1in;
-                            font-size: 12pt;
-                        }
-                        h1 {
-                            text-align: center;
-                            font-size: 14pt;
-                            margin-bottom: 24pt;
-                        }
-                        p {
-                            text-indent: 0.5in;
-                            margin-bottom: 12pt;
-                        }
-                    </style>
-                </head>
-                <body>
-                    <h1>Statement of Purpose - ${sop.university_name} ${sop.program_name}</h1>
-                    ${sop.content.split('\n').map((para: string) => `<p>${para}</p>`).join('')}
-                </body>
-                </html>
-            `;
-            
-            const blob = new Blob([htmlContent], { type: 'text/html' });
-            const url = URL.createObjectURL(blob);
-            
-            // Create a link and trigger download
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${sop.university_name}_${sop.program_name}_SOP.html`;
-            document.body.appendChild(a);
-            a.click();
-            
-            // Clean up
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            
+            const response = await fetch('/api/export-word', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    content: content || sop.content,
+                    title: `${sop.university_name} - ${sop.program_name} SOP`,
+                    type: 'sop',
+                    metadata: {
+                        author: session?.user?.user_metadata?.full_name || session?.user?.email,
+                        institution: sop.university_name,
+                        program: sop.program_name,
+                        date: new Date().toLocaleDateString()
+                    }
+                })
+            });
+
+            if (response.ok) {
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${sop.university_name}_${sop.program_name}_SOP.rtf`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            } else {
+                throw new Error('Failed to export Word document');
+            }
         } catch (error) {
-            console.error('Error exporting SOP:', error);
-            alert('Failed to export SOP. Please try again.');
+            console.error('Error exporting Word:', error);
+            alert('Failed to export Word document. Please try again.');
         } finally {
             exporting = false;
         }
@@ -440,7 +687,7 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    content: sop.content,
+                    content: content || sop.content,
                     analysisType: selectedAnalysis,
                     universityName: sop.university_name,
                     programName: sop.program_name
@@ -555,6 +802,21 @@
                             Copy SOP
                         </button>
                         <button
+                            onclick={exportSOPToWord}
+                            disabled={exporting}
+                            class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 disabled:opacity-50"
+                        >
+                            {#if exporting}
+                                <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                Generating...
+                            {:else}
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                                </svg>
+                                📝 Export as Word
+                            {/if}
+                        </button>
+                        <button
                             onclick={reviewSOP}
                             class="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-colors flex items-center gap-2"
                         >
@@ -562,6 +824,13 @@
                         </button>
                     </div>
                 </div>
+                
+                <!-- Version History Indicator -->
+                <VersionHistoryIndicator
+                    currentVersionCount={versions.length}
+                    {planType}
+                    documentType="sop"
+                />
             </div>
         </div>
         
@@ -582,14 +851,14 @@
             <div class="bg-white rounded-lg shadow-sm p-8">
                 <div 
                     id="sop-content"
-                    class="prose prose-lg max-w-none leading-relaxed text-gray-800 select-text"
-                    style="min-height: 600px; max-height: none; overflow-y: visible;"
+                    contenteditable="true"
+                    bind:textContent={content}
+                    oninput={handleContentChange}
+                    class="prose prose-lg max-w-none leading-relaxed text-gray-800 select-text p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    style="min-height: 600px; max-height: none; overflow-y: visible; white-space: pre-wrap; outline: none;"
+                    data-placeholder="Your SOP content will appear here..."
                 >
-                    {#each sop.content.split('\n') as paragraph}
-                        {#if paragraph.trim()}
-                            <p class="mb-4">{paragraph}</p>
-                        {/if}
-                    {/each}
+                    {content}
                 </div>
             </div>
             
@@ -794,30 +1063,28 @@
                 </div>
             </div>
 
-            <!-- Export Button -->
-            <div class="mt-8 mb-6">
-                <button 
-                    onclick={exportSOP}
-                    class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                    disabled={exporting}
-                >
-                    {#if exporting}
-                        <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                        Exporting...
-                    {:else}
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-                        </svg>
-                        Export as PDF
-                    {/if}
-                </button>
-            </div>
+
         </div>
     {/if}
 </div>
 
+<!-- Copy Toast Notification -->
+{#if showCopyToast}
+  <div class="fixed top-20 right-6 bg-blue-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center gap-2">
+    <span>📋</span>
+    <span>SOP copied to clipboard!</span>
+  </div>
+{/if}
+
 <style>
-    /* ... existing styles ... */
-    
-    
+  /* Placeholder styling for contenteditable */
+  #sop-content:empty:before {
+    content: attr(data-placeholder);
+    color: #9CA3AF;
+    font-style: italic;
+  }
+  
+  #sop-content:focus:before {
+    content: none;
+  }
 </style> 
