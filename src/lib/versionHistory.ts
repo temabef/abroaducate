@@ -99,8 +99,8 @@ export async function createVersionSnapshot(
       const contentDiff = Math.abs(content.length - lastVersion.content.length);
       const wordDiff = Math.abs(content.split(' ').length - lastVersion.content.split(' ').length);
       
-      // Skip version if changes are minor (less than 30 chars AND less than 5 words different)
-      if (contentDiff < 30 && wordDiff < 5) {
+      // Skip version if changes are very minor (less than 10 chars OR less than 2 words different)
+      if (contentDiff < 10 || wordDiff < 2) {
         console.log('Skipping version creation - changes too minor', { contentDiff, wordDiff });
         return {
           success: true,

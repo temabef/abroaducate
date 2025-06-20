@@ -18,31 +18,49 @@ export interface ComprehensiveUsageCheck {
 // `null` means unlimited.
 const AI_FEATURE_LIMITS: Record<string, Record<string, number | null>> = {
 	free: {
+		// Original names
 		reviews: 1,
 		text_enhancements: 1,
 		word_optimizations: 1,
 		grammar_check: 1,
 		plagiarism_checks: 1,
 		tone_analysis: 1,
-		university_matching: 25 // Reduced from 50 to prevent performance issues
+		university_matching: 25,
+		// Alternative names for compatibility
+		sop_review: 1,
+		text_enhancement: 1,
+		word_optimization: 1,
+		plagiarism_check: 1
 	},
 	professional: {
+		// Original names
 		reviews: 15,
 		text_enhancements: 25,
 		word_optimizations: 15,
 		grammar_check: 25,
 		plagiarism_checks: 10,
 		tone_analysis: 25,
-		university_matching: 200 // Reduced from 500 to prevent performance issues
+		university_matching: 200,
+		// Alternative names for compatibility
+		sop_review: 15,
+		text_enhancement: 25,
+		word_optimization: 15,
+		plagiarism_check: 10
 	},
 	elite: {
+		// Original names
 		reviews: null,
 		text_enhancements: null,
 		word_optimizations: null,
 		grammar_check: null,
 		plagiarism_checks: null,
 		tone_analysis: null,
-		university_matching: 500 // Reduced from 1500 to prevent performance issues
+		university_matching: 500,
+		// Alternative names for compatibility
+		sop_review: null,
+		text_enhancement: null,
+		word_optimization: null,
+		plagiarism_check: null
 	}
 };
 
@@ -81,9 +99,25 @@ export async function checkComprehensiveUsageLimit(
         const planType = subscription?.plan_type || 'free';
 
 		// 2. Determine the usage limit for the user's plan and the specific feature.
-		const limit = AI_FEATURE_LIMITS[planType]?.[featureSubtype] ?? 0;
+		const limit = AI_FEATURE_LIMITS[planType]?.[featureSubtype];
+		
+		// If feature not found in limits, default based on plan
+		if (limit === undefined) {
+			if (planType === 'elite') {
+				// Elite plans get unlimited access to any AI feature
+				return { allowed: true, planType, currentUsage: 0, limit: null };
+			} else {
+				// Other plans get blocked if feature not defined
+				return { allowed: false, planType, currentUsage: 0, limit: 0, message: `Feature ${featureSubtype} not available for ${planType} plan.` };
+			}
+		}
 
-		// If the limit is null, usage is unlimited.
+		// Debug logging for Elite plan users
+		if (planType === 'elite') {
+			console.log(`Elite plan user - Feature: ${featureSubtype}, Limit: ${limit}`);
+		}
+
+		// If the limit is null (unlimited), allow usage
 		if (limit === null) {
 			return { allowed: true, planType, currentUsage: 0, limit: null };
 		}
@@ -145,4 +179,24 @@ export async function incrementComprehensiveUsage(
 		console.error('Exception in incrementComprehensiveUsage:', error);
         return false;
     }
+}
+
+/**
+ * Wrapper function that matches the interface expected by API endpoints
+ * This checks usage and increments it in one atomic operation
+ */
+export async function checkUsageLimit(
+    supabase: any, // Keep the interface compatible
+    userId: string,
+    usageType: string
+): Promise<ComprehensiveUsageCheck> {
+    // First check if user can use the feature
+    const usageCheck = await checkComprehensiveUsageLimit(userId, usageType);
+    
+    // If allowed, increment the usage
+    if (usageCheck.allowed && usageCheck.limit !== null) {
+        await incrementComprehensiveUsage(userId, usageType);
+    }
+    
+    return usageCheck;
 }

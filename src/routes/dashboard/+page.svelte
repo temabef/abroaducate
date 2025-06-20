@@ -6,6 +6,7 @@
   import DocumentCard from '$lib/components/DocumentCard.svelte';
   import ActivityFeed from '$lib/components/ActivityFeed.svelte';
   import BasicReminders from '$lib/components/BasicReminders.svelte';
+  import EmailStatusWidget from '$lib/components/EmailStatusWidget.svelte';
 
     export let data: PageData;
     let { supabase, session } = data;
@@ -141,7 +142,8 @@
     <title>Dashboard - Abroaducate</title>
 </svelte:head>
 
-<div class="min-h-screen bg-gray-50">
+<!-- Add top spacing to separate from navbar -->
+<div class="pt-8 min-h-screen bg-gray-50">
     {#if loading}
         <div class="container mx-auto px-4 py-8">
             <div class="flex items-center justify-center py-20">
@@ -164,12 +166,12 @@
         </div>
     {:else if dashboardData}
         <div class="min-h-screen bg-gray-50">
-            <!-- Header -->
-            <div class="bg-white border-b border-gray-200">
-                <div class="max-w-6xl mx-auto px-4 py-6">
-                    <h1 class="text-3xl font-bold text-gray-900 mb-2">🎓 Abroaducate Dashboard</h1>
+            <!-- Header with improved spacing -->
+            <div class="bg-white border-b border-gray-200 mt-4">
+                <div class="max-w-6xl mx-auto px-4 py-8">
+                    <h1 class="text-3xl font-bold text-gray-900 mb-2">🎓 Your Dashboard</h1>
                     <p class="text-gray-600">
-                        Welcome back! Here's your document portfolio overview.
+                        Welcome back! Here's your document portfolio and application overview.
                         {#if dashboardData.summary.last_activity}
                             {formatLastActivity(dashboardData.summary.last_activity)}
                         {/if}
@@ -441,8 +443,11 @@
 
                     <!-- Sidebar (1/3 width) -->
                     <div class="lg:col-span-1 space-y-6">
+                        <!-- Email Status Widget -->
+                        <EmailStatusWidget userTier={dashboardData.user?.tier || 'free'} />
+                        
                         <!-- Basic Reminders Widget -->
-                        <BasicReminders />
+                        <BasicReminders userTier={dashboardData.user?.tier || 'free'} />
                         
                         <!-- Activity Feed -->
                         <ActivityFeed activities={dashboardData.activity} />

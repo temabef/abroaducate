@@ -20,7 +20,7 @@
         Global University Matching
       </h1>
       <p class="text-xl text-gray-600 max-w-3xl mx-auto mb-6">
-        Discover universities across 4 major countries that match your academic profile. Get personalized recommendations with scholarship opportunities and financial analysis.
+        Discover universities across 9 major countries that match your academic profile. Get personalized recommendations with scholarship opportunities and financial analysis.
       </p>
       
       <!-- Global Coverage Banner -->
@@ -29,7 +29,7 @@
           <span class="text-3xl">🌍</span>
           <div class="text-center">
             <h3 class="text-lg font-bold text-gray-900">NEW: Global University Database</h3>
-            <p class="text-sm text-gray-700">Access 1,500+ universities across USA, UK, Canada, Australia, Germany & more!</p>
+            <p class="text-sm text-gray-700">Access 7,500+ universities across USA, UK, Canada, Australia, Germany & more!</p>
           </div>
           <span class="text-3xl">🎓</span>
         </div>
@@ -38,7 +38,7 @@
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 mb-3">
           <div class="bg-white p-3 rounded-lg shadow-sm text-center">
             <div class="font-bold text-blue-600">🇺🇸 United States</div>
-            <div class="text-sm text-gray-600">1000 Universities</div>
+            <div class="text-sm text-gray-600">7,000+ Universities</div>
           </div>
           <div class="bg-white p-3 rounded-lg shadow-sm text-center">
             <div class="font-bold text-blue-600">🇬🇧 United Kingdom</div>
@@ -233,8 +233,9 @@
       
       <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
         <div>
-          <div class="text-3xl font-bold text-blue-600">1,520</div>
+          <div class="text-3xl font-bold text-blue-600">7,520+</div>
           <div class="text-sm text-gray-600">Universities Available</div>
+          <div class="text-xs text-gray-500 mt-1">Smart search shows best matches</div>
         </div>
         <div>
           <div class="text-3xl font-bold text-green-600">9</div>

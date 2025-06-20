@@ -1,6 +1,6 @@
 <!-- Universal AI Feature Widget -->
 <script lang="ts">
-    import { createEventDispatcher } from 'svelte';
+    import { createEventDispatcher, onMount } from 'svelte';
     import { handleUpgradeRequired, markUserInteraction } from '$lib/services/upgradeService';
     import type { AIFeatureType } from '$lib/services/aiFeatureService';
     
@@ -18,6 +18,8 @@
     let result: any = null;
     let error = '';
     let usageData: any = null;
+    let userPlan: string = 'free';
+    let hasCheckedUsage = false;
     
     // Feature configurations
     const config = {
@@ -64,6 +66,35 @@
         color: 'gray'
     };
     
+    // Check user plan on mount WITHOUT triggering usage limits
+    onMount(async () => {
+        await loadUserPlan();
+    });
+    
+    async function loadUserPlan() {
+        try {
+            const response = await fetch('/api/get-user-profile');
+            if (response.ok) {
+                const data = await response.json();
+                userPlan = data.subscription?.plan_type || 'free';
+                console.log(`User plan detected: ${userPlan} for feature: ${featureType}`);
+                
+                // Set initial usage data for display purposes only (no limits checking)
+                if (userPlan === 'elite') {
+                    usageData = {
+                        currentUsage: 0,
+                        limit: 999999, // Show as unlimited
+                        remainingUsage: 999999,
+                        planType: 'elite'
+                    };
+                }
+            }
+        } catch (error) {
+            console.error('Error loading user plan:', error);
+            userPlan = 'free'; // Default to free on error
+        }
+    }
+    
     // Parse plagiarism results for better display
     $: parsedPlagiarismResult = (() => {
         if (featureType === 'plagiarism_check' && typeof result === 'string') {
@@ -104,14 +135,14 @@
     // Map feature types to usage types for upgrade system
     function getUsageTypeFromFeature(feature: AIFeatureType): string {
         const mapping = {
-            'sop_review': 'ai_improvements',
-            'text_enhancement': 'ai_improvements', 
-            'word_optimization': 'ai_improvements',
-            'grammar_check': 'ai_improvements',
+            'sop_review': 'reviews',
+            'text_enhancement': 'text_enhancements', 
+            'word_optimization': 'word_optimizations',
+            'grammar_check': 'grammar_check',
             'plagiarism_check': 'plagiarism_checks',
-            'tone_analysis': 'ai_improvements'
+            'tone_analysis': 'tone_analysis'
         };
-        return mapping[feature] || 'ai_improvements';
+        return mapping[feature] || 'reviews';
     }
     
     async function processWithAI() {
@@ -122,6 +153,7 @@
         
         // Mark that user has interacted with the app
         markUserInteraction();
+        hasCheckedUsage = true;
         
         processing = true;
         error = '';
@@ -143,28 +175,38 @@
             // Debug logging for usage tracking
             console.log('AI Feature Response:', {
                 featureType,
+                userPlan,
                 status: response.status,
                 data,
                 usageType: getUsageTypeFromFeature(featureType)
             });
             
-            // Check for any usage limit related messages first
-            if (data.error?.toLowerCase().includes('limit') || 
+            // Special handling for Elite plan - should never show upgrade prompts
+            if (userPlan === 'elite' && response.status === 403) {
+                console.error('Elite user hit usage limit - this should not happen!', data);
+                error = 'System error: Elite plan should have unlimited access. Please contact support.';
+                processing = false;
+                return;
+            }
+            
+            // Check for usage limit related messages for non-Elite users
+            if (userPlan !== 'elite' && (
+                data.error?.toLowerCase().includes('limit') || 
                 data.message?.toLowerCase().includes('limit') ||
                 data.error?.toLowerCase().includes('monthly') ||
-                response.status === 403) {
+                response.status === 403)) {
                 
-                // Use the new upgrade system
+                // Use the upgrade system for non-Elite users only
                 const upgradeData = {
                     upgradeRequired: true,
-                    planType: data.usageData?.planType || 'free',
+                    planType: data.usageData?.planType || userPlan,
                     currentUsage: data.usageData?.currentUsage || 0,
                     limit: data.usageData?.limit || 1,
                     message: data.error || data.message || 'Usage limit reached',
                     usageType: getUsageTypeFromFeature(featureType)
                 };
                 
-                console.log('Triggering upgrade modal with:', upgradeData);
+                console.log('Triggering upgrade modal for non-Elite user:', upgradeData);
                 handleUpgradeRequired(upgradeData);
                 processing = false;
                 return;
@@ -182,11 +224,12 @@
             
         } catch (err: any) {
             error = err.message || 'Failed to process with AI';
-            if (error.toLowerCase().includes('limit')) {
-                // Double-check for limit messages in errors
+            
+            // Only trigger upgrade for non-Elite users with limit-related errors
+            if (userPlan !== 'elite' && error.toLowerCase().includes('limit')) {
                 handleUpgradeRequired({
                     upgradeRequired: true,
-                    planType: 'free',
+                    planType: userPlan,
                     currentUsage: usageData?.currentUsage || 0,
                     limit: usageData?.limit || 1,
                     message: error,
@@ -213,14 +256,20 @@
             </div>
         </div>
         
-        <!-- Usage Info -->
-        {#if showUsageInfo && usageData}
+        <!-- Usage Info - Only show after user interaction or for Elite users -->
+        {#if showUsageInfo && (hasCheckedUsage || userPlan === 'elite') && usageData}
             <div class="mt-3 text-xs text-{config.color}-600 flex items-center gap-2">
-                <span>Usage: {usageData.currentUsage}/{usageData.limit === 999999 ? '∞' : usageData.limit}</span>
-                {#if usageData.remainingUsage && usageData.remainingUsage < 999999}
-                    <span class="px-2 py-1 bg-{config.color}-100 rounded-full">
-                        {usageData.remainingUsage} remaining
+                {#if userPlan === 'elite'}
+                    <span class="px-2 py-1 bg-purple-100 text-purple-800 rounded-full font-medium">
+                        👑 Elite Plan - Unlimited Usage
                     </span>
+                {:else}
+                    <span>Usage: {usageData.currentUsage}/{usageData.limit === 999999 ? '∞' : usageData.limit}</span>
+                    {#if usageData.remainingUsage && usageData.remainingUsage < 999999}
+                        <span class="px-2 py-1 bg-{config.color}-100 rounded-full">
+                            {usageData.remainingUsage} remaining
+                        </span>
+                    {/if}
                 {/if}
             </div>
         {/if}
@@ -290,7 +339,7 @@
         {#if result}
             <div class="mt-4 p-6 bg-gray-50/50 rounded-b-xl border-t border-gray-200">
                 <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                    <span class="mr-3">{config[featureType]?.icon || '💡'}</span>
+                    <span class="mr-3">{config.icon || '💡'}</span>
                     Analysis Result
                 </h3>
                 
@@ -331,7 +380,7 @@
                                     <div class="flex items-center gap-2">
                                         <span class="capitalize w-28 text-gray-600">{tone}</span>
                                         <div class="w-full bg-gray-200 rounded-full h-2.5">
-                                            <div class="bg-blue-500 h-2.5 rounded-full" style="width: {score * 100}%"></div>
+                                            <div class="bg-blue-500 h-2.5 rounded-full" style="width: {(score as number) * 100}%"></div>
                                         </div>
                                     </div>
                                     {/each}

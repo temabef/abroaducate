@@ -2,7 +2,7 @@ import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import PlagiarismDetector from '$lib/ai/plagiarism-detector';
 import { OPENAI_API_KEY } from '$env/static/private';
-import { checkUsageLimit, incrementUsage } from '$lib/usage-limits';
+import { checkUsageLimit } from '$lib/comprehensive-usage-limits';
 
 export const POST: RequestHandler = async ({ request, locals: { supabase, getSession } }) => {
     try {
@@ -19,13 +19,32 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
         }
 
         // Check usage limits before processing
-        const usageType = analysisType === 'plagiarism' ? 'plagiarism_checks' : 'ai_improvements_used';
+        const usageType = analysisType === 'plagiarism' ? 'plagiarism_checks' : 'reviews';
         const usageCheck = await checkUsageLimit(supabase, session.user.id, usageType);
         
         if (!usageCheck.allowed) {
+            console.error(`SOP Analysis limit check failed for user ${session.user.id}:`, {
+                usageType,
+                analysisType,
+                usageCheck
+            });
+            
+            // Special handling for Elite plan users - this should never happen
+            if (usageCheck.planType === 'elite') {
+                return json({
+                    error: 'Elite plan should have unlimited access. Please contact support.',
+                    message: `System error: Elite plan user ${session.user.id} being blocked from ${usageType}`,
+                    planType: usageCheck.planType,
+                    currentUsage: usageCheck.currentUsage,
+                    limit: usageCheck.limit,
+                    upgradeRequired: false,
+                    debug: usageCheck
+                }, { status: 403 });
+            }
+            
             return json({
                 error: 'Usage limit exceeded',
-                message: usageCheck.message,
+                message: usageCheck.message || `You've reached your ${usageType} limit.`,
                 planType: usageCheck.planType,
                 currentUsage: usageCheck.currentUsage,
                 limit: usageCheck.limit,
@@ -89,8 +108,8 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
         // Save analysis to database for analytics
         await saveAnalysisResult(supabase, session.user.id, analysisType, result);
 
-        // Increment usage counter after successful analysis
-        await incrementUsage(supabase, session.user.id, usageType);
+        // Note: Usage is already incremented by checkUsageLimit in comprehensive-usage-limits
+        // No need to manually increment here
 
         return json(result);
 

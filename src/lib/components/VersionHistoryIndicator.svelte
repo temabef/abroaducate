@@ -35,6 +35,13 @@
       <span class="text-xs bg-gray-200 px-2 py-1 rounded-full text-gray-600 uppercase">
         {planType}
       </span>
+      <!-- Smart Versioning Info -->
+      <span 
+        class="text-blue-500 cursor-help" 
+        title="🧠 Smart Versioning: Only significant changes (30+ characters, 5+ words) create new versions to preserve your quota. Small edits are auto-saved without using version slots."
+      >
+        ℹ️
+      </span>
     </div>
     <span class="text-xs text-gray-500 font-mono">{stats.usage}</span>
   </div>

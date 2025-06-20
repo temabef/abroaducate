@@ -1,136 +1,238 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
-    import { goto } from '$app/navigation';
+  import { onMount } from 'svelte';
+  import { goto } from '$app/navigation';
+  import { page } from '$app/stores';
 
-    interface Reminder {
-        id: string;
-        university_name: string;
-        program_name: string;
-        application_deadline: string;
-        missing_documents: Array<{ key: string; label: string }>;
-        days_until_deadline: number;
-        urgency: 'high' | 'medium' | 'low';
-    }
+  interface Reminder {
+    id: string;
+    title: string;
+    deadline: string;
+    type: 'scholarship' | 'application';
+    daysUntil: number;
+    urgency: 'critical' | 'urgent' | 'important' | 'moderate';
+  }
 
-    let reminders: Reminder[] = [];
-    let loading = true;
+  let reminders: Reminder[] = [];
+  let loading = true;
+  let userTier = 'free';
+  let emailPreferences = {
+    email_enabled: true,
+    email_deadlines: true,
+    email_frequency: 'daily'
+  };
 
-    onMount(async () => {
-        await loadReminders();
-    });
+  onMount(async () => {
+    await loadReminders();
+  });
 
-    async function loadReminders() {
-        try {
-            const response = await fetch('/api/reminders/basic');
-            if (response.ok) {
-                const data = await response.json();
-                reminders = data.reminders || [];
+  async function loadReminders() {
+    try {
+      const { data: session } = await $page.data.supabase.auth.getSession();
+      
+      if (session?.session?.user) {
+        // Load subscription tier
+        const { data: subscription } = await $page.data.supabase
+          .from('user_subscriptions')
+          .select('plan_type')
+          .eq('user_id', session.session.user.id)
+          .eq('status', 'active')
+          .single();
+
+        userTier = subscription?.plan_type || 'free';
+
+        // Load user preferences
+        const { data: prefs } = await $page.data.supabase
+          .from('user_preferences')
+          .select('email_enabled, email_deadlines, email_frequency')
+          .eq('user_id', session.session.user.id)
+          .single();
+
+        if (prefs) {
+          emailPreferences = {
+            email_enabled: prefs.email_enabled ?? true,
+            email_deadlines: prefs.email_deadlines ?? true,
+            email_frequency: prefs.email_frequency ?? 'daily'
+          };
+        }
+
+        // Load actual reminders from applications and scholarships
+        const [applicationsResponse, scholarshipsResponse] = await Promise.all([
+          $page.data.supabase
+            .from('applications')
+            .select('id, application_deadline')
+            .eq('user_id', session.session.user.id)
+            .not('application_deadline', 'is', null),
+          $page.data.supabase
+            .from('scholarship_applications')
+            .select('scholarship_id')
+            .eq('user_id', session.session.user.id)
+        ]);
+
+        // Process applications
+        const applicationReminders = (applicationsResponse.data || [])
+          .map(app => {
+            const deadline = new Date(app.application_deadline);
+            const now = new Date();
+            const daysUntil = Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+            
+            if (daysUntil <= 30 && daysUntil >= 0) {
+              return {
+                id: app.id,
+                title: `Application Deadline`,
+                deadline: app.application_deadline,
+                type: 'application' as const,
+                daysUntil,
+                urgency: daysUntil <= 3 ? 'critical' : daysUntil <= 7 ? 'urgent' : daysUntil <= 14 ? 'important' : 'moderate' as const
+              };
             }
-        } catch (error) {
-            console.error('Error loading reminders:', error);
-        } finally {
-            loading = false;
-        }
-    }
+            return null;
+          })
+          .filter(Boolean) as Reminder[];
 
-    function getUrgencyColor(urgency: string): string {
-        switch (urgency) {
-            case 'high': return 'bg-red-100 text-red-800 border-red-200';
-            case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-            case 'low': return 'bg-blue-100 text-blue-800 border-blue-200';
-            default: return 'bg-gray-100 text-gray-800 border-gray-200';
-        }
-    }
+        // Process scholarship applications (simplified - no deadline data for now)
+        const scholarshipReminders: Reminder[] = [];
 
-    function getUrgencyIcon(urgency: string): string {
-        switch (urgency) {
-            case 'high': return '🚨';
-            case 'medium': return '⚠️';
-            case 'low': return 'ℹ️';
-            default: return '📋';
-        }
+        // Combine and sort by urgency
+        reminders = [...applicationReminders, ...scholarshipReminders]
+          .sort((a, b) => a.daysUntil - b.daysUntil)
+          .slice(0, getMaxReminders()); // Show based on user tier and preferences
+      }
+    } catch (error) {
+      console.error('Error loading reminders:', error);
+    } finally {
+      loading = false;
     }
+  }
+
+  function getMaxReminders(): number {
+    // Configure how many reminders to show based on tier
+    switch (userTier) {
+      case 'free': return 3; // Show 3 most urgent for free users
+      case 'professional': return 8; // Show 8 for professional users
+      case 'elite': return 15; // Show up to 15 for elite users
+      default: return 3;
+    }
+  }
+
+  function getUrgencyColor(urgency: string) {
+    switch (urgency) {
+      case 'critical': return 'text-red-600 bg-red-50 border-red-200';
+      case 'urgent': return 'text-orange-600 bg-orange-50 border-orange-200';
+      case 'important': return 'text-yellow-600 bg-yellow-50 border-yellow-200';
+      default: return 'text-blue-600 bg-blue-50 border-blue-200';
+    }
+  }
+
+  function getStatusColor() {
+    if (!emailPreferences.email_enabled || !emailPreferences.email_deadlines) {
+      return 'text-red-600';
+    }
+    return 'text-green-600';
+  }
+
+  function getStatusText() {
+    if (!emailPreferences.email_enabled) return 'Disabled';
+    if (!emailPreferences.email_deadlines) return 'Deadlines Off';
+    return `Active (${emailPreferences.email_frequency})`;
+  }
+
+  function getTierDisplayName(tier: string): string {
+    const names: { [key: string]: string } = {
+      'free': 'Academic Starter',
+      'professional': 'Academic Professional', 
+      'elite': 'Academic Elite'
+    };
+    return names[tier] || 'Academic Starter';
+  }
+
+  async function toggleEmailNotifications() {
+    goto('/account/preferences#email-settings');
+  }
 </script>
 
-<div class="bg-white rounded-lg shadow-sm border">
-    <div class="px-6 py-4 border-b">
-        <div class="flex justify-between items-center">
-            <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                🔔 Upcoming Deadlines
-            </h3>
-            {#if reminders.length > 0}
-                <button
-                    onclick={() => goto('/applications')}
-                    class="text-sm text-blue-600 hover:text-blue-800 font-medium"
+<div class="bg-white rounded-lg shadow-sm border p-4">
+  <div class="flex items-center justify-between mb-3">
+    <h3 class="font-medium text-gray-900 flex items-center gap-2">
+      ⏰ Upcoming Reminders
+    </h3>
+    <button
+      onclick={() => goto('/account/preferences#email-settings')}
+      class="text-xs text-blue-600 hover:text-blue-800"
+    >
+      Settings
+    </button>
+  </div>
+  
+  {#if loading}
+    <div class="flex items-center justify-center py-4">
+      <div class="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+    </div>
+  {:else if reminders.length === 0}
+    <div class="text-center py-6">
+      <div class="text-gray-400 text-2xl mb-2">📅</div>
+      <p class="text-sm text-gray-600 mb-3">No upcoming deadlines</p>
+      <a href="/scholarships" class="text-xs text-blue-600 hover:text-blue-700">
+        Browse Scholarships →
+      </a>
+    </div>
+  {:else}
+    <div class="space-y-3">
+      <!-- Status Overview -->
+      <div class="flex items-center justify-between">
+        <span class="text-sm text-gray-600">Email Status:</span>
+        <span class="text-sm font-medium {getStatusColor()}">
+          {getStatusText()}
+        </span>
+      </div>
+
+      <!-- Reminder List -->
+      <div class="space-y-2">
+        {#each reminders as reminder}
+          <div class="p-3 rounded-lg border {getUrgencyColor(reminder.urgency)}">
+            <div class="flex justify-between items-start">
+              <div class="flex-1 min-w-0">
+                <h4 class="font-medium text-sm">{reminder.title}</h4>
+                <p class="text-xs opacity-75">
+                  {reminder.daysUntil === 0 ? 'Due today!' : 
+                   reminder.daysUntil === 1 ? 'Due tomorrow' : 
+                   `Due in ${reminder.daysUntil} days`}
+                </p>
+              </div>
+              <div class="ml-2">
+                <a 
+                  href={reminder.type === 'application' ? `/applications/${reminder.id}` : `/scholarships/${reminder.id}`}
+                  class="text-xs bg-white hover:bg-gray-50 border rounded px-2 py-1 transition-colors"
                 >
-                    View All →
-                </button>
-            {/if}
-        </div>
-    </div>
-
-    <div class="p-6">
-        {#if loading}
-            <div class="flex justify-center py-4">
-                <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                  View →
+                </a>
+              </div>
             </div>
-        {:else if reminders.length === 0}
-            <div class="text-center py-6">
-                <div class="text-4xl mb-2">✅</div>
-                <h4 class="text-lg font-medium text-gray-900 mb-1">All caught up!</h4>
-                <p class="text-gray-600 text-sm">No urgent deadlines in the next 7 days</p>
-            </div>
-        {:else}
-            <div class="space-y-4">
-                {#each reminders.slice(0, 3) as reminder (reminder.id)}
-                    <div class="border rounded-lg p-4 {getUrgencyColor(reminder.urgency)}">
-                        <div class="flex items-start justify-between">
-                            <div class="flex-1">
-                                <div class="flex items-center gap-2 mb-1">
-                                    <span class="text-lg">{getUrgencyIcon(reminder.urgency)}</span>
-                                    <h4 class="font-medium text-gray-900">
-                                        {reminder.university_name}
-                                    </h4>
-                                </div>
-                                <p class="text-sm text-gray-700 mb-2">{reminder.program_name}</p>
-                                
-                                <div class="text-xs text-gray-600 mb-2">
-                                    <strong>Deadline:</strong> {new Date(reminder.application_deadline).toLocaleDateString()} 
-                                    ({reminder.days_until_deadline} days left)
-                                </div>
+          </div>
+        {/each}
+      </div>
 
-                                {#if reminder.missing_documents.length > 0}
-                                    <div class="text-xs">
-                                        <span class="font-medium text-gray-700">Missing:</span>
-                                        {reminder.missing_documents.slice(0, 3).map(doc => doc.label).join(', ')}
-                                        {#if reminder.missing_documents.length > 3}
-                                            <span class="text-gray-500">+{reminder.missing_documents.length - 3} more</span>
-                                        {/if}
-                                    </div>
-                                {/if}
-                            </div>
-                            
-                            <button
-                                onclick={() => goto('/applications')}
-                                class="ml-4 px-3 py-1 text-xs bg-white border border-gray-300 rounded hover:bg-gray-50 transition-colors"
-                            >
-                                Manage
-                            </button>
-                        </div>
-                    </div>
-                {/each}
-
-                {#if reminders.length > 3}
-                    <div class="pt-2 border-t">
-                        <button
-                            onclick={() => goto('/applications')}
-                            class="w-full text-center text-sm text-blue-600 hover:text-blue-800 font-medium py-2"
-                        >
-                            View {reminders.length - 3} more reminders →
-                        </button>
-                    </div>
-                {/if}
-            </div>
+      <!-- Action Buttons -->
+      <div class="border-t pt-3 space-y-2">
+        <a href="/applications" class="block text-center text-xs bg-blue-50 text-blue-700 border border-blue-200 rounded py-2 hover:bg-blue-100 transition-colors">
+          📋 View All Applications
+        </a>
+        
+        {#if userTier === 'free'}
+          <div class="text-xs text-amber-600 text-center">
+            🔒 Upgrade for email notifications
+          </div>
+          <a href="/pricing" class="block text-center text-xs bg-amber-50 text-amber-700 border border-amber-200 rounded py-2 hover:bg-amber-100 transition-colors">
+            Upgrade to {getTierDisplayName('professional')} →
+          </a>
+        {:else if !emailPreferences.email_enabled || !emailPreferences.email_deadlines}
+          <button
+            onclick={toggleEmailNotifications}
+            class="w-full text-xs bg-green-50 text-green-700 border border-green-200 rounded py-2 hover:bg-green-100 transition-colors"
+          >
+            Enable Email Reminders
+          </button>
         {/if}
+      </div>
     </div>
+  {/if}
 </div> 

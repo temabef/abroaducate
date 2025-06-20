@@ -61,6 +61,10 @@ async function sendEmailViaSendGrid(to: string, subject: string, htmlContent: st
 
 // Email template generator
 function generateEmailTemplate(data: EmailReminderRequest['scholarshipData']) {
+  if (!data) {
+    throw new Error('Scholarship data is required for email template generation');
+  }
+  
   const { title, provider, deadline, daysUntil, urgency } = data;
   
   const urgencyColors = {

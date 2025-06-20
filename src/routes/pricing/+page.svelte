@@ -255,6 +255,12 @@
             </svg>
             <span class="text-gray-700"><strong>Scholarship Access:</strong> Free access to all scholarship listings</span>
           </li>
+          <li class="flex items-start">
+            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+            </svg>
+            <span class="text-gray-700"><strong>Email Notifications:</strong> Weekly scholarship digest - delivered every week with new opportunities!</span>
+          </li>
         </ul>
 
         <button 
@@ -326,7 +332,7 @@
             <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
             </svg>
-            <span class="text-gray-700">Email reminders & notifications</span>
+            <span class="text-gray-700"><strong>Premium Email System:</strong> Application deadline reminders, daily/weekly scholarship digest, subscription alerts & personalized notifications</span>
           </li>
           <li class="flex items-start">
             <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -430,6 +436,12 @@
             <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
             </svg>
+            <span class="text-gray-700"><strong>Elite Email System:</strong> All Premium features + instant deadline alerts (≤3 days), immediate notifications for critical deadlines, priority email delivery</span>
+          </li>
+          <li class="flex items-start">
+            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+            </svg>
             <span class="text-gray-700"><strong>Application Tracking:</strong> Unlimited applications with premium insights dashboard</span>
           </li>
           <li class="flex items-start">
@@ -489,6 +501,57 @@
         >
           Upgrade to Elite
         </button>
+      </div>
+    </div>
+
+    <!-- Email System Highlight -->
+    <div class="mt-16 max-w-5xl mx-auto bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-8">
+      <div class="text-center">
+        <h2 class="text-3xl font-bold text-blue-900 mb-4">📧 Smart Email Notification System</h2>
+        <p class="text-blue-800 text-lg mb-6">
+          Never miss a deadline again! Our intelligent email system keeps you on track with personalized reminders and opportunities.
+        </p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+          <!-- Free Tier Email -->
+          <div class="bg-white rounded-lg p-6 border border-blue-100">
+            <div class="text-2xl mb-3">📊</div>
+            <h3 class="font-semibold text-blue-900 mb-2">Academic Starter</h3>
+            <div class="text-sm text-blue-700 space-y-2">
+              <div>✅ Weekly scholarship digest</div>
+              <div>📅 New opportunities delivered weekly</div>
+              <div>🎯 Curated for your profile</div>
+            </div>
+          </div>
+
+          <!-- Professional Tier Email -->
+          <div class="bg-white rounded-lg p-6 border border-blue-100 ring-2 ring-blue-400">
+            <div class="text-2xl mb-3">⚡</div>
+            <h3 class="font-semibold text-blue-900 mb-2">Academic Professional</h3>
+            <div class="text-sm text-blue-700 space-y-2">
+              <div>✅ All Starter features</div>
+              <div>⏰ Application deadline reminders</div>
+              <div>📧 Daily scholarship option</div>
+              <div>🔔 Account & subscription alerts</div>
+              <div>📋 Personalized notifications</div>
+            </div>
+          </div>
+
+          <!-- Elite Tier Email -->
+          <div class="bg-white rounded-lg p-6 border border-blue-100">
+            <div class="text-2xl mb-3">🚀</div>
+            <h3 class="font-semibold text-blue-900 mb-2">Academic Elite</h3>
+            <div class="text-sm text-blue-700 space-y-2">
+              <div>✅ All Professional features</div>
+              <div>⚡ Instant alerts for critical deadlines</div>
+              <div>🎯 Priority email delivery</div>
+              <div>🔥 Immediate notifications (≤3 days)</div>
+              <div>⭐ Custom urgency levels</div>
+            </div>
+          </div>
+        </div>
+
+
       </div>
     </div>
 
@@ -587,6 +650,12 @@
                 <td class="px-6 py-4 text-sm text-center text-gray-600">✅ Free Access</td>
                 <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>✅ Free Access + Personalized</strong></td>
                 <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>✅ Priority Access + Custom Alerts</strong></td>
+              </tr>
+              <tr>
+                <td class="px-6 py-4 text-sm text-gray-900 font-medium">Email Notifications</td>
+                <td class="px-6 py-4 text-sm text-center text-gray-600">Weekly scholarship digest only</td>
+                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>Application deadline reminders + Daily/Weekly scholarships + Account alerts</strong></td>
+                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>All Premium + Instant deadline alerts (≤3 days) + Priority delivery</strong></td>
               </tr>
             </tbody>
           </table>

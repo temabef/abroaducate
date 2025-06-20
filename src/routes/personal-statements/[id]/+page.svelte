@@ -22,8 +22,8 @@
   let lastSaved: Date | null = null;
   let wordCount = 0;
   let characterCount = 0;
-  let showSaveToast = false;
-  let showCopyToast = false;
+      let showSaveToast = false;
+    let showCopyToast = false;
   
   // Version history with plan-based limits
   let versions: any[] = [];
@@ -723,12 +723,14 @@
             <span>📝 {characterCount} characters</span>
             <span>📋 {personalStatement.application_type.replace('_', ' ').toUpperCase()}</span>
             {#if saving}
-              <span class="text-blue-600">💾 Auto-saving...</span>
+              <span class="text-blue-600 flex items-center gap-1">
+                <div class="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
+                Auto-saving...
+              </span>
+            {:else if hasUnsavedChanges && !saving}
+              <span class="text-orange-600">⚠️ Unsaved changes</span>
             {:else if lastSaved}
               <span class="text-green-600">✅ Auto-saved {lastSaved.toLocaleTimeString()}</span>
-            {/if}
-            {#if hasUnsavedChanges && !saving}
-              <span class="text-yellow-600">⚠️ Unsaved changes</span>
             {/if}
           </div>
         </div>

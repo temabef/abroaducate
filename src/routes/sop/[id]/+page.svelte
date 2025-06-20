@@ -87,6 +87,9 @@
     let lastSaved: Date | null = null;
     let hasUnsavedChanges = false;
     let autoSaveTimeout: ReturnType<typeof setTimeout> | null = null;
+    let showSaveToast = false;
+    let versionSkipMessage = '';
+    let showVersionSkipToast = false;
     
     onMount(async () => {
         sopId = $page.params.id;
@@ -301,80 +304,44 @@
     async function saveSOPWithVersion(isSignificantChange = false) {
         if (!sop) return;
         
-        const { error } = await supabase
-            .from('sops')
-            .update({
-                content: sop.content,
-                word_count: sop.word_count,
-                updated_at: new Date().toISOString()
-            })
-            .eq('id', sop.id);
+        try {
+            // Use the save API endpoint that now handles version creation
+            const response = await fetch('/api/save-sop', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    sopId: sop.id,
+                    editedContent: sop.content,
+                    editHistory: [],
+                    isSignificantChange
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to save SOP');
+            }
+
+            const result = await response.json();
             
-        if (error) {
+            // Update local state
+            sop.updated_at = new Date().toISOString();
+            if (result.sop.version) {
+                sop.version = result.sop.version;
+            }
+            
+            // Reload version history to show new version
+            await loadVersionHistoryWithLimits();
+            
+            console.log('SOP saved successfully with version history');
+            
+        } catch (error) {
             console.error('Error saving SOP:', error);
             throw error;
         }
-        
-        // Create version snapshot 
-        await createVersionSnapshot(isSignificantChange);
     }
     
-    async function createVersionSnapshot(isSignificantChange = false) {
-        if (!sop) return;
-        
-        try {
-            console.log('📝 Creating version snapshot for SOP:', {
-                sopId: sop.id,
-                contentLength: sop.content.length,
-                isSignificantChange,
-                currentVersions: versions.length,
-                planType,
-                versionHistoryAllowed
-            });
-
-            if (!versionHistoryAllowed) {
-                console.log('Version history not allowed for this plan/document type');
-                return;
-            }
-
-            const config: VersionHistoryConfig = {
-                planType,
-                documentType: 'sop',
-                userId: session?.user?.id || ''
-            };
-
-            const result = await createVersionSnapshotWithLimits(
-                supabase,
-                config,
-                sop.id,
-                sop.content,
-                isSignificantChange,
-                versions
-            );
-
-            console.log('✅ Version creation result:', result);
-
-            if (result.success && result.versionCreated) {
-                // Update version number
-                await supabase
-                    .from('sops')
-                    .update({ version: (sop.version || 0) + 1 })
-                    .eq('id', sop.id);
-                    
-                sop.version = (sop.version || 0) + 1;
-                
-                // Refresh version history
-                await loadVersionHistoryWithLimits();
-                
-                console.log(result.message);
-            } else if (result.upgradeRequired) {
-                versionUpgradeMessage = result.message || '';
-            }
-            
-        } catch (error) {
-            console.error('Error creating SOP version snapshot:', error);
-        }
-    }
+    // Version creation is now handled by the save API endpoint
     
     async function loadUserPlan() {
         try {
@@ -505,6 +472,10 @@
             await saveSOP();
             lastSaved = new Date();
             hasUnsavedChanges = false;
+            
+            // Show save confirmation
+            showSaveToast = true;
+            setTimeout(() => showSaveToast = false, 2000);
         } catch (error) {
             console.error('Auto-save failed:', error);
         } finally {
@@ -784,7 +755,19 @@
                         <div class="flex items-center gap-4 mt-2 text-sm text-gray-500">
                             <span>{sop.word_count} words</span>
                             <span>•</span>
-                            <span>Updated {formatDistanceToNow(parseISO(sop.updated_at), { addSuffix: true })}</span>
+                            <!-- Smart Save Status -->
+                            {#if saving}
+                                <span class="text-blue-600 flex items-center gap-1">
+                                    <div class="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
+                                    Auto-saving...
+                                </span>
+                            {:else if hasUnsavedChanges}
+                                <span class="text-orange-600">⚠️ Unsaved changes</span>
+                            {:else if lastSaved}
+                                <span class="text-green-600">✅ Auto-saved {lastSaved.toLocaleTimeString()}</span>
+                            {:else}
+                                <span>Updated {formatDistanceToNow(parseISO(sop.updated_at), { addSuffix: true })}</span>
+                            {/if}
                             {#if sop.application_deadline}
                                 <span>•</span>
                                 <span>Deadline: {new Date(sop.application_deadline).toLocaleDateString()}</span>
@@ -1069,6 +1052,22 @@
 </div>
 
 <!-- Copy Toast Notification -->
+<!-- Save Toast Notification -->
+{#if showSaveToast}
+    <div class="fixed top-20 right-6 bg-blue-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center gap-2">
+        <span>💾</span>
+        <span>Auto-saved successfully!</span>
+    </div>
+{/if}
+
+<!-- Version Skip Toast Notification -->
+{#if showVersionSkipToast}
+    <div class="fixed top-32 right-6 bg-purple-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center gap-2">
+        <span>🧠</span>
+        <span>Small changes auto-saved (no version created to preserve quota)</span>
+    </div>
+{/if}
+
 {#if showCopyToast}
   <div class="fixed top-20 right-6 bg-blue-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center gap-2">
     <span>📋</span>
