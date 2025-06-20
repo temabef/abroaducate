@@ -40,7 +40,7 @@
 
 				<div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
 					<div>
-						<div class="text-3xl font-bold text-white">10</div>
+						<div class="text-3xl font-bold text-white">5-30</div>
 						<div class="text-slate-300">Questions per Session</div>
 					</div>
 					<div>
@@ -77,6 +77,14 @@
 				<p class="text-xl text-gray-600 max-w-3xl mx-auto">
 					A simple 3-step process to master your F-1 visa interview
 				</p>
+				<div class="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+					<p class="text-blue-800 font-medium">🎯 Practice Sessions by Plan:</p>
+					<div class="mt-2 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+						<div class="text-blue-700"><strong>Free:</strong> 5 questions per session</div>
+						<div class="text-blue-700"><strong>Professional:</strong> 20 questions per session</div>
+						<div class="text-blue-700"><strong>Elite:</strong> 30 questions per session</div>
+					</div>
+				</div>
 			</div>
 
 			<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -86,7 +94,7 @@
 					</div>
 					<h3 class="text-xl font-semibold text-gray-900 mb-4">Start Practice Session</h3>
 					<p class="text-gray-600">
-						Begin a 10-question practice session with randomly selected F-1 visa interview questions across 6 key categories
+						Begin a practice session with randomly selected F-1 visa interview questions across 6 key categories (5-30 questions based on your plan)
 					</p>
 				</div>
 

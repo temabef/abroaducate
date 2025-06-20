@@ -15,6 +15,8 @@
     let loading = $state(false);
     let view: 'practice' | 'summary' = $state('practice');
     let loadingQuestions = $state(true);
+    let subscriptionTier = $state('free');
+    let questionLimit = $state(5);
 
     // Reactive getters
     let currentQuestion = $derived(practiceQuestions[currentQuestionIndex]);
@@ -25,9 +27,36 @@
     let progressPercentage = $derived(practiceQuestions.length > 0 ? ((currentQuestionIndex + 1) / practiceQuestions.length) * 100 : 0);
 
     onMount(async () => {
-        await loadQuestions();
+        await Promise.all([loadQuestions(), loadUserProfile()]);
         shuffleAndStart();
     });
+
+    async function loadUserProfile() {
+        if (!user?.id) return;
+        
+        try {
+            const response = await fetch('/api/get-user-profile', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: user.id })
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                subscriptionTier = data.profile?.subscription_tier || 'free';
+                
+                // Set question limits based on subscription
+                const limits = {
+                    free: 5,
+                    professional: 20,
+                    elite: 30
+                };
+                questionLimit = limits[subscriptionTier as keyof typeof limits] || 5;
+            }
+        } catch (error) {
+            console.error('Error loading user profile:', error);
+        }
+    }
 
     async function loadQuestions() {
         try {
@@ -42,7 +71,7 @@
     }
 
     function shuffleAndStart() {
-        practiceQuestions = [...allQuestions].sort(() => 0.5 - Math.random()).slice(0, 10);
+        practiceQuestions = [...allQuestions].sort(() => 0.5 - Math.random()).slice(0, questionLimit);
         currentQuestionIndex = 0;
         userAnswer = '';
         feedbackHistory = [];

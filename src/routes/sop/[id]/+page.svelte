@@ -658,7 +658,7 @@
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `${sop.university_name}_${sop.program_name}_SOP.rtf`;
+                a.download = `${sop.university_name.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_')}_${sop.program_name.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_')}_SOP.docx`;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);

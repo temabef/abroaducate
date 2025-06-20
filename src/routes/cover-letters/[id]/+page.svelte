@@ -526,7 +526,7 @@
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `${coverLetter.job_title}_${coverLetter.company_name}_Cover_Letter.rtf`;
+        a.download = `${coverLetter.job_title.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_')}_${coverLetter.company_name.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_')}_Cover_Letter.docx`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);

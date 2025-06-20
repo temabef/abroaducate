@@ -6,6 +6,7 @@
     export let programName: string = '';
     export let initialChecklist: any = {};
     export let compact: boolean = false;
+    export let linkedSopId: string | null = null;
     
     const dispatch = createEventDispatcher();
     
@@ -204,6 +205,39 @@
         </div>
     </div>
     
+    <!-- Linked SOP Section -->
+    {#if linkedSopId}
+        <div class="p-6 pb-0">
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <span class="text-lg">📄</span>
+                        </div>
+                        <div>
+                            <h4 class="font-medium text-blue-900">Statement of Purpose</h4>
+                            <p class="text-sm text-blue-700">Ready for this application</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <a 
+                            href="/sop/{linkedSopId}"
+                            class="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
+                        >
+                            ✏️ Edit SOP
+                        </a>
+                        <a 
+                            href="/sop/{linkedSopId}"
+                            class="px-3 py-1.5 bg-white border border-blue-300 text-blue-700 text-sm rounded-lg hover:bg-blue-50 transition-colors"
+                        >
+                            👁️ View
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {/if}
+
     <!-- Categories -->
     <div class="categories p-6 space-y-4">
         {#each Object.entries(documentsByCategory) as [category, documents]}

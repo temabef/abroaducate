@@ -37,8 +37,17 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
             }, { status: 403 });
         }
 
+        // Get user subscription tier for AI model selection
+        const { data: profile, error: profileError } = await supabase
+            .from('user_profiles')
+            .select('subscription_tier')
+            .eq('user_id', session.user.id)
+            .single();
+
+        const subscriptionTier = profile?.subscription_tier || 'free';
+
         // Generate AI feedback using existing OpenAI setup
-        const feedback = await generateVisaInterviewFeedback(question, answer);
+        const feedback = await generateVisaInterviewFeedback(question, answer, subscriptionTier);
 
         // Save practice session to database
         const { data: sessionData, error: dbError } = await supabase
@@ -112,7 +121,7 @@ export const GET: RequestHandler = async ({ url, locals: { supabase } }) => {
 };
 
 // AI feedback generation function
-async function generateVisaInterviewFeedback(question: string, answer: string) {
+async function generateVisaInterviewFeedback(question: string, answer: string, subscriptionTier: string = 'free') {
     const prompt = `You are a visa interview expert with 15+ years of experience. Evaluate this F-1 student visa interview answer and provide helpful feedback.
 
 Question: ${question}
@@ -145,7 +154,7 @@ Keep feedback encouraging but honest. Focus on practical improvements.`;
                 'Authorization': `Bearer ${OPENAI_API_KEY}`
             },
             body: JSON.stringify({
-                model: 'gpt-3.5-turbo', // Use cheaper model for cost control
+                model: subscriptionTier === 'elite' ? 'gpt-4o' : subscriptionTier === 'professional' ? 'gpt-4o-mini' : 'gpt-3.5-turbo',
                 messages: [{ role: 'user', content: prompt }],
                 temperature: 0.3,
                 max_tokens: 350 // Keep reasonable for cost control

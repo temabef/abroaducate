@@ -1,5 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import { DocxExporter, type DocxExportRequest } from '$lib/services/DocxExporter';
 
 interface WordExportRequest {
   content: string;
@@ -9,6 +10,8 @@ interface WordExportRequest {
     author?: string;
     date?: string;
     institution?: string;
+    program?: string;
+    company?: string;
   };
 }
 
@@ -27,47 +30,42 @@ export const POST: RequestHandler = async ({ request, locals: { supabase } }) =>
       return json({ error: 'Content and title are required' }, { status: 400 });
     }
 
-    // Create RTF content that Word can open
-    // RTF (Rich Text Format) is supported by Word and is easier to generate than DOCX
-    const rtfContent = `{\\rtf1\\ansi\\deff0
-{\\fonttbl{\\f0 Times New Roman;}}
-{\\colortbl;\\red0\\green0\\blue0;\\red102\\green102\\blue102;}
+    // Create DocX export request
+    const docxRequest: DocxExportRequest = {
+      content,
+      title,
+      type,
+      metadata: {
+        ...metadata,
+        author: session.user.email || undefined,
+        date: new Date().toLocaleDateString()
+      }
+    };
 
-\\f0\\fs24
-
-{\\qc\\b\\fs32 ${title}\\par}
-${metadata?.author ? `{\\qc\\fs20 by ${metadata.author}\\par}` : ''}
-${metadata?.institution ? `{\\qc\\fs20 ${metadata.institution}\\par}` : ''}
-${metadata?.date ? `{\\qc\\fs20 ${metadata.date}\\par}` : ''}
-
-\\par\\par
-
-\\ql\\fs24
-${content.split('\n\n').map(paragraph => 
-  paragraph.trim() ? paragraph.replace(/\n/g, '\\line ') + '\\par\\par' : ''
-).join('')}
-
-\\par\\par
-
-{\\qc\\cf2\\fs18 Document prepared on ${new Date().toLocaleDateString()}\\par}
-
-}`;
+    // Generate true DOCX using the DocxExporter service
+    const docxExporter = new DocxExporter();
+    const docxBuffer = await docxExporter.generateDocx(docxRequest);
+    
+    // Generate appropriate filename
+    const filename = DocxExporter.getFilename(title, type);
     
     // Log the export activity
     try {
       const analyticsTable = type === 'personal_statement' ? 'personal_statement_analytics' : 
                            type === 'cover_letter' ? 'cover_letter_analytics' : 
+                           type === 'cv' ? 'cv_analytics' : 
                            'sop_analytics';
       
       await supabase
         .from(analyticsTable)
         .insert({
           user_id: session.user.id,
-          action_type: 'exported_word',
+          action_type: 'exported_docx',
           session_data: { 
             title: title,
-            format: 'rtf',
-            exported_at: new Date().toISOString()
+            format: 'docx',
+            exported_at: new Date().toISOString(),
+            file_size: docxBuffer.length
           }
         });
     } catch (analyticsError) {
@@ -75,17 +73,18 @@ ${content.split('\n\n').map(paragraph =>
       // Don't fail the export for analytics issues
     }
 
-    return new Response(rtfContent, {
+    // Return true DOCX file
+    return new Response(docxBuffer, {
       headers: {
-        'Content-Type': 'application/rtf',
-        'Content-Disposition': `attachment; filename="${title.replace(/[^a-z0-9\s]/gi, '').replace(/\s+/g, '_').toLowerCase()}.rtf"`
+        'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'Content-Disposition': `attachment; filename="${filename}"`
       }
     });
 
   } catch (error) {
-    console.error('Error exporting Word document:', error);
+    console.error('Error exporting DOCX document:', error);
     return json({ 
-      error: 'Word export failed',
+      error: 'DOCX export failed',
       details: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });
   }

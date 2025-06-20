@@ -33,8 +33,7 @@
   let saving = false;
   let message = '';
   let messageType: 'success' | 'error' = 'success';
-  let testingEmail = false;
-  let testEmailResult = '';
+
   let authChecked = false;
   
   let preferences: EmailPreferences = {
@@ -357,6 +356,8 @@
       saving = false;
     }
   }
+
+
 </script>
 
 <svelte:head>
@@ -421,9 +422,10 @@
                 <span class="toggle-slider"></span>
                 <div class="toggle-content">
                   <strong>Enable Email Notifications</strong>
-                  <small>Receive scholarship deadline reminders and updates via email</small>
+                  <small>Receive scholarship deadline reminders and updates via email (Professional+ only)</small>
                 </div>
               </label>
+
             </div>
 
             {#if preferences.email_enabled}
@@ -496,7 +498,7 @@
                     <button 
                       type="button"
                       class="day-button {preferences.reminder_days.includes(day) ? 'active' : ''}"
-                      on:click={() => toggleReminderDay(day)}
+                      onclick={() => toggleReminderDay(day)}
                     >
                       {day === 0 ? 'Day of deadline' : `${day} days before`}
                     </button>
@@ -562,7 +564,7 @@
                 <div class="provider-buttons">
                   <button 
                     class="provider-button {preferences.calendar_provider === 'google' ? 'active' : ''}"
-                    on:click={() => connectCalendar('google')}
+                                          onclick={() => connectCalendar('google')}
                   >
                     <div class="provider-icon">📊</div>
                     <span>Google Calendar</span>
@@ -570,7 +572,7 @@
                   
                   <button 
                     class="provider-button {preferences.calendar_provider === 'outlook' ? 'active' : ''}"
-                    on:click={() => connectCalendar('outlook')}
+                                          onclick={() => connectCalendar('outlook')}
                   >
                     <div class="provider-icon">📧</div>
                     <span>Outlook Calendar</span>
@@ -578,7 +580,7 @@
                   
                   <button 
                     class="provider-button {preferences.calendar_provider === 'apple' ? 'active' : ''}"
-                    on:click={() => connectCalendar('apple')}
+                                          onclick={() => connectCalendar('apple')}
                   >
                     <div class="provider-icon">🍎</div>
                     <span>Apple Calendar</span>
@@ -599,7 +601,7 @@
               
               <button 
                 class="test-email-button" 
-                on:click={sendTestEmail}
+                                  onclick={sendTestEmail}
                 disabled={testingEmail || !preferences.email_enabled}
               >
                 {#if testingEmail}
@@ -620,7 +622,7 @@
           <div class="save-section">
             <button 
               class="save-button" 
-              on:click={savePreferences}
+              onclick={savePreferences}
               disabled={saving}
             >
               {#if saving}

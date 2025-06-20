@@ -333,8 +333,13 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     content: generatedCV,
-                    title: `${cvData.personalInfo.fullName}_Academic_CV`,
-                    type: 'cv'
+                    title: `${cvData.personalInfo.fullName} - Academic CV`,
+                    type: 'cv',
+                    metadata: {
+                        author: cvData.personalInfo.fullName,
+                        institution: cvData.template.replace('_', ' ').toUpperCase() + ' Field',
+                        date: new Date().toLocaleDateString()
+                    }
                 })
             });
 
@@ -343,11 +348,13 @@
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `${cvData.personalInfo.fullName}_Academic_CV.docx`;
+                a.download = `${cvData.personalInfo.fullName.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_')}_Academic_CV.docx`;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
                 window.URL.revokeObjectURL(url);
+                
+                alert('✅ Academic CV exported successfully! Your true DOCX file is ready for editing in Microsoft Word.');
             } else {
                 throw new Error('Failed to export Word document');
             }

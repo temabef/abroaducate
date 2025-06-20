@@ -178,6 +178,13 @@
                 <div class="text-sm text-gray-500">Application overview</div>
               </div>
             </a>
+            <a href="/applications" class="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition duration-200">
+              <span class="text-lg mr-3">📋</span>
+              <div>
+                <div class="font-medium">My Applications</div>
+                <div class="text-sm text-gray-500">Track all applications</div>
+              </div>
+            </a>
             <a href="/calendar" class="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition duration-200">
               <span class="text-lg mr-3">📅</span>
               <div>

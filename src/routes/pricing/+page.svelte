@@ -210,7 +210,7 @@
             <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
             </svg>
-            <span class="text-gray-700">Application tracking & basic reminders</span>
+            <span class="text-gray-700"><strong>Application Tracking:</strong> 12 applications with basic reminders</span>
           </li>
           <li class="flex items-start">
             <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -228,7 +228,7 @@
             <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
             </svg>
-            <span class="text-gray-700"><strong>Visa Interview Simulator:</strong> 5 practice questions per session</span>
+            <span class="text-gray-700"><strong>Visa Interview Simulator:</strong> 5 questions per session</span>
           </li>
 
           <li class="flex items-start">
@@ -242,6 +242,12 @@
               <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
             </svg>
             <span class="text-gray-700"><strong>GPT-3.5 AI Engine</strong> - Reliable and efficient AI</span>
+          </li>
+          <li class="flex items-start">
+            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+            </svg>
+            <span class="text-gray-700"><strong>Cold Email Generator:</strong> 5 professional emails per month</span>
           </li>
           <li class="flex items-start">
             <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -308,7 +314,7 @@
             <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
             </svg>
-            <span class="text-gray-700">Advanced application tracking & analytics</span>
+            <span class="text-gray-700"><strong>Application Tracking:</strong> 1000 applications with advanced analytics</span>
           </li>
           <li class="flex items-start">
             <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -344,7 +350,7 @@
             <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
             </svg>
-            <span class="text-gray-700"><strong>Cold Email Generator</strong> - Professional outreach templates</span>
+            <span class="text-gray-700"><strong>Cold Email Generator:</strong> 50 professional emails per month</span>
           </li>
           <li class="flex items-start">
             <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -356,7 +362,7 @@
             <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
             </svg>
-            <span class="text-gray-700"><strong>Visa Interview Simulator:</strong> 20 practice questions per session</span>
+            <span class="text-gray-700"><strong>Visa Interview Simulator:</strong> 20 questions per session</span>
           </li>
 
           <li class="flex items-start">
@@ -424,7 +430,7 @@
             <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
             </svg>
-            <span class="text-gray-700">Advanced analytics & insights dashboard</span>
+            <span class="text-gray-700"><strong>Application Tracking:</strong> Unlimited applications with premium insights dashboard</span>
           </li>
           <li class="flex items-start">
             <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -454,7 +460,7 @@
             <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
             </svg>
-            <span class="text-gray-700"><strong>Advanced Cold Email Suite</strong> - Smart templates + professional guidance</span>
+            <span class="text-gray-700"><strong>Cold Email Generator:</strong> 500 professional emails per month</span>
           </li>
           <li class="flex items-start">
             <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -466,7 +472,7 @@
             <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
             </svg>
-            <span class="text-gray-700"><strong>Visa Interview Simulator:</strong> All 30 practice questions per session</span>
+            <span class="text-gray-700"><strong>Visa Interview Simulator:</strong> 30 questions per session</span>
           </li>
 
           <li class="flex items-start">
@@ -540,9 +546,9 @@
               </tr>
               <tr class="bg-gray-50">
                 <td class="px-6 py-4 text-sm text-gray-900 font-medium">Cold Email Generator</td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600">❌</td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>✅ Basic Templates</strong></td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>✅ Advanced Templates</strong></td>
+                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>5 emails/month</strong></td>
+                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>50 emails/month</strong></td>
+                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>500 emails/month</strong></td>
               </tr>
               <tr>
                 <td class="px-6 py-4 text-sm text-gray-900 font-medium">Academic Profile Analysis</td>
@@ -559,10 +565,10 @@
               </tr>
 
               <tr>
-                <td class="px-6 py-4 text-sm text-gray-900 font-medium">Analytics & Features</td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600">Basic tracking</td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>Advanced analytics + versioning</strong></td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>Complete insights dashboard</strong></td>
+                <td class="px-6 py-4 text-sm text-gray-900 font-medium">Application Tracking</td>
+                <td class="px-6 py-4 text-sm text-center text-gray-600">12 applications</td>
+                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>1000 applications</strong></td>
+                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>Unlimited applications</strong></td>
               </tr>
               <tr class="bg-gray-50">
                 <td class="px-6 py-4 text-sm text-gray-900 font-medium">Growth Promise</td>
@@ -571,6 +577,12 @@
                 <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>🚀 Auto-expanding limits</strong></td>
               </tr>
               <tr>
+                <td class="px-6 py-4 text-sm text-gray-900 font-medium">Visa Interview Simulator</td>
+                <td class="px-6 py-4 text-sm text-center text-gray-600">5 questions/session</td>
+                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>20 questions/session</strong></td>
+                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>30 questions/session</strong></td>
+              </tr>
+              <tr class="bg-gray-50">
                 <td class="px-6 py-4 text-sm text-gray-900 font-medium">Scholarship Access</td>
                 <td class="px-6 py-4 text-sm text-center text-gray-600">✅ Free Access</td>
                 <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>✅ Free Access + Personalized</strong></td>

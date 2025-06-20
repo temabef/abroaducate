@@ -5,6 +5,7 @@
   import QuickActions from '$lib/components/QuickActions.svelte';
   import DocumentCard from '$lib/components/DocumentCard.svelte';
   import ActivityFeed from '$lib/components/ActivityFeed.svelte';
+  import BasicReminders from '$lib/components/BasicReminders.svelte';
 
     export let data: PageData;
     let { supabase, session } = data;
@@ -231,6 +232,22 @@
                 <!-- Quick Actions -->
                 <QuickActions />
 
+                <!-- Quick Application Link -->
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="text-lg font-semibold text-blue-900 mb-1">Application Tracking</h3>
+                            <p class="text-blue-700">Manage your university applications and deadlines</p>
+                        </div>
+                        <a 
+                            href="/applications"
+                            class="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center gap-2"
+                        >
+                            📋 My Applications
+                        </a>
+                    </div>
+                </div>
+
                 <!-- University Matcher Widget -->
                 <div class="bg-white border border-gray-200 rounded-lg shadow-sm mb-8">
                     <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
@@ -422,8 +439,12 @@
                         </div>
                     </div>
 
-                    <!-- Activity Feed (1/3 width) -->
-                    <div class="lg:col-span-1">
+                    <!-- Sidebar (1/3 width) -->
+                    <div class="lg:col-span-1 space-y-6">
+                        <!-- Basic Reminders Widget -->
+                        <BasicReminders />
+                        
+                        <!-- Activity Feed -->
                         <ActivityFeed activities={dashboardData.activity} />
                     </div>
                 </div>

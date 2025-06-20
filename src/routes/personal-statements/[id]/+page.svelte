@@ -453,7 +453,7 @@
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `${title.replace(/[^\w\s]/gi, '')}_Personal_Statement.rtf`;
+        a.download = `${title.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_')}_Personal_Statement.docx`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);

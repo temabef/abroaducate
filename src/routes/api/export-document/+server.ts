@@ -1,5 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import { DocxExporter, type DocxExportRequest } from '$lib/services/DocxExporter';
 
 interface ExportRequest {
   documentId: string;
@@ -115,26 +116,47 @@ export const POST: RequestHandler = async ({ request, locals: { supabase } }) =>
     }
     
     if (format === 'docx') {
-      // DOCX export placeholder
-      // In production, you'd use libraries like docx.js or similar
-      const docxContent = `
-${title}
+      // Create DocX export request
+      const docxRequest: DocxExportRequest = {
+        content,
+        title,
+        type: documentType,
+        metadata: {
+          author: session.user.email || undefined,
+          date: new Date().toLocaleDateString()
+        }
+      };
 
-Document prepared on ${new Date().toLocaleDateString()}
-
----
-
-${content}
-
----
-
-This document was prepared for academic application purposes.
-      `;
+      // Generate true DOCX using the DocxExporter service
+      const docxExporter = new DocxExporter();
+      const docxBuffer = await docxExporter.generateDocx(docxRequest);
       
-      return new Response(docxContent, {
+      // Generate appropriate filename
+      const filename = DocxExporter.getFilename(title, documentType);
+      
+      // Log the export activity
+      try {
+        await supabase
+          .from(`${documentType}_analytics`)
+          .insert({
+            user_id: session.user.id,
+            [`${documentType}_id`]: documentId,
+            action_type: 'exported_docx',
+            session_data: { 
+              format: 'docx',
+              file_size: docxBuffer.length,
+              exported_at: new Date().toISOString()
+            }
+          });
+      } catch (analyticsError) {
+        console.warn('Analytics logging failed:', analyticsError);
+      }
+
+      // Return true DOCX file
+      return new Response(docxBuffer, {
         headers: {
           'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-          'Content-Disposition': `attachment; filename="${title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.txt"`
+          'Content-Disposition': `attachment; filename="${filename}"`
         }
       });
     }

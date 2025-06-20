@@ -163,7 +163,10 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
         // Increment usage counter after successful generation
         await incrementUsage(supabase, session.user.id, 'sops_created');
 
-        return json({ success: true, sopId: insertData.id });
+        return json({ 
+            success: true, 
+            sopId: insertData.id
+        });
 
     } catch (error: any) {
         console.error('Error in SOP generation endpoint:', error);
