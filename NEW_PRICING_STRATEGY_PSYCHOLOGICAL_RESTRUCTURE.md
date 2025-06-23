@@ -10,7 +10,7 @@
 
 **1. Quality Perception Signal**
 - **$12 = "Professional Value"** → Students perceive serious, high-quality tool
-- **$29 = "Premium Excellence"** → Elite positioning for power users
+- **$29 = "Elite "** → Elite positioning for power users
 - Psychology: Price indicates value. Students investing $3,000-5,000 in applications need tools that match their investment level.
 
 **2. Commitment Filter**
