@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { OPENAI_API_KEY } from '$env/static/private';
+import { getAIModelForUser } from '$lib/ai-models';
 
 export const POST: RequestHandler = async ({ request, locals: { supabase } }) => {
     const { data: { session }, error: sessionError } = await supabase.auth.getSession();
@@ -15,9 +16,12 @@ export const POST: RequestHandler = async ({ request, locals: { supabase } }) =>
         if (!sopText?.trim()) {
             return json({ error: 'SOP text is required' }, { status: 400 });
         }
+
+        // Get appropriate AI model based on user's subscription tier
+        const aiModel = await getAIModelForUser(supabase, session.user.id);
         
         // Enhanced analysis with OpenAI
-        const analysis = await analyzeSOPWithAI(sopText, reviewMode, universityName, programName);
+        const analysis = await analyzeSOPWithAI(sopText, reviewMode, universityName, programName, aiModel);
         
         // Store analysis in database for future reference
         await saveAnalysisToDatabase(supabase, session.user.id, sopText, analysis, universityName, programName);
@@ -25,7 +29,8 @@ export const POST: RequestHandler = async ({ request, locals: { supabase } }) =>
         return json({
             success: true,
             paragraphAnalyses: analysis.paragraphAnalyses,
-            overallAnalysis: analysis.overallAnalysis
+            overallAnalysis: analysis.overallAnalysis,
+            modelUsed: aiModel
         });
         
     } catch (error) {
@@ -34,7 +39,7 @@ export const POST: RequestHandler = async ({ request, locals: { supabase } }) =>
     }
 };
 
-async function analyzeSOPWithAI(sopText: string, reviewMode: string, universityName?: string, programName?: string) {
+async function analyzeSOPWithAI(sopText: string, reviewMode: string, universityName?: string, programName?: string, aiModel: string = 'gpt-3.5-turbo') {
     const paragraphs = sopText.split('\n\n').filter(p => p.trim().length > 0);
     
     // Enhanced prompt based on review mode
@@ -115,7 +120,7 @@ Respond with a valid JSON object in this exact format:`;
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                model: 'gpt-4',
+                model: aiModel,
                 messages: [
                     {
                         role: 'system',
@@ -127,7 +132,7 @@ Respond with a valid JSON object in this exact format:`;
                     }
                 ],
                 temperature: 0.3,
-                max_tokens: 4000
+                max_tokens: aiModel.includes('gpt-4') ? 4000 : 3000
             })
         });
         

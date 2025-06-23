@@ -163,8 +163,8 @@
               <li>• Scholarship Matching</li>
               <li>• Funding Tracker</li>
               <li>• Financial Planning</li>
-            </ul>
-          </div>
+          </ul>
+        </div>
 
           <!-- Stage 4: Submit Apps -->
           <div class="text-center group">
@@ -519,7 +519,7 @@
             </div>
             <div>
               <h3 class="text-2xl font-bold text-gray-900">Our Mission</h3>
-              <p class="text-blue-700 font-medium">Democratizing Academic Success</p>
+              <p class="text-blue-700 font-medium">Making Excellence Accessible</p>
             </div>
           </div>
           <div class="space-y-4 text-gray-700">
@@ -578,7 +578,7 @@
           <h3 class="text-3xl font-bold text-gray-900 mb-4">What We've Built</h3>
           <p class="text-lg text-gray-600">A comprehensive platform that's 95%+ feature-complete and ready to support your entire academic journey</p>
         </div>
-        
+
         <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
           <div class="text-center p-4 bg-blue-50 rounded-xl border border-blue-200">
             <div class="text-3xl font-bold text-blue-600 mb-2">7,000+</div>
@@ -679,12 +679,12 @@
                 >
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                 </svg>
-              </div>
+            </div>
             </button>
             {#if openFAQ === index + 1}
               <div class="mt-4 text-gray-600">
                 <p>{faq.answer}</p>
-              </div>
+            </div>
             {/if}
           </div>
         {/each}

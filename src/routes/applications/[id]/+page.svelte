@@ -16,6 +16,8 @@
         program_name: string;
         country: string | null;
         application_deadline: string | null;
+        application_link: string | null;
+        notes: string | null;
         status: string;
         requirements_checklist: any;
         created_at: string;
@@ -33,7 +35,9 @@
         university_name: '',
         program_name: '',
         country: '',
-        application_deadline: ''
+        application_deadline: '',
+        application_link: '',
+        notes: ''
     };
 
     onMount(async () => {
@@ -177,7 +181,9 @@
             university_name: application.university_name,
             program_name: application.program_name,
             country: application.country || '',
-            application_deadline: application.application_deadline || ''
+            application_deadline: application.application_deadline || '',
+            application_link: application.application_link || '',
+            notes: application.notes || ''
         };
         showEditModal = true;
     }
@@ -194,6 +200,8 @@
                     program_name: editForm.program_name,
                     country: editForm.country || null,
                     application_deadline: editForm.application_deadline || null,
+                    application_link: editForm.application_link || null,
+                    notes: editForm.notes || null,
                     updated_at: new Date().toISOString() 
                 })
                 .eq('id', applicationId);
@@ -207,6 +215,8 @@
                 application.program_name = editForm.program_name;
                 application.country = editForm.country || null;
                 application.application_deadline = editForm.application_deadline || null;
+                application.application_link = editForm.application_link || null;
+                application.notes = editForm.notes || null;
                 application.updated_at = new Date().toISOString();
                 showEditModal = false;
             }
@@ -316,7 +326,7 @@
                         
                         <select
                             value={application.status}
-                            onchange={(e) => updateStatus(e.target.value)}
+                            onchange={(e) => updateStatus((e.target as HTMLSelectElement).value)}
                             disabled={saving}
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 {getStatusColor(application.status)}"
                         >
@@ -347,6 +357,39 @@
                         </div>
                     {/if}
 
+                    <!-- Application Link -->
+                    {#if application.application_link}
+                        <div class="bg-white rounded-lg shadow-sm border p-6 mb-6">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-2">Application Link</h3>
+                            <a 
+                                href={application.application_link} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                class="inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-4 py-2 rounded-lg hover:bg-blue-100 transition-colors"
+                            >
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                </svg>
+                                Open Application Portal
+                            </a>
+                            <p class="text-xs text-gray-500 mt-2 break-all">
+                                {application.application_link}
+                            </p>
+                        </div>
+                    {/if}
+
+                    <!-- Notes -->
+                    {#if application.notes}
+                        <div class="bg-white rounded-lg shadow-sm border p-6 mb-6">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-2">Notes</h3>
+                            <div class="bg-gray-50 rounded-lg p-4">
+                                <p class="text-gray-700 whitespace-pre-wrap text-sm leading-relaxed">
+                                    {application.notes}
+                                </p>
+                            </div>
+                        </div>
+                    {/if}
+
                     <!-- Progress Overview -->
                     <div class="bg-white rounded-lg shadow-sm border p-6">
                         <h3 class="text-lg font-semibold text-gray-900 mb-4">Progress Overview</h3>
@@ -372,7 +415,7 @@
                         <h3 class="text-lg font-semibold text-gray-900 mb-6">Requirements Checklist</h3>
                         
                         <div class="space-y-4">
-                            {#each Object.entries(application.requirements_checklist || {}) as [key, item]}
+                                                                    {#each Object.entries(application.requirements_checklist || {}) as [key, item]: any}
                                 <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                                     <div class="flex items-center gap-3">
                                         {#if item.required_count}
@@ -381,7 +424,7 @@
                                                 <input
                                                     type="checkbox"
                                                     checked={item.completed}
-                                                    onchange={(e) => updateChecklist(key, { completed: e.target.checked })}
+                                                    onchange={(e) => updateChecklist(key, { completed: (e.target as HTMLInputElement).checked })}
                                                     disabled={saving}
                                                     class="h-4 w-4 text-blue-600 rounded"
                                                 />
@@ -419,7 +462,7 @@
                                             <input
                                                 type="checkbox"
                                                 checked={item.completed}
-                                                onchange={(e) => updateChecklist(key, { completed: e.target.checked })}
+                                                onchange={(e) => updateChecklist(key, { completed: (e.target as HTMLInputElement).checked })}
                                                 disabled={saving}
                                                 class="h-4 w-4 text-blue-600 rounded"
                                             />
@@ -544,14 +587,58 @@
                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                         <option value="">Select Country</option>
-                        <option value="USA">United States</option>
-                        <option value="Canada">Canada</option>
-                        <option value="UK">United Kingdom</option>
-                        <option value="Germany">Germany</option>
-                        <option value="Australia">Australia</option>
-                        <option value="Singapore">Singapore</option>
-                        <option value="Netherlands">Netherlands</option>
-                        <option value="France">France</option>
+                        <!-- Popular Study Destinations -->
+                        <option value="United States">🇺🇸 United States</option>
+                        <option value="United Kingdom">🇬🇧 United Kingdom</option>
+                        <option value="Canada">🇨🇦 Canada</option>
+                        <option value="Australia">🇦🇺 Australia</option>
+                        <option value="Germany">🇩🇪 Germany</option>
+                        <option value="France">🇫🇷 France</option>
+                        <option value="Netherlands">🇳🇱 Netherlands</option>
+                        <option value="Singapore">🇸🇬 Singapore</option>
+                        <option value="Switzerland">🇨🇭 Switzerland</option>
+                        <option value="Sweden">🇸🇪 Sweden</option>
+                        <option value="Norway">🇳🇴 Norway</option>
+                        <option value="Denmark">🇩🇰 Denmark</option>
+                        <option value="Japan">🇯🇵 Japan</option>
+                        <option value="South Korea">🇰🇷 South Korea</option>
+                        <option value="New Zealand">🇳🇿 New Zealand</option>
+                        <option value="Ireland">🇮🇪 Ireland</option>
+                        <option value="Belgium">🇧🇪 Belgium</option>
+                        <option value="Austria">🇦🇹 Austria</option>
+                        <option value="Italy">🇮🇹 Italy</option>
+                        <option value="Spain">🇪🇸 Spain</option>
+                        <option value="Finland">🇫🇮 Finland</option>
+                        <!-- Separator -->
+                        <option disabled>──── Other Countries ────</option>
+                        <!-- Other Countries Alphabetically -->
+                        <option value="Argentina">Argentina</option>
+                        <option value="Brazil">Brazil</option>
+                        <option value="Chile">Chile</option>
+                        <option value="China">China</option>
+                        <option value="Czech Republic">Czech Republic</option>
+                        <option value="Estonia">Estonia</option>
+                        <option value="Hong Kong">Hong Kong</option>
+                        <option value="Hungary">Hungary</option>
+                        <option value="Iceland">Iceland</option>
+                        <option value="India">India</option>
+                        <option value="Israel">Israel</option>
+                        <option value="Latvia">Latvia</option>
+                        <option value="Lithuania">Lithuania</option>
+                        <option value="Luxembourg">Luxembourg</option>
+                        <option value="Malaysia">Malaysia</option>
+                        <option value="Mexico">Mexico</option>
+                        <option value="Poland">Poland</option>
+                        <option value="Portugal">Portugal</option>
+                        <option value="Russia">Russia</option>
+                        <option value="Slovakia">Slovakia</option>
+                        <option value="Slovenia">Slovenia</option>
+                        <option value="South Africa">South Africa</option>
+                        <option value="Taiwan">Taiwan</option>
+                        <option value="Thailand">Thailand</option>
+                        <option value="Turkey">Turkey</option>
+                        <option value="Ukraine">Ukraine</option>
+                        <option value="United Arab Emirates">United Arab Emirates</option>
                     </select>
                 </div>
 
@@ -566,6 +653,34 @@
                         bind:value={editForm.application_deadline}
                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
+                </div>
+
+                <!-- Application Link -->
+                <div>
+                    <label for="edit-application-link" class="block text-sm font-medium text-gray-700 mb-1">
+                        Application Link/URL
+                    </label>
+                    <input
+                        id="edit-application-link"
+                        type="url"
+                        bind:value={editForm.application_link}
+                        placeholder="e.g., https://apply.university.edu/programs/ms-cs"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                </div>
+
+                <!-- Notes -->
+                <div>
+                    <label for="edit-notes" class="block text-sm font-medium text-gray-700 mb-1">
+                        Notes (Optional)
+                    </label>
+                    <textarea
+                        id="edit-notes"
+                        bind:value={editForm.notes}
+                        placeholder="Personal notes, requirements, contacts, deadlines, etc."
+                        rows="3"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                    ></textarea>
                 </div>
 
                 <div class="flex gap-3 pt-4">

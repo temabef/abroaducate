@@ -3,6 +3,7 @@ import type { RequestHandler } from './$types';
 import PlagiarismDetector from '$lib/ai/plagiarism-detector';
 import { OPENAI_API_KEY } from '$env/static/private';
 import { checkUsageLimit } from '$lib/comprehensive-usage-limits';
+import { getAIModelForUser } from '$lib/ai-models';
 
 export const POST: RequestHandler = async ({ request, locals: { supabase, getSession } }) => {
     try {
@@ -52,6 +53,9 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
             }, { status: 403 });
         }
 
+        // Get appropriate AI model based on user's subscription tier
+        const aiModel = await getAIModelForUser(supabase, session.user.id);
+
         let result: any = {};
 
         switch (analysisType) {
@@ -72,11 +76,11 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
                 break;
                 
             case 'grammar':
-                result = await checkGrammar(text);
+                result = await checkGrammar(text, aiModel);
                 break;
                 
             case 'tone':
-                result = await analyzeTone(text);
+                result = await analyzeTone(text, aiModel);
                 break;
                 
             case 'readability':
@@ -87,8 +91,8 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
                 // Run all analyses for premium users
                 const [plagiarism, grammar, tone, readability] = await Promise.all([
                     Promise.resolve(result), // Use the plagiarism result from above
-                    checkGrammar(text),
-                    analyzeTone(text),
+                    checkGrammar(text, aiModel),
+                    analyzeTone(text, aiModel),
                     analyzeReadability(text)
                 ]);
                 
@@ -119,7 +123,7 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
     }
 };
 
-async function checkGrammar(text: string): Promise<any> {
+async function checkGrammar(text: string, aiModel: string = 'gpt-3.5-turbo'): Promise<any> {
     try {
         const prompt = `Please analyze the following text for grammar, spelling, and style issues. Return a JSON response with this exact structure:
         {
@@ -148,10 +152,10 @@ async function checkGrammar(text: string): Promise<any> {
                 'Authorization': `Bearer ${OPENAI_API_KEY}`
             },
             body: JSON.stringify({
-                model: 'gpt-3.5-turbo',
+                model: aiModel,
                 messages: [{ role: 'user', content: prompt }],
                 temperature: 0.1,
-                max_tokens: 1000
+                max_tokens: aiModel.includes('gpt-4') ? 1200 : 1000
             })
         });
 
@@ -176,7 +180,7 @@ async function checkGrammar(text: string): Promise<any> {
     }
 }
 
-async function analyzeTone(text: string): Promise<any> {
+async function analyzeTone(text: string, aiModel: string = 'gpt-3.5-turbo'): Promise<any> {
     try {
         const prompt = `Analyze the tone and style of this Statement of Purpose. Return a JSON response with this exact structure:
         {
@@ -213,10 +217,10 @@ async function analyzeTone(text: string): Promise<any> {
                 'Authorization': `Bearer ${OPENAI_API_KEY}`
             },
             body: JSON.stringify({
-                model: 'gpt-3.5-turbo',
+                model: aiModel,
                 messages: [{ role: 'user', content: prompt }],
                 temperature: 0.1,
-                max_tokens: 800
+                max_tokens: aiModel.includes('gpt-4') ? 1000 : 800
             })
         });
 

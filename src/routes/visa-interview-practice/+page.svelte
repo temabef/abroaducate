@@ -1,7 +1,5 @@
 <script lang="ts">
 	import VisaInterviewPractice from '$lib/components/VisaInterviewPractice.svelte';
-	import AuthGuard from '$lib/components/AuthGuard.svelte';
-
 
 	let { data } = $props();
 	let { session, supabase } = $derived(data);
@@ -40,20 +38,20 @@
 
 				<div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
 					<div>
-						<div class="text-3xl font-bold text-white">5-30</div>
+						<div class="text-3xl font-bold text-white">6-80+</div>
 						<div class="text-slate-300">Questions per Session</div>
 					</div>
 					<div>
-						<div class="text-3xl font-bold text-white">6</div>
-						<div class="text-slate-300">Question Categories</div>
+						<div class="text-3xl font-bold text-white">80+</div>
+						<div class="text-slate-300">Question Database</div>
 					</div>
 					<div>
 						<div class="text-3xl font-bold text-white">AI</div>
 						<div class="text-slate-300">Powered Feedback</div>
 					</div>
 					<div>
-						<div class="text-3xl font-bold text-white">Free</div>
-						<div class="text-slate-300">Practice Sessions</div>
+						<div class="text-3xl font-bold text-white">6</div>
+						<div class="text-slate-300">Question Categories</div>
 					</div>
 				</div>
 			</div>
@@ -61,11 +59,9 @@
 	</section>
 
 	<!-- Main Content Section -->
-	<AuthGuard {session} {supabase} pageName="The Visa Interview Simulator">
-		<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-			<VisaInterviewPractice user={session?.user} />
-		</div>
-	</AuthGuard>
+	<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+		<VisaInterviewPractice user={session?.user} {supabase} />
+	</div>
 
 	<!-- Additional Info Section -->
 	<section class="py-20 bg-white">
@@ -80,9 +76,9 @@
 				<div class="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
 					<p class="text-blue-800 font-medium">🎯 Practice Sessions by Plan:</p>
 					<div class="mt-2 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-						<div class="text-blue-700"><strong>Free:</strong> 5 questions per session</div>
-						<div class="text-blue-700"><strong>Professional:</strong> 20 questions per session</div>
-						<div class="text-blue-700"><strong>Elite:</strong> 30 questions per session</div>
+						<div class="text-blue-700"><strong>Free:</strong> 6 questions per session</div>
+						<div class="text-blue-700"><strong>Professional:</strong> 50 questions per session</div>
+						<div class="text-blue-700"><strong>Elite:</strong> 80+ questions per session</div>
 					</div>
 				</div>
 			</div>
@@ -94,7 +90,7 @@
 					</div>
 					<h3 class="text-xl font-semibold text-gray-900 mb-4">Start Practice Session</h3>
 					<p class="text-gray-600">
-						Begin a practice session with randomly selected F-1 visa interview questions across 6 key categories (5-30 questions based on your plan)
+						Begin a practice session with randomly selected F-1 visa interview questions from our comprehensive 80+ question database across 6 key categories (6-25+ questions based on your plan)
 					</p>
 				</div>
 

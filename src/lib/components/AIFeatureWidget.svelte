@@ -11,6 +11,7 @@
     export let buttonText: string = 'Process with AI';
     export let disabled: boolean = false;
     export let showUsageInfo: boolean = true;
+    export let session: any = null;
     
     const dispatch = createEventDispatcher();
     
@@ -20,6 +21,7 @@
     let usageData: any = null;
     let userPlan: string = 'free';
     let hasCheckedUsage = false;
+    let showLoginPrompt = false;
     
     // Feature configurations
     const config = {
@@ -145,9 +147,20 @@
         return mapping[feature] || 'reviews';
     }
     
+    // Function to trigger authentication modal
+    function showAuthModal(mode = 'login') {
+        dispatch('auth', { mode });
+    }
+    
     async function processWithAI() {
         if (!content.trim()) {
             error = 'Please enter some text to analyze';
+            return;
+        }
+        
+        // Check if user is logged in
+        if (!session) {
+            showLoginPrompt = true;
             return;
         }
         
@@ -247,18 +260,18 @@
 
 <div class="ai-feature-widget bg-white rounded-lg border border-gray-200 shadow-sm">
     <!-- Header -->
-    <div class="p-4 border-b border-gray-200 bg-{config.color}-50 rounded-t-lg">
+    <div class="p-4 border-b border-gray-200 rounded-t-lg {featureType === 'sop_review' ? 'bg-blue-50' : featureType === 'text_enhancement' ? 'bg-purple-50' : featureType === 'word_optimization' ? 'bg-green-50' : featureType === 'grammar_check' ? 'bg-red-50' : featureType === 'plagiarism_check' ? 'bg-orange-50' : featureType === 'tone_analysis' ? 'bg-indigo-50' : 'bg-gray-50'}">
         <div class="flex items-center gap-3">
             <div class="text-2xl">{config.icon}</div>
             <div>
-                <h3 class="font-semibold text-lg text-{config.color}-800">{config.title}</h3>
-                <p class="text-sm text-{config.color}-600">{config.description}</p>
+                <h3 class="font-semibold text-lg {featureType === 'sop_review' ? 'text-blue-800' : featureType === 'text_enhancement' ? 'text-purple-800' : featureType === 'word_optimization' ? 'text-green-800' : featureType === 'grammar_check' ? 'text-red-800' : featureType === 'plagiarism_check' ? 'text-orange-800' : featureType === 'tone_analysis' ? 'text-indigo-800' : 'text-gray-800'}">{config.title}</h3>
+                <p class="text-sm {featureType === 'sop_review' ? 'text-blue-600' : featureType === 'text_enhancement' ? 'text-purple-600' : featureType === 'word_optimization' ? 'text-green-600' : featureType === 'grammar_check' ? 'text-red-600' : featureType === 'plagiarism_check' ? 'text-orange-600' : featureType === 'tone_analysis' ? 'text-indigo-600' : 'text-gray-600'}">{config.description}</p>
             </div>
         </div>
         
         <!-- Usage Info - Only show after user interaction or for Elite users -->
         {#if showUsageInfo && (hasCheckedUsage || userPlan === 'elite') && usageData}
-            <div class="mt-3 text-xs text-{config.color}-600 flex items-center gap-2">
+            <div class="mt-3 text-xs flex items-center gap-2 {featureType === 'sop_review' ? 'text-blue-600' : featureType === 'text_enhancement' ? 'text-purple-600' : featureType === 'word_optimization' ? 'text-green-600' : featureType === 'grammar_check' ? 'text-red-600' : featureType === 'plagiarism_check' ? 'text-orange-600' : featureType === 'tone_analysis' ? 'text-indigo-600' : 'text-gray-600'}">
                 {#if userPlan === 'elite'}
                     <span class="px-2 py-1 bg-purple-100 text-purple-800 rounded-full font-medium">
                         👑 Elite Plan - Unlimited Usage
@@ -266,7 +279,7 @@
                 {:else}
                     <span>Usage: {usageData.currentUsage}/{usageData.limit === 999999 ? '∞' : usageData.limit}</span>
                     {#if usageData.remainingUsage && usageData.remainingUsage < 999999}
-                        <span class="px-2 py-1 bg-{config.color}-100 rounded-full">
+                        <span class="px-2 py-1 rounded-full {featureType === 'sop_review' ? 'bg-blue-100' : featureType === 'text_enhancement' ? 'bg-purple-100' : featureType === 'word_optimization' ? 'bg-green-100' : featureType === 'grammar_check' ? 'bg-red-100' : featureType === 'plagiarism_check' ? 'bg-orange-100' : featureType === 'tone_analysis' ? 'bg-indigo-100' : 'bg-gray-100'}">
                             {usageData.remainingUsage} remaining
                         </span>
                     {/if}
@@ -282,7 +295,7 @@
             {placeholder}
             {disabled}
             rows="4"
-            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-{config.color}-500 focus:border-transparent resize-none"
+            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent resize-none {featureType === 'sop_review' ? 'focus:ring-blue-500' : featureType === 'text_enhancement' ? 'focus:ring-purple-500' : featureType === 'word_optimization' ? 'focus:ring-green-500' : featureType === 'grammar_check' ? 'focus:ring-red-500' : featureType === 'plagiarism_check' ? 'focus:ring-orange-500' : featureType === 'tone_analysis' ? 'focus:ring-indigo-500' : 'focus:ring-gray-500'}"
         ></textarea>
         
         <!-- Options -->
@@ -318,9 +331,9 @@
         <!-- Action Button -->
         <div class="mt-4">
             <button
-                on:click={processWithAI}
+                onclick={processWithAI}
                 disabled={processing || disabled}
-                class="w-full px-4 py-2 bg-{config.color}-600 text-white rounded-lg hover:bg-{config.color}-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                class="w-full px-4 py-2 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2 {featureType === 'sop_review' ? 'bg-blue-600 hover:bg-blue-700' : featureType === 'text_enhancement' ? 'bg-purple-600 hover:bg-purple-700' : featureType === 'word_optimization' ? 'bg-green-600 hover:bg-green-700' : featureType === 'grammar_check' ? 'bg-red-600 hover:bg-red-700' : featureType === 'plagiarism_check' ? 'bg-orange-600 hover:bg-orange-700' : featureType === 'tone_analysis' ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-gray-600 hover:bg-gray-700'}"
             >
                 {#if processing}
                     <span class="animate-spin">🔄</span>
@@ -332,6 +345,39 @@
             
             {#if error}
                 <p class="mt-2 text-sm text-red-600">{error}</p>
+            {/if}
+            
+            <!-- Login Prompt -->
+            {#if showLoginPrompt}
+                <div class="mt-3 p-4 bg-blue-50 border border-blue-200 rounded-lg animate-slide-down">
+                    <div class="flex items-start gap-3">
+                        <div class="text-2xl">🔐</div>
+                        <div class="flex-1">
+                            <h4 class="font-semibold text-blue-900 mb-2">Login Required</h4>
+                            <p class="text-sm text-blue-800 mb-3">Sign in to use this AI feature and access your personalized dashboard.</p>
+                            <div class="flex gap-2">
+                                <button 
+                                    onclick={() => showAuthModal('login')}
+                                    class="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
+                                >
+                                    Login
+                                </button>
+                                <button 
+                                    onclick={() => showAuthModal('signup')}
+                                    class="px-4 py-2 bg-white text-blue-600 border border-blue-600 text-sm rounded-lg hover:bg-blue-50 transition-colors"
+                                >
+                                    Sign Up
+                                </button>
+                                <button 
+                                    onclick={() => showLoginPrompt = false}
+                                    class="px-4 py-2 bg-gray-100 text-gray-600 text-sm rounded-lg hover:bg-gray-200 transition-colors"
+                                >
+                                    Close
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             {/if}
         </div>
         
@@ -348,7 +394,7 @@
                         <div class="space-y-3 p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
                             <div class="flex justify-between items-center text-base">
                                 <span class="font-semibold text-gray-800">Originality Score:</span>
-                                <span class="font-bold text-2xl text-{parsedPlagiarismResult.originality_score > 90 ? 'green' : 'orange'}-600">
+                                <span class="font-bold text-2xl {parsedPlagiarismResult.originality_score > 90 ? 'text-green-600' : 'text-orange-600'}">
                                     {parsedPlagiarismResult.originality_score}%
                             </span>
                             </div>
@@ -505,8 +551,23 @@
         animation: spin 1s linear infinite;
     }
     
+    .animate-slide-down {
+        animation: slideDown 0.3s ease-out;
+    }
+    
     @keyframes spin {
         from { transform: rotate(0deg); }
         to { transform: rotate(360deg); }
+    }
+    
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 </style> 

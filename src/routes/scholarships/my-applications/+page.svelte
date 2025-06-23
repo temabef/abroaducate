@@ -267,7 +267,7 @@
 </script>
 
 <svelte:head>
-  <title>My Scholarship Applications - Abroaducate</title>
+  <title>Saved Scholarships - Abroaducate</title>
   <meta name="description" content="Track your scholarship applications and deadlines in one place." />
 </svelte:head>
 
@@ -276,7 +276,7 @@
     <!-- Header -->
     <div class="mb-8">
       <h1 class="text-4xl font-bold text-gray-900 mb-4">
-        My Scholarship Applications
+        Saved Scholarships
       </h1>
       <p class="text-xl text-gray-600">
         Track all your scholarship applications, deadlines, and progress in one place.

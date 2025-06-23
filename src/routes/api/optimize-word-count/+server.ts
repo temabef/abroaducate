@@ -2,6 +2,7 @@ import { json } from '@sveltejs/kit';
 import { OPENAI_API_KEY } from '$env/static/private';
 import type { RequestHandler } from './$types';
 import { checkUsageLimit, incrementUsage } from '$lib/usage-limits';
+import { getAIModelForUser } from '$lib/ai-models';
 
 // University-specific word count requirements database
 const UNIVERSITY_REQUIREMENTS = new Map([
@@ -103,7 +104,9 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
         
         // If user requests actual optimization, generate it
         if (optimization_type === 'optimize') {
-            optimizedContent = await generateOptimizedContent(content, optimizationNeeded, requirements.optimal, suggestions);
+            // Get appropriate AI model based on user's subscription tier
+            const aiModel = await getAIModelForUser(supabase, session.user.id);
+            optimizedContent = await generateOptimizedContent(content, optimizationNeeded, requirements.optimal, suggestions, aiModel);
         }
 
         const result: WordCountOptimization = {
@@ -376,7 +379,7 @@ function generateOptimizationSuggestions(content: string, currentWordCount: numb
     return suggestions;
 }
 
-async function generateOptimizedContent(content: string, optimizationNeeded: any, targetWordCount: number, suggestions: any[]): Promise<string> {
+async function generateOptimizedContent(content: string, optimizationNeeded: any, targetWordCount: number, suggestions: any[], aiModel: string = 'gpt-3.5-turbo'): Promise<string> {
     const prompt = `You are an expert SOP editor. Please ${optimizationNeeded.type === 'expand' ? 'expand' : 'condense'} the following Statement of Purpose to approximately ${targetWordCount} words.
 
 Current word count: ${content.split(/\s+/).length} words
@@ -397,10 +400,10 @@ Please provide the optimized version:`;
             'Authorization': `Bearer ${OPENAI_API_KEY}`
         },
         body: JSON.stringify({
-            model: "gpt-3.5-turbo",
+            model: aiModel,
             messages: [{ role: "user", content: prompt }],
             temperature: 0.3,
-            max_tokens: 2000,
+            max_tokens: aiModel.includes('gpt-4') ? 2500 : 2000,
         })
     });
 

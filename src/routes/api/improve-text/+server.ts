@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { OPENAI_API_KEY } from '$env/static/private';
+import { getAIModelForUser } from '$lib/ai-models';
 
 const openAIEndpoint = 'https://api.openai.com/v1/chat/completions';
 
@@ -22,7 +23,7 @@ async function getCompletion(prompt: string, model = 'gpt-3.5-turbo') {
 	return data.choices[0].message.content;
 }
 
-export const POST: RequestHandler = async ({ request, locals: { getSession } }) => {
+export const POST: RequestHandler = async ({ request, locals: { getSession, supabase } }) => {
 	const session = await getSession();
 	if (!session) {
 		return new Response('Unauthorized', { status: 401 });
@@ -34,6 +35,9 @@ export const POST: RequestHandler = async ({ request, locals: { getSession } }) 
 		if (!selectedText || !improvementType) {
 			return json({ error: 'Missing required fields' }, { status: 400 });
 		}
+
+		// Get appropriate AI model based on user's subscription tier
+		const aiModel = await getAIModelForUser(supabase, session.user.id);
 
 		// Create improvement prompt based on the type
 		const improvementPrompts = {
@@ -63,7 +67,7 @@ REQUIREMENTS:
 
 Improved text:`;
 
-		const improvedText = await getCompletion(prompt);
+		const improvedText = await getCompletion(prompt, aiModel);
 
 		return json({ 
 			success: true, 

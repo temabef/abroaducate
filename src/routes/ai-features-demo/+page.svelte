@@ -1,5 +1,10 @@
 <script lang="ts">
     import AIFeatureWidget from '$lib/components/AIFeatureWidget.svelte';
+    import AuthenticationFlow from '$lib/components/AuthenticationFlow.svelte';
+    import { page } from '$app/stores';
+    
+    let { data } = $props();
+    let { supabase, session } = $derived(data);
     
     let sampleSOPText = `As a computer science undergraduate with a deep passion for artificial intelligence and machine learning, I am writing to express my strong interest in pursuing a Master's degree in Computer Science at Stanford University. My academic journey and research experiences have prepared me to contribute meaningfully to Stanford's renowned AI research community.
 
@@ -12,6 +17,14 @@ I am writing to express my strong interest in the Software Engineer position at 
     // Add interactive state management
     let selectedCategory = $state('all');
     let showUsageComparison = $state(false);
+    let showAuthModal = $state(false);
+    let authMode = $state<'login' | 'signup'>('login');
+    
+    // Handle auth events from AIFeatureWidget
+    function handleAuthEvent(event) {
+        authMode = event.detail.mode || 'login';
+        showAuthModal = true;
+    }
 </script>
 
 <svelte:head>
@@ -19,14 +32,12 @@ I am writing to express my strong interest in the Software Engineer position at 
     <meta name="description" content="Experience our unified AI system with 6+ powerful tools for academic writing, document analysis, and optimization." />
 </svelte:head>
 
-<div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+<div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 pt-20">
     <!-- Enhanced Header with Better CTAs -->
     <div class="bg-white border-b border-gray-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div class="text-center">
-                <div class="inline-flex items-center px-4 py-2 bg-green-100 text-green-800 rounded-full text-sm font-medium mb-4">
-                    🎉 Unified AI System - Migration Complete
-                </div>
+
             <h1 class="text-4xl font-bold text-gray-900 mb-4">🤖 AI Features Demo</h1>
                 <p class="text-xl text-gray-600 max-w-4xl mx-auto mb-6">
                     Experience our unified AI system with consistent usage tracking, automatic upgrade integration, 
@@ -38,9 +49,9 @@ I am writing to express my strong interest in the Software Engineer position at 
                     <a href="/sop" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium">
                         📝 Create Documents
                     </a>
-                    <a href="/text-enhancement" class="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition-colors font-medium">
+                    <button onclick={() => selectedCategory = 'enhancement'} class="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition-colors font-medium">
                         ✨ Enhance Writing
-                    </a>
+                    </button>
                     <a href="/sop-review" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium">
                         🔍 Review Documents
                     </a>
@@ -156,6 +167,7 @@ I am writing to express my strong interest in the Software Engineer position at 
                         <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">Analysis</span>
                     </div>
                     <p class="text-gray-600 text-sm mb-4">Comprehensive document analysis with detailed feedback and scoring.</p>
+                
                 <AIFeatureWidget 
                     featureType="sop_review"
                     content={sampleSOPText}
@@ -164,6 +176,8 @@ I am writing to express my strong interest in the Software Engineer position at 
                         programName: "MS Computer Science"
                     }}
                     buttonText="Analyze SOP"
+                    {session}
+                    on:auth={handleAuthEvent}
                 />
             </div>
             {/if}
@@ -176,11 +190,14 @@ I am writing to express my strong interest in the Software Engineer position at 
                         <span class="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">Enhancement</span>
                     </div>
                     <p class="text-gray-600 text-sm mb-4">Improve writing clarity, flow, and professional impact.</p>
+                
                 <AIFeatureWidget 
                     featureType="text_enhancement"
                     content={sampleCoverLetterText}
                     options={{ enhancementType: "professional" }}
                     buttonText="Enhance Text"
+                    {session}
+                    on:auth={handleAuthEvent}
                 />
             </div>
             {/if}
@@ -193,11 +210,14 @@ I am writing to express my strong interest in the Software Engineer position at 
                         <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">Optimization</span>
                     </div>
                     <p class="text-gray-600 text-sm mb-4">Optimize text length while maintaining meaning and impact.</p>
+                
                 <AIFeatureWidget 
                     featureType="word_optimization"
                     content="This is a sample paragraph that might need optimization for word count."
                     options={{ targetWordCount: 500 }}
                     buttonText="Optimize Length"
+                    {session}
+                    on:auth={handleAuthEvent}
                 />
             </div>
             {/if}
@@ -210,10 +230,13 @@ I am writing to express my strong interest in the Software Engineer position at 
                         <span class="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium">Enhancement</span>
                     </div>
                     <p class="text-gray-600 text-sm mb-4">Fix grammar errors and improve writing style.</p>
+                
                 <AIFeatureWidget 
                     featureType="grammar_check"
                     content="This sentance has some grammer mistakes that need fixing."
                     buttonText="Check Grammar"
+                    {session}
+                    on:auth={handleAuthEvent}
                 />
             </div>
             {/if}
@@ -226,10 +249,13 @@ I am writing to express my strong interest in the Software Engineer position at 
                         <span class="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-sm font-medium">Analysis</span>
                     </div>
                     <p class="text-gray-600 text-sm mb-4">Analyze originality and detect potential issues.</p>
+                
                 <AIFeatureWidget 
                     featureType="plagiarism_check"
                     content="Academic integrity is crucial in higher education. Students must ensure their work is original."
                     buttonText="Check Originality"
+                    {session}
+                    on:auth={handleAuthEvent}
                 />
             </div>
             {/if}
@@ -242,10 +268,13 @@ I am writing to express my strong interest in the Software Engineer position at 
                         <span class="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm font-medium">Analysis</span>
                     </div>
                     <p class="text-gray-600 text-sm mb-4">Analyze writing tone and style for better impact.</p>
+                
                 <AIFeatureWidget 
                     featureType="tone_analysis"
                     content="I am extremely passionate about this opportunity and would be thrilled to contribute!"
                     buttonText="Analyze Tone"
+                    {session}
+                    on:auth={handleAuthEvent}
                 />
             </div>
             {/if}
@@ -300,3 +329,11 @@ I am writing to express my strong interest in the Software Engineer position at 
         </div>
     </div>
 </div> 
+
+<!-- Authentication Modal -->
+<AuthenticationFlow 
+    bind:show={showAuthModal} 
+    {supabase} 
+    mode={authMode} 
+    returnUrl={$page.url.pathname}
+/> 

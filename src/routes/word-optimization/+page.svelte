@@ -287,7 +287,7 @@
         <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6">
             <h3 class="text-xl font-bold text-gray-900 mb-4">🔗 Related AI Tools</h3>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <a href="/text-enhancement" 
+                <a href="/ai-features-demo" 
                    class="block p-4 bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-sm transition-all">
                     <div class="font-medium text-gray-900">✨ Text Enhancement</div>
                     <div class="text-sm text-gray-600">Improve clarity and professional tone</div>

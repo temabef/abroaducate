@@ -130,7 +130,7 @@ class PlagiarismDetector {
         }
     }
     
-    async checkGrammar(text: string): Promise<GrammarResult> {
+    async checkGrammar(text: string, aiModel: string = 'gpt-3.5-turbo'): Promise<GrammarResult> {
         try {
             // Use OpenAI for grammar checking (already paying for this)
             const prompt = `Please analyze the following text for grammar, spelling, and style issues. Return a JSON response with this exact structure:
@@ -154,10 +154,10 @@ class PlagiarismDetector {
             Text to analyze: "${text}"`;
             
             const response = await this.openai.chat.completions.create({
-                model: 'gpt-3.5-turbo',
+                model: aiModel,
                 messages: [{ role: 'user', content: prompt }],
                 temperature: 0.1,
-                max_tokens: 1000
+                max_tokens: aiModel.includes('gpt-4') ? 1200 : 1000
             });
             
             const result = JSON.parse(response.choices[0].message.content || '{}');

@@ -38,7 +38,7 @@
       </div>
     </button>
     
-    <button onclick={() => goto('/text-enhancement')} class="flex flex-col items-center p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-all duration-200 hover:scale-105 cursor-pointer hover:border-gray-300 hover:border-orange-300 hover:bg-orange-50">
+        <button onclick={() => goto('/ai-features-demo')} class="flex flex-col items-center p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-all duration-200 hover:scale-105 cursor-pointer hover:border-gray-300 hover:border-orange-300 hover:bg-orange-50">
       <span class="text-3xl mb-3">🤖</span>
       <div class="text-center">
         <span class="text-sm font-semibold text-gray-800 block mb-1">AI Tools</span>

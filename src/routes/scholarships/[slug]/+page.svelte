@@ -512,7 +512,12 @@
                   </button>
                 </div>
                 
-                <div class="mt-6 p-4 bg-gray-50 border border-gray-100 rounded-lg text-center">
+                <div class="mt-6 p-4 bg-blue-50 border border-blue-100 rounded-lg">
+                  <p class="text-sm text-gray-700 mb-3 font-medium">💾 <strong>Quick Save:</strong> Click 'Save' to add this scholarship to your <a href="/scholarships/my-applications" class="text-blue-600 hover:text-blue-700 underline">Saved Scholarships</a> list for easy access later.</p>
+                  <p class="text-sm text-gray-600 mb-2">📊 <strong>Full Tracking:</strong> Use our <a href="/applications" class="text-blue-600 hover:text-blue-700 underline font-medium">Application Tracker →</a> to manually track ALL your applications (including from other platforms) with deadlines, documents, and status updates.</p>
+                </div>
+                
+                <div class="mt-4 p-4 bg-gray-50 border border-gray-100 rounded-lg text-center">
                   <p class="text-sm text-gray-600 mb-2">Looking for other opportunities?</p>
                   <a href="/scholarships" class="text-yellow-600 hover:text-yellow-700 font-medium">Explore More Scholarships →</a>
                 </div>

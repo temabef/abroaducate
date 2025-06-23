@@ -14,6 +14,8 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
             program_name, 
             country,
             application_deadline,
+            application_link,
+            notes,
             linked_sop_ids = []
         } = await request.json();
 
@@ -103,6 +105,8 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
             program_name,
             country,
             application_deadline: application_deadline || null,
+            application_link: application_link || null,
+            notes: notes || null,
             requirements_checklist: defaultRequirements,
             status: 'planning',
             created_at: new Date().toISOString(),

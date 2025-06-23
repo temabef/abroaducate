@@ -1738,7 +1738,7 @@
   <meta name="description" content="Free GPA converter for African universities. Convert grades from 50+ African countries to US 4.0 GPA scale. Trusted by 3000+ students worldwide.">
 </svelte:head>
 
-<div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+<div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 pt-20">
   <!-- Header -->
   <div class="bg-white shadow-lg border-b mt-16">
     <div class="max-w-7xl mx-auto px-4 py-6">

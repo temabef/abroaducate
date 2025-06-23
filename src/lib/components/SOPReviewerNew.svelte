@@ -14,6 +14,10 @@
     let uploadedFile: File | null = null;
     let analysisResult: any = null;
     
+    // Text resize functionality
+    let textareaExpanded = false;
+    let textSize: 'small' | 'medium' | 'large' = 'medium';
+    
     // Handle file upload
     async function handleFileUpload(event: Event) {
         const target = event.target as HTMLInputElement;
@@ -287,6 +291,7 @@ Session: ${reviewMode} review mode
                             </ul>
                         </div>
                         
+                        <div class="relative">
                         <textarea
                             bind:value={sopText}
                             placeholder="Paste your Statement of Purpose here...
@@ -299,9 +304,50 @@ This is paragraph 1 with my introduction and motivation for applying...
 This is paragraph 2 discussing my academic background and relevant coursework...
 
 This is paragraph 3 covering my professional experience and achievements..."
-                            class="w-full h-80 p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-y"
-                            disabled={inputMethod === 'existing' && existingSOP}
+                                class="w-full {textareaExpanded ? 'h-96' : 'h-80'} p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-y transition-all duration-300 {
+                                    textSize === 'small' ? 'text-sm' : 
+                                    textSize === 'large' ? 'text-lg' : 'text-base'
+                                }"
+                                disabled={inputMethod === 'existing' && !!existingSOP}
                         ></textarea>
+                            
+                            <!-- Text Control Buttons -->
+                            <div class="absolute top-2 right-2 flex items-center gap-2 bg-white/90 backdrop-blur-sm rounded-lg p-1 border border-gray-200">
+                                <!-- Text Size Controls -->
+                                <div class="flex items-center gap-1">
+                                    <button
+                                        onclick={() => textSize = 'small'}
+                                        class="px-2 py-1 text-xs rounded {textSize === 'small' ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:bg-gray-100'} transition-colors"
+                                        title="Small text"
+                                    >
+                                        A
+                                    </button>
+                                    <button
+                                        onclick={() => textSize = 'medium'}
+                                        class="px-2 py-1 text-sm rounded {textSize === 'medium' ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:bg-gray-100'} transition-colors"
+                                        title="Medium text"
+                                    >
+                                        A
+                                    </button>
+                                    <button
+                                        onclick={() => textSize = 'large'}
+                                        class="px-2 py-1 text-base rounded {textSize === 'large' ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:bg-gray-100'} transition-colors"
+                                        title="Large text"
+                                    >
+                                        A
+                                    </button>
+                                </div>
+                                
+                                <!-- Expand/Collapse Button -->
+                                <button
+                                    onclick={() => textareaExpanded = !textareaExpanded}
+                                    class="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 rounded transition-colors"
+                                    title={textareaExpanded ? 'Collapse textarea' : 'Expand textarea'}
+                                >
+                                    {textareaExpanded ? '🔽' : '🔼'}
+                                </button>
+                            </div>
+                        </div>
                         
                         <!-- Real-time feedback -->
                         <div class="mt-2 flex items-center justify-between text-xs text-gray-500">

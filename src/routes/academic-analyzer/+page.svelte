@@ -291,14 +291,10 @@
   <meta name="keywords" content="academic analysis, GPA analyzer, study abroad, academic strengths, university admissions, academic profile" />
 </svelte:head>
 
-<div class="max-w-7xl mx-auto p-6">
+<div class="max-w-7xl mx-auto p-6 pt-20">
   <!-- Header -->
   <div class="text-center mb-8">
-    <div class="mb-4">
-      <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-        Free Academic Analysis Tool
-      </span>
-    </div>
+
     <h1 class="text-4xl font-bold text-gray-900 mb-4">
       🎓 Academic Profile Analyzer
     </h1>

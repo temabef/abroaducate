@@ -132,7 +132,7 @@
     <title>Calendar & Timeline - SOP Generator</title>
 </svelte:head>
 
-<div class="min-h-screen bg-gray-50">
+<div class="min-h-screen bg-gray-50 pt-20">
     <!-- Header -->
     <div class="bg-white shadow-sm border-b">
         <div class="max-w-7xl mx-auto px-4 py-6">
@@ -149,6 +149,36 @@
                     </button>
                     <h1 class="text-3xl font-bold text-gray-900">Calendar & Timeline</h1>
                     <p class="text-gray-600">Manage deadlines, milestones, and reminders</p>
+                    
+                    <!-- Helpful Usage Explanation -->
+                    <div class="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <div class="flex items-start gap-3">
+                            <div class="p-2 bg-blue-100 rounded-lg">
+                                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-blue-900 mb-2">How to Use the Calendar</h3>
+                                <div class="text-sm text-blue-800 space-y-2">
+                                    <p><strong>1. Create Applications:</strong> Go to Dashboard → Add Application to track university deadlines</p>
+                                    <p><strong>2. View Timeline:</strong> See all your application deadlines in chronological order</p>
+                                    <p><strong>3. Calendar View:</strong> Visual calendar showing important dates with color coding</p>
+                                    <p><strong>4. Reminders:</strong> System automatically creates preparation reminders 30 days before deadlines</p>
+                                    <p><strong>5. Track Progress:</strong> Monitor upcoming, overdue, and completed applications</p>
+                                </div>
+                                {#if applications.length === 0}
+                                    <div class="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                        <p class="text-sm text-yellow-800">
+                                            <strong>Get Started:</strong> Add your first application in the 
+                                            <a href="/dashboard" class="underline hover:text-yellow-900">Dashboard</a> 
+                                            to see deadlines and reminders here!
+                                        </p>
+                                    </div>
+                                {/if}
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 
                 <!-- View Mode Toggle -->

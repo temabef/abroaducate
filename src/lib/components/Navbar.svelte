@@ -158,6 +158,7 @@
             </a>
             <div class="border-t border-gray-100 mt-2 pt-2">
               <div class="px-4 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wide">AI Enhancement</div>
+
               <a href="/ai-features-demo" class="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition duration-200">
                 <span class="text-lg mr-3">🤖</span>
                 <div>
@@ -209,7 +210,7 @@
             <a href="/scholarships/my-applications" class="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition duration-200">
               <span class="text-lg mr-3">📊</span>
               <div>
-                <div class="font-medium">My Scholarship Applications</div>
+                                  <div class="font-medium">Saved Scholarships</div>
                 <div class="text-sm text-gray-500">Track funding applications</div>
               </div>
             </a>
@@ -252,11 +253,12 @@
                 <div class="text-sm text-gray-500">Track status & deadlines</div>
               </div>
             </a>
-            <a href="/calendar" class="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition duration-200">
-              <span class="text-lg mr-3">📅</span>
+
+            <a href="/sop-review" class="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition duration-200">
+              <span class="text-lg mr-3">🔍</span>
               <div>
-                <div class="font-medium">Calendar & Reminders</div>
-                <div class="text-sm text-gray-500">Google Calendar integration</div>
+                <div class="font-medium">Document Review</div>
+                <div class="text-sm text-gray-500">Final application reviews</div>
               </div>
             </a>
             <a href="/cold-email-generator" class="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition duration-200">
@@ -298,20 +300,7 @@
                 <div class="text-sm text-gray-500">AI-powered F-1 visa prep</div>
               </div>
             </a>
-            <a href="/sop-review" class="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition duration-200">
-              <span class="text-lg mr-3">🔍</span>
-              <div>
-                <div class="font-medium">Document Review</div>
-                <div class="text-sm text-gray-500">Final application reviews</div>
-              </div>
-            </a>
-            <a href="/text-enhancement" class="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition duration-200">
-              <span class="text-lg mr-3">✨</span>
-              <div>
-                <div class="font-medium">Text Enhancement</div>
-                <div class="text-sm text-gray-500">Grammar & style optimization</div>
-              </div>
-            </a>
+
           </div>
         {/if}
       </div>
@@ -391,6 +380,7 @@
             <a href="/cover-letters" class="block py-2 text-gray-300 hover:text-white transition duration-300">Cover Letters</a>
             <a href="/personal-statements" class="block py-2 text-gray-300 hover:text-white transition duration-300">Personal Statements</a>
             <a href="/academic-cv" class="block py-2 text-gray-300 hover:text-white transition duration-300">Academic CV</a>
+            <a href="/sop-review" class="block py-2 text-gray-300 hover:text-white transition duration-300">Document Review</a>
             <a href="/ai-features-demo" class="block py-2 text-blue-300 hover:text-white transition duration-300">AI Tools Hub</a>
           </div>
         </details>
@@ -421,7 +411,8 @@
           <div class="pl-4 space-y-1">
             <a href="/dashboard" class="block py-2 text-gray-300 hover:text-white transition duration-300">Dashboard</a>
             <a href="/applications" class="block py-2 text-gray-300 hover:text-white transition duration-300">Application Tracker</a>
-            <a href="/calendar" class="block py-2 text-gray-300 hover:text-white transition duration-300">Calendar</a>
+
+            <a href="/sop-review" class="block py-2 text-gray-300 hover:text-white transition duration-300">Document Review</a>
             <a href="/cold-email-generator" class="block py-2 text-gray-300 hover:text-white transition duration-300">Cold Email Generator</a>
           </div>
         </details>
@@ -436,8 +427,7 @@
           </summary>
           <div class="pl-4 space-y-1">
             <a href="/visa-interview-practice" class="block py-2 text-gray-300 hover:text-white transition duration-300">Visa Interview Practice</a>
-            <a href="/sop-review" class="block py-2 text-gray-300 hover:text-white transition duration-300">Document Review</a>
-            <a href="/text-enhancement" class="block py-2 text-gray-300 hover:text-white transition duration-300">Text Enhancement</a>
+
           </div>
         </details>
 
