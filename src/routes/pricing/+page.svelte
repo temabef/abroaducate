@@ -1,10 +1,14 @@
 <script lang="ts">
   import { page } from '$app/stores';
+  import AuthenticationFlow from '$lib/components/AuthenticationFlow.svelte';
   
   let { data } = $props();
   let { session, supabase } = $derived(data);
 
   let billingCycle = $state<'monthly' | 'annual'>('monthly');
+  let showAuthModal = $state(false);
+  let authMode = $state<'login' | 'signup'>('signup');
+  let loading = $state(false);
 
   let monthlyBtnEl: HTMLButtonElement;
   let annualBtnEl: HTMLButtonElement;
@@ -36,18 +40,61 @@
   };
 
   async function handleUpgrade(plan: string) {
-    if (!session) {
-      // Redirect to login or show login modal
-      const formSection = document.getElementById('form-section');
-      if (formSection) {
-        formSection.scrollIntoView({ behavior: 'smooth' });
+    if (plan === 'free') {
+      // Handle free plan - show signup modal
+      if (!session) {
+        authMode = 'signup';
+        showAuthModal = true;
+      } else {
+        // User is already logged in, redirect to dashboard
+        window.location.href = '/dashboard';
       }
       return;
     }
     
-    // TODO: Pass the full price ID to your Stripe checkout
-    const planId = `${plan}-${billingCycle}`;
-    console.log(`Upgrading to ${planId}`);
+    if (!session) {
+      // For paid plans, user needs to login first
+      authMode = 'login';
+      showAuthModal = true;
+      return;
+    }
+    
+    // Handle paid plans - redirect to Stripe checkout
+    try {
+      loading = true;
+      
+      const response = await fetch('/api/stripe/create-checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          planType: plan,
+          billingCycle: billingCycle,
+          metadata: {
+            source: 'pricing_page',
+            cycle: billingCycle
+          }
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.error) {
+        alert(`Error: ${data.error}`);
+        return;
+      }
+
+      if (data.checkoutUrl) {
+        // Redirect to Stripe checkout
+        window.location.href = data.checkoutUrl;
+      }
+    } catch (error) {
+      console.error('Error creating checkout session:', error);
+      alert('Failed to create checkout session. Please try again or contact support.');
+    } finally {
+      loading = false;
+    }
   }
 </script>
 
@@ -381,9 +428,10 @@
 
         <button 
           onclick={() => handleUpgrade('professional')}
-          class="w-full py-3 px-4 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition duration-300"
+          disabled={loading}
+          class="w-full py-3 px-4 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Upgrade to Professional
+          {loading ? 'Creating checkout...' : 'Upgrade to Professional'}
         </button>
       </div>
 
@@ -497,9 +545,10 @@
 
         <button 
           onclick={() => handleUpgrade('elite')}
-          class="w-full py-3 px-4 bg-gray-600 text-white font-medium rounded-md hover:bg-gray-700 transition duration-300"
+          disabled={loading}
+          class="w-full py-3 px-4 bg-gray-600 text-white font-medium rounded-md hover:bg-gray-700 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Upgrade to Elite
+          {loading ? 'Creating checkout...' : 'Upgrade to Elite'}
         </button>
       </div>
     </div>
@@ -753,9 +802,20 @@
     <div class="mt-20 text-center">
       <h2 class="text-3xl font-bold text-gray-900 mb-4">Ready to Start Your Academic Journey?</h2>
       <p class="text-xl text-gray-600 mb-8">Join thousands of students who've successfully used Abroaducate for their applications.</p>
-      <a href="/" class="inline-block bg-blue-600 text-white px-8 py-4 rounded-lg font-medium text-lg hover:bg-blue-700 transition duration-300">
+      <button 
+        onclick={() => handleUpgrade('free')}
+        class="inline-block bg-blue-600 text-white px-8 py-4 rounded-lg font-medium text-lg hover:bg-blue-700 transition duration-300"
+      >
         Get Started Now
-      </a>
+      </button>
     </div>
   </div>
-</div> 
+</div>
+
+<!-- Authentication Modal -->
+<AuthenticationFlow 
+  bind:show={showAuthModal} 
+  {supabase} 
+  mode={authMode} 
+  returnUrl="/dashboard"
+/> 

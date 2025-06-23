@@ -9,8 +9,14 @@ export const stripePromise = loadStripe(PUBLIC_STRIPE_PUBLISHABLE_KEY);
 export const SUBSCRIPTION_PLANS = {
     professional: {
         name: 'Academic Professional',
-        price: 12.00,  // Updated to new pricing
-        priceId: 'price_REPLACE_WITH_PRODUCTION_PROFESSIONAL_PRICE_ID',
+        prices: {
+            monthly: 12.00,
+            annual: 10.00
+        },
+        priceIds: {
+            monthly: 'price_1Rcq0yAg2hnCcpKhPgYdxKyP',
+            annual: 'price_1Rcq2dAg2hnCcpKhEjE7oiKx'
+        },
         
         // Document Generation
         documents: {
@@ -77,8 +83,14 @@ export const SUBSCRIPTION_PLANS = {
     
     elite: {
         name: 'Academic Elite',
-        price: 29.00,  // Updated to new pricing
-        priceId: 'price_REPLACE_WITH_PRODUCTION_ELITE_PRICE_ID',
+        prices: {
+            monthly: 29.00,
+            annual: 24.00
+        },
+        priceIds: {
+            monthly: 'price_1Rcq4oAg2hnCcpKhRvZKry06',
+            annual: 'price_1Rcq6HAg2hnCcpKhx4l5gTZF'
+        },
         
         // Document Generation
         documents: {

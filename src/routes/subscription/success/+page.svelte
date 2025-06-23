@@ -23,11 +23,14 @@
     let subscription: SubscriptionData | null = null;
     let planDetails: any = null;
     let planFromUrl: PlanType = 'professional';
+    let billingCycle: 'monthly' | 'annual' = 'monthly';
     
     onMount(async () => {
         const urlParams = new URLSearchParams(window.location.search);
         sessionId = urlParams.get('session_id') || '';
         planFromUrl = (urlParams.get('plan') as PlanType) || 'professional'; // Get plan from URL as backup
+        
+        console.log('🔍 Success page - Plan from URL:', planFromUrl);
         
         if (!sessionId) {
             error = 'Invalid session';
@@ -40,26 +43,44 @@
             return;
         }
         
-        // Wait a bit for webhook to process, then fetch subscription
+        // Immediately set fallback data based on URL parameter
+        subscription = { 
+            plan_type: planFromUrl, 
+            user_id: session?.user?.id || '', 
+            status: 'active' 
+        };
+        if (planFromUrl in SUBSCRIPTION_PLANS) {
+            planDetails = SUBSCRIPTION_PLANS[planFromUrl];
+            console.log('✅ Plan details set:', planDetails.name);
+        }
+        
+        // Try to detect billing cycle from Stripe session
+        if (sessionId) {
+            detectBillingCycle();
+        }
+        
+        // Wait a bit for webhook to process, then try to fetch subscription from DB
         setTimeout(async () => {
             await fetchSubscription();
-            
-            // If subscription fetch failed, use URL parameter as fallback
-            if (!subscription?.plan_type && planFromUrl) {
-                subscription = { 
-                    plan_type: planFromUrl, 
-                    user_id: session?.user?.id || '', 
-                    status: 'active' 
-                };
-                if (planFromUrl in SUBSCRIPTION_PLANS) {
-                    planDetails = SUBSCRIPTION_PLANS[planFromUrl];
-                }
-            }
-            
             loading = false;
         }, 3000);
     });
     
+    async function detectBillingCycle() {
+        // For now, let's add a simple URL parameter for billing cycle
+        // In production, this would come from Stripe session metadata
+        const urlParams = new URLSearchParams(window.location.search);
+        const cycleParam = urlParams.get('billing_cycle');
+        
+        if (cycleParam === 'annual') {
+            billingCycle = 'annual';
+            console.log('💳 Detected annual billing from URL');
+        } else {
+            billingCycle = 'monthly';
+            console.log('💳 Using monthly billing as default');
+        }
+    }
+
     async function fetchSubscription() {
         try {
             if (!session?.user?.id) return;
@@ -73,17 +94,28 @@
                 
             if (subError) {
                 console.error('Error fetching subscription:', subError);
+                console.log('🔄 Using URL plan as fallback:', planFromUrl);
                 return;
             }
             
-            subscription = subData as SubscriptionData;
+            console.log('📊 DB subscription found:', subData);
             
-            // Get plan details
-            if (subscription?.plan_type && subscription.plan_type in SUBSCRIPTION_PLANS) {
-                planDetails = SUBSCRIPTION_PLANS[subscription.plan_type];
+            // Only update if we got a valid PAID subscription that matches our expectation
+            // Don't override URL plan with "free" plan when user just completed a paid subscription
+            if (subData && subData.plan_type && subData.plan_type !== 'free') {
+                subscription = subData as SubscriptionData;
+                
+                // Get plan details from DB result
+                if (subscription.plan_type in SUBSCRIPTION_PLANS) {
+                    planDetails = SUBSCRIPTION_PLANS[subscription.plan_type];
+                    console.log('✅ Updated plan details from DB:', planDetails.name);
+                }
+            } else if (subData && subData.plan_type === 'free') {
+                console.log('🔄 DB still shows free plan, keeping URL plan until webhook updates DB');
             }
         } catch (err) {
             console.error('Error:', err);
+            console.log('🔄 Keeping URL plan as fallback due to error');
         }
     }
     
@@ -98,16 +130,28 @@
     
     function getPlanName(): string {
         const planType: PlanType = subscription?.plan_type || planFromUrl || 'professional';
+        console.log('🏷️ getPlanName - subscription.plan_type:', subscription?.plan_type, 'planFromUrl:', planFromUrl, 'final planType:', planType);
         return planType === 'professional' ? 'Professional Plan' : 'Elite Plan';
     }
     
     function getPlanPrice(): string {
         const planType: PlanType = subscription?.plan_type || planFromUrl || 'professional';
+        console.log('💰 getPlanPrice - planType:', planType, 'billingCycle:', billingCycle);
+        
+        // Get the actual price from SUBSCRIPTION_PLANS based on billing cycle
+        if (planType in SUBSCRIPTION_PLANS) {
+            const plan = SUBSCRIPTION_PLANS[planType];
+            const price = plan.prices[billingCycle];
+            const displayText = billingCycle === 'annual' ? `/month (billed annually)` : '/month';
+            return `$${price}${displayText}`;
+        }
+        
         return planType === 'professional' ? '$12' : '$29';
     }
     
     function getPlanEmoji(): string {
         const planType: PlanType = subscription?.plan_type || planFromUrl || 'professional';
+        console.log('😀 getPlanEmoji - subscription.plan_type:', subscription?.plan_type, 'planFromUrl:', planFromUrl, 'final planType:', planType);
         return planType === 'professional' ? '⭐' : '👑';
     }
 </script>
@@ -160,7 +204,7 @@
             
             <div class="mb-4 p-3 bg-gradient-to-r from-blue-100 to-purple-100 rounded-lg">
                 <h2 class="text-lg font-semibold text-gray-900">{getPlanName()}</h2>
-                <p class="text-sm text-gray-600">{getPlanPrice()}/month</p>
+                <p class="text-sm text-gray-600">{getPlanPrice()}</p>
             </div>
             
             <p class="text-gray-600 mb-6">
