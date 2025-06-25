@@ -1,7 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { OPENAI_API_KEY } from '$env/static/private';
-import { checkUsageLimit, incrementUsage } from '$lib/usage-limits';
 import { checkComprehensiveUsageLimit, incrementComprehensiveUsage } from '$lib/comprehensive-usage-limits';
 
 // POST endpoint - Submit answer and get AI feedback
@@ -23,8 +22,8 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
             return json({ error: 'Question ID is required' }, { status: 400 });
         }
 
-        // Check usage limits - using ai_improvements_used for visa practice
-        const usageCheck = await checkUsageLimit(supabase, session.user.id, 'ai_improvements_used');
+        // Check usage limits using new comprehensive system - using text_enhancements for visa practice
+        const usageCheck = await checkComprehensiveUsageLimit(session.user.id, 'text_enhancements');
         
         if (!usageCheck.allowed) {
             return json({
@@ -68,7 +67,7 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
         }
 
         // Increment usage counter
-        await incrementUsage(supabase, session.user.id, 'ai_improvements_used');
+        await incrementComprehensiveUsage(session.user.id, 'text_enhancements');
 
         return json({
             success: true,

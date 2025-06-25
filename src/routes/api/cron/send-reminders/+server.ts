@@ -1,14 +1,64 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { SUPABASE_SERVICE_ROLE_KEY, PUBLIC_SUPABASE_URL } from '$env/static/private';
+import { SUPABASE_SERVICE_ROLE_KEY, CRON_SECRET, SENDGRID_API_KEY, FROM_EMAIL } from '$env/static/private';
+import { PUBLIC_SUPABASE_URL } from '$env/static/public';
 import { createClient } from '@supabase/supabase-js';
 
 // Create admin client for server operations
 const supabase = createClient(PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
+// Email service configuration
+const fromEmail = FROM_EMAIL || 'noreply@abroaducate.com';
+
+// SendGrid email sending function
+async function sendEmailViaSendGrid(to: string, subject: string, htmlContent: string, textContent: string): Promise<boolean> {
+  if (!SENDGRID_API_KEY) {
+    console.error('❌ SendGrid API key not configured');
+    return false;
+  }
+
+  try {
+    const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${SENDGRID_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        personalizations: [{ to: [{ email: to }] }],
+        from: { email: fromEmail, name: 'Abroaducate' },
+        subject: subject,
+        content: [
+          { type: 'text/plain', value: textContent },
+          { type: 'text/html', value: htmlContent }
+        ]
+      })
+    });
+
+    if (response.ok) {
+      console.log(`✅ Email sent successfully to ${to}: ${subject}`);
+      return true;
+    } else {
+      const errorText = await response.text();
+      console.error(`❌ SendGrid error for ${to}:`, errorText);
+      return false;
+    }
+  } catch (error) {
+    console.error(`❌ Error sending email to ${to}:`, error);
+    return false;
+  }
+}
+
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    console.log('🔄 Starting hybrid email reminder cron job...');
+    // Verify cron authorization
+    const authHeader = request.headers.get('authorization');
+    if (authHeader !== `Bearer ${CRON_SECRET}`) {
+      console.error('❌ Unauthorized cron request');
+      return json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    console.log('🔄 Starting email reminder cron job...');
 
     // Get the current day of week (0 = Sunday, 1 = Monday, etc.)
     const today = new Date();
@@ -47,9 +97,11 @@ export const POST: RequestHandler = async ({ request }) => {
           const { data: authUser } = await supabase.auth.admin.getUserById(user.user_id);
           
           if (authUser.user?.email) {
-            await sendScholarshipDigest(authUser.user.email, user.user_id);
-            emailsProcessed.scholarship_digest++;
-            totalEmailsSent++;
+            const emailSent = await sendScholarshipDigest(authUser.user.email, user.user_id);
+            if (emailSent) {
+              emailsProcessed.scholarship_digest++;
+              totalEmailsSent++;
+            }
           }
         } catch (error) {
           console.error(`Error sending scholarship digest to user ${user.user_id}:`, error);
@@ -69,23 +121,22 @@ export const POST: RequestHandler = async ({ request }) => {
 
     for (const userPref of paidUsersPrefs || []) {
       try {
-        // Check if user has active paid subscription
+        // Check if user has active subscription
         const { data: subscription } = await supabase
           .from('user_subscriptions')
-          .select('plan_type, status')
+          .select('plan_type')
           .eq('user_id', userPref.user_id)
           .eq('status', 'active')
           .single();
 
-        // Only send to users with active paid subscriptions
-        if (subscription && ['professional', 'elite'].includes(subscription.plan_type)) {
+        if (subscription) {
           const { data: authUser } = await supabase.auth.admin.getUserById(userPref.user_id);
           
           if (authUser.user?.email) {
             const remindersSent = await sendApplicationReminders(
-              authUser.user.email, 
+              authUser.user.email,
               userPref.user_id,
-              userPref.instant_alerts || false
+              userPref.instant_alerts
             );
             emailsProcessed.application_reminders += remindersSent;
             totalEmailsSent += remindersSent;
@@ -126,14 +177,16 @@ export const POST: RequestHandler = async ({ request }) => {
             const { data: authUser } = await supabase.auth.admin.getUserById(subscription.user_id);
             
             if (authUser.user?.email) {
-              await sendSubscriptionAlert(
+              const emailSent = await sendSubscriptionAlert(
                 authUser.user.email,
                 subscription.user_id,
                 subscription.plan_type,
                 daysAhead
               );
-              emailsProcessed.subscription_alerts++;
-              totalEmailsSent++;
+              if (emailSent) {
+                emailsProcessed.subscription_alerts++;
+                totalEmailsSent++;
+              }
             }
           }
         } catch (error) {
@@ -158,38 +211,56 @@ export const POST: RequestHandler = async ({ request }) => {
       console.error('Error logging email activity:', logError);
     }
 
-    console.log('✅ Hybrid email cron job completed successfully:', emailsProcessed);
+    console.log('✅ Email cron job completed successfully:', emailsProcessed);
 
     return json({
       success: true,
       total_emails_sent: totalEmailsSent,
-      breakdown: emailsProcessed
+      breakdown: emailsProcessed,
+      timestamp: new Date().toISOString()
     });
 
   } catch (error) {
-    console.error('❌ Error in hybrid email cron job:', error);
-    return json({ error: 'Failed to process emails' }, { status: 500 });
+    console.error('❌ Error in email cron job:', error);
+    return json({ 
+      error: 'Failed to process emails',
+      details: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString()
+    }, { status: 500 });
   }
 };
 
-// ============ EMAIL SENDING FUNCTIONS ============
+// ============ EMAIL SENDING FUNCTIONS WITH SENDGRID ============
 
-async function sendScholarshipDigest(email: string, userId: string): Promise<void> {
-  // Get new scholarships from the last week/day based on frequency
-  const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-  
-  const { data: scholarships } = await supabase
-    .from('scholarships')
-    .select('id, title, provider, deadline, amount')
-    .gte('created_at', oneWeekAgo.toISOString())
-    .limit(10);
+async function sendScholarshipDigest(email: string, userId: string): Promise<boolean> {
+  try {
+    // Get new scholarships from the last week
+    const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    
+    const { data: scholarships } = await supabase
+      .from('scholarships')
+      .select('id, title, provider, deadline, amount, description')
+      .gte('created_at', oneWeekAgo.toISOString())
+      .order('created_at', { ascending: false })
+      .limit(10);
 
-  if (scholarships && scholarships.length > 0) {
+    if (!scholarships || scholarships.length === 0) {
+      console.log(`📊 No new scholarships for ${email}, skipping digest`);
+      return false;
+    }
+
     console.log(`📊 Sending scholarship digest to ${email} with ${scholarships.length} new scholarships`);
     
-    // Here you would integrate with your SendGrid template for scholarship digest
-    // For now, we'll just log the activity
+    // Generate email content
+    const subject = `🎓 Weekly Scholarship Digest - ${scholarships.length} New Opportunities`;
     
+    const htmlContent = generateScholarshipDigestHTML(scholarships);
+    const textContent = generateScholarshipDigestText(scholarships);
+    
+    // Send email via SendGrid
+    const emailSent = await sendEmailViaSendGrid(email, subject, htmlContent, textContent);
+    
+    // Log email activity
     try {
       await supabase
         .from('email_logs')
@@ -197,84 +268,312 @@ async function sendScholarshipDigest(email: string, userId: string): Promise<voi
           user_id: userId,
           email_type: 'scholarship_digest',
           recipient: email,
-          status: 'sent',
+          subject: subject,
+          status: emailSent ? 'sent' : 'failed',
           content_summary: `${scholarships.length} new scholarships`,
           sent_at: new Date().toISOString()
         });
     } catch (logError) {
       console.error('Error logging scholarship digest email:', logError);
     }
+    
+    return emailSent;
+  } catch (error) {
+    console.error(`Error sending scholarship digest to ${email}:`, error);
+    return false;
   }
 }
 
 async function sendApplicationReminders(email: string, userId: string, instantAlerts: boolean): Promise<number> {
-  // Get upcoming application deadlines
-  const { data: applications } = await supabase
-    .from('applications')
-    .select('id, application_deadline')
-    .eq('user_id', userId)
-    .not('application_deadline', 'is', null);
+  try {
+    // Get upcoming application deadlines
+    const { data: applications } = await supabase
+      .from('applications')
+      .select('id, university_name, program_name, application_deadline')
+      .eq('user_id', userId)
+      .not('application_deadline', 'is', null)
+      .gte('application_deadline', new Date().toISOString());
 
-  let remindersSent = 0;
-  const now = new Date();
+    let remindersSent = 0;
+    const now = new Date();
 
-  for (const app of applications || []) {
-    if (!app.application_deadline) continue;
-    
-    const deadline = new Date(app.application_deadline);
-    const daysUntil = Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-    
-    // Send reminders based on urgency and user preferences
-    const shouldSendReminder = 
-      [30, 14, 7, 3, 1].includes(daysUntil) || // Standard reminder intervals
-      (instantAlerts && daysUntil <= 3 && daysUntil > 0); // Instant alerts for elite users
-
-    if (shouldSendReminder && daysUntil >= 0) {
-      console.log(`⏰ Sending application reminder to ${email} for deadline in ${daysUntil} days`);
+    for (const app of applications || []) {
+      if (!app.application_deadline) continue;
       
-      // Here you would integrate with your SendGrid template for application reminders
+      const deadline = new Date(app.application_deadline);
+      const daysUntil = Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
       
-      try {
-        await supabase
-          .from('email_logs')
-          .insert({
-            user_id: userId,
-            email_type: 'application_reminder',
-            recipient: email,
-            status: 'sent',
-            content_summary: `Application deadline in ${daysUntil} days`,
-            sent_at: new Date().toISOString()
-          });
+      // Send reminders based on urgency and user preferences
+      const shouldSendReminder = 
+        [30, 14, 7, 3, 1].includes(daysUntil) || // Standard reminder intervals
+        (instantAlerts && daysUntil <= 3 && daysUntil > 0); // Instant alerts for elite users
+
+      if (shouldSendReminder && daysUntil >= 0) {
+        console.log(`⏰ Sending application reminder to ${email} for deadline in ${daysUntil} days`);
         
-        remindersSent++;
-      } catch (logError) {
-        console.error('Error logging application reminder email:', logError);
+        // Generate email content
+        const urgency = daysUntil <= 1 ? 'critical' : daysUntil <= 3 ? 'urgent' : daysUntil <= 7 ? 'important' : 'moderate';
+        const subject = `⏰ Application Deadline: ${app.university_name} - ${daysUntil} day${daysUntil === 1 ? '' : 's'} remaining`;
+        
+        const htmlContent = generateApplicationReminderHTML(app, daysUntil, urgency);
+        const textContent = generateApplicationReminderText(app, daysUntil, urgency);
+        
+        // Send email via SendGrid
+        const emailSent = await sendEmailViaSendGrid(email, subject, htmlContent, textContent);
+        
+        // Log email activity
+        if (emailSent) {
+          try {
+            await supabase
+              .from('email_logs')
+              .insert({
+                user_id: userId,
+                email_type: 'application_reminder',
+                recipient: email,
+                subject: subject,
+                status: 'sent',
+                content_summary: `Application deadline in ${daysUntil} days`,
+                sent_at: new Date().toISOString()
+              });
+            
+            remindersSent++;
+          } catch (logError) {
+            console.error('Error logging application reminder email:', logError);
+          }
+        }
       }
     }
-  }
 
-  return remindersSent;
+    return remindersSent;
+  } catch (error) {
+    console.error(`Error sending application reminders to ${email}:`, error);
+    return 0;
+  }
 }
 
-async function sendSubscriptionAlert(email: string, userId: string, planType: string, daysUntilExpiry: number): Promise<void> {
-  console.log(`🔔 Sending subscription alert to ${email} - ${planType} expires in ${daysUntilExpiry} days`);
-  
-  // Here you would integrate with your SendGrid template for subscription alerts
-  
+async function sendSubscriptionAlert(email: string, userId: string, planType: string, daysUntilExpiry: number): Promise<boolean> {
   try {
-    await supabase
-      .from('email_logs')
-      .insert({
-        user_id: userId,
-        email_type: 'subscription_alert',
-        recipient: email,
-        status: 'sent',
-        content_summary: `${planType} subscription expires in ${daysUntilExpiry} days`,
-        sent_at: new Date().toISOString()
-      });
-  } catch (logError) {
-    console.error('Error logging subscription alert email:', logError);
+    console.log(`🔔 Sending subscription alert to ${email} - ${planType} expires in ${daysUntilExpiry} days`);
+    
+    // Generate email content
+    const subject = `🔔 Your ${planType} subscription expires in ${daysUntilExpiry} day${daysUntilExpiry === 1 ? '' : 's'}`;
+    
+    const htmlContent = generateSubscriptionAlertHTML(planType, daysUntilExpiry);
+    const textContent = generateSubscriptionAlertText(planType, daysUntilExpiry);
+    
+    // Send email via SendGrid
+    const emailSent = await sendEmailViaSendGrid(email, subject, htmlContent, textContent);
+    
+    // Log email activity
+    try {
+      await supabase
+        .from('email_logs')
+        .insert({
+          user_id: userId,
+          email_type: 'subscription_alert',
+          recipient: email,
+          subject: subject,
+          status: emailSent ? 'sent' : 'failed',
+          content_summary: `${planType} subscription expires in ${daysUntilExpiry} days`,
+          sent_at: new Date().toISOString()
+        });
+    } catch (logError) {
+      console.error('Error logging subscription alert email:', logError);
+    }
+    
+    return emailSent;
+  } catch (error) {
+    console.error(`Error sending subscription alert to ${email}:`, error);
+    return false;
   }
+}
+
+// ============ EMAIL TEMPLATE GENERATORS ============
+
+function generateScholarshipDigestHTML(scholarships: any[]): string {
+  const scholarshipCards = scholarships.map(s => `
+    <div style="background-color: #f8fafc; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+      <h4 style="color: #1f2937; margin: 0 0 8px 0; font-size: 18px;">${s.title}</h4>
+      <p style="color: #6b7280; margin: 0 0 8px 0; font-size: 14px;">Provider: ${s.provider}</p>
+      ${s.amount ? `<p style="color: #059669; margin: 0 0 8px 0; font-weight: 600;">Amount: ${s.amount}</p>` : ''}
+      ${s.deadline ? `<p style="color: #dc2626; margin: 0 0 8px 0; font-size: 14px;">Deadline: ${new Date(s.deadline).toLocaleDateString()}</p>` : ''}
+      <a href="https://abroaducate.com/scholarships/${s.id}" style="color: #2563eb; text-decoration: none; font-weight: 600;">View Details →</a>
+    </div>
+  `).join('');
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Weekly Scholarship Digest</title>
+    </head>
+    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="text-align: center; border-bottom: 2px solid #f0f0f0; padding-bottom: 20px; margin-bottom: 30px;">
+        <h1 style="color: #1E40AF; margin: 0; font-size: 28px;">🎓 Abroaducate</h1>
+        <h2 style="color: #374151; margin: 10px 0 0 0; font-size: 22px;">Weekly Scholarship Digest</h2>
+      </div>
+      
+      <div style="background-color: #dbeafe; border-left: 4px solid #3b82f6; padding: 15px; margin-bottom: 25px; border-radius: 4px;">
+        <h3 style="color: #1e40af; margin: 0 0 5px 0;">📋 ${scholarships.length} New Scholarships This Week</h3>
+        <p style="margin: 0; color: #374151;">Don't miss these new opportunities!</p>
+      </div>
+      
+      ${scholarshipCards}
+      
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="https://abroaducate.com/scholarships" style="display: inline-block; background-color: #2563EB; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600;">Browse All Scholarships</a>
+      </div>
+      
+      <div style="border-top: 1px solid #e5e7eb; padding-top: 20px; margin-top: 30px; text-align: center; color: #6b7280; font-size: 14px;">
+        <p style="margin: 5px 0;"><a href="https://abroaducate.com/account/preferences" style="color: #2563EB; text-decoration: none;">Manage email preferences</a></p>
+      </div>
+    </body>
+    </html>
+  `;
+}
+
+function generateScholarshipDigestText(scholarships: any[]): string {
+  const scholarshipList = scholarships.map(s => `
+- ${s.title}
+  Provider: ${s.provider}
+  ${s.amount ? `Amount: ${s.amount}` : ''}
+  ${s.deadline ? `Deadline: ${new Date(s.deadline).toLocaleDateString()}` : ''}
+  Link: https://abroaducate.com/scholarships/${s.id}
+  `).join('\n');
+
+  return `
+🎓 ABROADUCATE - Weekly Scholarship Digest
+
+${scholarships.length} New Scholarships This Week
+
+${scholarshipList}
+
+Browse all scholarships: https://abroaducate.com/scholarships
+Manage preferences: https://abroaducate.com/account/preferences
+
+Best regards,
+The Abroaducate Team
+  `;
+}
+
+function generateApplicationReminderHTML(app: any, daysUntil: number, urgency: string): string {
+  const urgencyColors = {
+    critical: '#DC2626',
+    urgent: '#EA580C',
+    important: '#D97706',
+    moderate: '#2563EB'
+  };
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Application Deadline Reminder</title>
+    </head>
+    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="text-align: center; border-bottom: 2px solid #f0f0f0; padding-bottom: 20px; margin-bottom: 30px;">
+        <h1 style="color: #1E40AF; margin: 0; font-size: 28px;">🎓 Abroaducate</h1>
+      </div>
+      
+      <div style="background-color: ${urgencyColors[urgency]}15; border-left: 4px solid ${urgencyColors[urgency]}; padding: 15px; margin-bottom: 25px; border-radius: 4px;">
+        <h2 style="color: ${urgencyColors[urgency]}; margin: 0 0 5px 0;">⏰ Application Deadline Reminder</h2>
+        <p style="margin: 0; color: #555;">Your application deadline is ${daysUntil === 0 ? 'TODAY' : `in ${daysUntil} day${daysUntil === 1 ? '' : 's'}`}!</p>
+      </div>
+      
+      <div style="background-color: #f8fafc; padding: 20px; border-radius: 8px; margin-bottom: 25px;">
+        <h3 style="color: #1f2937; margin: 0 0 15px 0;">📋 Application Details</h3>
+        <p><strong>University:</strong> ${app.university_name}</p>
+        <p><strong>Program:</strong> ${app.program_name}</p>
+        <p><strong>Deadline:</strong> <span style="color: ${urgencyColors[urgency]}; font-weight: 600;">${new Date(app.application_deadline).toLocaleDateString()}</span></p>
+        <p><strong>Time Remaining:</strong> <span style="color: ${urgencyColors[urgency]}; font-weight: 600;">${daysUntil === 0 ? 'DUE TODAY!' : `${daysUntil} day${daysUntil === 1 ? '' : 's'} left`}</span></p>
+      </div>
+      
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="https://abroaducate.com/applications" style="display: inline-block; background-color: #2563EB; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600;">View Application</a>
+      </div>
+    </body>
+    </html>
+  `;
+}
+
+function generateApplicationReminderText(app: any, daysUntil: number, urgency: string): string {
+  return `
+🎓 ABROADUCATE - Application Deadline Reminder
+
+Your application deadline is ${daysUntil === 0 ? 'TODAY' : `in ${daysUntil} day${daysUntil === 1 ? '' : 's'}`}!
+
+Application Details:
+- University: ${app.university_name}
+- Program: ${app.program_name}
+- Deadline: ${new Date(app.application_deadline).toLocaleDateString()}
+- Time Remaining: ${daysUntil === 0 ? 'DUE TODAY!' : `${daysUntil} days left`}
+
+View your application: https://abroaducate.com/applications
+
+Best regards,
+The Abroaducate Team
+  `;
+}
+
+function generateSubscriptionAlertHTML(planType: string, daysUntilExpiry: number): string {
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Subscription Expiry Alert</title>
+    </head>
+    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="text-align: center; border-bottom: 2px solid #f0f0f0; padding-bottom: 20px; margin-bottom: 30px;">
+        <h1 style="color: #1E40AF; margin: 0; font-size: 28px;">🎓 Abroaducate</h1>
+      </div>
+      
+      <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin-bottom: 25px; border-radius: 4px;">
+        <h2 style="color: #92400e; margin: 0 0 5px 0;">🔔 Subscription Expiry Notice</h2>
+        <p style="margin: 0; color: #78350f;">Your ${planType} subscription expires in ${daysUntilExpiry} day${daysUntilExpiry === 1 ? '' : 's'}!</p>
+      </div>
+      
+      <div style="background-color: #f8fafc; padding: 20px; border-radius: 8px; margin-bottom: 25px;">
+        <h3 style="color: #1f2937; margin: 0 0 15px 0;">💎 Keep Your Access</h3>
+        <p>Don't lose access to your premium features:</p>
+        <ul style="color: #374151;">
+          <li>Unlimited document generation</li>
+          <li>AI-powered editing tools</li>
+          <li>Priority customer support</li>
+          <li>Advanced analytics dashboard</li>
+        </ul>
+      </div>
+      
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="https://abroaducate.com/subscription/manage" style="display: inline-block; background-color: #2563EB; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600;">Renew Subscription</a>
+      </div>
+    </body>
+    </html>
+  `;
+}
+
+function generateSubscriptionAlertText(planType: string, daysUntilExpiry: number): string {
+  return `
+🎓 ABROADUCATE - Subscription Expiry Notice
+
+Your ${planType} subscription expires in ${daysUntilExpiry} day${daysUntilExpiry === 1 ? '' : 's'}!
+
+Don't lose access to your premium features:
+- Unlimited document generation
+- AI-powered editing tools
+- Priority customer support
+- Advanced analytics dashboard
+
+Renew your subscription: https://abroaducate.com/subscription/manage
+
+Best regards,
+The Abroaducate Team
+  `;
 }
 
 // GET endpoint for manual testing
@@ -285,8 +584,10 @@ export const GET: RequestHandler = async ({ request }) => {
   }
 
   return json({
-    message: 'Cron job endpoint is active',
+    message: 'Email cron job endpoint is active',
     timestamp: new Date().toISOString(),
+    sendgrid_configured: !!SENDGRID_API_KEY,
+    from_email: fromEmail,
     note: 'Use POST method to execute the reminder job'
   });
 }; 

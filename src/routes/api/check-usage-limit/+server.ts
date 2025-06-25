@@ -1,38 +1,35 @@
 import { json } from '@sveltejs/kit';
+import { checkComprehensiveUsageLimit } from '$lib/comprehensive-usage-limits';
 import type { RequestHandler } from './$types';
-import { checkUsageLimit } from '$lib/usage-limits';
 
-export const POST: RequestHandler = async ({ request, locals: { supabase } }) => {
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    if (!session?.user) {
-        return json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    
+export const GET: RequestHandler = async ({ url, locals: { supabase, getSession } }) => {
     try {
-        const { usageType } = await request.json();
+        const session = await getSession();
+        
+        if (!session) {
+            return json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const usageType = url.searchParams.get('type');
         
         if (!usageType) {
-            return json({ error: 'Usage type is required' }, { status: 400 });
+            return json({ error: 'Usage type parameter is required' }, { status: 400 });
         }
-        
-        const usageCheck = await checkUsageLimit(supabase, session.user.id, usageType);
+
+        // Use new comprehensive usage limits system
+        const usageCheck = await checkComprehensiveUsageLimit(session.user.id, usageType);
         
         return json({
             success: true,
             allowed: usageCheck.allowed,
+            planType: usageCheck.planType,
             currentUsage: usageCheck.currentUsage,
             limit: usageCheck.limit,
-            planType: usageCheck.planType,
-            message: usageCheck.message,
-            usageType
+            message: usageCheck.message
         });
-        
+
     } catch (error) {
         console.error('Error checking usage limit:', error);
-        return json({ 
-            error: 'Failed to check usage limit',
-            details: error instanceof Error ? error.message : 'Unknown error'
-        }, { status: 500 });
+        return json({ error: 'Internal server error' }, { status: 500 });
     }
 }; 

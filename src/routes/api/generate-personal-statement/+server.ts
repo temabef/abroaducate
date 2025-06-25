@@ -1,7 +1,7 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { OPENAI_API_KEY } from '$env/static/private';
-import { checkUsageLimit, incrementUsage } from '$lib/usage-limits';
+import { checkComprehensiveUsageLimit, incrementComprehensiveUsage } from '$lib/comprehensive-usage-limits';
 import { getModelConfig } from '$lib/ai-models';
 
 export const POST: RequestHandler = async ({ request, locals: { supabase } }) => {
@@ -11,8 +11,8 @@ export const POST: RequestHandler = async ({ request, locals: { supabase } }) =>
         return json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    // Check usage limits before processing
-    const usageCheck = await checkUsageLimit(supabase, session.user.id, 'personal_statements_created');
+    // Check usage limits before processing using new comprehensive system
+    const usageCheck = await checkComprehensiveUsageLimit(session.user.id, 'personal_statement_generation');
     if (!usageCheck.allowed) {
         return json({
             error: 'Usage limit exceeded',
@@ -35,7 +35,7 @@ export const POST: RequestHandler = async ({ request, locals: { supabase } }) =>
         const generatedPersonalStatement = await generatePersonalStatementWithAI(personalStatementData, supabase, session.user.id);
         
         // Increment usage counter after successful generation
-        await incrementUsage(supabase, session.user.id, 'personal_statements_created');
+        await incrementComprehensiveUsage(session.user.id, 'personal_statement_generation');
         
         return json({
             success: true,

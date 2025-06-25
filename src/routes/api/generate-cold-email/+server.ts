@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit';
 import { OPENAI_API_KEY } from '$env/static/private';
 import type { RequestHandler } from './$types';
+import { checkComprehensiveUsageLimit, incrementComprehensiveUsage } from '$lib/comprehensive-usage-limits';
 
 export const POST: RequestHandler = async ({ request, locals: { supabase, getSession } }) => {
     const session = await getSession();
@@ -28,43 +29,16 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
       return json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Check cold email usage limits and get subscription tier
-    const { data: profile, error: profileError } = await supabase
-        .from('user_profiles')
-        .select('subscription_tier')
-        .eq('user_id', session.user.id)
-        .single();
-
-    const subscriptionTier = profile?.subscription_tier || 'free';
-
-    // Check current month's usage
-    const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM format
-    
-    const { data: usage, error: usageError } = await supabase
-        .from('user_usage')
-        .select('cold_emails_used')
-        .eq('user_id', session.user.id)
-        .eq('month_year', currentMonth)
-        .single();
-
-    const currentUsage = usage?.cold_emails_used || 0;
-
-    // Define limits
-    const limits = {
-        free: 5,
-        professional: 50,
-        elite: 500
-    };
-
-    const userLimit = limits[subscriptionTier as keyof typeof limits] || limits.free;
-
-    if (currentUsage >= userLimit) {
+    // Check cold email usage limits using new comprehensive system
+    const usageCheck = await checkComprehensiveUsageLimit(session.user.id, 'cold_email_generation');
+    if (!usageCheck.allowed) {
         return json({
-            error: `Cold email limit reached (${currentUsage}/${userLimit}). ${subscriptionTier === 'free' ? 'Upgrade to Professional for 50 emails per month.' : 'You have reached your monthly limit.'}`,
-            limit_reached: true,
-            current_usage: currentUsage,
-            limit: userLimit,
-            subscription_tier: subscriptionTier
+            error: 'Cold email limit exceeded',
+            message: usageCheck.message,
+            planType: usageCheck.planType,
+            currentUsage: usageCheck.currentUsage,
+            limit: usageCheck.limit,
+            upgradeRequired: true
         }, { status: 403 });
     }
 
@@ -132,7 +106,7 @@ Return the response in this exact JSON format:
         'Authorization': `Bearer ${OPENAI_API_KEY}`
       },
       body: JSON.stringify({
-        model: subscriptionTier === 'elite' ? 'gpt-4o' : subscriptionTier === 'professional' ? 'gpt-4o-mini' : 'gpt-3.5-turbo',
+        model: usageCheck.planType === 'elite' ? 'gpt-4o' : usageCheck.planType === 'professional' ? 'gpt-4o-mini' : 'gpt-3.5-turbo',
         messages: [
           {
             role: 'system',
@@ -178,27 +152,17 @@ Return the response in this exact JSON format:
       }, { status: 500 });
     }
 
-    // Increment usage counter
-    const { error: updateError } = await supabase
-        .from('user_usage')
-        .upsert({
-            user_id: session.user.id,
-            month_year: currentMonth,
-            cold_emails_used: currentUsage + 1
-        });
-
-    if (updateError) {
-        console.error('Error updating usage:', updateError);
-    }
+    // Increment usage counter using new comprehensive system
+    await incrementComprehensiveUsage(session.user.id, 'cold_email_generation');
 
     return json({
       subject: emailResult.subject,
       body: emailResult.body,
       researchOverlap: researchOverlap,
       usage_info: {
-        current: currentUsage + 1,
-        limit: userLimit,
-        remaining: userLimit - (currentUsage + 1)
+        current: usageCheck.currentUsage + 1,
+        limit: usageCheck.limit,
+                  remaining: usageCheck.limit ? usageCheck.limit - (usageCheck.currentUsage + 1) : null
       }
     });
 

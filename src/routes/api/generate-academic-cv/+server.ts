@@ -1,7 +1,27 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import { checkComprehensiveUsageLimit, incrementComprehensiveUsage } from '$lib/comprehensive-usage-limits';
 
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async ({ request, locals: { supabase, getSession } }) => {
+    const session = await getSession();
+
+    if (!session) {
+        return json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Check usage limits before processing using new comprehensive system
+    const usageCheck = await checkComprehensiveUsageLimit(session.user.id, 'academic_cv_generation');
+    if (!usageCheck.allowed) {
+        return json({
+            error: 'Usage limit exceeded',
+            message: usageCheck.message,
+            planType: usageCheck.planType,
+            currentUsage: usageCheck.currentUsage,
+            limit: usageCheck.limit,
+            upgradeRequired: true
+        }, { status: 403 });
+    }
+
     try {
         const { cvData } = await request.json();
         
@@ -54,6 +74,9 @@ export const POST: RequestHandler = async ({ request }) => {
             hasAwards: cvData.awards.length > 0,
             timestamp: response.generated_at
         });
+        
+        // Increment usage count
+        await incrementComprehensiveUsage(session.user.id, 'academic_cv_generation');
         
         return json(response);
         

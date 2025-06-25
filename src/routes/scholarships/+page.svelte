@@ -227,6 +227,27 @@
     updateScholarships(); // Initial filtering
   });
 
+  // Reactive effects to automatically update when filters change
+  $effect(() => {
+    if (searchQuery !== undefined) {
+      currentPage = 1;
+      updateScholarships();
+    }
+  });
+  
+  $effect(() => {
+    if (filters && Object.values(filters).some(v => v !== '')) {
+      currentPage = 1;
+      updateScholarships();
+    }
+  });
+  
+  $effect(() => {
+    if (sortBy) {
+      updateScholarships();
+    }
+  });
+
   function getDeadlineStatus(deadline: string) {
     const deadlineDate = new Date(deadline);
     const today = new Date();
@@ -243,6 +264,76 @@
     if (score >= 90) return 'text-green-600';
     if (score >= 75) return 'text-yellow-600';
     return 'text-gray-600';
+  }
+
+  async function toggleSaved(scholarshipId: string) {
+    if (!session?.user?.id) {
+      alert('Please log in to save scholarships');
+      return;
+    }
+    
+    try {
+      console.log(`Toggling saved state for scholarship ${scholarshipId}`);
+      
+      // Find the scholarship in our local state
+      const scholarshipIndex = allScholarships.findIndex(s => s.id === scholarshipId);
+      if (scholarshipIndex === -1) {
+        console.error('Scholarship not found in local state');
+        return;
+      }
+      
+      const scholarship = allScholarships[scholarshipIndex];
+      const currentSavedState = scholarship.saved;
+      
+      // Check if interaction exists in database
+      const { data: existing, error: fetchError } = await supabase
+        .from('user_scholarship_interactions')
+        .select('id')
+        .eq('user_id', session.user.id)
+        .eq('scholarship_id', scholarshipId)
+        .single();
+      
+      // Handle fetch error differently from "not found"
+      if (fetchError && fetchError.code !== 'PGRST116') {
+        console.error('Error checking interaction:', fetchError);
+        throw fetchError;
+      }
+      
+      let result;
+      if (existing) {
+        // Update existing interaction
+        result = await supabase
+          .from('user_scholarship_interactions')
+          .update({ is_saved: !currentSavedState })
+          .eq('id', existing.id);
+      } else {
+        // Create new interaction
+        result = await supabase
+          .from('user_scholarship_interactions')
+          .insert({
+            user_id: session.user.id,
+            scholarship_id: scholarshipId,
+            is_saved: true,
+            is_applied: false
+          });
+      }
+      
+      if (result.error) {
+        console.error('Error updating interaction:', result.error);
+        throw result.error;
+      }
+      
+      // Update local state
+      allScholarships[scholarshipIndex].saved = !currentSavedState;
+      console.log('Scholarship saved state updated successfully:', !currentSavedState);
+      
+      // Refresh the display
+      updateScholarships();
+      
+    } catch (err) {
+      console.error('Error saving scholarship:', err);
+      alert('Failed to update. Please try again.');
+    }
   }
 </script>
 

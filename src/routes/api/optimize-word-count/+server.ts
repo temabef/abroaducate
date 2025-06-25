@@ -1,7 +1,7 @@
 import { json } from '@sveltejs/kit';
 import { OPENAI_API_KEY } from '$env/static/private';
 import type { RequestHandler } from './$types';
-import { checkUsageLimit, incrementUsage } from '$lib/usage-limits';
+import { checkComprehensiveUsageLimit, incrementComprehensiveUsage } from '$lib/comprehensive-usage-limits';
 import { getAIModelForUser } from '$lib/ai-models';
 
 // University-specific word count requirements database

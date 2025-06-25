@@ -31,15 +31,51 @@
     }
   }
 
-  async function exportDocument(format: 'pdf' | 'word') {
+  async function exportToWord() {
+    // Extract document ID from editUrl
+    const urlParts = editUrl.split('/');
+    const documentId = urlParts[urlParts.length - 1];
+    
     exporting = true;
+    
     try {
-      // For now, we'll redirect to the edit page where export is available
-      window.open(editUrl, '_blank');
+      const response = await fetch('/api/export-document', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          documentId,
+          documentType: type
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Export failed');
+      }
+
+      // Create download link
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      
+      // Extract filename from response headers or create one
+      const contentDisposition = response.headers.get('content-disposition');
+      let filename = 'document.docx';
+      if (contentDisposition) {
+        const matches = /filename="(.+)"/.exec(contentDisposition);
+        if (matches) filename = matches[1];
+      }
+      
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
       
     } catch (error) {
       console.error('Export error:', error);
-      alert('Export failed. Please try again.');
+      alert(`Export failed: ${error instanceof Error ? error.message : 'Please try again'}`);
     } finally {
       exporting = false;
     }
@@ -68,18 +104,15 @@
       ✏️ Edit
     </a>
     <button 
-      onclick={() => exportDocument('pdf')} 
+      onclick={exportToWord} 
       disabled={exporting}
       class="px-3 py-2 bg-gray-100 text-gray-700 rounded-md text-xs font-medium hover:bg-gray-200 transition-colors border-none cursor-pointer flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
     >
-      📄 PDF
-    </button>
-    <button 
-      onclick={() => exportDocument('word')} 
-      disabled={exporting}
-      class="px-3 py-2 bg-gray-100 text-gray-700 rounded-md text-xs font-medium hover:bg-gray-200 transition-colors border-none cursor-pointer flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-    >
-      📝 Word
+      {#if exporting}
+        <span class="animate-spin text-xs">⏳</span> Word
+      {:else}
+        📝 Word
+      {/if}
     </button>
   </div>
 </div> 

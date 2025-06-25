@@ -2,7 +2,7 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { OPENAI_API_KEY } from '$env/static/private';
 import OpenAI from 'openai';
-import { checkUsageLimit, incrementUsage } from '$lib/usage-limits';
+import { checkComprehensiveUsageLimit, incrementComprehensiveUsage } from '$lib/comprehensive-usage-limits';
 
 // Get AI model based on user's plan (matches pricing page)
 function getModelByPlan(planType: string): string {
@@ -36,8 +36,8 @@ export const POST: RequestHandler = async ({ request, locals: { supabase } }) =>
       return json({ error: 'Text and edit type are required' }, { status: 400 });
     }
 
-    // Check inline editing usage limits
-    const usageCheck = await checkUsageLimit(supabase, session.user.id, 'inline_edits_used');
+    // Check inline editing usage limits using new comprehensive system
+    const usageCheck = await checkComprehensiveUsageLimit(session.user.id, 'inline_edits');
     
     if (!usageCheck.allowed) {
       return json({
@@ -51,7 +51,7 @@ export const POST: RequestHandler = async ({ request, locals: { supabase } }) =>
           planType: usageCheck.planType,
           currentUsage: usageCheck.currentUsage,
           limit: usageCheck.limit,
-          usageType: 'inline_edits_used'
+          usageType: 'inline_edits'
         }
       }, { status: 403 });
     }
@@ -97,14 +97,14 @@ Please provide only the improved version of the text, maintaining the same gener
     }
 
     // Increment usage counter after successful edit
-    const incrementSuccess = await incrementUsage(supabase, session.user.id, 'inline_edits_used');
+    const incrementSuccess = await incrementComprehensiveUsage(session.user.id, 'inline_edits');
     
     if (!incrementSuccess) {
       console.warn('Failed to increment inline editing usage for user:', session.user.id);
     }
 
     // Get updated usage data for frontend
-    const updatedUsageCheck = await checkUsageLimit(supabase, session.user.id, 'inline_edits_used');
+    const updatedUsageCheck = await checkComprehensiveUsageLimit(session.user.id, 'inline_edits');
 
     return json({
       success: true,
@@ -116,7 +116,7 @@ Please provide only the improved version of the text, maintaining the same gener
         planType: updatedUsageCheck.planType,
         currentUsage: updatedUsageCheck.currentUsage,
         limit: updatedUsageCheck.limit,
-        usageType: 'inline_edits_used',
+        usageType: 'inline_edits',
         remainingEdits: updatedUsageCheck.limit ? (updatedUsageCheck.limit - updatedUsageCheck.currentUsage) : null
       }
     });

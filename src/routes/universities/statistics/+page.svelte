@@ -2,7 +2,6 @@
   import type { PageData } from "./$types";
   import { onMount } from "svelte";
   import { ukUniversityDataManager } from "$lib/database/uk-university-integration";
-  import { universityDataManager } from "$lib/database/university-integration";
   import { australianUniversityManager } from "$lib/database/australia-university-integration";
   import { canadianUniversityManager } from "$lib/database/canada-university-integration";
   import { germanUniversityManager } from "$lib/database/germany-university-integration";
@@ -10,7 +9,8 @@
   import { japaneseUniversityManager } from "$lib/database/japan-university-integration";
   import { frenchUniversityManager } from "$lib/database/france-university-integration";
   import { italianUniversityManager } from "$lib/database/italy-university-integration";
-  import { COLLEGE_SCORECARD_API_KEY } from "$env/static/private";
+
+  export let data: PageData;
 
   let statistics = {
     total: 0,
@@ -74,11 +74,9 @@
       statistics.netherlands.total = dutchStats.total_universities;
       statistics.netherlands.research = dutchStats.research_universities;
 
-      // US universities
-      await universityDataManager.fetchTopUSUniversities(500, COLLEGE_SCORECARD_API_KEY);
-      const usStats = universityDataManager.getUSStats();
-      statistics.us.total = usStats.total_universities;
-      statistics.us.ivyLeague = 8; // Hardcoded for now
+      // US universities (from server data)
+      statistics.us.total = data.usStats.total_universities;
+      statistics.us.ivyLeague = data.usStats.ivyLeague;
 
       // Australian universities
       const auStats = australianUniversityManager.getAustralianStats();

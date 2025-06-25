@@ -293,6 +293,13 @@
         {#if nextStepsDropdownOpen}
           <div class="absolute top-full left-0 mt-2 w-72 bg-white rounded-lg shadow-lg border border-gray-200 py-2">
             <div class="px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wide">Post-Application Support</div>
+            <a href="/document-checklists" class="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition duration-200">
+              <span class="text-lg mr-3">📋</span>
+              <div>
+                <div class="font-medium">Document Checklists</div>
+                <div class="text-sm text-gray-500">Never miss a document again</div>
+              </div>
+            </a>
             <a href="/visa-interview-practice" class="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition duration-200">
               <span class="text-lg mr-3">🎯</span>
               <div>
@@ -426,6 +433,7 @@
             </svg>
           </summary>
           <div class="pl-4 space-y-1">
+            <a href="/document-checklists" class="block py-2 text-gray-300 hover:text-white transition duration-300">Document Checklists</a>
             <a href="/visa-interview-practice" class="block py-2 text-gray-300 hover:text-white transition duration-300">Visa Interview Practice</a>
 
           </div>

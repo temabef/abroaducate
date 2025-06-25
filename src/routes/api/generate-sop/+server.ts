@@ -2,7 +2,7 @@ import { json } from '@sveltejs/kit';
 import { OPENAI_API_KEY } from '$env/static/private';
 import type { RequestHandler } from './$types';
 import type { FormData, WorkExperience, Organization, CommunityService } from '$lib/types';
-import { checkUsageLimit, incrementUsage } from '$lib/usage-limits';
+import { checkComprehensiveUsageLimit, incrementComprehensiveUsage } from '$lib/comprehensive-usage-limits';
 import { getModelConfig } from '$lib/ai-models';
 
 // Helper function to build the prompt, ensuring no "undefined" values
@@ -62,8 +62,8 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
         return json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Check usage limits before processing
-    const usageCheck = await checkUsageLimit(supabase, session.user.id, 'sops_created');
+    // Check usage limits before processing using new comprehensive system
+    const usageCheck = await checkComprehensiveUsageLimit(session.user.id, 'sop_generation');
     if (!usageCheck.allowed) {
         return json({
             error: 'Usage limit exceeded',
@@ -161,7 +161,7 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
         }
 
         // Increment usage counter after successful generation
-        await incrementUsage(supabase, session.user.id, 'sops_created');
+        await incrementComprehensiveUsage(session.user.id, 'sop_generation');
 
         return json({ 
             success: true, 

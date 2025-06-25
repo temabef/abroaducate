@@ -1,7 +1,7 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { OPENAI_API_KEY } from '$env/static/private';
-import { checkUsageLimit, incrementUsage } from '$lib/usage-limits';
+import { checkComprehensiveUsageLimit, incrementComprehensiveUsage } from '$lib/comprehensive-usage-limits';
 import { getModelConfig } from '$lib/ai-models';
 
 export const POST: RequestHandler = async ({ request, locals: { supabase } }) => {
@@ -11,8 +11,8 @@ export const POST: RequestHandler = async ({ request, locals: { supabase } }) =>
         return json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    // Check usage limits before processing
-    const usageCheck = await checkUsageLimit(supabase, session.user.id, 'cover_letters_created');
+    // Check usage limits before processing using new comprehensive system
+    const usageCheck = await checkComprehensiveUsageLimit(session.user.id, 'cover_letter_generation');
     if (!usageCheck.allowed) {
         return json({
             error: 'Usage limit exceeded',
@@ -71,7 +71,7 @@ export const POST: RequestHandler = async ({ request, locals: { supabase } }) =>
         console.log('Cover letter saved successfully with ID:', savedCoverLetter?.id);
 
         // Increment usage counter after successful generation
-        await incrementUsage(supabase, session.user.id, 'cover_letters_created');
+        await incrementComprehensiveUsage(session.user.id, 'cover_letter_generation');
 
         // Log analytics
         console.log('Attempting to log analytics...');
