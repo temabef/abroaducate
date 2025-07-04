@@ -69,7 +69,8 @@ export const POST: RequestHandler = async ({ request }) => {
       scholarship_digest: 0,
       application_reminders: 0,
       subscription_alerts: 0,
-      instant_alerts: 0
+      instant_alerts: 0,
+      newsletter_emails: 0
     };
 
     // ============ SCHOLARSHIP DIGEST (EVERYONE - WEEKLY/DAILY) ============
@@ -195,6 +196,114 @@ export const POST: RequestHandler = async ({ request }) => {
       }
     }
 
+    // ============ NEWSLETTER SUBSCRIBERS (NON-USERS) ============
+    
+    // Check if newsletter system is enabled
+    const { data: newsletterSettings } = await supabase
+      .from('newsletter_settings')
+      .select('setting_value')
+      .eq('setting_key', 'newsletter_enabled')
+      .single();
+
+    const { data: digestSettings } = await supabase
+      .from('newsletter_settings')
+      .select('setting_value')
+      .eq('setting_key', 'scholarship_digest_enabled')
+      .single();
+
+    if (newsletterSettings?.setting_value === true && digestSettings?.setting_value === true) {
+      // Get newsletter frequency setting
+      const { data: frequencySettings } = await supabase
+        .from('newsletter_settings')
+        .select('setting_value')
+        .eq('setting_key', 'send_frequency')
+        .single();
+
+      const { data: sendDaySettings } = await supabase
+        .from('newsletter_settings')
+        .select('setting_value')
+        .eq('setting_key', 'send_day')
+        .single();
+
+      const sendFrequency = frequencySettings?.setting_value || 'weekly';
+      const sendDay = sendDaySettings?.setting_value || 1; // Default to Monday
+
+      let shouldSendNewsletter = false;
+      if (sendFrequency === 'daily') {
+        shouldSendNewsletter = true;
+      } else if (sendFrequency === 'weekly') {
+        shouldSendNewsletter = dayOfWeek === sendDay;
+      } else if (sendFrequency === 'monthly') {
+        shouldSendNewsletter = today.getDate() === 1; // First of month
+      }
+
+      if (shouldSendNewsletter) {
+        // Get active newsletter subscribers
+        const { data: newsletterSubscribers } = await supabase
+          .from('newsletter_subscribers')
+          .select('id, email, source')
+          .eq('status', 'active')
+          .eq('scholarship_digest', true);
+
+        console.log(`📧 Processing newsletter for ${newsletterSubscribers?.length || 0} subscribers`);
+
+        // Get batch size setting
+        const { data: batchSettings } = await supabase
+          .from('newsletter_settings')
+          .select('setting_value')
+          .eq('setting_key', 'max_emails_per_batch')
+          .single();
+
+        const batchSize = batchSettings?.setting_value || 100;
+
+        // Process in batches to avoid overwhelming SendGrid
+        if (newsletterSubscribers && newsletterSubscribers.length > 0) {
+          for (let i = 0; i < newsletterSubscribers.length; i += batchSize) {
+            const batch = newsletterSubscribers.slice(i, i + batchSize);
+            
+            for (const subscriber of batch) {
+              try {
+                const emailSent = await sendScholarshipDigest(subscriber.email, null, subscriber.source);
+                if (emailSent) {
+                  emailsProcessed.newsletter_emails++;
+                  totalEmailsSent++;
+
+                  // Update subscriber stats
+                  await supabase
+                    .from('newsletter_subscribers')
+                    .update({
+                      last_email_sent: new Date().toISOString(),
+                      total_emails_sent: supabase.rpc('increment', { x: 1 })
+                    })
+                    .eq('id', subscriber.id);
+                }
+              } catch (error) {
+                console.error(`Error sending newsletter to ${subscriber.email}:`, error);
+              }
+            }
+
+            // Add delay between batches to respect rate limits
+            if (i + batchSize < newsletterSubscribers.length) {
+              await new Promise(resolve => setTimeout(resolve, 1000)); // 1 second delay
+            }
+          }
+
+          // Update last digest sent setting
+          await supabase
+            .from('newsletter_settings')
+            .update({
+              setting_value: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            })
+            .eq('setting_key', 'last_digest_sent');
+        }
+      } else {
+        console.log(`📧 Newsletter not scheduled for today (${sendFrequency} on day ${sendDay}, today is ${dayOfWeek})`);
+      }
+    } else {
+      console.log('📧 Newsletter system is disabled');
+    }
+
     // Log activity to database
     try {
       await supabase
@@ -205,7 +314,8 @@ export const POST: RequestHandler = async ({ request }) => {
           scholarship_digest_emails: emailsProcessed.scholarship_digest,
           application_reminder_emails: emailsProcessed.application_reminders,
           subscription_alert_emails: emailsProcessed.subscription_alerts,
-          instant_alert_emails: emailsProcessed.instant_alerts
+          instant_alert_emails: emailsProcessed.instant_alerts,
+          newsletter_emails: emailsProcessed.newsletter_emails
         });
     } catch (logError) {
       console.error('Error logging email activity:', logError);
@@ -232,7 +342,7 @@ export const POST: RequestHandler = async ({ request }) => {
 
 // ============ EMAIL SENDING FUNCTIONS WITH SENDGRID ============
 
-async function sendScholarshipDigest(email: string, userId: string): Promise<boolean> {
+async function sendScholarshipDigest(email: string, userId: string | null, source?: string): Promise<boolean> {
   try {
     // Get new scholarships from the last week
     const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
@@ -252,27 +362,43 @@ async function sendScholarshipDigest(email: string, userId: string): Promise<boo
     console.log(`📊 Sending scholarship digest to ${email} with ${scholarships.length} new scholarships`);
     
     // Generate email content
-    const subject = `🎓 Weekly Scholarship Digest - ${scholarships.length} New Opportunities`;
+    const subject = source 
+      ? `🎓 Weekly Scholarship Digest - ${scholarships.length} New Opportunities (${source})`
+      : `🎓 Weekly Scholarship Digest - ${scholarships.length} New Opportunities`;
     
-    const htmlContent = generateScholarshipDigestHTML(scholarships);
-    const textContent = generateScholarshipDigestText(scholarships);
+    const htmlContent = generateScholarshipDigestHTML(scholarships, source);
+    const textContent = generateScholarshipDigestText(scholarships, source);
     
     // Send email via SendGrid
     const emailSent = await sendEmailViaSendGrid(email, subject, htmlContent, textContent);
     
     // Log email activity
     try {
-      await supabase
-        .from('email_logs')
-        .insert({
-          user_id: userId,
-          email_type: 'scholarship_digest',
-          recipient: email,
-          subject: subject,
-          status: emailSent ? 'sent' : 'failed',
-          content_summary: `${scholarships.length} new scholarships`,
-          sent_at: new Date().toISOString()
-        });
+      if (userId) {
+        // Log for registered users
+        await supabase
+          .from('email_logs')
+          .insert({
+            user_id: userId,
+            email_type: 'scholarship_digest',
+            recipient: email,
+            subject: subject,
+            status: emailSent ? 'sent' : 'failed',
+            content_summary: `${scholarships.length} new scholarships`,
+            sent_at: new Date().toISOString()
+          });
+      } else {
+        // Log for newsletter subscribers
+        await supabase
+          .from('newsletter_email_logs')
+          .insert({
+            email_address: email,
+            subject_line: subject,
+            email_type: 'scholarship_digest',
+            status: emailSent ? 'sent' : 'failed',
+            sent_at: new Date().toISOString()
+          });
+      }
     } catch (logError) {
       console.error('Error logging scholarship digest email:', logError);
     }
@@ -390,7 +516,7 @@ async function sendSubscriptionAlert(email: string, userId: string, planType: st
 
 // ============ EMAIL TEMPLATE GENERATORS ============
 
-function generateScholarshipDigestHTML(scholarships: any[]): string {
+function generateScholarshipDigestHTML(scholarships: any[], source?: string): string {
   const scholarshipCards = scholarships.map(s => `
     <div style="background-color: #f8fafc; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin-bottom: 16px;">
       <h4 style="color: #1f2937; margin: 0 0 8px 0; font-size: 18px;">${s.title}</h4>
@@ -417,13 +543,14 @@ function generateScholarshipDigestHTML(scholarships: any[]): string {
       
       <div style="background-color: #dbeafe; border-left: 4px solid #3b82f6; padding: 15px; margin-bottom: 25px; border-radius: 4px;">
         <h3 style="color: #1e40af; margin: 0 0 5px 0;">📋 ${scholarships.length} New Scholarships This Week</h3>
-        <p style="margin: 0; color: #374151;">Don't miss these new opportunities!</p>
+        <p style="margin: 0; color: #374151;">Don't miss these new opportunities!${source ? ` (From your ${source} subscription)` : ''}</p>
       </div>
       
       ${scholarshipCards}
       
       <div style="text-align: center; margin: 30px 0;">
         <a href="https://abroaducate.com/scholarships" style="display: inline-block; background-color: #2563EB; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600;">Browse All Scholarships</a>
+        ${source ? '<br><br><a href="https://abroaducate.com/subscribe" style="display: inline-block; background-color: #059669; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600;">Create Free Account</a>' : ''}
       </div>
       
       <div style="border-top: 1px solid #e5e7eb; padding-top: 20px; margin-top: 30px; text-align: center; color: #6b7280; font-size: 14px;">
@@ -434,7 +561,7 @@ function generateScholarshipDigestHTML(scholarships: any[]): string {
   `;
 }
 
-function generateScholarshipDigestText(scholarships: any[]): string {
+function generateScholarshipDigestText(scholarships: any[], source?: string): string {
   const scholarshipList = scholarships.map(s => `
 - ${s.title}
   Provider: ${s.provider}
@@ -446,12 +573,12 @@ function generateScholarshipDigestText(scholarships: any[]): string {
   return `
 🎓 ABROADUCATE - Weekly Scholarship Digest
 
-${scholarships.length} New Scholarships This Week
+${scholarships.length} New Scholarships This Week${source ? ` (From your ${source} subscription)` : ''}
 
 ${scholarshipList}
 
 Browse all scholarships: https://abroaducate.com/scholarships
-Manage preferences: https://abroaducate.com/account/preferences
+${source ? 'Create free account: https://abroaducate.com/subscribe' : 'Manage preferences: https://abroaducate.com/account/preferences'}
 
 Best regards,
 The Abroaducate Team
