@@ -103,6 +103,14 @@
                 <div class="text-sm text-gray-500">7,000+ universities worldwide</div>
               </div>
             </a>
+            <a href="/test-prep" class="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition duration-200">
+              <span class="text-lg mr-3">📝</span>
+              <div>
+                <div class="font-medium">Test Prep</div>
+                <div class="text-sm text-gray-500">IELTS & other exams (study plans)</div>
+              </div>
+              <span class="ml-auto px-2 py-1 text-xs font-medium bg-purple-100 text-purple-800 rounded-full">NEW</span>
+            </a>
           </div>
         {/if}
       </div>
@@ -371,6 +379,7 @@
             <a href="/academic-analyzer" class="block py-2 text-gray-300 hover:text-white transition duration-300">Academic Profile Analyzer</a>
             <a href="/gpa-converter" class="block py-2 text-gray-300 hover:text-white transition duration-300">GPA Converter</a>
             <a href="/universities" class="block py-2 text-gray-300 hover:text-white transition duration-300">University Matching</a>
+            <a href="/test-prep" class="block py-2 text-gray-300 hover:text-white transition duration-300">Test Prep</a>
           </div>
         </details>
 

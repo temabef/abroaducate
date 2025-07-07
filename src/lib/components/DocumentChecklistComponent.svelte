@@ -1,3 +1,12 @@
+<style>
+    .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+</style>
+
 <script lang="ts">
     import { onMount } from 'svelte';
     import { page } from '$app/stores';
@@ -521,6 +530,24 @@
                 checklists: data.checklists
             }));
     }
+
+    // Helper function to organize checklists into balanced columns
+    function organizeIntoColumns(checklists) {
+        const leftColumn = [];
+        const rightColumn = [];
+        
+        checklists.forEach((checklist, index) => {
+            if (index % 2 === 0) {
+                leftColumn.push(checklist);
+            } else {
+                rightColumn.push(checklist);
+            }
+        });
+        
+
+        
+        return { leftColumn, rightColumn };
+    }
 </script>
 
 <div class="min-h-screen bg-white pt-8">
@@ -724,55 +751,72 @@
                     <p class="mt-4 text-gray-600">Loading checklists...</p>
                 </div>
             {:else if organizedChecklists.length > 0}
-                <!-- For each category section -->
-                {#each organizedChecklists as category}
-                    <!-- Make each category take full width -->
-                    <div class="mb-6 w-full">
-                        <!-- Category Header -->
+                <!-- Flatten all checklists for global 2-column layout -->
+                {@const allChecklists = organizedChecklists.flatMap(category => 
+                    category.checklists.map(checklist => ({
+                        ...checklist,
+                        categoryName: category.name,
+                        categoryIcon: category.icon,
+                        categoryCode: category.code
+                    }))
+                )}
+                {@const globalColumns = organizeIntoColumns(allChecklists)}
+                
+                <!-- Remove debug info for clean UI -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Left Column -->
+                    <div class="space-y-6">
+                        {#each globalColumns.leftColumn as checklist (checklist.id)}
+                            <!-- Category Header for this checklist -->
                         <div class="flex items-center mb-3">
                             <div class="bg-white p-2 rounded-full border border-gray-200 shadow-sm mr-3">
-                                <span class="text-2xl">{category.icon}</span>
+                                    <span class="text-xl">{checklist.categoryIcon}</span>
                             </div>
-                            <h2 class="text-xl font-bold text-gray-900">{category.name}</h2>
+                                <h2 class="text-lg font-bold text-gray-900">{checklist.categoryName}</h2>
                         </div>
                         
-                        <!-- Checklists in this category in two columns on desktop -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            {#each category.checklists as checklist (checklist.id)}
-                                <!-- Each checklist card with consistent heights -->
-                                <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-                                    <!-- Checklist Header with better visual hierarchy -->
-                                    <div class="p-3 flex items-start justify-between cursor-pointer" 
+                            <!-- Checklist Card -->
+                            <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden mb-6">
+                                <!-- Clickable Checklist Header -->
+                                <div class="p-4 flex items-start justify-between cursor-pointer hover:bg-gray-50 transition-colors" 
                                          on:click={() => toggleExpand(checklist.id)}
                                          class:bg-blue-50={expandedChecklistId === checklist.id}
                                          class:border-b={expandedChecklistId === checklist.id}
-                                         class:border-gray-200={expandedChecklistId === checklist.id}>
+                                     class:border-blue-200={expandedChecklistId === checklist.id}>
                                         
-                                        <div class="flex items-start space-x-3">
-                                            <div class="flex-shrink-0" class:text-blue-600={expandedChecklistId === checklist.id}>
+                                    <div class="flex items-start space-x-3 flex-1">
+                                        <div class="flex-shrink-0 mt-1" class:text-blue-600={expandedChecklistId === checklist.id}>
                                                 {#if checklist.user_progress && checklist.user_progress.progress_percentage > 0}
                                                     <div class="relative">
-                                                        <div class="h-6 w-6 border-2 border-blue-600 rounded flex items-center justify-center">
-                                                            <div class="h-3 w-3 bg-blue-600 rounded-sm"></div>
+                                                    <div class="h-7 w-7 border-2 border-blue-600 rounded-lg flex items-center justify-center bg-white">
+                                                        <div class="h-4 w-4 bg-blue-600 rounded-sm"></div>
                                                         </div>
-                                                        <div class="absolute -bottom-1 -right-1 bg-blue-600 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
+                                                    <div class="absolute -bottom-1 -right-1 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
                                                             {checklist.user_progress.progress_percentage}%
                                                         </div>
                                                     </div>
                                                 {:else}
-                                                    <div class="h-6 w-6 border-2 border-gray-400 rounded"></div>
+                                                <div class="h-7 w-7 border-2 border-gray-300 rounded-lg bg-white"></div>
                                                 {/if}
                                             </div>
                                             
                                             <div class="flex-1 min-w-0">
-                                                <h3 class="font-semibold text-gray-900 truncate">{checklist.name}</h3>
-                                                <div class="flex items-center space-x-2 mt-1 text-xs">
-                                                    <span class="bg-gray-100 rounded-full px-2 py-1 text-gray-600">{formatEstimatedTime(checklist.estimated_time_hours)}</span>
+                                            <h3 class="font-semibold text-gray-900 text-lg leading-tight">{checklist.name}</h3>
+                                            <div class="flex items-center space-x-2 mt-2">
+                                                <span class="bg-gray-100 rounded-full px-3 py-1 text-xs text-gray-600">
+                                                    ⏱️ {formatEstimatedTime(checklist.estimated_time_hours)}
+                                                </span>
+                                                <span class="bg-blue-100 rounded-full px-3 py-1 text-xs text-blue-700 font-medium">
+                                                    {checklist.items.length} items
+                                                </span>
                                                 </div>
+                                            {#if checklist.description && expandedChecklistId !== checklist.id}
+                                                <p class="text-sm text-gray-600 mt-2 line-clamp-2">{checklist.description}</p>
+                                            {/if}
                                             </div>
                                         </div>
                                         
-                                        <div class="flex items-center">
+                                    <div class="flex items-center ml-3">
                                             {#if expandedChecklistId === checklist.id}
                                                 <span class="text-blue-600">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -787,28 +831,10 @@
                                                 </span>
                                             {/if}
                                         </div>
-                                    </div>
-                                </div>
-                            {/each}
                         </div>
                         
-                        <!-- Expanded Content Section - AFTER the grid layout with full width -->
-                        {#if expandedChecklistId !== null}
-                            {#each category.checklists as checklist (checklist.id)}
+                                <!-- Expanded Content -->
                                 {#if expandedChecklistId === checklist.id}
-                                    <div class="mt-3 w-full bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-                                        <!-- Header indicator showing which checklist is expanded -->
-                                        <div class="bg-blue-50 p-2 border-b border-blue-100 flex items-center">
-                                            <div class="flex-shrink-0 mr-2">
-                                                <div class="h-5 w-5 bg-blue-600 rounded-full flex items-center justify-center">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                    </svg>
-                                                </div>
-                                            </div>
-                                            <span class="text-sm font-medium text-blue-900">{checklist.name}</span>
-                                        </div>
-                                        
                                         <!-- Description -->
                                         <div class="p-4 border-b border-gray-100 bg-gray-50">
                                             <p class="text-sm text-gray-600">{checklist.description}</p>
@@ -819,7 +845,7 @@
                                             <div class="flex items-center justify-center py-6 px-4 border-b border-gray-100">
                                                 <div class="text-center">
                                                     <div class="text-3xl mb-2">📋</div>
-                                                    <p class="text-sm text-gray-600 mb-3">Ready to get started with this checklist?</p>
+                                                <p class="text-sm text-gray-600 mb-3">Ready to get started?</p>
                                                     <button 
                                                         on:click={() => startChecklist(checklist.id)}
                                                         class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
@@ -829,18 +855,19 @@
                                                 </div>
                                             </div>
                                         {:else if checklist.user_progress}
-                                            <!-- Progress Bar with improved visibility -->
-                                            <div class="px-4 py-2 border-b border-gray-100 bg-white">
-                                                <div class="flex justify-between items-center mb-1 text-xs">
-                                                    <span class="font-medium text-gray-700">Progress</span>
-                                                    <span class="font-medium text-blue-600">{checklist.user_progress.progress_percentage}%</span>
+                                        <!-- Progress Bar -->
+                                        <div class="px-4 py-3 border-b border-gray-100">
+                                            <div class="flex justify-between items-center mb-2">
+                                                <span class="text-sm font-medium text-gray-700">Progress</span>
+                                                <span class="text-sm font-medium text-blue-600">{checklist.user_progress.progress_percentage}%</span>
                                                 </div>
-                                                <div class="w-full bg-gray-200 rounded-full h-3 shadow-inner">
-                                                    <div class="{getProgressColor(checklist.user_progress.progress_percentage)} h-3 rounded-full shadow-sm" style="width: {checklist.user_progress.progress_percentage}%"></div>
+                                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                                <div class="{getProgressColor(checklist.user_progress.progress_percentage)} h-2 rounded-full transition-all" style="width: {checklist.user_progress.progress_percentage}%"></div>
                                                 </div>
                                             </div>
                                             
                                             <!-- Checklist Items -->
+                                        <div class="max-h-96 overflow-y-auto">
                                             <ul class="divide-y divide-gray-100">
                                                 {#each checklist.items as item (item.id)}
                                                     <li class="py-3 px-4 hover:bg-gray-50 transition-colors">
@@ -848,7 +875,7 @@
                                                             <div class="pt-0.5">
                                                                 <button 
                                                                     on:click={() => toggleChecklistItem(checklist.id, item.id)}
-                                                                    class="h-5 w-5 rounded border border-gray-300 flex items-center justify-center {checklist.user_progress.completed_items.includes(item.id) ? 'bg-green-500 border-green-500' : 'bg-white'}"
+                                                                    class="h-5 w-5 rounded border border-gray-300 flex items-center justify-center transition-colors {checklist.user_progress.completed_items.includes(item.id) ? 'bg-green-500 border-green-500' : 'bg-white hover:border-green-400'}"
                                                                 >
                                                                     {#if checklist.user_progress.completed_items.includes(item.id)}
                                                                         <svg class="h-3 w-3 text-white" viewBox="0 0 20 20" fill="currentColor">
@@ -857,39 +884,35 @@
                                                                     {/if}
                                                                 </button>
                                                             </div>
-                                                            <div>
+                                                            <div class="flex-1">
                                                                 <div class="flex items-start">
                                                                     <span class="font-medium text-gray-900 {checklist.user_progress.completed_items.includes(item.id) ? 'line-through text-gray-500' : ''}">{item.title}</span>
                                                                     {#if item.required}
-                                                                        <span class="ml-2 text-red-600 text-xs">*</span>
+                                                                        <span class="ml-2 text-red-500 text-xs font-bold">*</span>
                                                                     {/if}
                                                                 </div>
-                                                                <p class="text-sm text-gray-600 mt-0.5">{item.description}</p>
+                                                                <p class="text-sm text-gray-600 mt-1">{item.description}</p>
+                                                                {#if item.tips}
+                                                                    <p class="text-xs text-blue-600 mt-1">💡 {item.tips}</p>
+                                                                {/if}
                                                             </div>
                                                         </div>
                                                     </li>
                                                 {/each}
                                             </ul>
-                                        {:else if isPreview}
-                                            <!-- Preview Mode Sample Items -->
-                                            <div class="py-6 px-4 flex flex-col items-center">
-                                                <div class="text-center">
-                                                    <div class="flex justify-center mb-4">
-                                                        <span class="inline-flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 text-blue-600">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                            </svg>
-                                                        </span>
                                                     </div>
+                                    {:else if isPreview}
+                                        <!-- Preview Mode -->
+                                        <div class="py-6 px-4 text-center">
+                                            <div class="text-3xl mb-2">👀</div>
                                                     <h4 class="font-medium text-gray-900 mb-2">Preview Mode</h4>
-                                                    <p class="text-sm text-gray-600 mb-4">Create a free account to track your progress</p>
+                                            <p class="text-sm text-gray-600 mb-4">Sign up to track your progress</p>
                                                     <div class="space-x-2">
                                                         <button 
                                                             on:click={showSignup}
                                                             class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
                                                         >
-                                                            Sign Up Free
+                                                    Sign Up
                                                         </button>
                                                         <button 
                                                             on:click={showLogin}
@@ -897,46 +920,212 @@
                                                         >
                                                             Log In
                                                         </button>
-                                                    </div>
                                                 </div>
                                             </div>
                                         {/if}
                                         
                                         <!-- Tips Section -->
                                         {#if checklist.tips_and_notes && checklist.tips_and_notes.length > 0}
-                                            <div class="p-4 bg-blue-50 rounded-b-lg">
+                                        <div class="p-4 bg-blue-50">
                                                 <h4 class="font-medium text-blue-900 mb-2 flex items-center">
-                                                    <span class="mr-2">💡</span> Helpful Tips
+                                                <span class="mr-2">💡</span> Tips
                                                 </h4>
-                                                <ul class="space-y-2 text-sm text-blue-900">
+                                            <ul class="space-y-1 text-sm text-blue-800">
                                                     {#each checklist.tips_and_notes as tip}
                                                         <li class="flex items-start">
-                                                            <span class="text-blue-500 mr-2">•</span>
+                                                        <span class="text-blue-500 mr-2 mt-1">•</span>
                                                             <span>{tip}</span>
                                                         </li>
                                                     {/each}
                                                 </ul>
                                             </div>
                                         {/if}
-                                        
-                                        <!-- Close button -->
-                                        <div class="flex justify-center p-3 border-t border-gray-100">
-                                            <button 
+                                {/if}
+                            </div>
+                        {/each}
+                    </div>
+                    
+                    <!-- Right Column -->
+                    <div class="space-y-6">
+                        {#each globalColumns.rightColumn as checklist (checklist.id)}
+                            <!-- Category Header for this checklist -->
+                            <div class="flex items-center mb-3">
+                                <div class="bg-white p-2 rounded-full border border-gray-200 shadow-sm mr-3">
+                                    <span class="text-xl">{checklist.categoryIcon}</span>
+                                </div>
+                                <h2 class="text-lg font-bold text-gray-900">{checklist.categoryName}</h2>
+                            </div>
+                            
+                            <!-- Checklist Card -->
+                            <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden mb-6">
+                                <!-- Clickable Checklist Header -->
+                                <div class="p-4 flex items-start justify-between cursor-pointer hover:bg-gray-50 transition-colors" 
                                                 on:click={() => toggleExpand(checklist.id)}
-                                                class="text-blue-600 hover:text-blue-800 flex items-center text-sm font-medium"
-                                            >
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                                </svg>
-                                                Close details
-                                            </button>
+                                     class:bg-blue-50={expandedChecklistId === checklist.id}
+                                     class:border-b={expandedChecklistId === checklist.id}
+                                     class:border-blue-200={expandedChecklistId === checklist.id}>
+                                    
+                                    <div class="flex items-start space-x-3 flex-1">
+                                        <div class="flex-shrink-0 mt-1" class:text-blue-600={expandedChecklistId === checklist.id}>
+                                            {#if checklist.user_progress && checklist.user_progress.progress_percentage > 0}
+                                                <div class="relative">
+                                                    <div class="h-7 w-7 border-2 border-blue-600 rounded-lg flex items-center justify-center bg-white">
+                                                        <div class="h-4 w-4 bg-blue-600 rounded-sm"></div>
+                                                    </div>
+                                                    <div class="absolute -bottom-1 -right-1 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
+                                                        {checklist.user_progress.progress_percentage}%
+                                                    </div>
+                                                </div>
+                                            {:else}
+                                                <div class="h-7 w-7 border-2 border-gray-300 rounded-lg bg-white"></div>
+                                            {/if}
+                                        </div>
+                                        
+                                        <div class="flex-1 min-w-0">
+                                            <h3 class="font-semibold text-gray-900 text-lg leading-tight">{checklist.name}</h3>
+                                            <div class="flex items-center space-x-2 mt-2">
+                                                <span class="bg-gray-100 rounded-full px-3 py-1 text-xs text-gray-600">
+                                                    ⏱️ {formatEstimatedTime(checklist.estimated_time_hours)}
+                                                </span>
+                                                <span class="bg-blue-100 rounded-full px-3 py-1 text-xs text-blue-700 font-medium">
+                                                    {checklist.items.length} items
+                                                </span>
+                                            </div>
+                                            {#if checklist.description && expandedChecklistId !== checklist.id}
+                                                <p class="text-sm text-gray-600 mt-2 line-clamp-2">{checklist.description}</p>
+                                            {/if}
                                         </div>
                                     </div>
+                                    
+                                    <div class="flex items-center ml-3">
+                                        {#if expandedChecklistId === checklist.id}
+                                            <span class="text-blue-600">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                                                </svg>
+                                            </span>
+                                        {:else}
+                                            <span class="text-gray-400">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                                </svg>
+                                            </span>
+                                        {/if}
+                                    </div>
+                                </div>
+                                
+                                <!-- Expanded Content -->
+                                {#if expandedChecklistId === checklist.id}
+                                    <!-- Description -->
+                                    <div class="p-4 border-b border-gray-100 bg-gray-50">
+                                        <p class="text-sm text-gray-600">{checklist.description}</p>
+                                    </div>
+                                    
+                                    <!-- Start/Progress Section -->
+                                    {#if !checklist.user_progress && !isPreview}
+                                        <div class="flex items-center justify-center py-6 px-4 border-b border-gray-100">
+                                            <div class="text-center">
+                                                <div class="text-3xl mb-2">📋</div>
+                                                <p class="text-sm text-gray-600 mb-3">Ready to get started?</p>
+                                                <button 
+                                                    on:click={() => startChecklist(checklist.id)}
+                                                    class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                                                >
+                                                    Start Checklist
+                                                </button>
+                                            </div>
+                                        </div>
+                                    {:else if checklist.user_progress}
+                                        <!-- Progress Bar -->
+                                        <div class="px-4 py-3 border-b border-gray-100">
+                                            <div class="flex justify-between items-center mb-2">
+                                                <span class="text-sm font-medium text-gray-700">Progress</span>
+                                                                                                 <span class="text-sm font-medium text-blue-600">{checklist.user_progress.progress_percentage}%</span>
+                                            </div>
+                                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                                <div class="{getProgressColor(checklist.user_progress.progress_percentage)} h-2 rounded-full transition-all" style="width: {checklist.user_progress.progress_percentage}%"></div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Checklist Items -->
+                                        <div class="max-h-96 overflow-y-auto">
+                                            <ul class="divide-y divide-gray-100">
+                                                {#each checklist.items as item (item.id)}
+                                                    <li class="py-3 px-4 hover:bg-gray-50 transition-colors">
+                                                        <div class="flex items-start space-x-3">
+                                                            <div class="pt-0.5">
+                                                                <button 
+                                                                    on:click={() => toggleChecklistItem(checklist.id, item.id)}
+                                                                    class="h-5 w-5 rounded border border-gray-300 flex items-center justify-center transition-colors {checklist.user_progress.completed_items.includes(item.id) ? 'bg-green-500 border-green-500' : 'bg-white hover:border-green-400'}"
+                                                                >
+                                                                    {#if checklist.user_progress.completed_items.includes(item.id)}
+                                                                        <svg class="h-3 w-3 text-white" viewBox="0 0 20 20" fill="currentColor">
+                                                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                                </svg>
+                                                                    {/if}
+                                            </button>
+                                        </div>
+                                                            <div class="flex-1">
+                                                                <div class="flex items-start">
+                                                                    <span class="font-medium text-gray-900 {checklist.user_progress.completed_items.includes(item.id) ? 'line-through text-gray-500' : ''}">{item.title}</span>
+                                                                    {#if item.required}
+                                                                        <span class="ml-2 text-red-500 text-xs font-bold">*</span>
+                                                                    {/if}
+                                    </div>
+                                                                <p class="text-sm text-gray-600 mt-1">{item.description}</p>
+                                                                {#if item.tips}
+                                                                    <p class="text-xs text-blue-600 mt-1">💡 {item.tips}</p>
                                 {/if}
+                                                            </div>
+                                                        </div>
+                                                    </li>
                             {/each}
+                                            </ul>
+                                        </div>
+                                    {:else if isPreview}
+                                        <!-- Preview Mode -->
+                                        <div class="py-6 px-4 text-center">
+                                            <div class="text-3xl mb-2">👀</div>
+                                            <h4 class="font-medium text-gray-900 mb-2">Preview Mode</h4>
+                                            <p class="text-sm text-gray-600 mb-4">Sign up to track your progress</p>
+                                            <div class="space-x-2">
+                                                <button 
+                                                    on:click={showSignup}
+                                                    class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                                                >
+                                                    Sign Up
+                                                </button>
+                                                <button 
+                                                    on:click={showLogin}
+                                                    class="border border-blue-600 text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                                                >
+                                                    Log In
+                                                </button>
+                                            </div>
+                                        </div>
+                                    {/if}
+                                    
+                                    <!-- Tips Section -->
+                                    {#if checklist.tips_and_notes && checklist.tips_and_notes.length > 0}
+                                        <div class="p-4 bg-blue-50">
+                                            <h4 class="font-medium text-blue-900 mb-2 flex items-center">
+                                                <span class="mr-2">💡</span> Tips
+                                            </h4>
+                                            <ul class="space-y-1 text-sm text-blue-800">
+                                                {#each checklist.tips_and_notes as tip}
+                                                    <li class="flex items-start">
+                                                        <span class="text-blue-500 mr-2 mt-1">•</span>
+                                                        <span>{tip}</span>
+                                                    </li>
+                                                {/each}
+                                            </ul>
+                                        </div>
+                                    {/if}
                         {/if}
                     </div>
                 {/each}
+                    </div>
+                </div>
             {:else if !loading}
                 <div class="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
                     <div class="text-4xl mb-4">🔍</div>

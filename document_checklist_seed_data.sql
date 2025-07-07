@@ -723,3 +723,884 @@ INSERT INTO public.document_checklists (country, category, name, description, ch
   "Many places offer student discounts - always ask and show your student ID",
   "Consider getting a 16-25 Railcard for discounted train travel"
 ]'::json, NOW(), NOW()); 
+
+-- ===========================================
+-- CANADA DOCUMENT CHECKLISTS
+-- ===========================================
+
+-- Canada Study Permit Application Documents
+INSERT INTO public.document_checklists (name, description, country, category, checklist_type, target_audience, priority_level, estimated_time_hours, items, tips_and_notes, related_links) VALUES
+(
+    'Canada Study Permit Application Documents',
+    'Complete document checklist for Canadian study permit application',
+    'Canada',
+    'visa_application',
+    'general',
+    'all',
+    'high',
+    5,
+    '[
+        {
+            "id": "letter_of_acceptance",
+            "title": "Letter of Acceptance",
+            "description": "Original letter of acceptance from a Designated Learning Institution (DLI)",
+            "required": true,
+            "estimated_time_minutes": 0,
+            "category": "official_documents",
+            "tips": "Must be from a DLI with valid DLI number"
+        },
+        {
+            "id": "proof_of_identity",
+            "title": "Proof of Identity",
+            "description": "Valid passport or travel document",
+            "required": true,
+            "estimated_time_minutes": 0,
+            "category": "identity_documents",
+            "tips": "Passport must be valid for duration of study"
+        },
+        {
+            "id": "proof_of_financial_support",
+            "title": "Proof of Financial Support",
+            "description": "Bank statements, GIC, scholarship letters showing required funds",
+            "required": true,
+            "estimated_time_minutes": 60,
+            "category": "financial_documents",
+            "tips": "CAD $10,000 per year plus tuition fees required"
+        },
+        {
+            "id": "statement_of_purpose",
+            "title": "Statement of Purpose",
+            "description": "Letter explaining purpose of study and plans after graduation",
+            "required": true,
+            "estimated_time_minutes": 120,
+            "category": "essays",
+            "tips": "Explain ties to home country and intention to return"
+        },
+        {
+            "id": "language_proficiency",
+            "title": "Language Proficiency Test",
+            "description": "IELTS, TOEFL, or other accepted English/French test results",
+            "required": true,
+            "estimated_time_minutes": 30,
+            "category": "test_scores",
+            "tips": "Required even if studying in English-speaking country"
+        },
+        {
+            "id": "medical_exam",
+            "title": "Medical Examination",
+            "description": "Immigration medical exam from panel physician if required",
+            "required": false,
+            "estimated_time_minutes": 180,
+            "category": "medical_documents",
+            "tips": "Required for stays over 6 months from certain countries"
+        },
+        {
+            "id": "police_certificate",
+            "title": "Police Certificate",
+            "description": "Police clearance certificate from home country",
+            "required": false,
+            "estimated_time_minutes": 30,
+            "category": "background_documents",
+            "tips": "Required if stayed in other countries for 6+ months"
+        },
+        {
+            "id": "quebec_acceptance_certificate",
+            "title": "Quebec Acceptance Certificate (CAQ)",
+            "description": "Certificate d acceptation du Québec for Quebec institutions",
+            "required": false,
+            "estimated_time_minutes": 45,
+            "category": "provincial_documents",
+            "tips": "Only required for studies in Quebec province"
+        },
+        {
+            "id": "family_information_form",
+            "title": "Family Information Form (IMM 5707)",
+            "description": "Completed family information and employment details",
+            "required": true,
+            "estimated_time_minutes": 30,
+            "category": "forms",
+            "tips": "Must be completed by all applicants regardless of age"
+        }
+    ]',
+    '[
+        "Apply online through the IRCC portal for faster processing",
+        "Get biometrics done at a Visa Application Centre (VAC)",
+        "Processing time is typically 4-12 weeks depending on country",
+        "Consider applying for a visitor visa if study permit is delayed"
+    ]',
+    '[
+        {
+            "title": "Government of Canada - Study Permits",
+            "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/study-permit.html"
+        },
+        {
+            "title": "Designated Learning Institutions",
+            "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/study-permit/prepare/designated-learning-institutions-list.html"
+        }
+    ]'
+),
+
+-- Canada University Enrollment Documents
+(
+    'Canada University Enrollment Documents',
+    'Essential documents needed to complete enrollment at Canadian universities',
+    'Canada',
+    'enrollment',
+    'general',
+    'all',
+    'high',
+    4,
+    '[
+        {
+            "id": "study_permit_copy",
+            "title": "Study Permit Copy",
+            "description": "Copy of approved study permit and port of entry letter",
+            "required": true,
+            "estimated_time_minutes": 5,
+            "category": "official_documents",
+            "tips": "Keep original study permit with you at all times"
+        },
+        {
+            "id": "tuition_fee_payment",
+            "title": "Tuition Fee Payment",
+            "description": "Payment of tuition fees or enrollment deposit",
+            "required": true,
+            "estimated_time_minutes": 30,
+            "category": "financial_documents",
+            "tips": "International wire transfers may take 3-5 business days"
+        },
+        {
+            "id": "official_transcripts",
+            "title": "Official Academic Transcripts",
+            "description": "Sealed official transcripts from previous institutions",
+            "required": true,
+            "estimated_time_minutes": 0,
+            "category": "academic_documents",
+            "tips": "May need WES credential evaluation for non-Canadian degrees"
+        },
+        {
+            "id": "english_proficiency_scores",
+            "title": "English Proficiency Scores",
+            "description": "Official IELTS, TOEFL, or other accepted test scores",
+            "required": true,
+            "estimated_time_minutes": 15,
+            "category": "test_scores",
+            "tips": "Send scores directly from testing agency to university"
+        },
+        {
+            "id": "health_insurance_enrollment",
+            "title": "Health Insurance Enrollment",
+            "description": "Enrollment in provincial health plan or university health plan",
+            "required": true,
+            "estimated_time_minutes": 45,
+            "category": "health_documents",
+            "tips": "Each province has different requirements and waiting periods"
+        },
+        {
+            "id": "course_registration",
+            "title": "Course Registration",
+            "description": "Register for courses through university portal",
+            "required": true,
+            "estimated_time_minutes": 90,
+            "category": "academic_documents",
+            "tips": "Meet with academic advisor before registration"
+        },
+        {
+            "id": "student_housing_application",
+            "title": "Student Housing Application",
+            "description": "Application for on-campus housing or residence",
+            "required": false,
+            "estimated_time_minutes": 60,
+            "category": "housing",
+            "tips": "Apply early as housing fills up quickly"
+        },
+        {
+            "id": "orientation_registration",
+            "title": "Orientation Registration",
+            "description": "Register for international student orientation",
+            "required": true,
+            "estimated_time_minutes": 20,
+            "category": "administrative",
+            "tips": "Orientation covers essential Canadian living and study tips"
+        }
+    ]',
+    '[
+        "Get your SIN (Social Insurance Number) to work part-time",
+        "Open a Canadian bank account with student banking package",
+        "Register for provincial health insurance immediately upon arrival",
+        "Download university mobile app for easy access to services"
+    ]',
+    '[
+        {
+            "title": "World Education Services (WES)",
+            "url": "https://www.wes.org/ca/"
+        }
+    ]'
+),
+
+-- Canada Pre-Departure Preparation
+(
+    'Canada Pre-Departure Preparation',
+    'Complete preparation checklist before traveling to Canada for studies',
+    'Canada',
+    'pre_departure',
+    'general',
+    'all',
+    'medium',
+    8,
+    '[
+        {
+            "id": "study_permit_approval",
+            "title": "Study Permit Approval",
+            "description": "Ensure study permit has been approved and port of entry letter received",
+            "required": true,
+            "estimated_time_minutes": 0,
+            "category": "documents",
+            "tips": "Print port of entry letter to show at Canadian border"
+        },
+        {
+            "id": "flight_booking_canada",
+            "title": "Flight Booking",
+            "description": "Book flights to arrive before orientation and class start dates",
+            "required": true,
+            "estimated_time_minutes": 60,
+            "category": "travel",
+            "tips": "Consider arriving 1-2 weeks early for settling in"
+        },
+        {
+            "id": "winter_clothing",
+            "title": "Winter Clothing",
+            "description": "Purchase or pack appropriate winter clothing for Canadian climate",
+            "required": true,
+            "estimated_time_minutes": 120,
+            "category": "clothing",
+            "tips": "Canadian winters are harsh - invest in good winter coat and boots"
+        },
+        {
+            "id": "accommodation_booking_canada",
+            "title": "Accommodation Confirmation",
+            "description": "Confirm university residence or arrange temporary accommodation",
+            "required": true,
+            "estimated_time_minutes": 45,
+            "category": "housing",
+            "tips": "Book temporary accommodation if residence not immediately available"
+        },
+        {
+            "id": "travel_health_insurance",
+            "title": "Travel Health Insurance",
+            "description": "Purchase comprehensive health insurance for first 3 months",
+            "required": true,
+            "estimated_time_minutes": 30,
+            "category": "insurance",
+            "tips": "Provincial health coverage has waiting period for new residents"
+        },
+        {
+            "id": "canadian_currency",
+            "title": "Canadian Currency Exchange",
+            "description": "Exchange money to Canadian dollars for initial expenses",
+            "required": true,
+            "estimated_time_minutes": 30,
+            "category": "financial",
+            "tips": "Bring enough CAD for first month expenses including housing deposit"
+        },
+        {
+            "id": "prescription_medications_canada",
+            "title": "Prescription Medications",
+            "description": "Bring sufficient prescription medications with doctors prescription",
+            "required": false,
+            "estimated_time_minutes": 30,
+            "category": "medical",
+            "tips": "Bring original prescriptions and doctors note for customs"
+        },
+        {
+            "id": "electrical_adapters",
+            "title": "Electrical Adapters",
+            "description": "Purchase Type A/B electrical adapters for Canadian outlets",
+            "required": true,
+            "estimated_time_minutes": 15,
+            "category": "electronics",
+            "tips": "Canada uses same plugs as US (Type A/B, 110V)"
+        },
+        {
+            "id": "mobile_phone_plan_research",
+            "title": "Mobile Phone Plan Research",
+            "description": "Research Canadian mobile providers (Rogers, Bell, Telus, Freedom)",
+            "required": true,
+            "estimated_time_minutes": 45,
+            "category": "communication",
+            "tips": "Consider prepaid plans initially to build Canadian credit history"
+        },
+        {
+            "id": "canadian_banking_research",
+            "title": "Canadian Banking Research",
+            "description": "Research Canadian banks and student banking packages",
+            "required": true,
+            "estimated_time_minutes": 30,
+            "category": "financial",
+            "tips": "TD, RBC, Scotiabank offer good student packages"
+        }
+    ]',
+    '[
+        "Download weather apps to prepare for Canadian climate",
+        "Research public transportation in your destination city",
+        "Join Facebook groups for international students at your university",
+        "Learn basic French phrases if studying in Quebec",
+        "Download Tim Hortons app - it is everywhere in Canada!"
+    ]',
+    '[
+        {
+            "title": "Government of Canada - Prepare for Life in Canada",
+            "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/new-immigrants/prepare-life-canada.html"
+        }
+    ]'
+),
+
+-- Canada Financial Documentation
+(
+    'Canada Financial Documentation for Students',
+    'Financial requirements and banking setup for Canadian students',
+    'Canada',
+    'financial_documents',
+    'general',
+    'all',
+    'high',
+    5,
+    '[
+        {
+            "id": "proof_of_funds_canada",
+            "title": "Proof of Funds",
+            "description": "Bank statements showing CAD $10,000 + tuition fees for first year",
+            "required": true,
+            "estimated_time_minutes": 30,
+            "category": "documents",
+            "tips": "Funds must be readily available and in your name"
+        },
+        {
+            "id": "gic_certificate",
+            "title": "Guaranteed Investment Certificate (GIC)",
+            "description": "GIC from approved Canadian financial institution",
+            "required": false,
+            "estimated_time_minutes": 60,
+            "category": "investment",
+            "tips": "GIC can serve as proof of funds and earns interest"
+        },
+        {
+            "id": "scholarship_award_letter",
+            "title": "Scholarship Award Letter",
+            "description": "Official scholarship or funding award documentation",
+            "required": false,
+            "estimated_time_minutes": 15,
+            "category": "funding",
+            "tips": "Can reduce required proof of funds amount"
+        },
+        {
+            "id": "canadian_bank_account",
+            "title": "Canadian Bank Account Setup",
+            "description": "Open bank account with major Canadian bank",
+            "required": true,
+            "estimated_time_minutes": 90,
+            "category": "banking",
+            "tips": "Bring study permit, passport, and letter from university"
+        },
+        {
+            "id": "sin_application",
+            "title": "Social Insurance Number (SIN)",
+            "description": "Apply for SIN to work part-time in Canada",
+            "required": true,
+            "estimated_time_minutes": 45,
+            "category": "employment",
+            "tips": "Free service - never pay for SIN application"
+        },
+        {
+            "id": "provincial_health_registration",
+            "title": "Provincial Health Insurance Registration",
+            "description": "Register for provincial health coverage (OHIP, MSP, etc.)",
+            "required": true,
+            "estimated_time_minutes": 60,
+            "category": "health",
+            "tips": "Most provinces have 3-month waiting period"
+        },
+        {
+            "id": "student_budget_planning",
+            "title": "Student Budget Planning",
+            "description": "Create monthly budget including housing, food, transportation",
+            "required": true,
+            "estimated_time_minutes": 45,
+            "category": "planning",
+            "tips": "Housing costs vary significantly between cities"
+        },
+        {
+            "id": "part_time_work_eligibility",
+            "title": "Part-time Work Eligibility",
+            "description": "Understand study permit work conditions (20 hours/week)",
+            "required": true,
+            "estimated_time_minutes": 30,
+            "category": "employment",
+            "tips": "Can work full-time during scheduled breaks"
+        },
+        {
+            "id": "tax_filing_preparation",
+            "title": "Tax Filing Preparation",
+            "description": "Understand Canadian tax obligations for international students",
+            "required": true,
+            "estimated_time_minutes": 30,
+            "category": "taxes",
+            "tips": "File taxes even with no income to get GST/HST credits"
+        }
+    ]',
+    '[
+        "Vancouver and Toronto are most expensive cities for students",
+        "Consider credit-building credit cards to establish Canadian credit",
+        "Many services offer student discounts - always ask",
+        "Food banks and student emergency funds available if needed",
+        "Learn about Canadian Registered Education Savings Plans (RESP) for future"
+    ]',
+    '[
+        {
+            "title": "Service Canada - Social Insurance Number",
+            "url": "https://www.canada.ca/en/employment-social-development/services/sin.html"
+        }
+    ]'
+),
+
+-- ===========================================
+-- AUSTRALIA DOCUMENT CHECKLISTS
+-- ===========================================
+
+-- Australia Student Visa Application Documents
+(
+    'Australia Student Visa (Subclass 500) Application',
+    'Complete document checklist for Australian student visa application',
+    'Australia',
+    'visa_application',
+    'general',
+    'all',
+    'high',
+    6,
+    '[
+        {
+            "id": "coe_australia",
+            "title": "Confirmation of Enrollment (CoE)",
+            "description": "CoE issued by Australian educational institution",
+            "required": true,
+            "estimated_time_minutes": 0,
+            "category": "official_documents",
+            "tips": "Institution must be registered on CRICOS"
+        },
+        {
+            "id": "genuine_temporary_entrant",
+            "title": "Genuine Temporary Entrant (GTE) Statement",
+            "description": "Written statement demonstrating genuine intention to study",
+            "required": true,
+            "estimated_time_minutes": 90,
+            "category": "essays",
+            "tips": "Explain study choice, ties to home country, and future plans"
+        },
+        {
+            "id": "english_proficiency_australia",
+            "title": "English Proficiency Evidence",
+            "description": "IELTS, TOEFL, PTE Academic, or other accepted test results",
+            "required": true,
+            "estimated_time_minutes": 30,
+            "category": "test_scores",
+            "tips": "Minimum IELTS 5.5 overall, higher for some courses"
+        },
+        {
+            "id": "financial_capacity_australia",
+            "title": "Financial Capacity Evidence",
+            "description": "Bank statements, scholarship letters, or financial sponsor documents",
+            "required": true,
+            "estimated_time_minutes": 60,
+            "category": "financial_documents",
+            "tips": "AUD $21,041 per year living costs plus course fees"
+        },
+        {
+            "id": "health_insurance_oshc",
+            "title": "Overseas Student Health Cover (OSHC)",
+            "description": "Valid OSHC policy for duration of stay",
+            "required": true,
+            "estimated_time_minutes": 45,
+            "category": "health_documents",
+            "tips": "Can be arranged through education provider or directly"
+        },
+        {
+            "id": "health_examinations_australia",
+            "title": "Health Examinations",
+            "description": "Medical and radiological examinations if required",
+            "required": false,
+            "estimated_time_minutes": 180,
+            "category": "medical_documents",
+            "tips": "Required based on country of origin and course duration"
+        },
+        {
+            "id": "character_documents_australia",
+            "title": "Character Documents",
+            "description": "Police certificates from countries lived in for 12+ months",
+            "required": false,
+            "estimated_time_minutes": 45,
+            "category": "background_documents",
+            "tips": "Required if 16+ years old when applying"
+        },
+        {
+            "id": "academic_documents_australia",
+            "title": "Academic Documents",
+            "description": "Certified copies of qualifications, transcripts, and certificates",
+            "required": true,
+            "estimated_time_minutes": 30,
+            "category": "academic_documents",
+            "tips": "May need skills assessment for some courses"
+        },
+        {
+            "id": "passport_australia",
+            "title": "Passport",
+            "description": "Valid passport with at least 6 months validity",
+            "required": true,
+            "estimated_time_minutes": 0,
+            "category": "identity_documents",
+            "tips": "Passport must have blank pages for visa label"
+        }
+    ]',
+    '[
+        "Apply online through ImmiAccount for faster processing",
+        "Processing times vary from 29 days to 4 months",
+        "Get health insurance (OSHC) before applying - its mandatory",
+        "Biometrics required at Australian Visa Application Centre"
+    ]',
+    '[
+        {
+            "title": "Australian Government - Student Visa",
+            "url": "https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/student-500"
+        },
+        {
+            "title": "CRICOS - Course Search",
+            "url": "https://cricos.education.gov.au/"
+        }
+    ]'
+),
+
+-- Australia University Enrollment Documents
+(
+    'Australia University Enrollment Documents',
+    'Essential documents needed to complete enrollment at Australian universities',
+    'Australia',
+    'enrollment',
+    'general',
+    'all',
+    'high',
+    4,
+    '[
+        {
+            "id": "student_visa_grant_letter",
+            "title": "Student Visa Grant Letter",
+            "description": "Copy of visa grant letter and conditions",
+            "required": true,
+            "estimated_time_minutes": 5,
+            "category": "official_documents",
+            "tips": "Know your visa conditions especially work restrictions"
+        },
+        {
+            "id": "tuition_payment_australia",
+            "title": "Tuition Fee Payment",
+            "description": "Payment of semester fees or enrollment deposit",
+            "required": true,
+            "estimated_time_minutes": 30,
+            "category": "financial_documents",
+            "tips": "International bank transfers can take 3-5 business days"
+        },
+        {
+            "id": "oshc_policy_details",
+            "title": "OSHC Policy Details",
+            "description": "Overseas Student Health Cover policy number and card",
+            "required": true,
+            "estimated_time_minutes": 15,
+            "category": "health_documents",
+            "tips": "OSHC covers basic medical services and some hospital costs"
+        },
+        {
+            "id": "academic_transcripts_australia",
+            "title": "Academic Transcripts",
+            "description": "Official transcripts from previous educational institutions",
+            "required": true,
+            "estimated_time_minutes": 0,
+            "category": "academic_documents",
+            "tips": "Bring both originals and certified copies"
+        },
+        {
+            "id": "english_test_results_australia",
+            "title": "English Test Results",
+            "description": "Official IELTS, TOEFL, PTE Academic results",
+            "required": true,
+            "estimated_time_minutes": 15,
+            "category": "test_scores",
+            "tips": "Results must meet course entry requirements"
+        },
+        {
+            "id": "unique_student_identifier",
+            "title": "Unique Student Identifier (USI)",
+            "description": "Apply for USI for Australian qualifications tracking",
+            "required": true,
+            "estimated_time_minutes": 20,
+            "category": "administrative",
+            "tips": "Free online application - required for all Australian study"
+        },
+        {
+            "id": "orientation_attendance",
+            "title": "Orientation Program Attendance",
+            "description": "Attend mandatory international student orientation",
+            "required": true,
+            "estimated_time_minutes": 480,
+            "category": "administrative",
+            "tips": "Covers visa compliance, academic expectations, and support services"
+        },
+        {
+            "id": "accommodation_australia",
+            "title": "Accommodation Arrangement",
+            "description": "University housing, homestay, or private rental arrangement",
+            "required": true,
+            "estimated_time_minutes": 90,
+            "category": "housing",
+            "tips": "University housing often has waitlists - apply early"
+        }
+    ]',
+    '[
+        "Get Tax File Number (TFN) to work part-time",
+        "Open Australian bank account with student package",
+        "Download university app for timetables and announcements",
+        "Join student clubs and societies during O-Week"
+    ]',
+    '[
+        {
+            "title": "Unique Student Identifier",
+            "url": "https://www.usi.gov.au/"
+        }
+    ]'
+),
+
+-- Australia Pre-Departure Preparation
+(
+    'Australia Pre-Departure Preparation',
+    'Complete preparation checklist before traveling to Australia for studies',
+    'Australia',
+    'pre_departure',
+    'general',
+    'all',
+    'medium',
+    7,
+    '[
+        {
+            "id": "student_visa_granted",
+            "title": "Student Visa Granted",
+            "description": "Confirm student visa has been granted and conditions understood",
+            "required": true,
+            "estimated_time_minutes": 0,
+            "category": "documents",
+            "tips": "Download ImmiCard app to carry digital visa evidence"
+        },
+        {
+            "id": "flight_booking_australia",
+            "title": "Flight Booking to Australia",
+            "description": "Book flights arriving before course commencement",
+            "required": true,
+            "estimated_time_minutes": 60,
+            "category": "travel",
+            "tips": "Arrive at least 1 week before semester starts"
+        },
+        {
+            "id": "quarantine_requirements",
+            "title": "Quarantine and Biosecurity",
+            "description": "Understand Australian quarantine laws and prohibited items",
+            "required": true,
+            "estimated_time_minutes": 30,
+            "category": "customs",
+            "tips": "Declare all food, wooden items, and medications"
+        },
+        {
+            "id": "seasonal_clothing_australia",
+            "title": "Seasonal Clothing",
+            "description": "Pack appropriate clothing for Australian seasons",
+            "required": true,
+            "estimated_time_minutes": 90,
+            "category": "clothing",
+            "tips": "Australian seasons are opposite to Northern Hemisphere"
+        },
+        {
+            "id": "accommodation_confirmation_australia",
+            "title": "Accommodation Confirmation",
+            "description": "Confirm accommodation booking and arrival details",
+            "required": true,
+            "estimated_time_minutes": 30,
+            "category": "housing",
+            "tips": "Have temporary accommodation if permanent housing unavailable"
+        },
+        {
+            "id": "australian_currency",
+            "title": "Australian Dollar Exchange",
+            "description": "Exchange money to Australian dollars for initial expenses",
+            "required": true,
+            "estimated_time_minutes": 30,
+            "category": "financial",
+            "tips": "Bring enough AUD for first months expenses and bond"
+        },
+        {
+            "id": "prescription_medications_australia",
+            "title": "Prescription Medications",
+            "description": "Bring prescription medications with doctors letter",
+            "required": false,
+            "estimated_time_minutes": 30,
+            "category": "medical",
+            "tips": "Some medications may be prohibited - check beforehand"
+        },
+        {
+            "id": "electrical_adapters_australia",
+            "title": "Electrical Adapters Type I",
+            "description": "Purchase Type I electrical adapters for Australian outlets",
+            "required": true,
+            "estimated_time_minutes": 15,
+            "category": "electronics",
+            "tips": "Australia uses Type I plugs (240V)"
+        },
+        {
+            "id": "mobile_plan_australia",
+            "title": "Mobile Phone Plan Research",
+            "description": "Research Australian mobile providers (Telstra, Optus, Vodafone)",
+            "required": true,
+            "estimated_time_minutes": 45,
+            "category": "communication",
+            "tips": "Consider prepaid plans for flexibility"
+        },
+        {
+            "id": "sun_protection",
+            "title": "Sun Protection Items",
+            "description": "Pack sunscreen, hat, and sunglasses for strong Australian sun",
+            "required": true,
+            "estimated_time_minutes": 20,
+            "category": "health",
+            "tips": "Australia has high UV levels year-round"
+        }
+    ]',
+    '[
+        "Download weather apps - Australian weather can be extreme",
+        "Research public transport in your destination city",
+        "Join Facebook groups for international students",
+        "Learn Australian slang and cultural expressions",
+        "Download Opal card app (Sydney) or Myki app (Melbourne) for transport"
+    ]',
+    '[
+        {
+            "title": "Australian Border Force - Prohibited Items",
+            "url": "https://www.abf.gov.au/entering-and-leaving-australia/prohibited-goods"
+        }
+    ]'
+),
+
+-- Australia Financial Documentation
+(
+    'Australia Financial Documentation for Students',
+    'Financial requirements and banking setup for Australian students',
+    'Australia',
+    'financial_documents',
+    'general',
+    'all',
+    'high',
+    5,
+    '[
+        {
+            "id": "financial_evidence_australia",
+            "title": "Financial Evidence",
+            "description": "Proof of AUD $21,041 + course fees for living expenses",
+            "required": true,
+            "estimated_time_minutes": 30,
+            "category": "documents",
+            "tips": "Include accommodation, food, transport, and other living costs"
+        },
+        {
+            "id": "scholarship_documentation_australia",
+            "title": "Scholarship Documentation",
+            "description": "Australian Government or institution scholarship letters",
+            "required": false,
+            "estimated_time_minutes": 15,
+            "category": "funding",
+            "tips": "Can reduce required financial evidence amount"
+        },
+        {
+            "id": "australian_bank_account_setup",
+            "title": "Australian Bank Account",
+            "description": "Open account with major Australian bank",
+            "required": true,
+            "estimated_time_minutes": 90,
+            "category": "banking",
+            "tips": "Big 4 banks: ANZ, CBA, NAB, Westpac offer student accounts"
+        },
+        {
+            "id": "tax_file_number_application",
+            "title": "Tax File Number (TFN) Application",
+            "description": "Apply for TFN to work part-time and avoid higher tax rates",
+            "required": true,
+            "estimated_time_minutes": 30,
+            "category": "employment",
+            "tips": "Free service - apply online within 28 days of arrival"
+        },
+        {
+            "id": "medicare_eligibility",
+            "title": "Medicare Eligibility Check",
+            "description": "Check if eligible for Medicare under reciprocal agreements",
+            "required": false,
+            "estimated_time_minutes": 30,
+            "category": "health",
+            "tips": "Some countries have reciprocal healthcare agreements"
+        },
+        {
+            "id": "work_rights_understanding",
+            "title": "Work Rights Understanding",
+            "description": "Understand 48 hours per fortnight work limit on student visa",
+            "required": true,
+            "estimated_time_minutes": 30,
+            "category": "employment",
+            "tips": "Unlimited hours during course breaks"
+        },
+        {
+            "id": "superannuation_setup",
+            "title": "Superannuation Setup",
+            "description": "Set up superannuation account if working in Australia",
+            "required": false,
+            "estimated_time_minutes": 45,
+            "category": "employment",
+            "tips": "Can claim super back when leaving Australia permanently"
+        },
+        {
+            "id": "student_concessions",
+            "title": "Student Concessions Setup",
+            "description": "Apply for student concession cards for transport and services",
+            "required": true,
+            "estimated_time_minutes": 30,
+            "category": "savings",
+            "tips": "Significant savings on public transport and entertainment"
+        },
+        {
+            "id": "budget_planning_australia",
+            "title": "Australian Living Budget",
+            "description": "Create realistic budget for Australian living costs",
+            "required": true,
+            "estimated_time_minutes": 45,
+            "category": "planning",
+            "tips": "Sydney and Melbourne are most expensive cities"
+        }
+    ]',
+    '[
+        "Australia has high cost of living especially in major cities",
+        "Student concessions provide significant savings - always ask",
+        "Part-time work is competitive - start looking early",
+        "Centrelink may provide some financial assistance for eligible students",
+        "Consider share housing to reduce accommodation costs"
+    ]',
+    '[
+        {
+            "title": "Australian Taxation Office - TFN",
+            "url": "https://www.ato.gov.au/individuals/tax-file-number"
+        },
+        {
+            "title": "Services Australia - Medicare",
+            "url": "https://www.servicesaustralia.gov.au/medicare"
+        }
+    ]'
+); 

@@ -25,6 +25,10 @@ export const handle: Handle = async ({ event, resolve }) => {
     }
   })
 
+  const { data: { session } } = await event.locals.supabase.auth.getSession();
+  event.locals.session = session;
+  event.locals.user = session?.user;
+
   /**
    * a little helper that is written for convenience so that instead
    * of calling `const { data: { session } } = await event.locals.supabase.auth.getSession()`
@@ -33,8 +37,12 @@ export const handle: Handle = async ({ event, resolve }) => {
   event.locals.getSession = async () => {
     const {
       data: { session }
-    } = await event.locals.supabase.auth.getSession()
-    return session
+    } = await event.locals.supabase.auth.getSession();
+    if (session) {
+      event.locals.user = session.user;
+      event.locals.session = session;
+    }
+    return session;
   }
 
   return resolve(event, {

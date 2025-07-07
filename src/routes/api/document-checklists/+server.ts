@@ -1,7 +1,7 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { supabase } from '$lib/supabaseClient';
-import { checkComprehensiveUsageLimit, incrementComprehensiveUsage } from '$lib/comprehensive-usage-limits';
+import { createClient } from '@supabase/supabase-js';
+import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
 
 export const GET: RequestHandler = async ({ url, locals }) => {
     try {
@@ -11,6 +11,15 @@ export const GET: RequestHandler = async ({ url, locals }) => {
         const category = url.searchParams.get('category');
         
         console.log(`Parameters: country=${country}, category=${category}, authenticated=${!!session?.user}`);
+        
+        // Create Supabase client with user's access token (if authenticated)
+        const supabase = createClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
+            global: {
+                headers: session?.access_token ? {
+                    Authorization: `Bearer ${session.access_token}`
+                } : {}
+            }
+        });
         
         // For non-authenticated users, show preview mode
         if (!session?.user) {
@@ -161,6 +170,15 @@ export const POST: RequestHandler = async ({ request, locals }) => {
             return json({ error: 'Authentication required' }, { status: 401 });
         }
 
+        // Create Supabase client with user's access token
+        const supabase = createClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
+            global: {
+                headers: {
+                    Authorization: `Bearer ${session.access_token}`
+                }
+            }
+        });
+
         const userId = session.user.id;
         const body = await request.json();
         const { action, checklistId, itemId, notes } = body;
@@ -175,19 +193,19 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
         switch (action) {
             case 'start_checklist':
-                return await startChecklist(userId, checklistId);
+                return await startChecklist(supabase, userId, checklistId);
                 
             case 'toggle_item':
                 if (!itemId) {
                     return json({ error: 'Item ID required for toggle action' }, { status: 400 });
                 }
-                return await toggleChecklistItem(userId, checklistId, itemId);
+                return await toggleChecklistItem(supabase, userId, checklistId, itemId);
                 
             case 'update_notes':
-                return await updateChecklistNotes(userId, checklistId, notes || '');
+                return await updateChecklistNotes(supabase, userId, checklistId, notes || '');
                 
             case 'reset_checklist':
-                return await resetChecklist(userId, checklistId);
+                return await resetChecklist(supabase, userId, checklistId);
                 
             default:
                 return json({ error: 'Invalid action' }, { status: 400 });
@@ -203,7 +221,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 };
 
 // Helper functions
-async function startChecklist(userId: string, checklistId: string) {
+async function startChecklist(supabase: any, userId: string, checklistId: string) {
     try {
         // First, verify the checklist exists
         const { data: checklist, error: checklistError } = await supabase
@@ -250,7 +268,7 @@ async function startChecklist(userId: string, checklistId: string) {
         }
 
         // Log analytics
-        await logChecklistAnalytics(userId, checklistId, 'started');
+        await logChecklistAnalytics(supabase, userId, checklistId, 'started');
 
         return json({ 
             success: true, 
@@ -266,7 +284,7 @@ async function startChecklist(userId: string, checklistId: string) {
     }
 }
 
-async function toggleChecklistItem(userId: string, checklistId: string, itemId: string) {
+async function toggleChecklistItem(supabase: any, userId: string, checklistId: string, itemId: string) {
     try {
         // Get current progress
         const { data: currentProgress, error: fetchError } = await supabase
@@ -282,7 +300,7 @@ async function toggleChecklistItem(userId: string, checklistId: string, itemId: 
             // If no progress record exists yet, create one
             if (fetchError.code === 'PGRST116') {
                 // First start the checklist
-                await startChecklist(userId, checklistId);
+                await startChecklist(supabase, userId, checklistId);
                 
                 // Then set the initial item as completed
                 const { data, error } = await supabase
@@ -302,7 +320,7 @@ async function toggleChecklistItem(userId: string, checklistId: string, itemId: 
                     return json({ error: 'Failed to update progress' }, { status: 500 });
                 }
                 
-                await logChecklistAnalytics(userId, checklistId, 'item_completed', itemId);
+                await logChecklistAnalytics(supabase, userId, checklistId, 'item_completed', itemId);
                 return json({ success: true, data });
             }
             
@@ -386,10 +404,10 @@ async function toggleChecklistItem(userId: string, checklistId: string, itemId: 
         }
 
         // Log analytics
-        await logChecklistAnalytics(userId, checklistId, 'item_completed', itemId);
+        await logChecklistAnalytics(supabase, userId, checklistId, 'item_completed', itemId);
         
         if (isCompleted) {
-            await logChecklistAnalytics(userId, checklistId, 'completed');
+            await logChecklistAnalytics(supabase, userId, checklistId, 'completed');
         }
 
         return json({ success: true, data });
@@ -402,7 +420,7 @@ async function toggleChecklistItem(userId: string, checklistId: string, itemId: 
     }
 }
 
-async function updateChecklistNotes(userId: string, checklistId: string, notes: string) {
+async function updateChecklistNotes(supabase: any, userId: string, checklistId: string, notes: string) {
     const { data, error } = await supabase
         .from('simple_checklist_progress')
         .update({
@@ -422,7 +440,7 @@ async function updateChecklistNotes(userId: string, checklistId: string, notes: 
     return json({ success: true, data });
 }
 
-async function resetChecklist(userId: string, checklistId: string) {
+async function resetChecklist(supabase: any, userId: string, checklistId: string) {
     const { data, error } = await supabase
         .from('simple_checklist_progress')
         .update({
@@ -442,12 +460,12 @@ async function resetChecklist(userId: string, checklistId: string) {
     }
 
     // Log analytics
-    await logChecklistAnalytics(userId, checklistId, 'reset');
+    await logChecklistAnalytics(supabase, userId, checklistId, 'reset');
 
     return json({ success: true, data });
 }
 
-async function logChecklistAnalytics(userId: string, checklistId: string, action: string, itemId?: string) {
+async function logChecklistAnalytics(supabase: any, userId: string, checklistId: string, action: string, itemId?: string) {
     try {
         await supabase
             .from('checklist_analytics')

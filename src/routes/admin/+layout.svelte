@@ -168,13 +168,18 @@
             </a>
           {/if}
           
+          {#if permissions.canManageContent}
+            <a href="/admin/test-prep" class="flex items-center px-4 py-2 hover:bg-gray-700 {$page.url.pathname.startsWith('/admin/test-prep') ? 'bg-gray-700' : ''}">
+              <span class="mr-2">📝</span>
+              <span>Test Prep CMS</span>
+            </a>
+          {/if}
+          
           {#if permissions.canManageAdmins}
             <a href="/admin/settings" class="flex items-center px-4 py-2 hover:bg-gray-700 {$page.url.pathname === '/admin/settings' ? 'bg-gray-700' : ''}">
               <span class="mr-2">⚙️</span>
               <span>Settings</span>
             </a>
-            
-
           {/if}
         </nav>
       </div>
