@@ -308,6 +308,18 @@
             </svg>
             <span class="text-gray-700"><strong>Email Notifications:</strong> Weekly scholarship digest - delivered every week with new opportunities!</span>
           </li>
+          <li class="flex items-start">
+            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+            </svg>
+            <span class="text-gray-700"><strong>IELTS Test Prep:</strong> FREE - Full access to all practice tests (Reading, Listening, Writing, Speaking)</span>
+          </li>
+          <li class="flex items-start">
+            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+            </svg>
+            <span class="text-gray-700"><strong>Document Checklists:</strong> FREE - Complete application tracking and deadline management</span>
+          </li>
         </ul>
 
         <button 
@@ -416,6 +428,20 @@
               <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
             </svg>
             <span class="text-gray-700"><strong>Visa Interview Simulator:</strong> 50 questions/session</span>
+          </li>
+
+          <li class="flex items-start">
+            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+            </svg>
+            <span class="text-gray-700"><strong>IELTS Test Prep:</strong> FREE - Full access + Future: AI feedback & analytics</span>
+          </li>
+
+          <li class="flex items-start">
+            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+            </svg>
+            <span class="text-gray-700"><strong>Document Checklists:</strong> FREE - Full access + Future: AI-powered insights & custom automations</span>
           </li>
 
           <li class="flex items-start">
@@ -533,6 +559,20 @@
               <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
             </svg>
             <span class="text-gray-700"><strong>Visa Interview Simulator:</strong> 80+ questions/session</span>
+          </li>
+
+          <li class="flex items-start">
+            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+            </svg>
+            <span class="text-gray-700"><strong>IELTS Test Prep:</strong> FREE - Full access + Future: Premium AI feedback & detailed analytics</span>
+          </li>
+
+          <li class="flex items-start">
+            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+            </svg>
+            <span class="text-gray-700"><strong>Document Checklists:</strong> FREE - Full access + Future: AI-powered insights & custom automations</span>
           </li>
 
           <li class="flex items-start">
@@ -696,15 +736,27 @@
               </tr>
               <tr class="bg-gray-50">
                 <td class="px-6 py-4 text-sm text-gray-900 font-medium">Scholarship Access</td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600">✅ Free Access</td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>✅ Free Access + Personalized</strong></td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>✅ Priority Access + Custom Alerts</strong></td>
+                <td class="px-6 py-4 text-sm text-center text-gray-600"> Free Access</td>
+                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong> Free Access + Personalized</strong></td>
+                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong> Priority Access + Custom Alerts</strong></td>
               </tr>
               <tr>
                 <td class="px-6 py-4 text-sm text-gray-900 font-medium">Email Notifications</td>
                 <td class="px-6 py-4 text-sm text-center text-gray-600">Weekly scholarship digest only</td>
                 <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>Application deadline reminders + Daily/Weekly scholarships + Account alerts</strong></td>
                 <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>All Premium + Instant deadline alerts (≤3 days) + Priority delivery</strong></td>
+              </tr>
+              <tr class="bg-gray-50">
+                <td class="px-6 py-4 text-sm text-gray-900 font-medium">IELTS Test Prep</td>
+                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>FREE - Full access to practice tests</strong></td>
+                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>FREE - Full access + Future: AI feedback & analytics</strong></td>
+                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>FREE - Full access + Future: Premium AI feedback & detailed analytics</strong></td>
+              </tr>
+              <tr>
+                <td class="px-6 py-4 text-sm text-gray-900 font-medium">Document Checklists</td>
+                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>FREE - Complete application tracking</strong></td>
+                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>FREE - Full access + Future: Smart notifications & progress tracking</strong></td>
+                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>FREE - Full access + Future: AI-powered insights & custom automations</strong></td>
               </tr>
             </tbody>
           </table>

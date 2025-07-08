@@ -1,6 +1,7 @@
 <script lang="ts">
     import { goto } from '$app/navigation';
     import { tick } from 'svelte';
+    import ConfirmModal from './ConfirmModal.svelte';
 
     interface JobApplication {
         id: string;
@@ -36,6 +37,9 @@
         }
     ];
 
+    let showDeleteModal = false;
+    let jobToDelete: JobApplication | null = null;
+
     function toggleExpand(id: string) {
         jobApplications = jobApplications.map(job =>
             job.id === id ? { ...job, expanded: !job.expanded } : job
@@ -57,9 +61,22 @@
     }
 
     function deleteJob(id: string) {
-        if (confirm('Are you sure you want to delete this job application?')) {
-            jobApplications = jobApplications.filter(job => job.id !== id);
+        const job = jobApplications.find(j => j.id === id);
+        if (job) {
+            jobToDelete = job;
+            showDeleteModal = true;
         }
+    }
+
+    function confirmDelete() {
+        if (jobToDelete) {
+            jobApplications = jobApplications.filter(job => job.id !== jobToDelete?.id);
+            jobToDelete = null;
+        }
+    }
+
+    function cancelDelete() {
+        jobToDelete = null;
     }
 </script>
 
@@ -94,6 +111,19 @@
         Create New Job
     </button>
 </div>
+
+<!-- Delete Confirmation Modal -->
+<ConfirmModal
+  bind:show={showDeleteModal}
+  title="Delete Job Application"
+  message="Are you sure you want to delete the application for '{jobToDelete?.title}' at {jobToDelete?.company}? This action cannot be undone."
+  confirmText="Delete"
+  cancelText="Cancel"
+  icon="danger"
+  confirmClass="bg-red-600 hover:bg-red-700"
+  on:confirm={confirmDelete}
+  on:cancel={cancelDelete}
+/>
 
 <style lang="postcss">
     .your-jobs-section {

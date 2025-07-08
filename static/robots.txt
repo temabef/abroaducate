@@ -1,0 +1,41 @@
+User-agent: *
+Allow: /
+
+# Allow all search engines to crawl the site
+# But disallow certain admin and private areas
+Disallow: /admin/
+Disallow: /api/
+Disallow: /auth/
+Disallow: /debug/
+Disallow: /test-*
+Disallow: /subscription/
+Disallow: /billing/
+Disallow: /account/preferences
+Disallow: /newsletter/unsubscribe
+
+# Allow specific important API endpoints for functionality
+Allow: /api/universities/fetch
+Allow: /api/universities/fetch-uk
+
+# Important pages for SEO
+Allow: /
+Allow: /pricing
+Allow: /universities
+Allow: /scholarships
+Allow: /sop
+Allow: /cover-letters
+Allow: /personal-statements
+Allow: /academic-cv
+Allow: /academic-analyzer
+Allow: /document-checklists
+Allow: /practice/ielts/reading
+Allow: /gpa-converter
+Allow: /visa-interview-practice
+Allow: /privacy
+Allow: /terms
+
+# Sitemap location
+Sitemap: https://abroaducate.com/sitemap.xml
+
+# Crawl-delay to be respectful to server resources
+Crawl-delay: 1 

@@ -404,8 +404,8 @@
 
             <!-- Sort Options -->
             <div class="flex items-center space-x-4">
-              <label class="text-sm font-medium text-gray-700">Sort by:</label>
-              <select bind:value={sortBy} onchange={() => updateStatsAndFilter()} class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+              <label for="sort-by" class="text-sm font-medium text-gray-700">Sort by:</label>
+              <select id="sort-by" bind:value={sortBy} onchange={() => updateStatsAndFilter()} class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
                 <option value="deadline">Deadline</option>
                 <option value="urgency">Urgency</option>
                 <option value="status">Status</option>
@@ -521,7 +521,7 @@
           <div class="p-6 border-b border-gray-200">
             <div class="flex items-center justify-between">
               <h2 class="text-2xl font-bold text-gray-900">{selectedApplication.title}</h2>
-              <button onclick={closeApplicationDetail} class="text-gray-400 hover:text-gray-600">
+              <button onclick={closeApplicationDetail} class="text-gray-400 hover:text-gray-600" aria-label="Close application details">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>

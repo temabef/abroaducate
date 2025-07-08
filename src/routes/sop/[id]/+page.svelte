@@ -7,6 +7,7 @@
     import WordCountOptimizer from '$lib/components/WordCountOptimizer.svelte';
     import AIFeatureWidget from '$lib/components/AIFeatureWidget.svelte';
     import VersionHistoryIndicator from '$lib/components/VersionHistoryIndicator.svelte';
+    import ConfirmModal from '$lib/components/ConfirmModal.svelte';
     import { 
         createVersionSnapshot as createVersionSnapshotWithLimits,
         getVersionHistory,
@@ -90,6 +91,10 @@
     let showSaveToast = false;
     let versionSkipMessage = '';
     let showVersionSkipToast = false;
+    
+    // Confirm modal state
+    let showRestoreModal = false;
+    let versionToRestore: any = null;
     
     onMount(async () => {
         sopId = $page.params.id;
@@ -400,13 +405,23 @@
     async function restoreVersion(version: any) {
         if (!sop) return;
         
-        if (confirm('Are you sure you want to restore this version? Current changes will be lost.')) {
-            content = version.content;
-            sop.content = content;
-            sop.word_count = content.split(/\s+/).filter((w: string) => w.length > 0).length;
-            showVersionHistory = false;
-            await saveSOP();
-        }
+        versionToRestore = version;
+        showRestoreModal = true;
+    }
+
+    async function confirmRestore() {
+        if (!sop || !versionToRestore) return;
+        
+        content = versionToRestore.content;
+        sop.content = content;
+        sop.word_count = content.split(/\s+/).filter((w: string) => w.length > 0).length;
+        showVersionHistory = false;
+        versionToRestore = null;
+        await saveSOP();
+    }
+
+    function cancelRestore() {
+        versionToRestore = null;
     }
     
     async function recordEdit(originalText: string, editedText: string, editType: string) {
@@ -1074,6 +1089,19 @@
     <span>SOP copied to clipboard!</span>
   </div>
 {/if}
+
+<!-- Version Restore Confirmation Modal -->
+<ConfirmModal
+  bind:show={showRestoreModal}
+  title="Restore Version"
+  message="Are you sure you want to restore this version? All current unsaved changes will be lost and cannot be recovered."
+  confirmText="Restore Version"
+  cancelText="Keep Current"
+  icon="warning"
+  confirmClass="bg-orange-600 hover:bg-orange-700"
+  on:confirm={confirmRestore}
+  on:cancel={cancelRestore}
+/>
 
 <style>
   /* Placeholder styling for contenteditable */

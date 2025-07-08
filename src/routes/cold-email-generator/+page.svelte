@@ -133,8 +133,8 @@
               
               <div class="grid md:grid-cols-2 gap-4">
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">Title</label>
-                  <select bind:value={formData.professorTitle} class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                  <label for="professor-title" class="block text-sm font-medium text-gray-700 mb-2">Title</label>
+                  <select id="professor-title" bind:value={formData.professorTitle} class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     <option value="Dr.">Dr.</option>
                     <option value="Prof.">Prof.</option>
                     <option value="Professor">Professor</option>
@@ -144,8 +144,9 @@
                 </div>
                 
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">Professor Name *</label>
+                  <label for="professor-name" class="block text-sm font-medium text-gray-700 mb-2">Professor Name *</label>
                   <input
+                    id="professor-name"
                     type="text"
                     bind:value={formData.professorName}
                     placeholder="e.g., John Smith"
@@ -157,8 +158,9 @@
 
               <div class="grid md:grid-cols-2 gap-4">
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">University</label>
+                  <label for="university" class="block text-sm font-medium text-gray-700 mb-2">University</label>
                   <input
+                    id="university"
                     type="text"
                     bind:value={formData.university}
                     placeholder="e.g., Stanford University"
@@ -167,8 +169,9 @@
                 </div>
                 
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">Department</label>
+                  <label for="department" class="block text-sm font-medium text-gray-700 mb-2">Department</label>
                   <input
+                    id="department"
                     type="text"
                     bind:value={formData.department}
                     placeholder="e.g., Computer Science"
@@ -178,8 +181,9 @@
               </div>
 
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Professor's Research Interests *</label>
+                <label for="professor-research" class="block text-sm font-medium text-gray-700 mb-2">Professor's Research Interests *</label>
                 <textarea
+                  id="professor-research"
                   bind:value={formData.professorResearch}
                   placeholder="e.g., Machine Learning, Natural Language Processing, Computer Vision, Deep Learning..."
                   rows="3"
@@ -196,8 +200,9 @@
               
               <div class="grid md:grid-cols-2 gap-4">
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">Your Name *</label>
+                  <label for="student-name" class="block text-sm font-medium text-gray-700 mb-2">Your Name *</label>
                   <input
+                    id="student-name"
                     type="text"
                     bind:value={formData.studentName}
                     placeholder="e.g., Jane Doe"
@@ -207,8 +212,9 @@
                 </div>
                 
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">Program/Background</label>
+                  <label for="student-program" class="block text-sm font-medium text-gray-700 mb-2">Program/Background</label>
                   <input
+                    id="student-program"
                     type="text"
                     bind:value={formData.studentProgram}
                     placeholder="e.g., MS Computer Science, PhD candidate"
@@ -218,8 +224,9 @@
               </div>
 
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Your Research Interests *</label>
+                <label for="student-research" class="block text-sm font-medium text-gray-700 mb-2">Your Research Interests *</label>
                 <textarea
+                  id="student-research"
                   bind:value={formData.studentResearch}
                   placeholder="e.g., I'm interested in applying deep learning to healthcare, specifically in medical image analysis and diagnostic AI systems..."
                   rows="3"
@@ -235,8 +242,8 @@
               <h3 class="text-lg font-semibold text-gray-800 border-b pb-2">Email Settings</h3>
               
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Email Tone</label>
-                <select bind:value={formData.emailTone} class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <label for="email-tone" class="block text-sm font-medium text-gray-700 mb-2">Email Tone</label>
+                <select id="email-tone" bind:value={formData.emailTone} class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                   <option value="formal">Formal & Professional</option>
                   <option value="semi-formal">Semi-formal & Approachable</option>
                   <option value="enthusiastic">Enthusiastic & Passionate</option>
@@ -244,8 +251,9 @@
               </div>
 
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Additional Information</label>
+                <label for="additional-info" class="block text-sm font-medium text-gray-700 mb-2">Additional Information</label>
                 <textarea
+                  id="additional-info"
                   bind:value={formData.additionalInfo}
                   placeholder="Any specific achievements, publications, projects, or reasons for reaching out..."
                   rows="2"
@@ -293,16 +301,16 @@
                 <div class="p-4 space-y-4">
                   <!-- Subject Line -->
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Subject:</label>
-                    <div class="bg-blue-50 px-3 py-2 rounded border border-blue-200">
+                    <label for="email-subject" class="block text-sm font-medium text-gray-700 mb-1">Subject:</label>
+                    <div id="email-subject" class="bg-blue-50 px-3 py-2 rounded border border-blue-200">
                       <span class="text-blue-900 font-medium">{generatedEmail.subject}</span>
                     </div>
                   </div>
 
                   <!-- Email Body -->
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Email Body:</label>
-                    <div class="bg-gray-50 p-4 rounded border border-gray-200 whitespace-pre-line font-mono text-sm">
+                    <label for="email-body" class="block text-sm font-medium text-gray-700 mb-1">Email Body:</label>
+                    <div id="email-body" class="bg-gray-50 p-4 rounded border border-gray-200 whitespace-pre-line font-mono text-sm">
                       {generatedEmail.body}
                     </div>
                   </div>

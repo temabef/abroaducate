@@ -17,15 +17,22 @@ interface SettingsUpdate {
   default_from_name?: string;
 }
 
-// Check admin authorization
-async function checkAdminAccess(userId: string): Promise<boolean> {
-  const { data: userSub } = await supabase
-    .from('user_subscriptions')
-    .select('plan_type')
-    .eq('user_id', userId)
-    .single();
-  
-  return userSub?.plan_type === 'admin';
+// Check admin authorization using the same system as admin layout
+async function checkAdminAccess(supabaseClient: any): Promise<boolean> {
+  try {
+    // Check if user can manage content (newsletter is content management)
+    const { data: canManageContent, error } = await supabaseClient.rpc('can_manage_content');
+    
+    if (error) {
+      console.error('Error checking admin access:', error);
+      return false;
+    }
+    
+    return !!canManageContent;
+  } catch (error) {
+    console.error('Error in admin access check:', error);
+    return false;
+  }
 }
 
 // Get a specific setting value
@@ -63,7 +70,7 @@ export const GET: RequestHandler = async ({ url, locals }) => {
       return json({ error: 'Authentication required' }, { status: 401 });
     }
 
-    const isAdmin = await checkAdminAccess(session.user.id);
+    const isAdmin = await checkAdminAccess(locals.supabase);
     if (!isAdmin) {
       return json({ error: 'Admin access required' }, { status: 403 });
     }
@@ -143,7 +150,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
       return json({ error: 'Authentication required' }, { status: 401 });
     }
 
-    const isAdmin = await checkAdminAccess(session.user.id);
+    const isAdmin = await checkAdminAccess(locals.supabase);
     if (!isAdmin) {
       return json({ error: 'Admin access required' }, { status: 403 });
     }
@@ -251,7 +258,7 @@ export const PUT: RequestHandler = async ({ request, locals }) => {
       return json({ error: 'Authentication required' }, { status: 401 });
     }
 
-    const isAdmin = await checkAdminAccess(session.user.id);
+    const isAdmin = await checkAdminAccess(locals.supabase);
     if (!isAdmin) {
       return json({ error: 'Admin access required' }, { status: 403 });
     }

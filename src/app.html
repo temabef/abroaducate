@@ -4,6 +4,56 @@
 		<meta charset="utf-8" />
 		<link rel="icon" href="%sveltekit.assets%/favicon.png" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		
+		<!-- Basic SEO Meta Tags -->
+		<meta name="robots" content="index, follow" />
+		<meta name="author" content="Abroaducate" />
+		<meta name="theme-color" content="#3B82F6" />
+		
+		<!-- Open Graph Meta Tags for Social Media -->
+		<meta property="og:site_name" content="Abroaducate" />
+		<meta property="og:type" content="website" />
+		<meta property="og:locale" content="en_US" />
+		
+		<!-- Twitter Card Meta Tags -->
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:site" content="@abroaducate" />
+		<meta name="twitter:creator" content="@abroaducate" />
+		
+		<!-- Preconnect to external domains for performance -->
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		
+		<!-- Structured Data for Organization -->
+		<script type="application/ld+json">
+		{
+			"@context": "https://schema.org",
+			"@type": "Organization",
+			"name": "Abroaducate",
+			"description": "AI-powered academic application platform helping students worldwide achieve their study abroad dreams",
+			"url": "https://abroaducate.com",
+			"logo": "https://abroaducate.com/favicon.png",
+			"sameAs": [
+				"https://twitter.com/abroaducate",
+				"https://linkedin.com/company/abroaducate"
+			],
+			"contactPoint": {
+				"@type": "ContactPoint",
+				"email": "support@abroaducate.com",
+				"contactType": "Customer Support"
+			},
+			"foundingDate": "2024",
+			"knowsAbout": [
+				"Statement of Purpose Writing",
+				"University Applications",
+				"Scholarship Search",
+				"Academic Document Creation",
+				"IELTS Test Preparation",
+				"Study Abroad Guidance"
+			]
+		}
+		</script>
+		
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="hover">

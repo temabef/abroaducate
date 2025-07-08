@@ -84,8 +84,8 @@
         </div>
 
         <div class="form-group">
-          <label>What would you like to unsubscribe from?</label>
-          <div class="radio-group">
+          <label for="unsubscribe-options">What would you like to unsubscribe from?</label>
+          <div id="unsubscribe-options" class="radio-group" role="radiogroup" aria-labelledby="unsubscribe-options">
             <label class="radio-option">
               <input
                 type="radio"
@@ -140,7 +140,7 @@
         <ul>
           <li>
             <strong>🎓 Create a free account</strong> - Get personalized scholarship recommendations
-            <a href="/subscribe" class="cta-link">Sign up here</a>
+            <a href="/?signup=true" class="cta-link">Sign up here</a>
           </li>
           <li>
             <strong>📅 Change frequency</strong> - Receive emails less often (account required)
@@ -159,7 +159,7 @@
         
         <div class="success-actions">
           <p>Changed your mind? You can always:</p>
-          <a href="/subscribe" class="resubscribe-btn">Create a Free Account</a>
+          <a href="/?signup=true" class="resubscribe-btn">Create a Free Account</a>
           <a href="/" class="home-btn">Return to Home</a>
         </div>
       </div>

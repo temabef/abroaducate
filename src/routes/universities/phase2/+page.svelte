@@ -269,10 +269,10 @@
       <!-- Form Controls Grid -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div class="form-control w-full">
-          <label class="label">
+          <label for="country-selector" class="label">
             <span class="label-text font-medium">Country</span>
           </label>
-          <select bind:value={selectedSource} class="select select-bordered w-full">
+          <select id="country-selector" bind:value={selectedSource} class="select select-bordered w-full">
             <option value="us">🇺🇸 United States (7,000+ available)</option>
             <option value="uk">🇬🇧 United Kingdom (116 available)</option>
             <option value="australia">🇦🇺 Australia (48 available)</option>
@@ -286,10 +286,10 @@
         </div>
 
         <div class="form-control w-full">
-          <label class="label">
+          <label for="university-type" class="label">
             <span class="label-text font-medium">University Type</span>
           </label>
-          <select bind:value={selectedType} class="select select-bordered w-full">
+          <select id="university-type" bind:value={selectedType} class="select select-bordered w-full">
             <option value="all">All Universities</option>
             <option value="top">Top Universities (Most Selective)</option>
             <option value="state">State Universities</option>
@@ -300,10 +300,10 @@
 
         {#if selectedSource === 'us'}
           <div class="form-control w-full">
-            <label class="label">
+            <label for="us-state-filter" class="label">
               <span class="label-text font-medium">US State Filter (Optional)</span>
             </label>
-            <select bind:value={selectedState} class="select select-bordered w-full">
+            <select id="us-state-filter" bind:value={selectedState} class="select select-bordered w-full">
               <option value="">All States</option>
               {#each US_STATES as state}
                 <option value={state}>{state}</option>
@@ -312,10 +312,10 @@
           </div>
         {:else if selectedSource === 'australia'}
           <div class="form-control w-full">
-            <label class="label">
+            <label for="au-state-filter" class="label">
               <span class="label-text font-medium">Australian State Filter (Optional)</span>
             </label>
-            <select bind:value={selectedState} class="select select-bordered w-full">
+            <select id="au-state-filter" bind:value={selectedState} class="select select-bordered w-full">
               <option value="">All States</option>
               <option value="New South Wales">New South Wales</option>
               <option value="Victoria">Victoria</option>
@@ -329,10 +329,10 @@
           </div>
         {:else if selectedSource === 'canada'}
           <div class="form-control w-full">
-            <label class="label">
+            <label for="ca-province-filter" class="label">
               <span class="label-text font-medium">Canadian Province Filter (Optional)</span>
             </label>
-            <select bind:value={selectedState} class="select select-bordered w-full">
+            <select id="ca-province-filter" bind:value={selectedState} class="select select-bordered w-full">
               <option value="">All Provinces</option>
               <option value="Ontario">Ontario</option>
               <option value="Quebec">Quebec</option>
@@ -348,10 +348,10 @@
           </div>
         {:else if selectedSource === 'germany'}
           <div class="form-control w-full">
-            <label class="label">
+            <label for="de-state-filter" class="label">
               <span class="label-text font-medium">German State Filter (Optional)</span>
             </label>
-            <select bind:value={selectedState} class="select select-bordered w-full">
+            <select id="de-state-filter" bind:value={selectedState} class="select select-bordered w-full">
               <option value="">All States</option>
               <option value="Bavaria">Bavaria (Bayern)</option>
               <option value="Baden-Württemberg">Baden-Württemberg</option>
@@ -373,10 +373,10 @@
           </div>
         {:else if selectedSource === 'netherlands'}
           <div class="form-control w-full">
-            <label class="label">
+            <label for="nl-province-filter" class="label">
               <span class="label-text font-medium">Dutch Province Filter (Optional)</span>
             </label>
-            <select bind:value={selectedState} class="select select-bordered w-full">
+            <select id="nl-province-filter" bind:value={selectedState} class="select select-bordered w-full">
               <option value="">All Provinces</option>
               <option value="North Holland">North Holland (Amsterdam)</option>
               <option value="South Holland">South Holland (Rotterdam, The Hague)</option>
@@ -394,17 +394,17 @@
           </div>
         {:else}
           <div class="form-control w-full">
-            <label class="label">
+            <label for="region-filter" class="label">
               <span class="label-text font-medium">Region Filter</span>
             </label>
-            <select class="select select-bordered w-full" disabled>
+            <select id="region-filter" class="select select-bordered w-full" disabled>
               <option>Not applicable for {selectedSource.toUpperCase()}</option>
             </select>
           </div>
         {/if}
 
         <div class="form-control w-full">
-          <label class="label">
+          <label for="university-limit" class="label">
             <span class="label-text font-medium">
               Limit 
               {#if enhancedMode}
@@ -415,6 +415,7 @@
             </span>
           </label>
           <input 
+            id="university-limit"
             type="number" 
             bind:value={limit} 
             min="10" 

@@ -173,7 +173,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
               </svg>
             </div>
-            <h3 class="text-lg font-semibold text-gray-900 mb-2">Submit Apps</h3>
+            <h3 class="text-lg font-semibold text-gray-900">Submit Apps</h3>
             <p class="text-sm text-gray-600 mb-3">Manage deadlines & track progress</p>
             <ul class="text-xs text-gray-500 space-y-1">
               <li>• Application Dashboard</li>
@@ -189,7 +189,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
               </svg>
             </div>
-            <h3 class="text-lg font-semibold text-gray-900 mb-2">Next Steps</h3>
+            <h3 class="text-lg font-semibold text-gray-900">Next Steps</h3>
             <p class="text-sm text-gray-600 mb-3">Prepare for acceptance & beyond</p>
             <ul class="text-xs text-gray-500 space-y-1">
               <li>• Visa Interview Prep</li>
@@ -576,7 +576,7 @@
       <div class="bg-white rounded-2xl p-8 shadow-lg border border-gray-200 mb-16">
         <div class="text-center mb-8">
           <h3 class="text-3xl font-bold text-gray-900 mb-4">What We've Built</h3>
-          <p class="text-lg text-gray-600">A comprehensive platform that's 95%+ feature-complete and ready to support your entire academic journey</p>
+          <p class="text-lg text-gray-600">A comprehensive platform that's ready to support your entire academic journey</p>
         </div>
 
         <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
@@ -596,7 +596,7 @@
             <div class="text-xs text-gray-500">Review, enhance, optimize</div>
           </div>
           <div class="text-center p-4 bg-purple-50 rounded-xl border border-purple-200">
-            <div class="text-3xl font-bold text-purple-600 mb-2">25+</div>
+            <div class="text-3xl font-bold text-purple-600 mb-2">80+</div>
             <div class="text-sm text-gray-700 font-medium">Visa Questions</div>
             <div class="text-xs text-gray-500">F-1 interview practice</div>
           </div>
@@ -710,7 +710,7 @@
                 Try Free Today
               </button>
             {/if}
-            <a href="#" class="border-2 border-blue-600 text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-blue-600 hover:text-white transition duration-300">
+            <a href="/contact" class="border-2 border-blue-600 text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-blue-600 hover:text-white transition duration-300">
               Contact Support
             </a>
           </div>
@@ -756,44 +756,88 @@
       <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
         <div>
           <h3 class="text-xl font-bold mb-4">Abroaducate</h3>
-          <p class="text-gray-400">
+          <p class="text-gray-400 mb-4">
             Your complete academic application platform powered by AI
           </p>
+          <div class="flex space-x-4">
+            <a href="mailto:support@abroaducate.com" class="text-gray-400 hover:text-white transition-colors">
+              <span class="sr-only">Email</span>
+              <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M1.5 8.67v8.58a3 3 0 003 3h15a3 3 0 003-3V8.67l-8.928 5.493a3 3 0 01-3.144 0L1.5 8.67z"/>
+                <path d="M22.5 6.908V6.75a3 3 0 00-3-3h-15a3 3 0 00-3 3v.158l9.714 5.978a1.5 1.5 0 001.572 0L22.5 6.908z"/>
+              </svg>
+            </a>
+          </div>
         </div>
         
         <div>
-          <h4 class="font-semibold mb-4">Features</h4>
+          <h4 class="font-semibold mb-4">Platform</h4>
           <ul class="space-y-2 text-gray-400">
-            <li><a href="/sop" class="hover:text-white transition duration-300">SOP Generator</a></li>
-            <li><a href="/cover-letters" class="hover:text-white transition duration-300">Cover Letters</a></li>
+            <li><a href="/sop" class="hover:text-white transition duration-300">SOP Generator</a></li>    
+            <li><a href="/universities" class="hover:text-white transition duration-300">University Search</a></li>
             <li><a href="/scholarships" class="hover:text-white transition duration-300">Scholarships</a></li>
+            <li><a href="/practice/ielts/reading" class="hover:text-white transition duration-300">IELTS Practice</a></li>
+            <li><a href="/academic-cv" class="hover:text-white transition duration-300">Academic CV</a></li>
+            <li class="text-gray-500 text-sm italic">... and more</li>
+          </ul>
+        </div>
+        
+        <div>
+          <h4 class="font-semibold mb-4">Tools & Support</h4>
+          <ul class="space-y-2 text-gray-400">
+            <li><a href="/gpa-converter" class="hover:text-white transition duration-300">GPA Converter</a></li>
+            <li><a href="/visa-interview-practice" class="hover:text-white transition duration-300">Visa Interview</a></li>
+            <li><a href="/pricing" class="hover:text-white transition duration-300">Pricing</a></li>
+            <li><a href="/contact" class="hover:text-white transition duration-300">Contact Support</a></li>
             <li><a href="/dashboard" class="hover:text-white transition duration-300">Dashboard</a></li>
           </ul>
         </div>
         
         <div>
-          <h4 class="font-semibold mb-4">Support</h4>
+          <h4 class="font-semibold mb-4">Legal & Connect</h4>
           <ul class="space-y-2 text-gray-400">
-            <li><a href="/pricing" class="hover:text-white transition duration-300">Pricing</a></li>
-            <li><a href="#" class="hover:text-white transition duration-300">Help Center</a></li>
-            <li><a href="#" class="hover:text-white transition duration-300">Contact Us</a></li>
-            <li><a href="#" class="hover:text-white transition duration-300">Blog</a></li>
-          </ul>
-        </div>
-        
-        <div>
-          <h4 class="font-semibold mb-4">Connect</h4>
-          <ul class="space-y-2 text-gray-400">
-            <li><a href="#" class="hover:text-white transition duration-300">Twitter</a></li>
-            <li><a href="#" class="hover:text-white transition duration-300">LinkedIn</a></li>
-            <li><a href="#" class="hover:text-white transition duration-300">Facebook</a></li>
-            <li><a href="#" class="hover:text-white transition duration-300">Instagram</a></li>
+            <li><a href="/privacy" class="hover:text-white transition duration-300 font-medium">Privacy Policy</a></li>
+            <li><a href="/terms" class="hover:text-white transition duration-300 font-medium">Terms of Service</a></li>
+            <li><a href="/cookies" class="hover:text-white transition duration-300 font-medium">Cookie Policy</a></li>
+            <li class="pt-2">
+              <div class="flex space-x-3">
+                <a href="#" class="text-gray-400 hover:text-white transition duration-300" title="Twitter">
+                  <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
+                  </svg>
+                </a>
+                <a href="#" class="text-gray-400 hover:text-white transition duration-300" title="LinkedIn">
+                  <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                  </svg>
+                </a>
+              </div>
+            </li>
           </ul>
         </div>
       </div>
       
-      <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-        <p>&copy; 2025 Abroaducate. All rights reserved.</p>
+      <!-- Legal Disclaimer -->
+      <div class="mt-8 p-4 bg-gray-800 rounded-lg">
+        <p class="text-gray-400 text-xs leading-relaxed">
+          <strong>Disclaimer:</strong> Abroaducate provides AI-powered tools to help you create better application documents. 
+          While our platform assists with structure and content improvement, you are responsible for ensuring all information 
+          is accurate and truthful. We do not guarantee admission to any institution or scholarship award. Please review 
+          your target institution's policies regarding AI assistance in applications.
+        </p>
+      </div>
+      
+      <div class="border-t border-gray-800 mt-6 pt-8">
+        <div class="flex flex-col md:flex-row justify-between items-center">
+          <p class="text-gray-400 text-sm">
+            &copy; {new Date().getFullYear()} Abroaducate. All rights reserved.
+          </p>
+          <div class="flex items-center space-x-6 mt-4 md:mt-0">
+            <span class="text-gray-400 text-sm">
+              Made with ❤️ for students worldwide
+            </span>
+          </div>
+        </div>
       </div>
     </div>
   </footer>

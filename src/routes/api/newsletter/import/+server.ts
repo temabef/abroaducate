@@ -48,15 +48,22 @@ function cleanEmail(email: string): string {
   return email.trim().toLowerCase();
 }
 
-// Check admin authorization
-async function checkAdminAccess(userId: string): Promise<boolean> {
-  const { data: userSub } = await supabase
-    .from('user_subscriptions')
-    .select('plan_type')
-    .eq('user_id', userId)
-    .single();
-  
-  return userSub?.plan_type === 'admin';
+// Check admin authorization using the same system as admin layout
+async function checkAdminAccess(supabaseClient: any): Promise<boolean> {
+  try {
+    // Check if user can manage content (newsletter is content management)
+    const { data: canManageContent, error } = await supabaseClient.rpc('can_manage_content');
+    
+    if (error) {
+      console.error('Error checking admin access:', error);
+      return false;
+    }
+    
+    return !!canManageContent;
+  } catch (error) {
+    console.error('Error in admin access check:', error);
+    return false;
+  }
 }
 
 export const POST: RequestHandler = async ({ request, locals }) => {
@@ -69,7 +76,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     }
 
     // Admin access check
-    const isAdmin = await checkAdminAccess(session.user.id);
+    const isAdmin = await checkAdminAccess(locals.supabase);
     if (!isAdmin) {
       return json({ error: 'Admin access required' }, { status: 403 });
     }
@@ -109,7 +116,10 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     const batchSize = 100;
     const validEmails: Array<{email: string, source: string}> = [];
     
-    // Step 1: Validate and clean emails
+    // Step 1: Validate and clean emails, removing duplicates within the batch
+    const emailSet = new Set<string>();
+    const duplicatesInBatch = new Set<string>();
+    
     for (const emailRaw of emails) {
       if (typeof emailRaw !== 'string') {
         result.invalid++;
@@ -118,6 +128,13 @@ export const POST: RequestHandler = async ({ request, locals }) => {
       }
 
       const email = cleanEmail(emailRaw);
+      
+      // Check for duplicates within this batch
+      if (emailSet.has(email)) {
+        duplicatesInBatch.add(email);
+        result.duplicates++;
+        continue;
+      }
       
       // Validate email format
       if (validateEmails && !isValidEmail(email)) {
@@ -135,7 +152,12 @@ export const POST: RequestHandler = async ({ request, locals }) => {
         continue;
       }
 
+      emailSet.add(email);
       validEmails.push({ email, source: source.trim() });
+    }
+
+    if (duplicatesInBatch.size > 0) {
+      console.log(`🔄 Removed ${duplicatesInBatch.size} duplicate emails within the batch`);
     }
 
     console.log(`✅ Validated ${validEmails.length} emails out of ${emails.length}`);
@@ -183,25 +205,35 @@ export const POST: RequestHandler = async ({ request, locals }) => {
       for (let i = 0; i < newSubscribers.length; i += batchSize) {
         const batch = newSubscribers.slice(i, i + batchSize);
         
+        // Use upsert to handle any remaining duplicates gracefully
         const { data, error } = await supabase
           .from('newsletter_subscribers')
-          .insert(
+          .upsert(
             batch.map(emailData => ({
               email: emailData.email,
               source: emailData.source,
               scholarship_digest: true,
               weekly_updates: true,
-              status: 'active'
-            }))
+              status: 'active',
+              subscribed_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            })),
+            { 
+              onConflict: 'email',
+              ignoreDuplicates: false // Update existing records
+            }
           )
           .select('id');
 
         if (error) {
-          console.error(`❌ Error inserting batch ${i}-${i + batch.length}:`, error);
-          result.errors.push(`Batch insert error: ${error.message}`);
+          console.error(`❌ Error upserting batch ${i}-${i + batch.length}:`, error);
+          result.errors.push(`Batch upsert error: ${error.message}`);
+          // Continue processing other batches even if one fails
         } else {
-          result.details.new_subscribers += data?.length || 0;
-          result.imported += data?.length || 0;
+          const batchImported = data?.length || 0;
+          result.details.new_subscribers += batchImported;
+          result.imported += batchImported;
+          console.log(`✅ Successfully processed batch ${i}-${i + batch.length}: ${batchImported} records`);
         }
       }
     }
@@ -275,7 +307,7 @@ export const GET: RequestHandler = async ({ url, locals }) => {
       return json({ error: 'Authentication required' }, { status: 401 });
     }
 
-    const isAdmin = await checkAdminAccess(session.user.id);
+    const isAdmin = await checkAdminAccess(locals.supabase);
     if (!isAdmin) {
       return json({ error: 'Admin access required' }, { status: 403 });
     }

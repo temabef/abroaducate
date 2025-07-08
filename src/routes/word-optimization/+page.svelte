@@ -172,10 +172,11 @@
                 <!-- Custom Text Input -->
                 <div class="p-6">
                     <div class="mb-6">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <label for="text-input" class="block text-sm font-medium text-gray-700 mb-2">
                             Enter Your Text to Optimize:
                         </label>
                         <textarea
+                            id="text-input"
                             bind:value={customText}
                             placeholder="Paste your text here (SOP, cover letter, essay, etc.)..."
                             rows="8"
@@ -188,10 +189,11 @@
                     </div>
 
                     <div class="mb-6">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <label for="target-word-count" class="block text-sm font-medium text-gray-700 mb-2">
                             Target Word Count:
                         </label>
-                        <input 
+                        <input
+                            id="target-word-count" 
                             type="number" 
                             bind:value={targetWordCount}
                             placeholder="e.g., 500"

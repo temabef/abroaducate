@@ -176,6 +176,13 @@
           {/if}
           
           {#if permissions.canManageAdmins}
+            <a href="/admin/newsletter" class="flex items-center px-4 py-2 hover:bg-gray-700 {$page.url.pathname === '/admin/newsletter' ? 'bg-gray-700' : ''}">
+              <span class="mr-2">📧</span>
+              <span>Newsletter</span>
+            </a>
+          {/if}
+          
+          {#if permissions.canManageAdmins}
             <a href="/admin/settings" class="flex items-center px-4 py-2 hover:bg-gray-700 {$page.url.pathname === '/admin/settings' ? 'bg-gray-700' : ''}">
               <span class="mr-2">⚙️</span>
               <span>Settings</span>
@@ -184,9 +191,11 @@
         </nav>
       </div>
       
-      <!-- Admin Content -->
-      <div class="flex-1 p-6">
-        {@render children()}
+      <!-- Admin Content with proper spacing -->
+      <div class="flex-1 p-6 pt-8 overflow-y-auto">
+        <div class="max-w-7xl mx-auto">
+          {@render children()}
+        </div>
       </div>
     </div>
   {:else}

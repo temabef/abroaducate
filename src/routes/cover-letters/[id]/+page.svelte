@@ -609,12 +609,20 @@
 
 <!-- Version History Modal -->
 {#if showVersionHistory}
-  <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick={() => showVersionHistory = false}>
-    <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-96 overflow-hidden" onclick={(e) => e.stopPropagation()}>
+  <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" 
+       role="dialog" 
+       aria-modal="true" 
+       aria-labelledby="version-history-title"
+       onclick={() => showVersionHistory = false}
+       onkeydown={(e) => e.key === 'Escape' && (showVersionHistory = false)}
+       tabindex="-1">
+    <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-96 overflow-hidden" 
+         onclick={(e) => e.stopPropagation()}
+         onkeydown={(e) => e.stopPropagation()}>
       <div class="p-6 border-b border-gray-200">
         <div class="flex items-center justify-between">
-          <h3 class="text-lg font-medium text-gray-900">Version History</h3>
-          <button onclick={() => showVersionHistory = false} class="text-gray-400 hover:text-gray-600">
+          <h3 id="version-history-title" class="text-lg font-medium text-gray-900">Version History</h3>
+          <button onclick={() => showVersionHistory = false} class="text-gray-400 hover:text-gray-600" aria-label="Close version history">
             ✕
           </button>
         </div>

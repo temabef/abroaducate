@@ -27,16 +27,10 @@
     }
 
     onMount(async () => {
-        console.log('Submit SOP page mounted');
-        console.log('Session:', session);
-        console.log('Pending generation:', get(pendingGeneration));
-        
         // Check if we have form data
         const savedState = loadStateFromSessionStorage();
-        console.log('Saved form state:', savedState);
         
         if (Object.keys(savedState).length === 0) {
-            console.log('No form data found, redirecting to homepage');
             status = 'No form data found. Redirecting to the form...';
             setTimeout(() => goto('/'), 2000);
             return;
@@ -52,7 +46,7 @@
         if (hasTriedGeneration) return;
         hasTriedGeneration = true;
         
-        console.log('Handling authenticated user');
+
         status = 'Login successful. Starting generation...';
         
         // Small delay to ensure session is fully established
@@ -66,7 +60,7 @@
         isGenerating = true;
         
         try {
-            console.log('Starting SOP generation');
+
             status = 'Generating your Statement of Purpose... This may take a moment.';
             
             // Load and validate form data
@@ -77,7 +71,6 @@
             
             // Update the form store with saved data
             formStore.set({ ...$formStore, ...savedState });
-            console.log('Form data loaded:', $formStore);
 
             // Make API call to generate SOP
             const response = await fetch('/api/generate-sop', {
@@ -104,7 +97,6 @@
             }
 
             const result = await response.json();
-            console.log('SOP generation result:', result);
 
             // Clear temporary data
             clearStateFromSessionStorage();

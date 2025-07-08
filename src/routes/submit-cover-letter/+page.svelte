@@ -27,16 +27,10 @@
     }
 
     onMount(async () => {
-        console.log('Submit Cover Letter page mounted');
-        console.log('Session:', session);
-        console.log('Pending generation:', get(coverLetterPendingGeneration));
-        
         // Check if we have form data
         const savedState = loadCoverLetterStateFromSessionStorage();
-        console.log('Saved form state:', savedState);
         
         if (Object.keys(savedState).length === 0) {
-            console.log('No form data found, redirecting to cover letters page');
             status = 'No form data found. Redirecting to the form...';
             setTimeout(() => goto('/cover-letters'), 2000);
             return;
@@ -52,7 +46,7 @@
         if (hasTriedGeneration) return;
         hasTriedGeneration = true;
         
-        console.log('Handling authenticated user');
+
         status = 'Login successful. Starting generation...';
         
         // Small delay to ensure session is fully established
@@ -66,7 +60,7 @@
         isGenerating = true;
         
         try {
-            console.log('Starting Cover Letter generation');
+
             status = 'Generating your Cover Letter... This may take a moment.';
             
             // Load and validate form data
@@ -77,7 +71,6 @@
             
             // Update the form store with saved data
             coverLetterFormStore.set({ ...$coverLetterFormStore, ...savedState });
-            console.log('Form data loaded:', $coverLetterFormStore);
 
             // Make API call to generate Cover Letter
             const response = await fetch('/api/generate-cover-letter', {
@@ -104,7 +97,6 @@
             }
 
             const result = await response.json();
-            console.log('Cover Letter generation result:', result);
 
             // Clear temporary data
             clearCoverLetterStateFromSessionStorage();

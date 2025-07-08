@@ -787,4 +787,3 @@
     }
   }
 </style>
-</code_block_to_apply_changes_from>

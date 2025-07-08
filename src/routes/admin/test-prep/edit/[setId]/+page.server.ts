@@ -36,10 +36,12 @@ export const load = async ({ params, locals: { supabase } }) => {
     });
   }
 
-  // sort questions and choices by sort_order if it exists
+  // Sort questions and choices by sort_order if it exists
   set.practice_questions.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
   set.practice_questions.forEach(q => {
-    q.practice_choices.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+    if (q.practice_choices) {
+      q.practice_choices.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+    }
   });
 
   return { set };
@@ -50,89 +52,183 @@ export const actions = {
     const formData = await request.formData();
     const setData = JSON.parse(formData.get('set') as string);
 
-    // Fetch the IELTS test ID dynamically
+    console.log('Processing set data:', setData);
+
+    // Validate section type
+    const validSections = ['reading', 'listening', 'writing', 'speaking'];
+    if (!validSections.includes(setData.section)) {
+      return fail(400, { message: 'Invalid section type' });
+    }
+
+    // Fetch the test ID dynamically based on the section
+    let testSlug = 'ielts'; // Default to IELTS for now
+    
     const { data: testRow, error: testError } = await supabase
       .from('practice_tests')
       .select('id')
-      .eq('slug', 'ielts')
+      .eq('slug', testSlug)
       .single();
+      
     if (testError || !testRow) {
-      return fail(500, { message: 'Failed to fetch IELTS test ID', error: testError });
+      console.error('Test fetch error:', testError);
+      return fail(500, { message: 'Failed to fetch test ID', error: testError });
     }
+    
     const testId = testRow.id;
 
-    // 1. Upsert the practice_set details
-    const { data: savedSet, error: setEror } = await supabase
-      .from('practice_sets')
-      .upsert({
-        id: setData.id.startsWith('new-') ? undefined : setData.id,
+    try {
+      // 1. Upsert the practice_set details
+      const setToSave = {
+        id: setData.id === 'new' || setData.id.startsWith('new-') ? undefined : setData.id,
         title: setData.title,
         section: setData.section,
-        passage: setData.passage,
-        sort_order: setData.sort_order,
+        sort_order: setData.sort_order || 0,
         test_id: testId
-      })
-      .select()
-      .single();
+      };
 
-    if (setEror) return fail(500, { message: 'Failed to save set details', error: setEror });
-    if (!savedSet) return fail(500, { message: 'Failed to get saved set' });
+      // Only add passage for reading sections
+      if (setData.section === 'reading' && setData.passage) {
+        setToSave.passage = setData.passage;
+      }
 
-    const newSetId = savedSet.id;
+      const { data: savedSet, error: setError } = await supabase
+        .from('practice_sets')
+        .upsert(setToSave)
+        .select()
+        .single();
 
-    // Get original questions to find out which ones to delete
-    const { data: originalQuestions } = await supabase.from('practice_questions').select('id').eq('set_id', newSetId);
-    const originalQuestionIds = originalQuestions?.map(q => q.id) || [];
-    const submittedQuestionIds = setData.practice_questions.map(q => q.id.startsWith('new-') ? undefined : q.id).filter(Boolean);
+      if (setError) {
+        console.error('Set save error:', setError);
+        return fail(500, { message: 'Failed to save set details', error: setError });
+      }
+      
+      if (!savedSet) {
+        return fail(500, { message: 'Failed to get saved set' });
+      }
 
-    // 2. Delete questions that were removed in the UI
-    const questionsToDelete = originalQuestionIds.filter(id => !submittedQuestionIds.includes(id));
-    if (questionsToDelete.length > 0) {
-      await supabase.from('practice_questions').delete().in('id', questionsToDelete);
-    }
+      const newSetId = savedSet.id;
+      console.log('Saved set with ID:', newSetId);
 
-    // 3. Upsert questions
-    for (const question of setData.practice_questions) {
-      const { data: savedQuestion, error: qError } = await supabase
+      // 2. Handle questions - Get original questions for cleanup
+      const { data: originalQuestions } = await supabase
         .from('practice_questions')
-        .upsert({
+        .select('id')
+        .eq('set_id', newSetId);
+        
+      const originalQuestionIds = originalQuestions?.map(q => q.id) || [];
+      const submittedQuestionIds = setData.practice_questions
+        .map(q => q.id.startsWith('new-') ? undefined : q.id)
+        .filter(Boolean);
+
+      // Delete questions that were removed in the UI
+      const questionsToDelete = originalQuestionIds.filter(id => !submittedQuestionIds.includes(id));
+      if (questionsToDelete.length > 0) {
+        console.log('Deleting questions:', questionsToDelete);
+        const { error: deleteError } = await supabase
+          .from('practice_questions')
+          .delete()
+          .in('id', questionsToDelete);
+          
+        if (deleteError) {
+          console.error('Question delete error:', deleteError);
+        }
+      }
+
+      // 3. Process each question
+      for (let i = 0; i < setData.practice_questions.length; i++) {
+        const question = setData.practice_questions[i];
+        
+        console.log(`Processing question ${i + 1}:`, question);
+
+        const questionToSave = {
           id: question.id.startsWith('new-') ? undefined : question.id,
           set_id: newSetId,
           question_text: question.question_text,
-          explanation: question.explanation,
-          sort_order: question.sort_order
-        })
-        .select()
-        .single();
-        
-      if (qError) return fail(500, { message: 'Failed to save a question', error: qError });
+          explanation: question.explanation || null,
+          sort_order: question.sort_order || (i + 1)
+        };
 
-      const newQuestionId = savedQuestion.id;
+        const { data: savedQuestion, error: qError } = await supabase
+          .from('practice_questions')
+          .upsert(questionToSave)
+          .select()
+          .single();
+          
+        if (qError) {
+          console.error('Question save error:', qError);
+          return fail(500, { message: `Failed to save question ${i + 1}`, error: qError });
+        }
 
-      // Get original choices to find out which ones to delete
-      const { data: originalChoices } = await supabase.from('practice_choices').select('id').eq('question_id', newQuestionId);
-      const originalChoiceIds = originalChoices?.map(c => c.id) || [];
-      const submittedChoiceIds = question.practice_choices.map(c => c.id.startsWith('new-') ? undefined : c.id).filter(Boolean);
+        const newQuestionId = savedQuestion.id;
+        console.log(`Saved question with ID: ${newQuestionId}`);
 
-      // 4. Delete choices that were removed
-      const choicesToDelete = originalChoiceIds.filter(id => !submittedChoiceIds.includes(id));
-      if (choicesToDelete.length > 0) {
-        await supabase.from('practice_choices').delete().in('id', choicesToDelete);
+        // 4. Handle choices (only for sections that support them)
+        const sectionsWithChoices = ['reading', 'listening'];
+        if (sectionsWithChoices.includes(setData.section) && question.practice_choices) {
+          
+          // Get original choices for cleanup
+          const { data: originalChoices } = await supabase
+            .from('practice_choices')
+            .select('id')
+            .eq('question_id', newQuestionId);
+            
+          const originalChoiceIds = originalChoices?.map(c => c.id) || [];
+          const submittedChoiceIds = question.practice_choices
+            .map(c => c.id.startsWith('new-') ? undefined : c.id)
+            .filter(Boolean);
+
+          // Delete choices that were removed
+          const choicesToDelete = originalChoiceIds.filter(id => !submittedChoiceIds.includes(id));
+          if (choicesToDelete.length > 0) {
+            console.log('Deleting choices:', choicesToDelete);
+            const { error: deleteChoiceError } = await supabase
+              .from('practice_choices')
+              .delete()
+              .in('id', choicesToDelete);
+              
+            if (deleteChoiceError) {
+              console.error('Choice delete error:', deleteChoiceError);
+            }
+          }
+
+          // Save choices
+          if (question.practice_choices.length > 0) {
+            const choicesToSave = question.practice_choices.map((choice, index) => ({
+              id: choice.id.startsWith('new-') ? undefined : choice.id,
+              question_id: newQuestionId,
+              choice_text: choice.choice_text,
+              is_correct: choice.is_correct,
+              sort_order: index + 1
+            }));
+
+            console.log('Saving choices:', choicesToSave);
+            
+            const { error: cError } = await supabase
+              .from('practice_choices')
+              .upsert(choicesToSave);
+              
+            if (cError) {
+              console.error('Choice save error:', cError);
+              return fail(500, { message: `Failed to save choices for question ${i + 1}`, error: cError });
+            }
+          }
+        }
+      }
+
+      console.log('✅ Successfully saved question set');
+      throw redirect(303, '/admin/test-prep');
+      
+    } catch (err) {
+      if (err?.status === 303) {
+        // This is a redirect, re-throw it
+        throw err;
       }
       
-      // 5. Upsert choices
-      if (question.practice_choices?.length) {
-        const choicesToSave = question.practice_choices.map(choice => ({
-          id: choice.id.startsWith('new-') ? undefined : choice.id,
-          question_id: newQuestionId,
-          choice_text: choice.choice_text,
-          is_correct: choice.is_correct
-        }));
-        const { error: cError } = await supabase.from('practice_choices').upsert(choicesToSave);
-        if (cError) return fail(500, { message: 'Failed to save choices', error: cError });
-      }
+      console.error('Unexpected error:', err);
+      return fail(500, { 
+        message: 'An unexpected error occurred while saving',
+        error: err instanceof Error ? err.message : 'Unknown error'
+      });
     }
-
-    throw redirect(303, '/admin/test-prep');
   }
 }; 

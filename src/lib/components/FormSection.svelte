@@ -153,44 +153,26 @@
     }
 
     function handleFinalSubmit() {
-        console.log('=== FORM SUBMISSION START ===');
-        console.log('Generate SOP button clicked');
-        console.log('Current form state:', get(formStore));
-        console.log('Current step:', get(formStore).currentStep);
-        
         // Validate the final step before proceeding
         const isValid = validateStep(get(formStore).currentStep);
-        console.log('Validation result:', isValid);
-        console.log('Validation errors:', errors);
         
         if (!isValid) {
-            console.log('Validation failed, showing alert');
             alert('Please fix the errors before proceeding.');
             return;
         }
         
-        console.log('✓ Validation passed, proceeding with submission');
-        
         // Save final state and set pending generation flag
         const currentState = get(formStore);
-        console.log('Saving current state:', currentState);
         
         saveStateToSessionStorage(currentState);
-        console.log('✓ Form data saved to session storage');
-        
         pendingGeneration.set(true);
-        console.log('✓ Pending generation set to true');
-        
-        console.log('About to call goto("/submit-sop")');
         
         // Redirect to the submission page
         goto('/submit-sop').then(() => {
-            console.log('✓ goto completed successfully');
+            // Success
         }).catch((error) => {
-            console.error('✗ goto failed:', error);
+            console.error('Navigation failed:', error);
         });
-        
-        console.log('=== FORM SUBMISSION END ===');
     }
 </script>
 
@@ -218,23 +200,55 @@
     </div>
 
     <!-- Stepper Navigation -->
-    <div class="flex items-center justify-center mb-8">
-        {#each steps as step, i}
-            <div class="flex items-center">
-                <button
-                    class="step-button"
-                    class:active={$formStore.currentStep === step.number}
-                    class:completed={$formStore.currentStep > step.number}
-                    on:click={() => goToStep(step.number)}
-                >
-                    {step.number}
-                </button>
-                <span class="step-label" class:active-label={$formStore.currentStep === step.number}>{step.label}</span>
+    <div class="mb-8">
+        <!-- Mobile Stepper (stacked) -->
+        <div class="sm:hidden">
+            <div class="flex items-center justify-center mb-4">
+                <div class="text-sm text-gray-600">
+                    Step {$formStore.currentStep} of {totalSteps}
+                </div>
             </div>
-            {#if i < steps.length - 1}
-                <div class="step-connector" class:active-connector={$formStore.currentStep > i + 1}></div>
-            {/if}
-        {/each}
+            <div class="flex items-center justify-center">
+                {#each steps as step, i}
+                    <button
+                        class="step-button-mobile"
+                        class:active={$formStore.currentStep === step.number}
+                        class:completed={$formStore.currentStep > step.number}
+                        on:click={() => goToStep(step.number)}
+                    >
+                        {step.number}
+                    </button>
+                    {#if i < steps.length - 1}
+                        <div class="step-connector-mobile" class:active-connector={$formStore.currentStep > i + 1}></div>
+                    {/if}
+                {/each}
+            </div>
+            <div class="text-center mt-2">
+                <div class="text-sm font-medium text-gray-700">
+                    {steps[$formStore.currentStep - 1].label}
+                </div>
+            </div>
+        </div>
+
+        <!-- Desktop Stepper (horizontal with labels) -->
+        <div class="hidden sm:flex items-center justify-center">
+            {#each steps as step, i}
+                <div class="flex items-center">
+                    <button
+                        class="step-button"
+                        class:active={$formStore.currentStep === step.number}
+                        class:completed={$formStore.currentStep > step.number}
+                        on:click={() => goToStep(step.number)}
+                    >
+                        {step.number}
+                    </button>
+                    <span class="step-label" class:active-label={$formStore.currentStep === step.number}>{step.label}</span>
+                </div>
+                {#if i < steps.length - 1}
+                    <div class="step-connector" class:active-connector={$formStore.currentStep > i + 1}></div>
+                {/if}
+            {/each}
+        </div>
     </div>
 
     <!-- Dynamic Step Component -->
@@ -333,6 +347,41 @@
     margin: 0 0.5rem;
 }
 .step-connector.active-connector {
+    background-color: #3B82F6;
+}
+
+/* Mobile Stepper Styles */
+.step-button-mobile {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    border: 2px solid #D1D5DB;
+    background-color: white;
+    color: #6B7280;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+}
+.step-button-mobile.active {
+    background-color: #3B82F6;
+    color: white;
+    border-color: #3B82F6;
+}
+.step-button-mobile.completed {
+    background-color: #16A34A;
+    border-color: #16A34A;
+    color: white;
+}
+.step-connector-mobile {
+    width: 1.5rem;
+    height: 2px;
+    background-color: #D1D5DB;
+    margin: 0 0.25rem;
+}
+.step-connector-mobile.active-connector {
     background-color: #3B82F6;
 }
 </style>

@@ -92,7 +92,7 @@
         <div class="bg-white rounded-lg w-full max-w-lg mx-4 max-h-[90vh] flex flex-col" onclick={(e) => e.stopPropagation()} transition:slide>
             <div class="flex justify-between items-center p-6 pb-4 border-b">
                 <h2 class="text-xl font-semibold text-gray-900">Add New Application</h2>
-                <button onclick={closeModal} class="text-gray-400 hover:text-gray-600">
+                <button onclick={closeModal} class="text-gray-400 hover:text-gray-600" aria-label="Close modal">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>

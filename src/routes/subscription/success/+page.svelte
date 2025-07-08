@@ -30,7 +30,7 @@
         sessionId = urlParams.get('session_id') || '';
         planFromUrl = (urlParams.get('plan') as PlanType) || 'professional'; // Get plan from URL as backup
         
-        console.log('🔍 Success page - Plan from URL:', planFromUrl);
+
         
         if (!sessionId) {
             error = 'Invalid session';
@@ -51,7 +51,7 @@
         };
         if (planFromUrl in SUBSCRIPTION_PLANS) {
             planDetails = SUBSCRIPTION_PLANS[planFromUrl];
-            console.log('✅ Plan details set:', planDetails.name);
+
         }
         
         // Try to detect billing cycle from Stripe session
@@ -74,10 +74,8 @@
         
         if (cycleParam === 'annual') {
             billingCycle = 'annual';
-            console.log('💳 Detected annual billing from URL');
         } else {
             billingCycle = 'monthly';
-            console.log('💳 Using monthly billing as default');
         }
     }
 
@@ -94,11 +92,8 @@
                 
             if (subError) {
                 console.error('Error fetching subscription:', subError);
-                console.log('🔄 Using URL plan as fallback:', planFromUrl);
                 return;
             }
-            
-            console.log('📊 DB subscription found:', subData);
             
             // Only update if we got a valid PAID subscription that matches our expectation
             // Don't override URL plan with "free" plan when user just completed a paid subscription
@@ -108,14 +103,14 @@
                 // Get plan details from DB result
                 if (subscription.plan_type in SUBSCRIPTION_PLANS) {
                     planDetails = SUBSCRIPTION_PLANS[subscription.plan_type];
-                    console.log('✅ Updated plan details from DB:', planDetails.name);
+
                 }
             } else if (subData && subData.plan_type === 'free') {
-                console.log('🔄 DB still shows free plan, keeping URL plan until webhook updates DB');
+
             }
         } catch (err) {
             console.error('Error:', err);
-            console.log('🔄 Keeping URL plan as fallback due to error');
+
         }
     }
     
@@ -130,13 +125,11 @@
     
     function getPlanName(): string {
         const planType: PlanType = subscription?.plan_type || planFromUrl || 'professional';
-        console.log('🏷️ getPlanName - subscription.plan_type:', subscription?.plan_type, 'planFromUrl:', planFromUrl, 'final planType:', planType);
         return planType === 'professional' ? 'Professional Plan' : 'Elite Plan';
     }
     
     function getPlanPrice(): string {
         const planType: PlanType = subscription?.plan_type || planFromUrl || 'professional';
-        console.log('💰 getPlanPrice - planType:', planType, 'billingCycle:', billingCycle);
         
         // Get the actual price from SUBSCRIPTION_PLANS based on billing cycle
         if (planType in SUBSCRIPTION_PLANS) {
@@ -151,7 +144,6 @@
     
     function getPlanEmoji(): string {
         const planType: PlanType = subscription?.plan_type || planFromUrl || 'professional';
-        console.log('😀 getPlanEmoji - subscription.plan_type:', subscription?.plan_type, 'planFromUrl:', planFromUrl, 'final planType:', planType);
         return planType === 'professional' ? '⭐' : '👑';
     }
 </script>

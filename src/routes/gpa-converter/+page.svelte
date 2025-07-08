@@ -1776,8 +1776,9 @@
         <!-- Student Details -->
         <div class="space-y-4 mb-6">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Student Name</label>
+            <label for="student-name" class="block text-sm font-medium text-gray-700 mb-2">Student Name</label>
             <input
+              id="student-name"
               type="text"
               bind:value={studentName}
               on:input={saveData}
@@ -1787,8 +1788,9 @@
           </div>
           
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">University Name</label>
+            <label for="university-name" class="block text-sm font-medium text-gray-700 mb-2">University Name</label>
             <input
+              id="university-name"
               type="text"
               bind:value={universityName}
               on:input={saveData}
@@ -1798,8 +1800,9 @@
           </div>
           
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Program of Study</label>
+            <label for="program-study" class="block text-sm font-medium text-gray-700 mb-2">Program of Study</label>
             <input
+              id="program-study"
               type="text"
               bind:value={programOfStudy}
               on:input={saveData}
@@ -1812,8 +1815,9 @@
         <!-- Country and System Selection -->
         <div class="space-y-4 mb-6">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Country</label>
+            <label for="country-select" class="block text-sm font-medium text-gray-700 mb-2">Country</label>
             <select
+              id="country-select"
               bind:value={selectedCountry}
               on:change={updateGradingSystems}
               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -1826,8 +1830,9 @@
           </div>
           
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Grading System</label>
+            <label for="grading-system" class="block text-sm font-medium text-gray-700 mb-2">Grading System</label>
             <select
+              id="grading-system"
               bind:value={selectedGradingSystem}
               on:change={updateGrades}
               disabled={!selectedCountry}
@@ -1885,8 +1890,9 @@
           <div class="space-y-4">
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Course Code <span class="text-gray-500">(Optional)</span></label>
+                <label for="course-code" class="block text-sm font-medium text-gray-700 mb-2">Course Code <span class="text-gray-500">(Optional)</span></label>
                 <input
+                  id="course-code"
                   type="text"
                   bind:value={courseCode}
                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -1894,8 +1900,9 @@
                 />
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Academic Year <span class="text-gray-500">(Optional)</span></label>
+                <label for="academic-year" class="block text-sm font-medium text-gray-700 mb-2">Academic Year <span class="text-gray-500">(Optional)</span></label>
                 <select
+                  id="academic-year"
                   bind:value={selectedYear}
                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
@@ -1908,8 +1915,9 @@
             </div>
             
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Course Name</label>
+              <label for="course-name" class="block text-sm font-medium text-gray-700 mb-2">Course Name</label>
               <input
+                id="course-name"
                 type="text"
                 bind:value={courseName}
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -1919,8 +1927,9 @@
             
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Grade</label>
+                <label for="course-grade" class="block text-sm font-medium text-gray-700 mb-2">Grade</label>
                 <select
+                  id="course-grade"
                   bind:value={selectedGrade}
                   disabled={!currentGradingSystem}
                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
@@ -1935,8 +1944,9 @@
               </div>
               
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Credits</label>
+                <label for="course-credits" class="block text-sm font-medium text-gray-700 mb-2">Credits</label>
                 <input
+                  id="course-credits"
                   type="number"
                   bind:value={credits}
                   min="0.5"
@@ -2174,8 +2184,9 @@
                   <div class="bg-white rounded-lg border border-gray-200 p-4">
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
                       <div>
-                        <label class="block text-xs font-medium text-gray-700 mb-1">Course Code</label>
+                        <label for="edit-course-code-{index}" class="block text-xs font-medium text-gray-700 mb-1">Course Code</label>
                         <input
+                          id="edit-course-code-{index}"
                           type="text"
                           bind:value={course.code}
                           on:input={() => updateEditingCourse(index, 'code', course.code)}
@@ -2185,8 +2196,9 @@
                       </div>
                       
                       <div class="md:col-span-2">
-                        <label class="block text-xs font-medium text-gray-700 mb-1">Course Name</label>
+                        <label for="edit-course-name-{index}" class="block text-xs font-medium text-gray-700 mb-1">Course Name</label>
                         <input
+                          id="edit-course-name-{index}"
                           type="text"
                           bind:value={course.name}
                           on:input={() => updateEditingCourse(index, 'name', course.name)}
@@ -2196,8 +2208,9 @@
                       </div>
                       
                       <div>
-                        <label class="block text-xs font-medium text-gray-700 mb-1">Credits</label>
+                        <label for="edit-course-credits-{index}" class="block text-xs font-medium text-gray-700 mb-1">Credits</label>
                         <input
+                          id="edit-course-credits-{index}"
                           type="number"
                           bind:value={course.credits}
                           on:input={() => updateEditingCourse(index, 'credits', course.credits)}
@@ -2211,8 +2224,9 @@
                     
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
                       <div>
-                        <label class="block text-xs font-medium text-gray-700 mb-1">Grade</label>
+                        <label for="edit-course-grade-{index}" class="block text-xs font-medium text-gray-700 mb-1">Grade</label>
                         <select
+                          id="edit-course-grade-{index}"
                           bind:value={course.grade}
                           on:change={() => updateEditingCourse(index, 'grade', course.grade)}
                           class="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -2225,8 +2239,9 @@
                       </div>
                       
                       <div>
-                        <label class="block text-xs font-medium text-gray-700 mb-1">Academic Year</label>
+                        <label for="edit-course-year-{index}" class="block text-xs font-medium text-gray-700 mb-1">Academic Year</label>
                         <select
+                          id="edit-course-year-{index}"
                           bind:value={course.year}
                           on:change={() => updateEditingCourse(index, 'year', course.year)}
                           class="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
