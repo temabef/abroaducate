@@ -1,0 +1,17 @@
+<svg width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Large geometric "A" icon -->
+  <g transform="translate(8, 4)">
+    <!-- Left side of "A" -->
+    <path d="M20 48 L6 48 L16 4 L20 48 Z" fill="#60A5FA"/>
+    <!-- Right side of "A" -->
+    <path d="M20 48 L34 48 L24 4 L20 48 Z" fill="#3B82F6"/>
+    <!-- Top cap -->
+    <path d="M24 4 L16 4 L20 0 Z" fill="#1E40AF"/>
+    
+    <!-- Geometric crossbar -->
+    <polygon points="12,32 28,32 26,28 14,28" fill="white"/>
+    
+    <!-- Accent element -->
+    <path d="M16 4 L24 4 L22 8 L18 8 Z" fill="#1E40AF" opacity="0.8"/>
+  </g>
+</svg> 

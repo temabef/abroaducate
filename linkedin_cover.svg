@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1584" height="396" viewBox="0 0 1584 396" xmlns="http://www.w3.org/2000/svg">
+  <!-- Gradient Background -->
+  <defs>
+    <linearGradient id="backgroundGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2563eb;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background Rectangle -->
+  <rect width="1584" height="396" fill="url(#backgroundGradient)" />
+  
+  <!-- Main Brand and Headline -->
+  <text x="80" y="80" font-family="Inter, Montserrat, Arial, sans-serif" font-size="42" font-weight="bold" fill="#ffffff">
+    🎓 ABROADUCATE
+  </text>
+  
+  <text x="380" y="80" font-family="Inter, Montserrat, Arial, sans-serif" font-size="32" font-weight="600" fill="#ffffff">
+    | AI-Powered Academic Applications
+  </text>
+  
+  <!-- Stats Row -->
+  <text x="80" y="140" font-family="Inter, Montserrat, Arial, sans-serif" font-size="22" font-weight="500" fill="#60a5fa">
+    🚀 7,000+ Universities
+  </text>
+  
+  <text x="380" y="140" font-family="Inter, Montserrat, Arial, sans-serif" font-size="22" font-weight="500" fill="#60a5fa">
+    📝 AI Document Generation
+  </text>
+  
+  <text x="680" y="140" font-family="Inter, Montserrat, Arial, sans-serif" font-size="22" font-weight="500" fill="#60a5fa">
+    🎯 24/7 Support
+  </text>
+  
+  <!-- Quote -->
+  <text x="80" y="200" font-family="Inter, Montserrat, Arial, sans-serif" font-size="26" font-weight="400" font-style="italic" fill="#ffffff">
+    "Making world-class education accessible to everyone"
+  </text>
+  
+  <!-- Website -->
+  <text x="1380" y="350" font-family="Inter, Montserrat, Arial, sans-serif" font-size="20" font-weight="500" fill="#60a5fa" text-anchor="end">
+    abroaducate.com
+  </text>
+  
+  <!-- Decorative Elements -->
+  <circle cx="1450" cy="80" r="25" fill="rgba(255,255,255,0.1)" />
+  <circle cx="1500" cy="120" r="15" fill="rgba(255,255,255,0.08)" />
+  <circle cx="1520" cy="60" r="10" fill="rgba(255,255,255,0.06)" />
+  
+  <!-- Subtle Academic Icons -->
+  <g transform="translate(1200, 250)" opacity="0.15">
+    <!-- Graduation Cap Icon -->
+    <path d="M12 3L1 9l11 6 9-4.91V17h2V9z" fill="#ffffff"/>
+    <path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z" fill="#ffffff"/>
+  </g>
+  
+  <g transform="translate(1250, 270)" opacity="0.1">
+    <!-- Document Icon -->
+    <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" fill="#ffffff"/>
+  </g>
+</svg> 

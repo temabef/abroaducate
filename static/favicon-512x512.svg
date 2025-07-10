@@ -1,0 +1,20 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background for large PWA icon -->
+  <rect width="512" height="512" rx="128" fill="#1E40AF"/>
+  
+  <!-- Centered geometric "A" symbol -->
+  <g transform="translate(181, 106)">
+    <!-- Left side of "A" -->
+    <path d="M75 300 L25 300 L60 15 L75 300 Z" fill="rgba(255,255,255,0.9)"/>
+    <!-- Right side of "A" -->
+    <path d="M75 300 L125 300 L90 15 L75 300 Z" fill="rgba(255,255,255,0.7)"/>
+    <!-- Top cap -->
+    <path d="M90 15 L60 15 L75 0 Z" fill="white"/>
+    
+    <!-- Crossbar -->
+    <polygon points="40,200 110,200 105,180 45,180" fill="#3B82F6"/>
+    
+    <!-- Accent element -->
+    <path d="M60 15 L90 15 L85 45 L65 45 Z" fill="rgba(255,255,255,0.6)"/>
+  </g>
+</svg> 

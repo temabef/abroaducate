@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1500" height="500" viewBox="0 0 1500 500" xmlns="http://www.w3.org/2000/svg">
+  <!-- Gradient Background -->
+  <defs>
+    <linearGradient id="twitterBackgroundGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2563eb;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background Rectangle -->
+  <rect width="1500" height="500" fill="url(#twitterBackgroundGradient)" />
+  
+  <!-- Main Brand -->
+  <text x="150" y="120" font-family="Inter, Montserrat, Arial, sans-serif" font-size="44" font-weight="bold" fill="#ffffff">
+    🎓 ABROADUCATE
+  </text>
+  
+  <!-- Main Headline -->
+  <text x="150" y="180" font-family="Inter, Montserrat, Arial, sans-serif" font-size="32" font-weight="600" fill="#ffffff">
+    AI-Powered Academic Applications
+  </text>
+  
+  <!-- Features Row 1 -->
+  <text x="150" y="260" font-family="Inter, Montserrat, Arial, sans-serif" font-size="22" font-weight="500" fill="#60a5fa">
+    📝 Generate SOPs
+  </text>
+  
+  <text x="400" y="260" font-family="Inter, Montserrat, Arial, sans-serif" font-size="22" font-weight="500" fill="#60a5fa">
+    🏛️ Find Universities
+  </text>
+  
+  <text x="650" y="260" font-family="Inter, Montserrat, Arial, sans-serif" font-size="22" font-weight="500" fill="#60a5fa">
+    💰 Scholarships
+  </text>
+  
+  <text x="900" y="260" font-family="Inter, Montserrat, Arial, sans-serif" font-size="22" font-weight="500" fill="#60a5fa">
+    🎯 IELTS Practice
+  </text>
+  
+  <!-- Call to Action -->
+  <text x="150" y="350" font-family="Inter, Montserrat, Arial, sans-serif" font-size="26" font-weight="600" fill="#ffffff">
+    Start Free Today → abroaducate.com
+  </text>
+  
+  <!-- Right Side Decorative Element -->
+  <g transform="translate(1200, 100)" opacity="0.15">
+    <!-- Large Academic Icon -->
+    <circle cx="100" cy="100" r="80" stroke="rgba(255,255,255,0.3)" stroke-width="3" fill="none"/>
+    
+    <!-- Graduation Cap in Circle -->
+    <g transform="translate(70, 70)">
+      <path d="M30 15L5 25l25 10 20-8v10h4V25z" fill="#ffffff"/>
+      <path d="M10 32v8l20 8 20-8v-8l-20 8-20-8z" fill="#ffffff"/>
+    </g>
+    
+    <!-- Orbiting Elements -->
+    <circle cx="50" cy="100" r="8" fill="rgba(255,255,255,0.4)"/>
+    <circle cx="150" cy="100" r="6" fill="rgba(255,255,255,0.3)"/>
+    <circle cx="100" cy="50" r="5" fill="rgba(255,255,255,0.35)"/>
+    <circle cx="100" cy="150" r="7" fill="rgba(255,255,255,0.25)"/>
+  </g>
+  
+  <!-- Background Accent Lines -->
+  <line x1="0" y1="400" x2="1500" y2="380" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
+  <line x1="0" y1="450" x2="1500" y2="430" stroke="rgba(255,255,255,0.06)" stroke-width="2"/>
+  
+  <!-- Small Decorative Elements -->
+  <circle cx="80" cy="80" r="15" fill="rgba(255,255,255,0.1)" />
+  <circle cx="1100" cy="400" r="20" fill="rgba(255,255,255,0.08)" />
+  <circle cx="50" cy="400" r="12" fill="rgba(255,255,255,0.06)" />
+</svg> 

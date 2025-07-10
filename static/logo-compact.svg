@@ -1,0 +1,24 @@
+<svg width="160" height="40" viewBox="0 0 160 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Compact geometric "A" -->
+  <g transform="translate(5, 2)">
+    <!-- Left side of "A" -->
+    <path d="M18 36 L6 36 L15 2 L18 36 Z" fill="#60A5FA"/>
+    <!-- Right side of "A" -->
+    <path d="M18 36 L30 36 L21 2 L18 36 Z" fill="#3B82F6"/>
+    <!-- Top cap -->
+    <path d="M21 2 L15 2 L18 0 Z" fill="#1E40AF"/>
+    
+    <!-- Geometric crossbar -->
+    <polygon points="10,26 26,26 25,24 11,24" fill="white"/>
+    
+    <!-- Accent element -->
+    <path d="M15 2 L21 2 L20 5 L16 5 Z" fill="#1E40AF" opacity="0.8"/>
+  </g>
+  
+  <!-- Compact typography positioned closer -->
+  <g transform="translate(34, 12)">
+    <text x="0" y="16" font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="400" fill="#374151" letter-spacing="-0.3px">
+      Abroaducate
+    </text>
+  </g>
+</svg> 

@@ -1,0 +1,24 @@
+<svg width="260" height="70" viewBox="0 0 260 70" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Large, geometric "A" symbol inspired by original design -->
+  <g transform="translate(10, 5)">
+    <!-- Left side of "A" - large geometric shape -->
+    <path d="M30 60 L8 60 L25 5 L30 60 Z" fill="#60A5FA"/>
+    <!-- Right side of "A" - overlapping geometric shape -->
+    <path d="M30 60 L52 60 L35 5 L30 60 Z" fill="#3B82F6"/>
+    <!-- Additional geometric layer for depth -->
+    <path d="M35 5 L25 5 L30 0 Z" fill="#1E40AF"/>
+    
+    <!-- Modern geometric crossbar -->
+    <polygon points="18,42 42,42 40,38 20,38" fill="white"/>
+    
+    <!-- Geometric accent element -->
+    <path d="M25 5 L35 5 L32 12 L28 12 Z" fill="#1E40AF" opacity="0.8"/>
+  </g>
+  
+  <!-- Typography positioned closer to the A -->
+  <g transform="translate(55, 25)">
+    <text x="0" y="25" font-family="system-ui, -apple-system, sans-serif" font-size="32" font-weight="400" fill="#374151" letter-spacing="-0.5px">
+      Abroaducate
+    </text>
+  </g>
+</svg> 

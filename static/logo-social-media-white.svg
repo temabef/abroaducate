@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="400" height="400" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Gradient definitions for the "A" symbol -->
+  <defs>
+    <linearGradient id="whiteLogoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2563eb;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="rgba(0,0,0,0.1)"/>
+    </filter>
+  </defs>
+  
+  <!-- White circular background -->
+  <circle cx="200" cy="200" r="180" fill="white" stroke="#e5e7eb" stroke-width="2" filter="url(#softShadow)"/>
+  
+  <!-- Centered "A" symbol with gradient -->
+  <g transform="translate(140, 110)">
+    <!-- Left side of "A" - gradient fill -->
+    <path d="M60 180 L20 180 L50 20 L60 180 Z" fill="url(#whiteLogoGradient)"/>
+    <!-- Right side of "A" -->
+    <path d="M60 180 L100 180 L70 20 L60 180 Z" fill="rgba(37,99,235,0.8)"/>
+    <!-- Top cap -->
+    <path d="M70 20 L50 20 L60 10 Z" fill="#2563eb"/>
+    
+    <!-- Crossbar -->
+    <polygon points="35,130 85,130 82,120 38,120" fill="white"/>
+    
+    <!-- Inner crossbar accent -->
+    <polygon points="40,127 80,127 78,123 42,123" fill="#60a5fa"/>
+  </g>
+</svg> 

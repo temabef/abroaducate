@@ -1,0 +1,20 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- White background circle -->
+  <circle cx="100" cy="100" r="90" fill="white" stroke="#E5E7EB" stroke-width="2"/>
+  
+  <!-- Centered geometric "A" symbol -->
+  <g transform="translate(70, 50)">
+    <!-- Left side of "A" -->
+    <path d="M30 100 L8 100 L25 5 L30 100 Z" fill="#60A5FA"/>
+    <!-- Right side of "A" -->
+    <path d="M30 100 L52 100 L35 5 L30 100 Z" fill="#3B82F6"/>
+    <!-- Top cap -->
+    <path d="M35 5 L25 5 L30 0 Z" fill="#1E40AF"/>
+    
+    <!-- Crossbar -->
+    <polygon points="18,70 42,70 40,65 20,65" fill="white"/>
+    
+    <!-- Accent element -->
+    <path d="M25 5 L35 5 L32 20 L28 20 Z" fill="#1E40AF" opacity="0.8"/>
+  </g>
+</svg> 

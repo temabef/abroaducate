@@ -1,5 +1,8 @@
 <script lang="ts">
-  // Simple state - no complex API calls
+  import { onMount } from 'svelte';
+
+  // Simple state
+  let loading = false;
   let message = '';
   let messageType = 'info';
 
@@ -124,6 +127,30 @@
     </div>
   </div>
 
+  <!-- Email Templates -->
+  <div class="templates-section">
+    <h2>📝 Available Email Templates</h2>
+    <div class="templates-grid">
+      <div class="template-card">
+        <h4>📚 Study Abroad Tips</h4>
+        <p>Monthly educational content about studying abroad, planning, finances, and documents</p>
+        <div class="template-meta">
+          <span>✅ Ready to use</span>
+          <span>📅 Monthly frequency</span>
+        </div>
+      </div>
+      
+      <div class="template-card">
+        <h4>🎓 Scholarship Digest</h4>
+        <p>Bi-weekly compilation of latest scholarship opportunities and deadlines</p>
+        <div class="template-meta">
+          <span>✅ Ready to use</span>
+          <span>📅 Bi-weekly frequency</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Quick Actions -->
   <div class="actions-section">
     <h2>🔧 System Actions</h2>
@@ -195,6 +222,7 @@
   .campaign-section,
   .status-section,
   .guide-section,
+  .templates-section,
   .actions-section {
     margin-bottom: 40px;
     background: white;
@@ -206,6 +234,7 @@
   .campaign-section h2,
   .status-section h2,
   .guide-section h2,
+  .templates-section h2,
   .actions-section h2 {
     font-size: 1.5rem;
     font-weight: 600;
@@ -403,6 +432,49 @@
     margin: 0;
   }
 
+  /* Templates Grid */
+  .templates-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+  }
+
+  .template-card {
+    background: #f0f9ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+    padding: 20px;
+  }
+
+  .template-card h4 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1e40af;
+    margin: 0 0 8px 0;
+  }
+
+  .template-card p {
+    font-size: 0.875rem;
+    color: #1f2937;
+    margin: 0 0 12px 0;
+    line-height: 1.5;
+  }
+
+  .template-meta {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .template-meta span {
+    font-size: 0.75rem;
+    background: white;
+    color: #374151;
+    padding: 4px 8px;
+    border-radius: 4px;
+    border: 1px solid #d1d5db;
+  }
+
   @media (max-width: 768px) {
     .newsletter-admin {
       padding: 60px 16px 24px 16px;
@@ -424,7 +496,8 @@
       min-width: auto;
     }
 
-    .status-grid {
+    .status-grid,
+    .templates-grid {
       grid-template-columns: 1fr;
     }
 
@@ -433,4 +506,4 @@
       text-align: center;
     }
   }
-</style>
+</style> 

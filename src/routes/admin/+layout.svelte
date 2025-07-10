@@ -183,6 +183,13 @@
           {/if}
           
           {#if permissions.canManageAdmins}
+            <a href="/admin/users" class="flex items-center px-4 py-2 hover:bg-gray-700 {$page.url.pathname === '/admin/users' ? 'bg-gray-700' : ''}">
+              <span class="mr-2">👥</span>
+              <span>User Management</span>
+            </a>
+          {/if}
+          
+          {#if permissions.canManageAdmins}
             <a href="/admin/settings" class="flex items-center px-4 py-2 hover:bg-gray-700 {$page.url.pathname === '/admin/settings' ? 'bg-gray-700' : ''}">
               <span class="mr-2">⚙️</span>
               <span>Settings</span>

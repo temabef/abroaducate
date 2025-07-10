@@ -1,0 +1,43 @@
+{
+  "name": "Abroaducate",
+  "short_name": "Abroaducate",
+  "description": "AI-powered academic application platform helping students worldwide achieve their study abroad dreams",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1E40AF",
+  "theme_color": "#3B82F6",
+  "orientation": "portrait-primary",
+  "categories": ["education", "productivity"],
+  "icons": [
+    {
+      "src": "/favicon-192x192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon-512x512.svg", 
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/apple-touch-icon.svg",
+      "sizes": "180x180", 
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/logo-icon.svg",
+      "sizes": "56x56",
+      "type": "image/svg+xml"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/logo.svg",
+      "sizes": "260x70",
+      "type": "image/svg+xml",
+      "form_factor": "wide"
+    }
+  ]
+} 

@@ -1,0 +1,29 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Gradient definitions -->
+  <defs>
+    <linearGradient id="backgroundGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1E40AF;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#3B82F6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#60A5FA;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Gradient background circle -->
+  <circle cx="100" cy="100" r="90" fill="url(#backgroundGradient)"/>
+  
+  <!-- Centered geometric "A" symbol -->
+  <g transform="translate(70, 50)">
+    <!-- Left side of "A" - white for contrast -->
+    <path d="M30 100 L8 100 L25 5 L30 100 Z" fill="rgba(255,255,255,0.95)"/>
+    <!-- Right side of "A" -->
+    <path d="M30 100 L52 100 L35 5 L30 100 Z" fill="rgba(255,255,255,0.8)"/>
+    <!-- Top cap -->
+    <path d="M35 5 L25 5 L30 0 Z" fill="white"/>
+    
+    <!-- Crossbar -->
+    <polygon points="18,70 42,70 40,65 20,65" fill="#3B82F6"/>
+    
+    <!-- Accent element -->
+    <path d="M25 5 L35 5 L32 20 L28 20 Z" fill="rgba(255,255,255,0.7)"/>
+  </g>
+</svg> 

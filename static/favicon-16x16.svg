@@ -1,0 +1,14 @@
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Compact geometric "A" for 16px -->
+  <g transform="translate(2, 1)">
+    <!-- Left side of "A" -->
+    <path d="M6 14 L1 14 L4 1 L6 14 Z" fill="#60A5FA"/>
+    <!-- Right side of "A" -->
+    <path d="M6 14 L11 14 L8 1 L6 14 Z" fill="#3B82F6"/>
+    <!-- Top cap -->
+    <path d="M8 1 L4 1 L6 0 Z" fill="#1E40AF"/>
+    
+    <!-- Crossbar -->
+    <rect x="3" y="9" width="6" height="1" fill="white"/>
+  </g>
+</svg> 

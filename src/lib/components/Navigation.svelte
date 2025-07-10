@@ -77,8 +77,8 @@
         <!-- Logo -->
         <div class="nav-brand">
             <a href="/" class="brand-link">
-                <span class="brand-icon">🎓</span>
-                <span class="brand-text">AbroaducateSOPGPT</span>
+                <img src="/logo-icon.svg" alt="Abroaducate" class="brand-icon-svg" />
+                <span class="brand-text">Abroaducate</span>
             </a>
         </div>
         
@@ -204,6 +204,11 @@
     
     .brand-icon {
         font-size: 1.5rem;
+    }
+    
+    .brand-icon-svg {
+        width: 1.5rem;
+        height: 1.5rem;
     }
     
     .nav-links {

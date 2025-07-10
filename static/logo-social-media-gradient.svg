@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="400" height="400" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Gradient definitions matching social media covers -->
+  <defs>
+    <linearGradient id="socialMediaGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2563eb;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="rgba(0,0,0,0.25)"/>
+    </filter>
+  </defs>
+  
+  <!-- Main circular background with gradient -->
+  <circle cx="200" cy="200" r="180" fill="url(#socialMediaGradient)" filter="url(#shadow)"/>
+  
+  <!-- Inner highlight circle for depth -->
+  <circle cx="200" cy="200" r="170" stroke="rgba(255,255,255,0.2)" stroke-width="2" fill="none"/>
+  
+  <!-- Centered geometric "A" symbol (scaled up for 400px) -->
+  <g transform="translate(140, 100)">
+    <!-- Left side of "A" - white for maximum contrast -->
+    <path d="M60 200 L16 200 L50 10 L60 200 Z" fill="rgba(255,255,255,0.95)"/>
+    <!-- Right side of "A" -->
+    <path d="M60 200 L104 200 L70 10 L60 200 Z" fill="rgba(255,255,255,0.85)"/>
+    <!-- Top cap -->
+    <path d="M70 10 L50 10 L60 0 Z" fill="white"/>
+    
+    <!-- Crossbar with subtle blue -->
+    <polygon points="36,140 84,140 80,130 40,130" fill="rgba(37,99,235,0.7)"/>
+    
+    <!-- Accent element -->
+    <path d="M50 10 L70 10 L64 40 L56 40 Z" fill="rgba(255,255,255,0.8)"/>
+    
+    <!-- Additional depth accent -->
+    <path d="M60 0 L60 200" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+  </g>
+  
+  <!-- Subtle outer glow for extra polish -->
+  <circle cx="200" cy="200" r="185" stroke="rgba(255,255,255,0.1)" stroke-width="1" fill="none"/>
+</svg> 

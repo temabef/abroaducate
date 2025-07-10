@@ -1,0 +1,53 @@
+ABROADUCATE FACEBOOK COVER TEMPLATE
+==================================
+Dimensions: 1200×675px
+Background: Blue to Purple Gradient (#2563eb → #764ba2)
+
+┌─────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                           [GRADIENT BACKGROUND: BLUE TO PURPLE]                                 │
+│                                                                                                 │
+│                                                                                                 │
+│                              🎓 ABROADUCATE                                                     │
+│                                                                                                 │
+│                        AI-Powered Academic Applications                                         │
+│                                                                                                 │
+│                                                                                                 │
+│                    ✨ SOP Generator        🏛️ University Search                                │
+│                                                                                                 │
+│                    📚 Scholarships         🎯 IELTS Practice                                   │
+│                                                                                                 │
+│                    📝 Cover Letters        🎓 Academic CV                                      │
+│                                                                                                 │
+│                                                                                                 │
+│                          Join Students Worldwide → abroaducate.com                             │
+│                                                                                                 │
+│                                                                                                 │
+└─────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+TEXT SPECIFICATIONS:
+───────────────────
+🎓 ABROADUCATE               → 48px, White (#ffffff), Bold, Center-aligned
+AI-Powered Academic Apps     → 36px, White (#ffffff), Semi-bold, Center-aligned  
+Feature Icons & Text         → 24px, Light Blue (#60a5fa), Medium weight
+Call-to-Action               → 28px, White (#ffffff), Medium weight, Center-aligned
+
+SPACING:
+────────
+- Top margin: 60px
+- Between headline and tagline: 40px  
+- Between tagline and features: 50px
+- Between feature rows: 30px
+- Between features and CTA: 50px
+- Bottom margin: 60px
+
+COLORS:
+───────
+Background: Linear gradient 45° from #2563eb (top-left) to #764ba2 (bottom-right)
+Primary Text: #ffffff (white)
+Feature Text: #60a5fa (light blue)
+Icons: Use native emoji or white SVG icons
+
+FONTS:
+──────
+Primary: Inter Bold/Semi-bold
+Fallback: Montserrat, Arial, sans-serif 

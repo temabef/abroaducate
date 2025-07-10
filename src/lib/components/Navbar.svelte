@@ -46,8 +46,9 @@
 <header class="bg-[#0A192F] backdrop-blur-md fixed top-0 left-0 right-0 z-50 shadow-md">
   <nav class="flex items-center justify-between p-4 mx-auto max-w-7xl">
     <!-- Brand Logo -->
-    <a href="/" class="text-2xl font-bold text-white hover:text-blue-300 transition duration-300">
-      Abroaducate
+    <a href="/" class="flex items-center space-x-3 hover:opacity-80 transition duration-300">
+      <img src="/logo-icon.svg" alt="Abroaducate" class="w-8 h-8" />
+      <span class="text-2xl font-bold text-white">Abroaducate</span>
     </a>
 
     <!-- Desktop Navigation - Journey Based -->
