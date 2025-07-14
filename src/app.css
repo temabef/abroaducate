@@ -26,7 +26,7 @@
 }
 
 .btn {
-  @apply inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md transition-colors duration-200;
+  @apply inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md transition-colors duration-200 cursor-pointer;
 }
 
 .btn-primary {
@@ -225,4 +225,96 @@
     opacity: 1;
     transform: scale(1);
   }
+}
+
+/* ==================================================
+   CURSOR POINTER FIXES FOR ALL INTERACTIVE ELEMENTS
+   ================================================== */
+
+/* Ensure all buttons have pointer cursor */
+button,
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+.btn,
+.button,
+.clickable,
+[onclick],
+[role="button"],
+[type="button"] {
+  cursor: pointer !important;
+}
+
+/* Navigation and links */
+a:not([disabled]),
+.nav-link,
+.link-button,
+.brand-link,
+nav a,
+.dropdown-item,
+.menu-item {
+  cursor: pointer !important;
+}
+
+/* Form elements that should have pointer */
+label,
+.form-label,
+.checkbox-label,
+.radio-label,
+select,
+.select,
+.toggle,
+input[type="checkbox"],
+input[type="radio"],
+input[type="file"] {
+  cursor: pointer !important;
+}
+
+/* Cards and interactive containers */
+.card:hover,
+.clickable-card,
+.interactive,
+.hover\:shadow,
+[onclick] {
+  cursor: pointer !important;
+}
+
+/* Specific component fixes */
+.auth-submit-button,
+.google-login-button,
+.forgot-password,
+.mode-switcher button,
+.try-now-button,
+.action-button,
+.delete-button,
+.create-new-job-button,
+.display-button,
+.suggest-button,
+.ok-button,
+.pricing-toggle,
+.toggle-button {
+  cursor: pointer !important;
+}
+
+/* Disabled state should override pointer */
+button:disabled,
+input:disabled,
+select:disabled,
+.btn:disabled,
+.btn-disabled,
+[disabled],
+.disabled {
+  cursor: not-allowed !important;
+}
+
+/* Processing/loading state */
+.processing,
+.loading,
+[aria-busy="true"] {
+  cursor: wait !important;
+}
+
+/* Make sure text selections don't interfere */
+.user-select-none {
+  user-select: none;
 }
