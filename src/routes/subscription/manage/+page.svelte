@@ -25,7 +25,7 @@
             const { data: subData, error } = await supabase
                 .from('user_subscriptions')
                 .select('*')
-                .eq('user_id', session.user.id)
+                .eq('user_id', session?.user?.id)
                 .eq('status', 'active')
                 .single();
             

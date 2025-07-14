@@ -29,7 +29,7 @@
   let gpaClass = '';
   let showResults = false;
 
-  let activeTab = 'manual'; // 'manual' or 'upload'
+  let activeTab: 'manual' | 'upload' = 'manual';
 
   // Upload-related state
   let selectedFile: File | null = null;
@@ -796,7 +796,7 @@
   function getCurrentGradingSystem() {
     if (!selectedCountry || !selectedGradingSystem) return null;
     const countryData = getAfricanCountryGradingSystems(selectedCountry);
-    return countryData && countryData[selectedGradingSystem] ? countryData[selectedGradingSystem] : null;
+    return countryData && (countryData as any)[selectedGradingSystem] ? (countryData as any)[selectedGradingSystem] : null;
   }
 
   // Upload functionality
@@ -1082,8 +1082,8 @@
 
     let currentSession = {
       name: 'Extracted Courses',
-      year: undefined,
-      courses: []
+      year: undefined as string | undefined,
+      courses: [] as any[]
     };
 
     let coursesFound = 0;
@@ -1123,14 +1123,14 @@
       const courseData = extractCourseFromLine(line);
       if (courseData) {
         patternMatches++;
-        currentSession.courses.push({
+        (currentSession.courses as any[]).push({
           code: courseData.code,
           name: courseData.name,
           credits: courseData.credits,
           grade: courseData.grade,
           extraData: {},
           confidence: courseData.confidence
-        } as any);
+        });
         coursesFound++;
         debugInfo.push(`Found course: ${courseData.code} - ${courseData.name} (${courseData.confidence})`);
       } else {
@@ -1323,7 +1323,7 @@
 
   function updateEditingCourse(index: number, field: string, value: any) {
     if (coursesForEditing[index]) {
-      coursesForEditing[index][field] = value;
+      (coursesForEditing[index] as any)[field] = value;
       coursesForEditing = [...coursesForEditing]; // Force reactivity
     }
   }
@@ -1539,7 +1539,7 @@
         'suye_format': 'Enter course code (SUYE####), name, grade, and credits.'
       };
       
-      statusMessage = `📋 Template selected: ${template.name}. ${guidance[templateId] || 'Fill in the course information below.'}`;
+      statusMessage = `📋 Template selected: ${template.name}. ${(guidance as any)[templateId] || 'Fill in the course information below.'}`;
     }
   }
 

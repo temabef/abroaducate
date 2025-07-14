@@ -3,12 +3,28 @@
  * Analyzes academic strengths, weaknesses, and generates insights
  */
 
+export interface AcademicProfile {
+  hasData: boolean;
+  message?: string;
+  totalGPA: number;
+  totalCourses: number;
+  creditHours: {
+    total: number;
+    average: number;
+  };
+  gradeDistribution: {
+    byGPARange: { [key: string]: number };
+  };
+  coursesBySubject: any; // Using 'any' for now, can be refined
+  coursesByYear: any; // Using 'any' for now, can be refined
+}
+
 /**
- * Perform comprehensive academic analysis
- * @param {Object} academicProfile - Academic profile data from dataExtractor
- * @returns {Object} Complete academic analysis
+ * Analyzes the complete academic profile of a user.
+ * @param {AcademicProfile} academicProfile - The user's academic profile data.
+ * @returns {Object} A comprehensive analysis object.
  */
-export function analyzeAcademicProfile(academicProfile) {
+export function analyzeAcademicProfile(academicProfile: AcademicProfile) {
   if (!academicProfile.hasData) {
     return {
       hasAnalysis: false,
@@ -33,10 +49,10 @@ export function analyzeAcademicProfile(academicProfile) {
 
 /**
  * Analyze overall academic performance
- * @param {Object} profile - Academic profile data
+ * @param {AcademicProfile} profile - Academic profile data
  * @returns {Object} Overall performance analysis
  */
-function analyzeOverallPerformance(profile) {
+function analyzeOverallPerformance(profile: AcademicProfile) {
   const gpa = profile.totalGPA;
   const totalCredits = profile.creditHours.total;
   
@@ -85,10 +101,10 @@ function analyzeOverallPerformance(profile) {
 
 /**
  * Identify academic strengths
- * @param {Object} profile - Academic profile data
- * @returns {Array} List of identified strengths
+ * @param {AcademicProfile} profile - Academic profile data
+ * @returns {Array<Object>} List of identified strengths
  */
-function identifyAcademicStrengths(profile) {
+function identifyAcademicStrengths(profile: AcademicProfile) {
   const strengths = [];
   const subjects = profile.coursesBySubject;
   const gpaDistribution = profile.gradeDistribution.byGPARange;
@@ -157,10 +173,10 @@ function identifyAcademicStrengths(profile) {
 
 /**
  * Identify academic weaknesses
- * @param {Object} profile - Academic profile data
- * @returns {Array} List of identified weaknesses
+ * @param {AcademicProfile} profile - Academic profile data
+ * @returns {Array<Object>} List of identified weaknesses
  */
-function identifyAcademicWeaknesses(profile) {
+function identifyAcademicWeaknesses(profile: AcademicProfile) {
   const weaknesses = [];
   const subjects = profile.coursesBySubject;
   const gpaDistribution = profile.gradeDistribution.byGPARange;
@@ -229,10 +245,10 @@ function identifyAcademicWeaknesses(profile) {
 
 /**
  * Analyze academic trends
- * @param {Object} profile - Academic profile data
+ * @param {AcademicProfile} profile - Academic profile data
  * @returns {Object} Trend analysis
  */
-function analyzeAcademicTrends(profile) {
+function analyzeAcademicTrends(profile: AcademicProfile) {
   const yearlyData = profile.coursesByYear;
   const years = Object.keys(yearlyData).filter(year => year !== 'Unknown Year' && year !== 'Other Courses').sort();
   
@@ -287,10 +303,10 @@ function analyzeAcademicTrends(profile) {
 
 /**
  * Generate improvement recommendations
- * @param {Object} profile - Academic profile data
- * @returns {Array} List of recommendations
+ * @param {AcademicProfile} profile - Academic profile data
+ * @returns {Array<Object>} List of recommendations
  */
-function generateImprovementRecommendations(profile) {
+function generateImprovementRecommendations(profile: AcademicProfile) {
   const recommendations = [];
   const gpa = profile.totalGPA;
   const subjects = profile.coursesBySubject;
@@ -347,10 +363,10 @@ function generateImprovementRecommendations(profile) {
 
 /**
  * Assess competitiveness for university admissions
- * @param {Object} profile - Academic profile data
+ * @param {AcademicProfile} profile - Academic profile data
  * @returns {Object} Competitiveness assessment
  */
-function assessCompetitiveness(profile) {
+function assessCompetitiveness(profile: AcademicProfile) {
   const gpa = profile.totalGPA;
   
   let competitiveLevel, description, opportunities;
@@ -399,10 +415,10 @@ function calculateGPAPercentile(gpa) {
 
 /**
  * Identify risk factors
- * @param {Object} profile - Academic profile data
- * @returns {Array} List of risk factors
+ * @param {AcademicProfile} profile - Academic profile data
+ * @returns {Array<Object>} List of risk factors
  */
-function identifyRiskFactors(profile) {
+function identifyRiskFactors(profile: AcademicProfile) {
   const risks = [];
   
   if (profile.totalGPA < 2.5) {
@@ -426,10 +442,10 @@ function identifyRiskFactors(profile) {
 
 /**
  * Generate key insights
- * @param {Object} profile - Academic profile data
- * @returns {Array} List of key insights
+ * @param {AcademicProfile} profile - Academic profile data
+ * @returns {Array<Object>} List of key insights
  */
-function generateKeyInsights(profile) {
+function generateKeyInsights(profile: AcademicProfile) {
   const insights = [];
   
   // Academic strengths insight

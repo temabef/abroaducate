@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
     import { createEventDispatcher } from 'svelte';
     import { fade, scale } from 'svelte/transition';
     
@@ -61,7 +61,7 @@
         }
     };
     
-    $: content = limitContent[limitType]?.[featureType] || {
+    $: content = (limitContent as any)[limitType]?.[featureType] || {
         icon: '🚀',
         title: 'Limit Reached!',
         subtitle: 'You\'ve reached your monthly limit',
@@ -78,7 +78,7 @@
     
     $: randomStory = successStories[Math.floor(Math.random() * successStories.length)];
     
-    function handleUpgrade(planType) {
+    function handleUpgrade(planType: string) {
         dispatch('upgrade', { planType });
         isOpen = false;
     }
@@ -106,6 +106,7 @@
             <button 
                 on:click={closeModal}
                 class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 z-10"
+                aria-label="Close modal"
             >
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>

@@ -21,7 +21,7 @@ I am writing to express my strong interest in the Software Engineer position at 
     let authMode = $state<'login' | 'signup'>('login');
     
     // Handle auth events from AIFeatureWidget
-    function handleAuthEvent(event) {
+    function handleAuthEvent(event: any) {
         authMode = event.detail.mode || 'login';
         showAuthModal = true;
     }

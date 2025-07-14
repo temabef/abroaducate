@@ -318,7 +318,7 @@ Available roles:
           <p class="mb-3">You don't have permission to add new admins. Only super-admins can manage admin users.</p>
           <button
             type="button"
-            on:click={grantEmergencyAccess}
+            onclick={grantEmergencyAccess}
             class="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
           >
             Grant Emergency Admin Access
@@ -358,7 +358,7 @@ Available roles:
           <div class="flex items-end">
             <button
               type="button"
-              on:click={handleAddAdmin}
+              onclick={handleAddAdmin}
               disabled={!newAdminEmail || addingAdmin || !canManageAdmins}
               class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 disabled:opacity-50"
             >
@@ -428,7 +428,7 @@ Available roles:
                       </span>
                       {#if canManageAdmins}
                         <button
-                          on:click={() => handleUpdateRole(admin.email_cache || '', admin.user_id)}
+                          onclick={() => handleUpdateRole(admin.email_cache || '', admin.user_id)}
                           class="text-blue-600 hover:text-blue-900 text-xs"
                         >
                           Change
@@ -442,7 +442,7 @@ Available roles:
                   <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     {#if canManageAdmins && (admin.role !== 'super-admin' || currentUserRole === 'super-admin')}
                       <button
-                        on:click={() => handleRemoveAdmin(admin.email_cache || '', admin.user_id)}
+                        onclick={() => handleRemoveAdmin(admin.email_cache || '', admin.user_id)}
                         class="text-red-600 hover:text-red-900"
                         title="Remove admin"
                       >

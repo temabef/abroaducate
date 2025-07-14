@@ -9,6 +9,7 @@ export interface FrenchUniversityData {
     name: string;
     name_french: string;
     city: string;
+    state?: string; // Added to fix TypeScript error
     region: string;
     established: number;
     qs_ranking?: number;

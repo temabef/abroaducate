@@ -358,13 +358,13 @@
       <!-- Action Buttons -->
       <div class="mb-6 flex gap-4">
         <button
-          on:click={handleAddScholarship}
+          onclick={handleAddScholarship}
           class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
         >
           Add Scholarship
         </button>
         <button
-          on:click={() => showBulkImport = !showBulkImport}
+          onclick={() => showBulkImport = !showBulkImport}
           class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
         >
           Bulk Import
@@ -386,13 +386,13 @@
           ></textarea>
           <div class="flex gap-2">
             <button
-              on:click={processBulkImport}
+              onclick={processBulkImport}
               class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
             >
               Import Data
             </button>
             <button
-              on:click={() => showBulkImport = false}
+              onclick={() => showBulkImport = false}
               class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
             >
               Cancel

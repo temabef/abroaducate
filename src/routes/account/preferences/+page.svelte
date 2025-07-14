@@ -245,134 +245,58 @@
                   </div>
                   <div class="flex items-center gap-3">
                     <span class="text-amber-600">📅</span>
-                    <span class="text-amber-800"><strong>Daily Scholarship Updates:</strong> Get fresh opportunities delivered daily</span>
-                  </div>
-                  <div class="flex items-center gap-3">
-                    <span class="text-amber-600">🔔</span>
-                    <span class="text-amber-800"><strong>Subscription Expiry Alerts:</strong> Stay informed about your account status</span>
-                  </div>
-                  <div class="flex items-center gap-3">
-                    <span class="text-amber-600">⚡</span>
-                    <span class="text-amber-800"><strong>Instant Notifications:</strong> (Elite only) Get immediate alerts for urgent deadlines</span>
+                    <span class="text-amber-800"><strong>Calendar Integration:</strong> Sync deadlines automatically with your personal calendar</span>
                   </div>
                 </div>
-                <div class="mt-4">
-                  <a href="/pricing" class="inline-flex items-center px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors">
-                    🔒 Upgrade to Academic Professional
-                  </a>
-                </div>
+                <button on:click={() => goto('/pricing')} class="mt-4 w-full bg-amber-500 text-white py-2 px-4 rounded-lg hover:bg-amber-600 transition-colors">
+                  Upgrade to Professional
+                </button>
               </div>
             {:else}
-              <!-- Paid Users - Full Email Settings -->
-              <div class="space-y-6">
-                
-                <!-- Application Deadline Reminders -->
-                <div class="p-4 bg-green-50 rounded-lg border border-green-200">
-                  <div class="flex items-center justify-between mb-3">
-                    <h3 class="font-medium text-green-900">⏰ Application Deadline Reminders</h3>
-                    <span class="px-2 py-1 bg-green-600 text-white text-xs rounded-full">PREMIUM</span>
-                  </div>
-                  <p class="text-sm text-green-800 mb-3">
-                    Get personalized reminders for your application deadlines - never miss an opportunity!
-                  </p>
-                  <div class="flex items-center justify-between">
-                    <span class="text-sm text-green-700">Application deadline alerts</span>
-                    <label class="relative inline-flex items-center cursor-pointer">
-                      <input type="checkbox" class="sr-only peer" bind:checked={preferences.email_deadlines} />
-                      <div class="w-11 h-6 bg-green-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-green-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
-                    </label>
-                  </div>
+              <!-- Premium User - Deadline Reminders -->
+              <div class="mb-6">
+                <h3 class="font-medium text-gray-900 mb-3">⏰ Application Deadline Reminders</h3>
+                <div class="flex items-center justify-between">
+                  <span class="text-sm text-gray-600">Receive email alerts for upcoming deadlines</span>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" class="sr-only peer" bind:checked={preferences.email_deadlines} />
+                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  </label>
                 </div>
-
-                <!-- Enhanced Scholarship Frequency -->
-                <div class="p-4 bg-purple-50 rounded-lg border border-purple-200">
-                  <div class="flex items-center justify-between mb-3">
-                    <h3 class="font-medium text-purple-900">📊 Scholarship Update Frequency</h3>
-                    <span class="px-2 py-1 bg-purple-600 text-white text-xs rounded-full">PREMIUM</span>
-                  </div>
-                  <p class="text-sm text-purple-800 mb-3">
-                    Choose how often you want to receive scholarship updates - weekly or daily!
-                  </p>
-                  <div class="flex items-center justify-between">
-                    <span class="text-sm text-purple-700">Scholarship frequency</span>
-                    <select bind:value={preferences.scholarship_frequency} class="px-3 py-2 border border-purple-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
-                      <option value="weekly">Weekly</option>
-                      <option value="daily">Daily</option>
-                    </select>
-                  </div>
-                </div>
-
-                <!-- Subscription Alerts -->
-                <div class="p-4 bg-indigo-50 rounded-lg border border-indigo-200">
-                  <div class="flex items-center justify-between mb-3">
-                    <h3 class="font-medium text-indigo-900">🔔 Account & Subscription Alerts</h3>
-                    <span class="px-2 py-1 bg-indigo-600 text-white text-xs rounded-full">PREMIUM</span>
-                  </div>
-                  <p class="text-sm text-indigo-800 mb-3">
-                    Stay informed about subscription renewals, expiry warnings, and account updates.
-                  </p>
-                  <div class="flex items-center justify-between">
-                    <span class="text-sm text-indigo-700">Subscription & account notifications</span>
-                    <label class="relative inline-flex items-center cursor-pointer">
-                      <input type="checkbox" class="sr-only peer" bind:checked={preferences.subscription_alerts} />
-                      <div class="w-11 h-6 bg-indigo-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-indigo-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
-                    </label>
-                  </div>
-                </div>
-
-                <!-- Elite Features -->
-                {#if userTier === 'elite'}
-                  <div class="p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg border border-yellow-200">
-                    <div class="flex items-center justify-between mb-3">
-                      <h3 class="font-medium text-yellow-900">⚡ Instant Deadline Alerts</h3>
-                      <span class="px-2 py-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs rounded-full">ELITE</span>
-                    </div>
-                    <p class="text-sm text-yellow-800 mb-3">
-                      Get immediate notifications for critical deadlines (3 days or less).
-                    </p>
-                    <div class="flex items-center justify-between">
-                      <span class="text-sm text-yellow-700">Instant critical deadline alerts</span>
-                      <label class="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" class="sr-only peer" bind:checked={preferences.instant_alerts} />
-                        <div class="w-11 h-6 bg-yellow-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-yellow-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-yellow-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-yellow-500 peer-checked:to-orange-500"></div>
-                      </label>
-                    </div>
-                  </div>
-                {/if}
-
               </div>
             {/if}
           </div>
 
-          <!-- Save Button -->
+          <!-- Calendar Integration Section -->
           <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <button
-              on:click={savePreferences}
-              disabled={saving}
-              class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-medium"
-            >
-              {#if saving}
-                <div class="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-              {/if}
-              📤 Save All Preferences
-            </button>
-            
-            {#if saveMessage}
-              <div class="mt-4 p-3 rounded-lg bg-green-50 text-green-800 border border-green-200">
-                {saveMessage}
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">🗓️ Calendar Integration</h2>
+            {#if userTier === 'free'}
+              <div class="border border-blue-200 rounded-lg p-4 bg-blue-50">
+                <h3 class="font-medium text-blue-900 mb-2">Sync with your Calendar</h3>
+                <p class="text-sm text-blue-800 mb-4">Upgrade to automatically sync application deadlines to your Google, Outlook, or Apple calendar.</p>
+                <button on:click={() => goto('/pricing')} class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
+                  Upgrade to Elite
+                </button>
+              </div>
+            {:else if userTier === 'professional'}
+               <div class="border border-purple-200 rounded-lg p-4 bg-purple-50">
+                <h3 class="font-medium text-purple-900 mb-2">Upgrade for Calendar Sync</h3>
+                <p class="text-sm text-purple-800 mb-4">This is an Elite feature. Upgrade to automatically sync deadlines with your calendar.</p>
+                <button on:click={() => goto('/pricing')} class="bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors">
+                  Upgrade to Elite
+                </button>
+              </div>
+            {:else}
+              <div class="flex items-center justify-between">
+                 <span class="text-sm text-gray-600">Enable calendar integration</span>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" class="sr-only peer" bind:checked={preferences.calendar_enabled} />
+                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  </label>
               </div>
             {/if}
           </div>
-        </div>
-
-        <!-- Sidebar -->
-        <div class="lg:col-span-1 space-y-6">
-          <!-- Email Status Widget -->
-          <EmailStatusWidget userTier={userTier} />
           
-          <!-- Basic Reminders Widget -->
-          <BasicReminders userTier={userTier} />
-
           <!-- Test Email Section -->
           <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h3 class="font-medium text-gray-900 mb-4">🧪 Test Your Email Setup</h3>
@@ -416,6 +340,14 @@
               {/if}
             </div>
           </div>
+        </div>
+
+        <!-- Sidebar (Reminders) -->
+        <div class="lg:col-span-1 space-y-6">
+          
+          <!-- Basic Reminders Widget -->
+          <BasicReminders />
+
         </div>
       </div>
     </div>

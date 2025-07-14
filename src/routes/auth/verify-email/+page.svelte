@@ -6,10 +6,10 @@
   let { data } = $props();
   let { supabase } = $derived(data);
   
-  let verifying = true;
-  let success = false;
-  let error = '';
-  let message = '';
+  let verifying = $state(true);
+  let success = $state(false);
+  let error = $state('');
+  let message = $state('');
 
   onMount(async () => {
     const token = $page.url.searchParams.get('token');

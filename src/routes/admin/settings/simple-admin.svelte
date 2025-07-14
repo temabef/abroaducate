@@ -1,11 +1,18 @@
-<script>
+<script lang="ts">
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
   import { supabase } from '$lib/supabaseClient';
   
-  let adminUsers = [];
+  interface AdminUser {
+    user_id: string;
+    email: string;
+    role: string;
+    created_at: string;
+  }
+
+  let adminUsers: AdminUser[] = [];
   let loading = true;
-  let error = null;
+  let error: string | null = null;
   
   let newAdminEmail = '';
   let newAdminRole = 'admin';
@@ -36,7 +43,7 @@
       }
       
       // Convert to the expected format
-      adminUsers = (admins || []).map(admin => ({
+      adminUsers = (admins || []).map((admin: any) => ({
         user_id: admin.user_id,
         email: admin.email_cache || 'Unknown',
         role: admin.role,
@@ -44,7 +51,7 @@
       }));
       
       console.log('Admin users loaded:', adminUsers);
-    } catch (e) {
+    } catch (e: any) {
       error = `Exception: ${e instanceof Error ? e.message : 'Unknown error'}`;
       console.error('Exception loading admin users:', e);
     } finally {
@@ -97,7 +104,7 @@
       addMessage = `User ${newAdminEmail} added as ${isProtected ? 'super_admin' : newAdminRole}`;
       newAdminEmail = '';
       await loadAdminUsers();
-    } catch (e) {
+    } catch (e: any) {
       addSuccess = false;
       addMessage = `Exception: ${e instanceof Error ? e.message : 'Unknown error'}`;
       console.error('Exception adding admin:', e);
@@ -107,7 +114,7 @@
   }
   
   // Remove an admin directly
-  async function handleRemoveAdmin(email, userId) {
+  async function handleRemoveAdmin(email: string, userId: string) {
     if (!confirm(`Are you sure you want to remove admin privileges from ${email || userId}?`)) {
       return;
     }
@@ -131,14 +138,14 @@
       }
       
       await loadAdminUsers();
-    } catch (e) {
+    } catch (e: any) {
       alert(`Exception: ${e instanceof Error ? e.message : 'Unknown error'}`);
       console.error('Exception removing admin:', e);
     }
   }
   
   // Update an admin's role
-  async function handleUpdateRole(email, userId) {
+  async function handleUpdateRole(email: string, userId: string) {
     // Check if this is a protected email
     const protectedEmails = ['admin@abroaducate.com', 'solakolawole62@gmail.com'];
     if (protectedEmails.includes(email)) {
@@ -170,7 +177,7 @@ Available roles:
       
       alert(`Successfully updated ${email || userId} to role: ${newRole}`);
       await loadAdminUsers();
-    } catch (e) {
+    } catch (e: any) {
       alert(`Exception: ${e instanceof Error ? e.message : 'Unknown error'}`);
       console.error('Exception updating admin role:', e);
     }
@@ -230,7 +237,7 @@ Available roles:
         <div class="flex items-end">
           <button
             type="button"
-            on:click={handleAddAdmin}
+            onclick={handleAddAdmin}
             disabled={!newAdminEmail || addingAdmin}
             class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 disabled:opacity-50"
           >
@@ -296,7 +303,7 @@ Available roles:
                         {admin.role}
                       </span>
                       <button
-                        on:click={() => handleUpdateRole(admin.email, admin.user_id)}
+                        onclick={() => handleUpdateRole(admin.email, admin.user_id)}
                         class="text-blue-600 hover:text-blue-900 text-xs"
                       >
                         Change
@@ -308,8 +315,10 @@ Available roles:
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
-                      on:click={() => handleRemoveAdmin(admin.email, admin.user_id)}
+                      onclick={() => handleRemoveAdmin(admin.email, admin.user_id)}
                       class="text-red-600 hover:text-red-900"
+                      title="Remove admin"
+                      disabled={['admin@abroaducate.com', 'solakolawole62@gmail.com'].includes(admin.email)}
                     >
                       Remove
                     </button>

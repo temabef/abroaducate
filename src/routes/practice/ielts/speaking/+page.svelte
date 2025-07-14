@@ -157,7 +157,7 @@
         await loadQuestionsForSet(currentSetId);
       }
       
-    } catch (e) {
+    } catch (e: any) {
       console.error('Error loading speaking practice:', e);
       errorMessage = `Error: ${e.message}`;
       loading = false;
@@ -196,7 +196,7 @@
       errorMessage = '';
       loading = false;
       
-    } catch (e) {
+    } catch (e: any) {
       console.error('Error loading questions:', e);
       errorMessage = `Error loading questions: ${e.message}`;
       loading = false;
@@ -432,13 +432,13 @@
               
               <div class="bg-gray-50 rounded-lg p-4 mb-4">
                 <h3 class="font-semibold text-gray-900 mb-2">
-                  {speakingParts[currentPart].title}
+                  {speakingParts[currentPart as keyof typeof speakingParts].title}
                 </h3>
                 <p class="text-gray-700 text-sm mb-2">
-                  {speakingParts[currentPart].description}
+                  {speakingParts[currentPart as keyof typeof speakingParts].description}
                 </p>
                 <p class="text-gray-600 text-sm">
-                  ⏱️ Duration: {speakingParts[currentPart].duration}
+                  ⏱️ Duration: {speakingParts[currentPart as keyof typeof speakingParts].duration}
                 </p>
               </div>
 
@@ -449,7 +449,7 @@
                 </summary>
                 <div class="mt-3 p-4 bg-blue-50 rounded-lg">
                   <ul class="space-y-2">
-                    {#each speakingParts[currentPart].tips as tip}
+                    {#each speakingParts[currentPart as keyof typeof speakingParts].tips as tip}
                       <li class="flex items-start gap-2">
                         <span class="text-blue-500 mt-0.5">•</span>
                         <span class="text-sm text-blue-800">{tip}</span>

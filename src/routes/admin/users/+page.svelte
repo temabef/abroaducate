@@ -4,9 +4,9 @@
   let { data } = $props();
   let { supabase, session } = $derived(data);
   
-  let loading = false;
-  let message = '';
-  let messageType = 'info';
+  let loading = $state(false);
+  let message = $state('');
+  let messageType = $state('info');
   
   // User Statistics - simplified static data since analytics work elsewhere
   let userStats = $state({
@@ -188,10 +188,10 @@
         <h4>📚 Study Tips & Updates</h4>
         <p>Send personalized study abroad tips and platform updates to your registered users</p>
         <div class="campaign-actions">
-          <button class="campaign-btn primary" on:click={sendUserCampaign}>
+          <button class="campaign-btn primary" onclick={sendUserCampaign}>
             Create User Campaign
           </button>
-          <button class="campaign-btn" on:click={() => showMessage('User email templates ready!', 'info')}>
+          <button class="campaign-btn" onclick={() => showMessage('User email templates ready!', 'info')}>
             View Templates
           </button>
         </div>
@@ -201,10 +201,10 @@
         <h4>🎓 Premium Features</h4>
         <p>Promote premium features to Academic Starter users and share success stories</p>
         <div class="campaign-actions">
-          <button class="campaign-btn" on:click={() => showMessage('Premium promotion campaigns ready!', 'info')}>
+          <button class="campaign-btn" onclick={() => showMessage('Premium promotion campaigns ready!', 'info')}>
             Premium Promotion
           </button>
-          <button class="campaign-btn" on:click={() => showMessage('Success story templates available!', 'info')}>
+          <button class="campaign-btn" onclick={() => showMessage('Success story templates available!', 'info')}>
             Success Stories
           </button>
         </div>
@@ -230,77 +230,85 @@
         <button 
           class="filter-tab" 
           class:active={filterType === 'all'} 
-          on:click={() => filterType = 'all'}
+          onclick={() => filterType = 'all'}
         >
           All Users ({formatNumber(userStats.total_users)})
         </button>
         <button 
           class="filter-tab" 
           class:active={filterType === 'premium'} 
-          on:click={() => filterType = 'premium'}
+          onclick={() => filterType = 'premium'}
         >
           Premium ({formatNumber(userStats.premium_users)})
         </button>
         <button 
           class="filter-tab" 
           class:active={filterType === 'free'} 
-          on:click={() => filterType = 'free'}
+          onclick={() => filterType = 'free'}
         >
           Academic Starter ({formatNumber(userStats.free_users)})
         </button>
         <button 
           class="filter-tab" 
           class:active={filterType === 'newsletter'} 
-          on:click={() => filterType = 'newsletter'}
+          onclick={() => filterType = 'newsletter'}
         >
-          Newsletter ({formatNumber(userStats.newsletter_subscribers)})
+          Newsletter Subs ({formatNumber(userStats.newsletter_subscribers)})
         </button>
       </div>
     </div>
-
-    <!-- Users Table -->
-    <div class="users-table">
-      <table>
-        <thead>
-          <tr>
-            <th>User</th>
-            <th>Email</th>
-            <th>Plan</th>
-            <th>Newsletter</th>
-            <th>Last Active</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {#each filteredUsers as user}
+    
+    <!-- User Table -->
+    <div class="user-table-container">
+      {#if loading}
+        <div class="loading-state">Loading users...</div>
+      {:else}
+        <table class="user-table">
+          <thead>
             <tr>
-              <td>
-                <div class="user-info">
-                  <div class="user-avatar">{user.full_name?.charAt(0)?.toUpperCase() || user.email?.charAt(0)?.toUpperCase() || 'U'}</div>
-                  <span>{user.full_name || user.email || 'User'}</span>
-                </div>
-              </td>
-              <td>{user.email}</td>
-              <td>
-                <span class="plan-badge {getUserPlanType()}">
-                  {getUserPlanName()}
-                </span>
-              </td>
-              <td>
-                <span class="newsletter-status {user.newsletter_subscribed ? 'subscribed' : 'unsubscribed'}">
-                  {user.newsletter_subscribed ? '✅ Yes' : '❌ No'}
-                </span>
-              </td>
-              <td>{user.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleDateString() : 'Never'}</td>
-              <td>
-                <button class="action-btn small" on:click={() => showMessage('User management actions available after deployment', 'info')}>
-                  Manage
-                </button>
-              </td>
+              <th>User</th>
+              <th>Status</th>
+              <th>Plan</th>
+              <th>Signed Up</th>
+              <th>Last Seen</th>
+              <th>Actions</th>
             </tr>
-          {/each}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {#each filteredUsers as user (user.id)}
+              <tr>
+                <td>
+                  <div class="user-info">
+                    <span class="font-semibold">{user.full_name || 'N/A'}</span>
+                    <span class="text-sm text-gray-600">{user.email}</span>
+                  </div>
+                </td>
+                <td>
+                  <span class="status-badge {user.newsletter_subscribed ? 'subscribed' : 'unsubscribed'}">
+                    {user.newsletter_subscribed ? 'Subscribed' : 'Not Subscribed'}
+                  </span>
+                </td>
+                <td>
+                  <span class="plan-badge {getUserPlanType()}">
+                    {getUserPlanName()}
+                  </span>
+                </td>
+                <td>{new Date(user.created_at).toLocaleDateString()}</td>
+                <td>{user.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleDateString() : 'N/A'}</td>
+                <td>
+                  <button class="action-btn small" onclick={() => showMessage('User management actions available after deployment', 'info')}>
+                    Manage
+                  </button>
+                </td>
+              </tr>
+            {:else}
+              <tr>
+                <td colspan="6" class="text-center py-8">No users found.</td>
+              </tr>
+            {/each}
+          </tbody>
+        </table>
+      {/if}
     </div>
   </div>
 
@@ -331,369 +339,263 @@
 
 <style>
   .user-management {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 80px 24px 24px 24px;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    min-height: 100vh;
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background-color: #f9fafb;
+    border-radius: 12px;
+    font-family: 'Inter', sans-serif;
   }
 
   .header {
     text-align: center;
-    margin-bottom: 32px;
+    margin-bottom: 2rem;
   }
 
   .header h1 {
-    font-size: 2.5rem;
+    font-size: 2.25rem;
     font-weight: 700;
-    color: #1f2937;
-    margin: 0 0 8px 0;
+    color: #111827;
   }
 
   .header p {
+    font-size: 1rem;
     color: #6b7280;
-    font-size: 1.1rem;
+    margin-top: 0.5rem;
   }
 
   .message {
-    padding: 12px 16px;
+    padding: 1rem;
     border-radius: 8px;
-    margin-bottom: 24px;
-    font-weight: 500;
-  }
-
-  .message.success {
-    background: #dcfce7;
-    color: #166534;
-    border: 1px solid #bbf7d0;
-  }
-
-  .message.error {
-    background: #fef2f2;
-    color: #dc2626;
-    border: 1px solid #fecaca;
+    margin-bottom: 2rem;
+    text-align: center;
   }
 
   .message.info {
-    background: #dbeafe;
-    color: #1e40af;
-    border: 1px solid #bfdbfe;
+    background-color: #e0f2fe;
+    color: #0c4a6e;
+  }
+
+  .message.success {
+    background-color: #dcfce7;
+    color: #166534;
+  }
+
+  .message.error {
+    background-color: #fee2e2;
+    color: #991b1b;
   }
 
   .stats-section,
   .plans-section,
   .email-section,
-  .users-section,
-  .deployment-section {
-    margin-bottom: 40px;
-    background: white;
+  .users-section {
+    background-color: #ffffff;
+    padding: 1.5rem;
     border-radius: 12px;
-    padding: 24px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   }
 
-  .stats-section h2,
-  .plans-section h2,
-  .email-section h2,
-  .users-section h2,
-  .deployment-section h2 {
+  h2 {
     font-size: 1.5rem;
     font-weight: 600;
     color: #1f2937;
-    margin: 0 0 20px 0;
+    margin-bottom: 1.5rem;
   }
 
   .stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1.5rem;
   }
 
   .stat-card {
-    background: #f8fafc;
-    border: 1px solid #e5e7eb;
+    background-color: #f9fafb;
+    padding: 1.5rem;
     border-radius: 8px;
-    padding: 20px;
     text-align: center;
   }
 
   .stat-card h3 {
-    font-size: 1rem;
-    font-weight: 600;
-    color: #374151;
-    margin: 0 0 8px 0;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #6b7280;
+    text-transform: uppercase;
   }
 
   .big-number {
-    font-size: 1.75rem;
+    font-size: 2.5rem;
     font-weight: 700;
-    color: #1f2937;
-    margin: 0;
+    color: #111827;
+    margin: 0.5rem 0;
   }
 
   .stat-note {
     font-size: 0.875rem;
     color: #6b7280;
-    margin: 4px 0 0 0;
   }
 
   .campaign-options {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-    gap: 20px;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
   }
 
   .campaign-card {
-    background: #f0f9ff;
-    border: 1px solid #bfdbfe;
+    background-color: #f9fafb;
+    padding: 1.5rem;
     border-radius: 8px;
-    padding: 20px;
   }
 
   .campaign-card h4 {
-    font-size: 1.2rem;
+    font-size: 1.125rem;
     font-weight: 600;
-    color: #1e40af;
-    margin: 0 0 12px 0;
+    color: #1f2937;
   }
 
   .campaign-card p {
-    color: #374151;
-    margin: 0 0 16px 0;
-    line-height: 1.5;
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin: 0.5rem 0 1rem;
+    min-height: 40px;
   }
 
   .campaign-actions {
     display: flex;
-    gap: 12px;
+    gap: 0.5rem;
   }
 
   .campaign-btn {
-    padding: 8px 16px;
+    padding: 0.5rem 1rem;
     border-radius: 6px;
-    font-size: 0.875rem;
-    font-weight: 600;
+    border: 1px solid #d1d5db;
+    background-color: #ffffff;
+    color: #374151;
+    font-weight: 500;
     cursor: pointer;
-    transition: all 0.2s ease;
-    border: none;
+    transition: background-color 0.2s;
   }
 
   .campaign-btn.primary {
-    background: #2563eb;
-    color: white;
+    background-color: #2563eb;
+    color: #ffffff;
+    border-color: #2563eb;
+  }
+
+  .campaign-btn:hover {
+    background-color: #f3f4f6;
   }
 
   .campaign-btn.primary:hover {
-    background: #1d4ed8;
-  }
-
-  .campaign-btn:not(.primary) {
-    background: white;
-    color: #374151;
-    border: 1px solid #d1d5db;
-  }
-
-  .campaign-btn:not(.primary):hover {
-    background: #f3f4f6;
+    background-color: #1d4ed8;
   }
 
   .controls {
     display: flex;
-    gap: 20px;
-    margin-bottom: 24px;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
     flex-wrap: wrap;
+    gap: 1rem;
   }
 
   .search-bar {
-    flex: 1;
-    min-width: 250px;
+    flex-grow: 1;
   }
 
   .search-bar input {
     width: 100%;
-    padding: 10px 12px;
-    border: 2px solid #e5e7eb;
-    border-radius: 6px;
+    max-width: 400px;
+    padding: 0.6rem 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
     font-size: 0.875rem;
-    box-sizing: border-box;
-  }
-
-  .search-bar input:focus {
-    outline: none;
-    border-color: #2563eb;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
   }
 
   .filter-tabs {
     display: flex;
-    gap: 4px;
-    flex-wrap: wrap;
+    background-color: #e5e7eb;
+    border-radius: 8px;
+    padding: 4px;
   }
 
   .filter-tab {
-    padding: 8px 16px;
-    border: 1px solid #d1d5db;
-    background: white;
-    color: #374151;
-    cursor: pointer;
-    font-size: 0.875rem;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    border: none;
+    background-color: transparent;
+    color: #4b5563;
     font-weight: 500;
-    transition: all 0.2s ease;
-    white-space: nowrap;
-  }
-
-  .filter-tab:first-child {
-    border-radius: 6px 0 0 6px;
-  }
-
-  .filter-tab:last-child {
-    border-radius: 0 6px 6px 0;
+    cursor: pointer;
+    transition: all 0.2s;
   }
 
   .filter-tab.active {
-    background: #2563eb;
-    color: white;
-    border-color: #2563eb;
+    background-color: #ffffff;
+    color: #111827;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   }
 
-  .filter-tab:hover:not(.active) {
-    background: #f3f4f6;
-  }
-
-  .users-table {
+  .user-table-container {
     overflow-x: auto;
+    background-color: #fff;
+    border-radius: 8px;
   }
 
-  .loading,
-  .no-users {
-    text-align: center;
-    padding: 40px;
-    color: #6b7280;
-  }
-
-  .note {
-    font-size: 0.875rem;
-    margin-top: 8px;
-  }
-
-  table {
+  .user-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.875rem;
   }
 
-  th,
-  td {
-    padding: 12px;
+  .user-table th, .user-table td {
+    padding: 1rem;
     text-align: left;
     border-bottom: 1px solid #e5e7eb;
-  }
-
-  th {
-    font-weight: 600;
-    color: #374151;
-    background: #f9fafb;
-  }
-
-  .user-info {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .user-avatar {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: #2563eb;
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-    font-size: 0.875rem;
-  }
-
-  .plan-badge {
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 0.75rem;
-    font-weight: 600;
     white-space: nowrap;
   }
 
+  .user-table th {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: #6b7280;
+    font-weight: 600;
+  }
+
+  .user-info .font-semibold {
+    display: block;
+  }
+
+  .status-badge, .plan-badge {
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: capitalize;
+  }
+
+  .status-badge.subscribed {
+    background-color: #dcfce7;
+    color: #166534;
+  }
+
+  .status-badge.unsubscribed {
+    background-color: #fee2e2;
+    color: #991b1b;
+  }
+
   .plan-badge.premium {
-    background: #fef3c7;
-    color: #92400e;
+    background-color: #dbeafe;
+    color: #1e40af;
   }
 
   .plan-badge.free {
-    background: #f3f4f6;
-    color: #374151;
-  }
-
-  .newsletter-status.subscribed {
-    color: #059669;
-  }
-
-  .newsletter-status.unsubscribed {
-    color: #dc2626;
+    background-color: #e5e7eb;
+    color: #4b5563;
   }
 
   .action-btn.small {
-    padding: 6px 12px;
-    font-size: 0.75rem;
-    background: #f3f4f6;
-    color: #374151;
-    border: 1px solid #d1d5db;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-
-  .action-btn.small:hover {
-    background: #e5e7eb;
-  }
-
-  .deployment-info h4 {
-    color: #1f2937;
-    font-weight: 600;
-    margin: 16px 0 8px 0;
-  }
-
-  .deployment-info ul {
-    margin: 0 0 16px 0;
-    padding-left: 20px;
-  }
-
-  .deployment-info li {
-    color: #6b7280;
-    margin-bottom: 4px;
-    line-height: 1.5;
-  }
-
-  @media (max-width: 768px) {
-    .user-management {
-      padding: 60px 16px 24px 16px;
-    }
-
-    .header h1 {
-      font-size: 2rem;
-    }
-
-    .stats-grid {
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    }
-
-    .controls {
-      flex-direction: column;
-    }
-
-    .filter-tabs {
-      flex-wrap: wrap;
-    }
-
-    .campaign-actions {
-      flex-direction: column;
-    }
+    font-size: 0.875rem;
+    padding: 0.3rem 0.8rem;
   }
 </style> 

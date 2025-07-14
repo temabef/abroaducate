@@ -39,7 +39,7 @@
     </div>
 
     <!-- Comprehensive SOP Form -->
-    <FormSection {supabase} {session} />
+    <FormSection />
     
     <!-- Additional Features Section -->
     <div class="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">

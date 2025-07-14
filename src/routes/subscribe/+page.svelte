@@ -76,8 +76,8 @@
     
     // Calculate plan cards reactively
     $: freeCard = getPlanCard('free', FREE_PLAN, 0);
-    $: basicCard = getPlanCard('basic', SUBSCRIPTION_PLANS.basic, SUBSCRIPTION_PLANS.basic.price);
-    $: proCard = getPlanCard('pro', SUBSCRIPTION_PLANS.pro, SUBSCRIPTION_PLANS.pro.price);
+    $: proCard = getPlanCard('professional', SUBSCRIPTION_PLANS.professional, SUBSCRIPTION_PLANS.professional.prices.monthly);
+    $: eliteCard = getPlanCard('elite', SUBSCRIPTION_PLANS.elite, SUBSCRIPTION_PLANS.elite.prices.monthly);
 </script>
 
 <svelte:head>
@@ -129,9 +129,9 @@
                 </button>
             </div>
 
-            <!-- Basic Plan -->
-            <div class="bg-white rounded-2xl shadow-lg p-8 border-2 {basicCard.isCurrentPlan ? 'border-blue-500' : 'border-gray-200'} relative">
-                {#if basicCard.isUpgrade && currentPlan === 'free'}
+            <!-- Professional Plan -->
+            <div class="bg-white rounded-2xl shadow-lg p-8 border-2 {proCard.isCurrentPlan ? 'border-blue-500' : 'border-gray-200'} relative">
+                {#if proCard.isUpgrade && currentPlan === 'free'}
                     <div class="absolute -top-4 left-1/2 transform -translate-x-1/2">
                         <span class="bg-blue-500 text-white px-4 py-1 rounded-full text-sm font-semibold">
                             Most Popular
@@ -140,56 +140,15 @@
                 {/if}
                 
                 <div class="text-center mb-6">
-                    <h3 class="text-2xl font-bold text-gray-900">{SUBSCRIPTION_PLANS.basic.name}</h3>
+                    <h3 class="text-2xl font-bold text-gray-900">{SUBSCRIPTION_PLANS.professional.name}</h3>
                     <div class="mt-4">
-                        <span class="text-4xl font-bold text-gray-900">${SUBSCRIPTION_PLANS.basic.price}</span>
+                        <span class="text-4xl font-bold text-gray-900">${SUBSCRIPTION_PLANS.professional.prices.monthly}</span>
                         <span class="text-gray-600">/month</span>
                     </div>
                 </div>
                 
                 <ul class="space-y-3 mb-8">
-                    {#each SUBSCRIPTION_PLANS.basic.features as feature}
-                        <li class="flex items-center text-gray-700">
-                            <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                            </svg>
-                            {feature}
-                        </li>
-                    {/each}
-                </ul>
-                
-                <button
-                    disabled={basicCard.buttonDisabled}
-                    onclick={() => subscribe('basic')}
-                    class="w-full py-3 px-6 rounded-lg font-semibold transition-colors
-                           {basicCard.isCurrentPlan 
-                             ? 'bg-gray-100 text-gray-500 cursor-not-allowed' 
-                             : 'bg-blue-600 text-white hover:bg-blue-700'}"
-                >
-                    {loading ? 'Processing...' : basicCard.buttonText}
-                </button>
-            </div>
-
-            <!-- Pro Plan -->
-            <div class="bg-white rounded-2xl shadow-lg p-8 border-2 {proCard.isCurrentPlan ? 'border-purple-500' : 'border-gray-200'} relative">
-                {#if proCard.isUpgrade}
-                    <div class="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                        <span class="bg-purple-500 text-white px-4 py-1 rounded-full text-sm font-semibold">
-                            Best Value
-                        </span>
-                    </div>
-                {/if}
-                
-                <div class="text-center mb-6">
-                    <h3 class="text-2xl font-bold text-gray-900">{SUBSCRIPTION_PLANS.pro.name}</h3>
-                    <div class="mt-4">
-                        <span class="text-4xl font-bold text-gray-900">${SUBSCRIPTION_PLANS.pro.price}</span>
-                        <span class="text-gray-600">/month</span>
-                    </div>
-                </div>
-                
-                <ul class="space-y-3 mb-8">
-                    {#each SUBSCRIPTION_PLANS.pro.features as feature}
+                    {#each SUBSCRIPTION_PLANS.professional.features as feature}
                         <li class="flex items-center text-gray-700">
                             <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
@@ -201,13 +160,54 @@
                 
                 <button
                     disabled={proCard.buttonDisabled}
-                    onclick={() => subscribe('pro')}
+                    onclick={() => subscribe('professional')}
                     class="w-full py-3 px-6 rounded-lg font-semibold transition-colors
                            {proCard.isCurrentPlan 
                              ? 'bg-gray-100 text-gray-500 cursor-not-allowed' 
-                             : 'bg-purple-600 text-white hover:bg-purple-700'}"
+                             : 'bg-blue-600 text-white hover:bg-blue-700'}"
                 >
                     {loading ? 'Processing...' : proCard.buttonText}
+                </button>
+            </div>
+
+            <!-- Elite Plan -->
+            <div class="bg-white rounded-2xl shadow-lg p-8 border-2 {eliteCard.isCurrentPlan ? 'border-purple-500' : 'border-gray-200'} relative">
+                {#if eliteCard.isUpgrade}
+                    <div class="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                        <span class="bg-purple-500 text-white px-4 py-1 rounded-full text-sm font-semibold">
+                            Best Value
+                        </span>
+                    </div>
+                {/if}
+                
+                <div class="text-center mb-6">
+                    <h3 class="text-2xl font-bold text-gray-900">{SUBSCRIPTION_PLANS.elite.name}</h3>
+                    <div class="mt-4">
+                        <span class="text-4xl font-bold text-gray-900">${SUBSCRIPTION_PLANS.elite.prices.monthly}</span>
+                        <span class="text-gray-600">/month</span>
+                    </div>
+                </div>
+                
+                <ul class="space-y-3 mb-8">
+                    {#each SUBSCRIPTION_PLANS.elite.features as feature}
+                        <li class="flex items-center text-gray-700">
+                            <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                            {feature}
+                        </li>
+                    {/each}
+                </ul>
+                
+                <button
+                    disabled={eliteCard.buttonDisabled}
+                    onclick={() => subscribe('elite')}
+                    class="w-full py-3 px-6 rounded-lg font-semibold transition-colors
+                           {eliteCard.isCurrentPlan 
+                             ? 'bg-gray-100 text-gray-500 cursor-not-allowed' 
+                             : 'bg-purple-600 text-white hover:bg-purple-700'}"
+                >
+                    {loading ? 'Processing...' : eliteCard.buttonText}
                 </button>
             </div>
         </div>

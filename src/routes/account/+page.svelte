@@ -5,6 +5,17 @@
     
     export let data: PageData;
     
+    type PlanTier = 'free' | 'professional' | 'elite';
+
+    interface UserSubscription {
+        id: string;
+        user_id: string;
+        plan_type: PlanTier;
+        status: 'active' | 'inactive' | 'cancelled';
+        created_at: string;
+        current_period_end: string;
+    }
+
     interface UsageData {
         reviews: number;
         text_enhancements: number;
@@ -42,7 +53,7 @@
     }
     
     let { supabase, session } = data;
-    let userSubscription: any = null;
+    let userSubscription: UserSubscription | null = null;
     let usage: UsageData = {
         reviews: 0,
         text_enhancements: 0,
@@ -96,13 +107,13 @@
         elite: 'bg-gradient-to-r from-purple-500 to-purple-700 text-white'
     };
     
-    const planNames = {
+    const planNames: Record<PlanTier, string> = {
         free: 'Academic Starter',
         professional: 'Academic Professional', 
         elite: 'Academic Elite'
     };
     
-    const planIcons = {
+    const planIcons: Record<PlanTier, string> = {
         free: '🎓',
         professional: '⭐',
         elite: '👑'
@@ -208,7 +219,7 @@
             };
             
             // Get plan limits based on subscription tier
-            const currentPlan = userSubscription?.plan_type || 'free';
+            const currentPlan: PlanTier = userSubscription?.plan_type || 'free';
             planLimits = getPlanLimits(currentPlan);
             
         } catch (error) {
@@ -218,9 +229,9 @@
         }
     }
 
-    function getPlanLimits(planType: string) {
+    function getPlanLimits(planType: PlanTier) {
         // Based on actual pricing page implementation
-        const limits = {
+        const limits: Record<PlanTier, PlanLimits> = {
             free: {
                 // Document limits per month - UPDATED to match pricing page
                 documents_total: 4, // 1 SOP + 1 Cover Letter + 1 Personal Statement + 1 Academic CV
@@ -378,7 +389,7 @@
                 custom_templates: { available: true, label: 'Full template editor' }
             }
         };
-        return features[planType]?.[feature] || { available: false, label: 'Not available' };
+        return features[planType as keyof typeof features]?.[feature as keyof typeof features['free']] || { available: false, label: 'Not available' };
     }
 </script>
 
@@ -819,7 +830,7 @@
         <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
             <div class="flex items-center justify-between mb-4">
                 <h3 class="text-lg font-medium text-gray-900">Cancel Subscription</h3>
-                <button class="text-gray-400 hover:text-gray-600" on:click={() => showCancelModal = false}>
+                <button class="text-gray-400 hover:text-gray-600" on:click={() => showCancelModal = false} aria-label="Close modal">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>

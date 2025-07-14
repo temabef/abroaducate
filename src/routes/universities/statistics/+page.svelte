@@ -79,25 +79,25 @@
       statistics.us.ivyLeague = data.usStats.ivyLeague;
 
       // Australian universities
-      const auStats = australianUniversityManager.getAustralianStats();
+      const auStats = (australianUniversityManager as any).getAustralianStats?.() || { total_universities: 0, group_of_eight_universities: 0 };
       statistics.australia.total = auStats.total_universities;
       statistics.australia.group_of_eight = auStats.group_of_eight_universities;
 
       // Canadian universities
-      const caStats = canadianUniversityManager.getCanadianStats();
+      const caStats = (canadianUniversityManager as any).getCanadianStats?.() || { total_universities: 0, u15_universities: 0 };
       statistics.canada.total = caStats.total_universities;
       statistics.canada.u15 = caStats.u15_universities;
 
       // Japanese universities
-      const jpStats = japaneseUniversityManager.getJapaneseStats();
+      const jpStats = (japaneseUniversityManager as any).getJapaneseStats?.() || { total_universities: 0 };
       statistics.japan.total = jpStats.total_universities;
 
       // French universities
-      const frStats = frenchUniversityManager.getFrenchStats();
+      const frStats = (frenchUniversityManager as any).getFrenchStats?.() || { total_universities: 0 };
       statistics.france.total = frStats.total_universities;
 
       // Italian universities
-      const itStats = italianUniversityManager.getItalianStats();
+      const itStats = (italianUniversityManager as any).getItalianStats?.() || { total_universities: 0 };
       statistics.italy.total = itStats.total_universities;
 
       // Calculate total
@@ -116,7 +116,7 @@
     } catch (error) {
       console.error("Error loading statistics:", error);
       hasError = true;
-      errorMessage = error.message || "Unknown error occurred";
+      errorMessage = (error as Error).message || "Unknown error occurred";
       isLoading = false;
     }
   });

@@ -7,9 +7,43 @@
   let messageType = 'info';
   
   // Campaign Data
-  let campaigns = [];
-  let templates = [];
-  let segments = [];
+  interface Template {
+    id: string;
+    name: string;
+    template_name: string;
+    template_category: string;
+  }
+  
+  interface Segment {
+    segment: string;
+    active_count: number;
+    count: number;
+    avg_engagement: number;
+    description: string;
+  }
+  
+  interface Campaign {
+    id: string;
+    name: string;
+    subject: string;
+    status: string;
+    sent_at?: string;
+    recipients: number;
+    sent: number;
+    open_rate: number;
+    click_rate: number;
+  }
+  
+  interface DashboardSummary {
+    total_campaigns?: number;
+    total_emails_sent?: number;
+    avg_open_rate?: number;
+    active_campaigns?: number;
+  }
+
+  let campaigns: Campaign[] = [];
+  let templates: Template[] = [];
+  let segments: Segment[] = [];
   let selectedTemplate = '';
   let selectedSegments = ['imported_lead'];
   let campaignName = '';
@@ -17,7 +51,10 @@
   let previewMode = false;
   
   // Dashboard Data
-  let dashboardStats = {
+  let dashboardStats: {
+    recent_campaigns: Campaign[];
+    summary: DashboardSummary;
+  } = {
     recent_campaigns: [],
     summary: {}
   };
@@ -403,7 +440,7 @@
       </div>
       <div class="tip-card">
         <h4>📊 Monitor Engagement</h4>
-        <p>Track open rates and unsubscribes. Good performance for cold lists: 15-25% open rate, <5% unsubscribe rate.</p>
+        <p>Track open rates and unsubscribes. Good performance for cold lists: 15-25% open rate, &lt;5% unsubscribe rate.</p>
       </div>
       <div class="tip-card">
         <h4>🎨 Use Templates</h4>

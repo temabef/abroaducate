@@ -5,10 +5,22 @@
     import type { PageData } from './$types';
     import { formatDistanceToNow, parseISO, format } from 'date-fns';
 
-    export let data: PageData;
+    const { data }: { data: PageData } = $props();
     let { supabase, session } = data;
 
     const applicationId = $page.params.id;
+
+    type ChecklistItem = {
+      label: string;
+      completed: boolean;
+      required_count?: number;
+      count?: number;
+      notes?: string;
+    };
+
+    type Checklist = {
+        [key: string]: ChecklistItem;
+    };
 
     type Application = {
         id: string;
@@ -19,26 +31,26 @@
         application_link: string | null;
         notes: string | null;
         status: string;
-        requirements_checklist: any;
+        requirements_checklist: Checklist;
         created_at: string;
         updated_at: string;
         application_fee: number | null;
     };
 
-    let application: Application | null = null;
-    let loading = true;
-    let saving = false;
-    let error = '';
-    let showEditModal = false;
-    let showDeleteConfirm = false;
-    let editForm = {
+    let application: Application | null = $state(null);
+    let loading = $state(true);
+    let saving = $state(false);
+    let error = $state('');
+    let showEditModal = $state(false);
+    let showDeleteConfirm = $state(false);
+    let editForm = $state({
         university_name: '',
         program_name: '',
         country: '',
         application_deadline: '',
         application_link: '',
         notes: ''
-    };
+    });
 
     onMount(async () => {
         if (!session?.user) {
@@ -61,9 +73,9 @@
                 console.error('Error loading application:', appError);
                 error = 'Application not found';
             } else {
-                application = appData;
+                application = appData as Application;
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error('Error:', err);
             error = 'Failed to load application';
         } finally {
@@ -90,14 +102,14 @@
                 application.status = newStatus;
                 application.updated_at = new Date().toISOString();
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error('Error:', err);
         } finally {
             saving = false;
         }
     }
 
-    async function updateChecklist(itemKey: string, updates: any) {
+    async function updateChecklist(itemKey: string, updates: Partial<ChecklistItem>) {
         if (!application) return;
         
         const updatedChecklist = {
@@ -124,22 +136,22 @@
                 application.requirements_checklist = updatedChecklist;
                 application.updated_at = new Date().toISOString();
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error('Error:', err);
         } finally {
             saving = false;
         }
     }
 
-    function calculateProgress(checklist: any): { completed: number; total: number; percentage: number } {
+    function calculateProgress(checklist: Checklist | null): { completed: number; total: number; percentage: number } {
         if (!checklist) return { completed: 0, total: 6, percentage: 0 };
         
         const items = Object.values(checklist);
         const total = items.length;
         
-        const completed = items.filter((item: any) => {
+        const completed = items.filter((item: ChecklistItem) => {
             if (item.required_count) {
-                return item.count >= item.required_count;
+                return (item.count || 0) >= item.required_count;
             }
             return item.completed === true;
         }).length;
@@ -220,7 +232,7 @@
                 application.updated_at = new Date().toISOString();
                 showEditModal = false;
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error('Error:', err);
             error = 'Failed to update application';
         } finally {
@@ -245,7 +257,7 @@
                 // Successfully deleted, redirect to applications page
                 goto('/applications');
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error('Error:', err);
             error = 'Failed to delete application';
         } finally {
@@ -254,81 +266,144 @@
         }
     }
 
-    $: progress = application ? calculateProgress(application.requirements_checklist) : { completed: 0, total: 6, percentage: 0 };
-    $: deadlineStatus = application ? getDeadlineStatus(application.application_deadline) : 'none';
+    const progress = $derived(application ? calculateProgress(application.requirements_checklist) : { completed: 0, total: 6, percentage: 0 });
+    const deadlineStatus = $derived(application?.application_deadline ? getDeadlineStatus(application.application_deadline) : 'none');
 </script>
 
 <svelte:head>
-    <title>Manage Application - Abroaducate</title>
+    <title>{application ? `${application.program_name} at ${application.university_name}` : 'Application Details'}</title>
 </svelte:head>
 
 <div class="min-h-screen bg-gray-50 pt-20">
     {#if loading}
         <div class="flex justify-center items-center h-64">
-            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
         </div>
     {:else if error}
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div class="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-                <h2 class="text-xl font-semibold text-red-800 mb-2">Error</h2>
-                <p class="text-red-600">{error}</p>
-                <button
-                    onclick={() => goto('/applications')}
-                    class="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                    Back to Applications
-                </button>
-            </div>
-        </div>
+        <div class="p-4 bg-red-100 text-red-700 rounded-lg">{error}</div>
     {:else if application}
-        <!-- Header -->
-        <div class="bg-white shadow-sm border-b">
-            <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex justify-between items-center py-6">
-                    <div>
-                        <h1 class="text-3xl font-bold text-gray-900">{application.university_name}</h1>
-                        <p class="text-xl text-gray-600">{application.program_name}</p>
-                        {#if application.country}
-                            <p class="text-gray-500">📍 {application.country}</p>
-                        {/if}
-                    </div>
-                    <div class="flex gap-3">
-                        <button
-                            onclick={() => goto('/applications')}
-                            class="bg-gray-100 text-gray-700 px-6 py-3 rounded-lg font-medium hover:bg-gray-200 transition-colors"
-                        >
-                            ← Back to Applications
-                        </button>
-                        <button
-                            onclick={openEditModal}
-                            class="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
-                        >
-                            ✏️ Edit
-                        </button>
-                        <button
-                            onclick={() => showDeleteConfirm = true}
-                            class="bg-red-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-red-700 transition-colors"
-                        >
-                            🗑️ Delete
-                        </button>
-                    </div>
+        <div class="container mx-auto p-4 md:p-6 lg:p-8 max-w-5xl">
+            
+            <!-- Header -->
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+                <div>
+                    <a href="/applications" class="text-blue-600 hover:underline text-sm mb-2 inline-block">← Back to all applications</a>
+                    <h1 class="text-3xl font-bold text-gray-900">{application.university_name}</h1>
+                    <p class="text-xl text-gray-600">{application.program_name}</p>
+                    <p class="text-md text-gray-500">{application.country}</p>
+                </div>
+                <div class="flex items-center gap-2 mt-4 md:mt-0">
+                    <button onclick={openEditModal} class="px-4 py-2 text-sm bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition-colors">Edit</button>
+                    <button onclick={() => showDeleteConfirm = true} class="px-4 py-2 text-sm bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors">Delete</button>
                 </div>
             </div>
-        </div>
 
-        <!-- Main Content -->
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <!-- Left Column - Status & Overview -->
-                <div class="lg:col-span-1">
-                    <div class="bg-white rounded-lg shadow-sm border p-6 mb-6">
-                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Application Status</h3>
+                <!-- Left Column: Checklist & Notes -->
+                <div class="lg:col-span-2 space-y-8">
+                    <!-- Requirements Checklist -->
+                    <div class="bg-white p-6 rounded-xl shadow-md">
+                        <h2 class="text-xl font-semibold text-gray-800 mb-1">Application Checklist</h2>
+                        <p class="text-sm text-gray-500 mb-4">Track your progress for this application.</p>
                         
+                        <div class="mb-6">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-sm font-medium text-gray-700">Progress</span>
+                                <span class="text-sm font-medium text-blue-700">{progress.percentage}%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                <div class="bg-blue-600 h-2.5 rounded-full" style="width: {progress.percentage}%"></div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-4">
+                            {#each Object.entries(application.requirements_checklist) as [key, item]}
+                                <div class="p-4 rounded-lg {item.completed ? 'bg-green-50' : 'bg-gray-50'} border {item.completed ? 'border-green-200' : 'border-gray-200'}">
+                                    <div class="flex items-start justify-between gap-4">
+                                        <div class="flex items-center gap-3">
+                                            {#if item.required_count}
+                                                <!-- Letters of Recommendation with counter -->
+                                                <input 
+                                                        type="checkbox" 
+                                                        class="h-5 w-5 rounded text-blue-600 focus:ring-blue-500 border-gray-300"
+                                                        checked={item.completed}
+                                                        onchange={(e) => updateChecklist(key, { completed: (e.target as HTMLInputElement).checked })}
+                                                />
+                                                <div class="flex-grow">
+                                                    <div>
+                                                        <span class="font-medium text-gray-900">{item.label}</span>
+                                                        <div class="text-sm text-gray-600">
+                                                            {item.count || 0} collected
+                                                            {#if item.completed}
+                                                                <span class="text-green-600 font-medium">✓ Sufficient</span>
+                                                            {/if}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            {:else}
+                                                <!-- Standard checklist item -->
+                                                <input 
+                                                    type="checkbox" 
+                                                    class="h-5 w-5 rounded text-blue-600 focus:ring-blue-500 border-gray-300"
+                                                    checked={item.completed}
+                                                    onchange={(e) => updateChecklist(key, { completed: (e.target as HTMLInputElement).checked })}
+                                                />
+                                                <span class="font-medium text-gray-900">{item.label}</span>    
+                                            {/if}
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            {#if item.completed}
+                                                <span class="text-green-600 text-sm">✅ Complete</span>
+                                            {:else if item.required_count}
+                                                <div class="flex items-center gap-2">
+                                                    <button
+                                                        onclick={() => updateChecklist(key, { count: Math.max(0, (item.count || 0) - 1) })}
+                                                        disabled={saving || (item.count || 0) <= 0}
+                                                        class="px-2 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200 disabled:opacity-50"
+                                                    >
+                                                        -
+                                                    </button>
+                                                    <span class="text-sm font-medium w-8 text-center">{item.count || 0}</span>
+                                                    <button
+                                                        onclick={() => updateChecklist(key, { count: Math.min(item.required_count || 0, (item.count || 0) + 1) })}
+                                                        disabled={saving || (item.count || 0) >= item.required_count}
+                                                        class="px-2 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200 disabled:opacity-50"
+                                                    >
+                                                        +
+                                                    </button>
+                                                </div>
+                                            {/if}
+                                        </div>
+                                    </div>
+                                </div>
+                            {/each}
+                        </div>
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="bg-white p-6 rounded-xl shadow-md">
+                        <h2 class="text-xl font-semibold text-gray-800 mb-4">Notes</h2>
+                        <textarea 
+                            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                            rows="6"
+                            placeholder="Add your personal notes, reminders, or contact information here..."
+                            value={application.notes || ''}
+                            onblur={(e) => updateChecklist('notes', { notes: (e.target as HTMLTextAreaElement).value })}
+                            disabled={saving}
+                        ></textarea>
+                    </div>
+                </div>
+                
+                <!-- Right Column: Details -->
+                <div class="space-y-6">
+                    <!-- Status -->
+                    <div class="bg-white p-6 rounded-xl shadow-md">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Status</h3>
                         <select
+                            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors {getStatusColor(application.status)}"
                             value={application.status}
                             onchange={(e) => updateStatus((e.target as HTMLSelectElement).value)}
                             disabled={saving}
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 {getStatusColor(application.status)}"
                         >
                             <option value="planning">Planning</option>
                             <option value="in_progress">In Progress</option>
@@ -339,368 +414,127 @@
                         </select>
                     </div>
 
-                    <!-- Deadline Info -->
-                    {#if application.application_deadline}
-                        <div class="bg-white rounded-lg shadow-sm border p-6 mb-6">
-                            <h3 class="text-lg font-semibold text-gray-900 mb-2">Application Deadline</h3>
-                            <div class={`inline-flex items-center px-3 py-2 rounded-full text-sm font-medium ${
-                                deadlineStatus === 'overdue' ? 'bg-red-100 text-red-800' :
-                                deadlineStatus === 'urgent' ? 'bg-red-100 text-red-800' :
-                                deadlineStatus === 'upcoming' ? 'bg-yellow-100 text-yellow-800' :
-                                'bg-green-100 text-green-800'
-                            }`}>
-                                🗓️ {format(parseISO(application.application_deadline), 'PPP')}
-                            </div>
-                            <p class="text-sm text-gray-600 mt-2">
-                                {formatDistanceToNow(parseISO(application.application_deadline), { addSuffix: true })}
-                            </p>
-                        </div>
-                    {/if}
-
+                    <!-- Key Information -->
+                    <div class="bg-white p-6 rounded-xl shadow-md">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Key Information</h3>
+                        <ul class="space-y-3 text-sm">
+                            <li class="flex justify-between">
+                                <span class="font-medium text-gray-600">Deadline</span>
+                                {#if application.application_deadline}
+                                    {@const deadlineInfo = getDeadlineStatus(application.application_deadline)}
+                                    <span class={`font-bold ${
+                                        deadlineInfo === 'urgent' ? 'text-red-600' :
+                                        deadlineInfo === 'upcoming' ? 'text-yellow-600' :
+                                        deadlineInfo === 'overdue' ? 'text-gray-500' : 'text-gray-900'
+                                    }`}>
+                                        {format(parseISO(application.application_deadline), 'MMM d, yyyy')}
+                                        {#if deadlineInfo !== 'overdue' && deadlineInfo !== 'none'}
+                                            ({formatDistanceToNow(parseISO(application.application_deadline))} left)
+                                        {:else if deadlineInfo === 'overdue'}
+                                            (Overdue)
+                                        {/if}
+                                    </span>
+                                {:else}
+                                    <span class="text-gray-500">Not set</span>
+                                {/if}
+                            </li>
+                            <li class="flex justify-between">
+                                <span class="font-medium text-gray-600">Application Fee</span>
+                                <span class="text-gray-900">{application.application_fee ? `$${application.application_fee}` : 'Not set'}</span>
+                            </li>
+                            <li class="flex justify-between">
+                                <span class="font-medium text-gray-600">Last Updated</span>
+                                <span class="text-gray-900">{formatDistanceToNow(parseISO(application.updated_at))} ago</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
                     <!-- Application Link -->
                     {#if application.application_link}
-                        <div class="bg-white rounded-lg shadow-sm border p-6 mb-6">
-                            <h3 class="text-lg font-semibold text-gray-900 mb-2">Application Link</h3>
-                            <a 
+                        <div class="bg-white p-6 rounded-xl shadow-md">
+                             <a 
                                 href={application.application_link} 
                                 target="_blank" 
-                                rel="noopener noreferrer"
-                                class="inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-4 py-2 rounded-lg hover:bg-blue-100 transition-colors"
+                                rel="noopener noreferrer" 
+                                class="block w-full text-center bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 transition-colors"
                             >
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                                </svg>
-                                Open Application Portal
+                                Go to Application Portal →
                             </a>
-                            <p class="text-xs text-gray-500 mt-2 break-all">
-                                {application.application_link}
-                            </p>
                         </div>
                     {/if}
-
-                    <!-- Notes -->
-                    {#if application.notes}
-                        <div class="bg-white rounded-lg shadow-sm border p-6 mb-6">
-                            <h3 class="text-lg font-semibold text-gray-900 mb-2">Notes</h3>
-                            <div class="bg-gray-50 rounded-lg p-4">
-                                <p class="text-gray-700 whitespace-pre-wrap text-sm leading-relaxed">
-                                    {application.notes}
-                                </p>
-                            </div>
-                        </div>
-                    {/if}
-
-                    <!-- Progress Overview -->
-                    <div class="bg-white rounded-lg shadow-sm border p-6">
-                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Progress Overview</h3>
-                        <div class="mb-3">
-                            <div class="flex justify-between text-sm text-gray-600 mb-1">
-                                <span>Completed</span>
-                                <span>{progress.completed}/{progress.total}</span>
-                            </div>
-                            <div class="w-full bg-gray-200 rounded-full h-2">
-                                <div 
-                                    class="bg-blue-600 h-2 rounded-full transition-all duration-300" 
-                                    style="width: {progress.percentage}%"
-                                ></div>
-                            </div>
-                        </div>
-                        <p class="text-sm text-gray-600">{progress.percentage}% complete</p>
-                    </div>
-                </div>
-
-                <!-- Right Column - Requirements Checklist -->
-                <div class="lg:col-span-2">
-                    <div class="bg-white rounded-lg shadow-sm border p-6">
-                        <h3 class="text-lg font-semibold text-gray-900 mb-6">Requirements Checklist</h3>
-                        
-                        <div class="space-y-4">
-                                                                    {#each Object.entries(application.requirements_checklist || {}) as [key, item]: any}
-                                <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                                    <div class="flex items-center gap-3">
-                                        {#if item.required_count}
-                                            <!-- Letters of Recommendation with counter -->
-                                            <div class="flex items-center gap-2">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={item.completed}
-                                                    onchange={(e) => updateChecklist(key, { completed: (e.target as HTMLInputElement).checked })}
-                                                    disabled={saving}
-                                                    class="h-4 w-4 text-blue-600 rounded"
-                                                />
-                                                <div>
-                                                    <span class="font-medium text-gray-900">{item.label}</span>
-                                                    <div class="text-sm text-gray-600">
-                                                        {item.count || 0} collected
-                                                        {#if item.completed}
-                                                            <span class="text-green-600 font-medium">✓ Sufficient</span>
-                                                        {:else}
-                                                            <span class="text-gray-500">(Check when you have enough)</span>
-                                                        {/if}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="ml-auto flex items-center gap-2">
-                                                <button
-                                                    onclick={() => updateChecklist(key, { count: Math.max(0, (item.count || 0) - 1) })}
-                                                    disabled={saving || (item.count || 0) <= 0}
-                                                    class="px-2 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200 disabled:opacity-50"
-                                                >
-                                                    −
-                                                </button>
-                                                <span class="text-sm font-medium w-8 text-center">{item.count || 0}</span>
-                                                <button
-                                                    onclick={() => updateChecklist(key, { count: Math.min(item.required_count, (item.count || 0) + 1) })}
-                                                    disabled={saving || (item.count || 0) >= item.required_count}
-                                                    class="px-2 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200 disabled:opacity-50"
-                                                >
-                                                    +
-                                                </button>
-                                            </div>
-                                        {:else}
-                                            <!-- Regular checkbox items -->
-                                            <input
-                                                type="checkbox"
-                                                checked={item.completed}
-                                                onchange={(e) => updateChecklist(key, { completed: (e.target as HTMLInputElement).checked })}
-                                                disabled={saving}
-                                                class="h-4 w-4 text-blue-600 rounded"
-                                            />
-                                            <span class="font-medium text-gray-900">{item.label}</span>
-                                        {/if}
-                                    </div>
-                                    
-                                    <div class="flex items-center gap-2">
-                                        {#if item.completed}
-                                            <span class="text-green-600 text-sm">✅ Complete</span>
-                                        {:else}
-                                            <span class="text-gray-400 text-sm">⭕ Pending</span>
-                                        {/if}
-                                    </div>
-                                </div>
-                            {/each}
-                        </div>
-
-                        <!-- Quick Actions -->
-                        <div class="mt-8 pt-6 border-t border-gray-200">
-                            <h4 class="text-md font-semibold text-gray-900 mb-4">Quick Actions</h4>
-                            <div class="flex gap-3 flex-wrap">
-                                <button
-                                    onclick={() => goto('/sop')}
-                                    class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                                >
-                                    Create SOP
-                                </button>
-                                <button
-                                    onclick={() => goto('/cover-letters')}
-                                    class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
-                                >
-                                    Create Cover Letter
-                                </button>
-                                <button
-                                    onclick={() => goto('/academic-cv')}
-                                    class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
-                                >
-                                    Create Academic CV
-                                </button>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
     {/if}
 </div>
 
+<!-- Edit Modal -->
+{#if showEditModal}
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick={() => showEditModal = false}>
+        <div class="bg-white rounded-lg shadow-xl p-8 max-w-lg w-full" onclick={(e) => e.stopPropagation()}>
+            <h2 class="text-2xl font-bold mb-6 text-gray-900">Edit Application</h2>
+            <form onsubmit={(e) => { e.preventDefault(); saveEdit(); }} class="space-y-4">
+                <div>
+                    <label for="university_name" class="block text-sm font-medium text-gray-700">University Name</label>
+                    <input type="text" id="university_name" bind:value={editForm.university_name} class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
+                </div>
+                <div>
+                    <label for="program_name" class="block text-sm font-medium text-gray-700">Program Name</label>
+                    <input type="text" id="program_name" bind:value={editForm.program_name} class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
+                </div>
+                <div>
+                    <label for="country" class="block text-sm font-medium text-gray-700">Country</label>
+                    <input type="text" id="country" bind:value={editForm.country} class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label for="application_deadline" class="block text-sm font-medium text-gray-700">Application Deadline</label>
+                    <input type="date" id="application_deadline" bind:value={editForm.application_deadline} class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label for="application_link" class="block text-sm font-medium text-gray-700">Application Link</label>
+                    <input type="url" id="application_link" bind:value={editForm.application_link} class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label for="notes" class="block text-sm font-medium text-gray-700">Notes</label>
+                    <textarea id="notes" bind:value={editForm.notes} rows="4" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"></textarea>
+                </div>
+                <div class="flex justify-end gap-3 pt-4">
+                    <button type="button" onclick={() => showEditModal = false} class="px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200">Cancel</button>
+                    <button type="submit" disabled={saving} class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-blue-300">
+                        {#if saving}Saving...{:else}Save Changes{/if}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+{/if}
+
 <!-- Delete Confirmation Modal -->
 {#if showDeleteConfirm}
-    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">Delete Application</h3>
-            <p class="text-gray-600 mb-6">
-                Are you sure you want to delete this application for <strong>{application?.university_name}</strong>? 
-                This action cannot be undone.
-            </p>
-            <div class="flex gap-3">
-                <button
-                    onclick={() => showDeleteConfirm = false}
-                    disabled={saving}
-                    class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50"
-                >
-                    Cancel
-                </button>
-                <button
-                    onclick={deleteApplication}
-                    disabled={saving}
-                    class="flex-1 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors disabled:opacity-50"
-                >
-                    {saving ? 'Deleting...' : 'Delete'}
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick={() => showDeleteConfirm = false}>
+        <div class="bg-white rounded-lg shadow-xl p-8 max-w-md w-full" onclick={(e) => e.stopPropagation()}>
+            <h2 class="text-xl font-bold mb-4 text-gray-900">Confirm Deletion</h2>
+            <p class="text-gray-600 mb-6">Are you sure you want to delete this application? This action cannot be undone.</p>
+            <div class="flex justify-end gap-3">
+                <button type="button" onclick={() => showDeleteConfirm = false} class="px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200">Cancel</button>
+                <button type="button" onclick={deleteApplication} disabled={saving} class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:bg-red-300">
+                    {#if saving}Deleting...{:else}Yes, Delete{/if}
                 </button>
             </div>
         </div>
     </div>
 {/if}
 
-<!-- Edit Application Modal -->
-{#if showEditModal}
-    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">Edit Application</h3>
-            
-            <form onsubmit={(e) => { e.preventDefault(); saveEdit(); }} class="space-y-4">
-                <!-- University Name -->
-                <div>
-                    <label for="edit-university" class="block text-sm font-medium text-gray-700 mb-1">
-                        University Name *
-                    </label>
-                    <input
-                        id="edit-university"
-                        type="text"
-                        bind:value={editForm.university_name}
-                        required
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                </div>
-
-                <!-- Program Name -->
-                <div>
-                    <label for="edit-program" class="block text-sm font-medium text-gray-700 mb-1">
-                        Program Name *
-                    </label>
-                    <input
-                        id="edit-program"
-                        type="text"
-                        bind:value={editForm.program_name}
-                        required
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                </div>
-
-                <!-- Country -->
-                <div>
-                    <label for="edit-country" class="block text-sm font-medium text-gray-700 mb-1">
-                        Country
-                    </label>
-                    <select
-                        id="edit-country"
-                        bind:value={editForm.country}
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                        <option value="">Select Country</option>
-                        <!-- Popular Study Destinations -->
-                        <option value="United States">🇺🇸 United States</option>
-                        <option value="United Kingdom">🇬🇧 United Kingdom</option>
-                        <option value="Canada">🇨🇦 Canada</option>
-                        <option value="Australia">🇦🇺 Australia</option>
-                        <option value="Germany">🇩🇪 Germany</option>
-                        <option value="France">🇫🇷 France</option>
-                        <option value="Netherlands">🇳🇱 Netherlands</option>
-                        <option value="Singapore">🇸🇬 Singapore</option>
-                        <option value="Switzerland">🇨🇭 Switzerland</option>
-                        <option value="Sweden">🇸🇪 Sweden</option>
-                        <option value="Norway">🇳🇴 Norway</option>
-                        <option value="Denmark">🇩🇰 Denmark</option>
-                        <option value="Japan">🇯🇵 Japan</option>
-                        <option value="South Korea">🇰🇷 South Korea</option>
-                        <option value="New Zealand">🇳🇿 New Zealand</option>
-                        <option value="Ireland">🇮🇪 Ireland</option>
-                        <option value="Belgium">🇧🇪 Belgium</option>
-                        <option value="Austria">🇦🇹 Austria</option>
-                        <option value="Italy">🇮🇹 Italy</option>
-                        <option value="Spain">🇪🇸 Spain</option>
-                        <option value="Finland">🇫🇮 Finland</option>
-                        <!-- Separator -->
-                        <option disabled>──── Other Countries ────</option>
-                        <!-- Other Countries Alphabetically -->
-                        <option value="Argentina">Argentina</option>
-                        <option value="Brazil">Brazil</option>
-                        <option value="Chile">Chile</option>
-                        <option value="China">China</option>
-                        <option value="Czech Republic">Czech Republic</option>
-                        <option value="Estonia">Estonia</option>
-                        <option value="Hong Kong">Hong Kong</option>
-                        <option value="Hungary">Hungary</option>
-                        <option value="Iceland">Iceland</option>
-                        <option value="India">India</option>
-                        <option value="Israel">Israel</option>
-                        <option value="Latvia">Latvia</option>
-                        <option value="Lithuania">Lithuania</option>
-                        <option value="Luxembourg">Luxembourg</option>
-                        <option value="Malaysia">Malaysia</option>
-                        <option value="Mexico">Mexico</option>
-                        <option value="Poland">Poland</option>
-                        <option value="Portugal">Portugal</option>
-                        <option value="Russia">Russia</option>
-                        <option value="Slovakia">Slovakia</option>
-                        <option value="Slovenia">Slovenia</option>
-                        <option value="South Africa">South Africa</option>
-                        <option value="Taiwan">Taiwan</option>
-                        <option value="Thailand">Thailand</option>
-                        <option value="Turkey">Turkey</option>
-                        <option value="Ukraine">Ukraine</option>
-                        <option value="United Arab Emirates">United Arab Emirates</option>
-                    </select>
-                </div>
-
-                <!-- Application Deadline -->
-                <div>
-                    <label for="edit-deadline" class="block text-sm font-medium text-gray-700 mb-1">
-                        Application Deadline
-                    </label>
-                    <input
-                        id="edit-deadline"
-                        type="date"
-                        bind:value={editForm.application_deadline}
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                </div>
-
-                <!-- Application Link -->
-                <div>
-                    <label for="edit-application-link" class="block text-sm font-medium text-gray-700 mb-1">
-                        Application Link/URL
-                    </label>
-                    <input
-                        id="edit-application-link"
-                        type="url"
-                        bind:value={editForm.application_link}
-                        placeholder="e.g., https://apply.university.edu/programs/ms-cs"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                </div>
-
-                <!-- Notes -->
-                <div>
-                    <label for="edit-notes" class="block text-sm font-medium text-gray-700 mb-1">
-                        Notes (Optional)
-                    </label>
-                    <textarea
-                        id="edit-notes"
-                        bind:value={editForm.notes}
-                        placeholder="Personal notes, requirements, contacts, deadlines, etc."
-                        rows="3"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                    ></textarea>
-                </div>
-
-                <div class="flex gap-3 pt-4">
-                    <button
-                        type="button"
-                        onclick={() => showEditModal = false}
-                        disabled={saving}
-                        class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50"
-                    >
-                        Cancel
-                    </button>
-                    <button
-                        type="submit"
-                        disabled={saving || !editForm.university_name || !editForm.program_name}
-                        class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
-                    >
-                        {saving ? 'Saving...' : 'Save Changes'}
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-{/if} 
+<style>
+    /* Basic styling to avoid FOUC */
+    select {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+        background-position: right 0.5rem center;
+        background-repeat: no-repeat;
+        background-size: 1.5em 1.5em;
+        padding-right: 2.5rem;
+    }
+</style> 

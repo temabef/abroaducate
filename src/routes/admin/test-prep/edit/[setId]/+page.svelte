@@ -2,12 +2,36 @@
   import { page } from '$app/stores';
   import { Trash2, PlusCircle, BookOpen, Volume2, PenTool, Mic, Upload, Save, ArrowLeft } from 'lucide-svelte';
 
+  // --- TYPE DEFINITIONS ---
+  interface PracticeChoice {
+    id: string;
+    choice_text: string;
+    is_correct: boolean;
+  }
+
+  interface PracticeQuestion {
+    id: string;
+    question_text: string;
+    explanation: string;
+    practice_choices?: PracticeChoice[];
+    sort_order: number;
+  }
+
+  interface PracticeSet {
+    id: string;
+    title: string;
+    section: 'reading' | 'listening' | 'writing' | 'speaking';
+    passage: string | null;
+    sort_order: number;
+    practice_questions: PracticeQuestion[];
+  }
+  
   export let data;
-  let { set } = data;
+  let set: PracticeSet = data.set;
 
   // Ensure questions and choices are always arrays
   set.practice_questions = set.practice_questions || [];
-  set.practice_questions.forEach(q => {
+  set.practice_questions.forEach((q: PracticeQuestion) => {
     q.practice_choices = q.practice_choices || [];
   });
 
@@ -57,7 +81,7 @@
   $: currentQuestionType = questionTypes[set.section as keyof typeof questionTypes];
 
   function addQuestion() {
-    const newQuestion = {
+    const newQuestion: PracticeQuestion = {
       id: `new-${Date.now()}`,
       question_text: '',
       explanation: '',
@@ -69,15 +93,15 @@
   }
 
   function removeQuestion(questionId: string) {
-    set.practice_questions = set.practice_questions.filter(q => q.id !== questionId);
+    set.practice_questions = set.practice_questions.filter((q: PracticeQuestion) => q.id !== questionId);
     // Re-number sort orders
-    set.practice_questions.forEach((q, index) => {
+    set.practice_questions.forEach((q: PracticeQuestion, index: number) => {
       q.sort_order = index + 1;
     });
   }
 
   function addChoice(questionId: string) {
-    const question = set.practice_questions.find(q => q.id === questionId);
+    const question = set.practice_questions.find((q: PracticeQuestion) => q.id === questionId);
     if (question && currentQuestionType.supportsChoices) {
       if (!question.practice_choices) {
         question.practice_choices = [];
@@ -96,18 +120,18 @@
   }
 
   function removeChoice(questionId: string, choiceId: string) {
-    const question = set.practice_questions.find(q => q.id === questionId);
+    const question = set.practice_questions.find((q: PracticeQuestion) => q.id === questionId);
     if (question && question.practice_choices) {
-      question.practice_choices = question.practice_choices.filter(c => c.id !== choiceId);
+      question.practice_choices = question.practice_choices.filter((c: PracticeChoice) => c.id !== choiceId);
       // Trigger reactivity
       set.practice_questions = [...set.practice_questions];
     }
   }
 
   function setCorrectChoice(questionId: string, correctChoiceId: string) {
-    const question = set.practice_questions.find(q => q.id === questionId);
+    const question = set.practice_questions.find((q: PracticeQuestion) => q.id === questionId);
     if (question && question.practice_choices) {
-      question.practice_choices.forEach(c => {
+      question.practice_choices.forEach((c: PracticeChoice) => {
         c.is_correct = c.id === correctChoiceId;
       });
       // Trigger reactivity
@@ -123,7 +147,7 @@
       set.practice_questions[newIndex] = temp;
       
       // Update sort orders
-      set.practice_questions.forEach((q, i) => {
+      set.practice_questions.forEach((q: PracticeQuestion, i: number) => {
         q.sort_order = i + 1;
       });
       
@@ -160,7 +184,7 @@
           return;
         }
 
-        const hasCorrectAnswer = question.practice_choices.some(c => c.is_correct);
+        const hasCorrectAnswer = question.practice_choices.some((c: PracticeChoice) => c.is_correct);
         if (!hasCorrectAnswer) {
           errorMessage = `Question ${i + 1} needs a correct answer marked`;
           return;
@@ -233,7 +257,7 @@
         </div>
       </div>
       <button 
-        on:click={handleSubmit}
+        onclick={handleSubmit}
         disabled={saving}
         class="save-btn"
       >
@@ -321,7 +345,7 @@
     <div class="section-header">
       <h2 class="section-title">Questions ({set.practice_questions.length})</h2>
       <button 
-        on:click={addQuestion}
+        onclick={addQuestion}
         class="add-question-btn"
       >
         <PlusCircle size={18} />
@@ -335,7 +359,7 @@
         <h3>No Questions Yet</h3>
         <p>Start building your question set by adding your first question.</p>
         <button 
-          on:click={addQuestion}
+          onclick={addQuestion}
           class="add-question-btn-secondary"
         >
           <PlusCircle size={18} />
@@ -352,7 +376,7 @@
               </div>
               <div class="question-controls">
                 <button 
-                  on:click={() => moveQuestion(qIndex, 'up')}
+                  onclick={() => moveQuestion(qIndex, 'up')}
                   disabled={qIndex === 0}
                   class="move-btn"
                   title="Move up"
@@ -360,7 +384,7 @@
                   ↑
                 </button>
                 <button 
-                  on:click={() => moveQuestion(qIndex, 'down')}
+                  onclick={() => moveQuestion(qIndex, 'down')}
                   disabled={qIndex === set.practice_questions.length - 1}
                   class="move-btn"
                   title="Move down"
@@ -368,7 +392,7 @@
                   ↓
                 </button>
                 <button 
-                  on:click={() => removeQuestion(question.id)}
+                  onclick={() => removeQuestion(question.id)}
                   class="delete-btn"
                   title="Delete question"
                 >
@@ -379,8 +403,9 @@
 
             <div class="question-content">
               <div class="form-group">
-                <label>Question Text *</label>
+                <label for="question-text-{question.id}">Question Text *</label>
                 <textarea
+                  id="question-text-{question.id}"
                   bind:value={question.question_text}
                   placeholder="Enter your question here..."
                   rows="3"
@@ -392,10 +417,11 @@
               {#if currentQuestionType.supportsChoices}
                 <div class="choices-section">
                   <div class="choices-header">
-                    <label>Answer Choices</label>
+                    <label id="choices-label-{question.id}">Answer Choices</label>
                     <button 
-                      on:click={() => addChoice(question.id)}
+                      onclick={() => addChoice(question.id)}
                       class="add-choice-btn"
+                      aria-labelledby="choices-label-{question.id}"
                     >
                       <PlusCircle size={14} />
                       Add Choice
@@ -411,7 +437,7 @@
                               type="radio" 
                               name="correct-choice-{question.id}"
                               checked={choice.is_correct}
-                              on:change={() => setCorrectChoice(question.id, choice.id)}
+                              onchange={() => setCorrectChoice(question.id, choice.id)}
                               title="Mark as correct answer"
                               class="choice-radio"
                             />
@@ -424,7 +450,7 @@
                             class="choice-input"
                           />
                           <button 
-                            on:click={() => removeChoice(question.id, choice.id)}
+                            onclick={() => removeChoice(question.id, choice.id)}
                             class="remove-choice-btn"
                             title="Remove choice"
                           >
@@ -442,8 +468,9 @@
               {/if}
 
               <div class="form-group">
-                <label>Explanation (Optional)</label>
+                <label for="explanation-{question.id}">Explanation (Optional)</label>
                 <textarea
+                  id="explanation-{question.id}"
                   bind:value={question.explanation}
                   placeholder="Provide an explanation for the correct answer..."
                   rows="2"
@@ -464,7 +491,7 @@
       Cancel
     </a>
     <button 
-      on:click={handleSubmit}
+      onclick={handleSubmit}
       disabled={saving}
       class="save-btn-primary"
     >
@@ -498,71 +525,74 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    color: #6b7280;
-    text-decoration: none;
+    color: #4b5563;
     font-weight: 500;
-    transition: color 0.2s ease;
+    text-decoration: none;
+    transition: color 0.2s;
   }
-
   .back-btn:hover {
-    color: #374151;
+    color: #1f2937;
   }
 
   .divider {
     width: 1px;
     height: 24px;
-    background: #e5e7eb;
+    background-color: #d1d5db;
   }
 
   .section-indicator {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 8px 16px;
-    border-radius: 8px;
-    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 9999px;
+    font-weight: 500;
     font-size: 0.875rem;
-    border: 1px solid;
-  }
-
-  .page-title {
-    font-size: 1.875rem;
-    font-weight: 700;
-    color: #1f2937;
-    margin: 16px 0 0 0;
   }
 
   .save-btn {
     display: flex;
     align-items: center;
     gap: 8px;
-    background: #3b82f6;
+    background-color: #10b981;
     color: white;
-    padding: 10px 20px;
+    padding: 10px 16px;
     border-radius: 8px;
-    border: none;
     font-weight: 600;
+    border: none;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: background-color 0.2s;
   }
-
-  .save-btn:hover:not(:disabled) {
-    background: #2563eb;
+  .save-btn:hover {
+    background-color: #059669;
   }
-
   .save-btn:disabled {
-    opacity: 0.6;
+    background-color: #d1d5db;
     cursor: not-allowed;
   }
+  .save-btn .spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
 
+  .page-title {
+    margin-top: 16px;
+    font-size: 2.25rem;
+    font-weight: 700;
+    color: #111827;
+  }
+  
   .error-alert {
-    background: #fef2f2;
+    background-color: #fef2f2;
+    color: #b91c1c;
     border: 1px solid #fecaca;
-    color: #dc2626;
     padding: 12px 16px;
     border-radius: 8px;
     margin-bottom: 24px;
-    font-size: 0.875rem;
   }
 
   .config-section, .questions-section {
@@ -574,99 +604,109 @@
   }
 
   .section-title {
-    font-size: 1.25rem;
+    font-size: 1.5rem;
     font-weight: 600;
     color: #1f2937;
-    margin: 0 0 20px 0;
-  }
-
-  .section-header {
-    display: flex;
-    justify-content: between;
-    align-items: center;
     margin-bottom: 20px;
   }
 
   .config-grid {
     display: grid;
-    grid-template-columns: 2fr 1fr 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 20px;
     margin-bottom: 20px;
   }
-
+  
   .form-group {
-    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
   }
-
+  
   .form-group label {
-    display: block;
-    font-weight: 600;
+    font-weight: 500;
     color: #374151;
     margin-bottom: 6px;
-    font-size: 0.875rem;
   }
-
+  
   .form-input, .form-select, .form-textarea {
     width: 100%;
     padding: 10px 12px;
-    border: 2px solid #e5e7eb;
-    border-radius: 6px;
-    font-size: 0.875rem;
-    transition: all 0.2s ease;
-    box-sizing: border-box;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    transition: border-color 0.2s, box-shadow 0.2s;
   }
-
   .form-input:focus, .form-select:focus, .form-textarea:focus {
     outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    border-color: #2563eb;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
   }
 
   .form-help {
-    display: block;
-    margin-top: 4px;
+    font-size: 0.875rem;
     color: #6b7280;
-    font-size: 0.75rem;
+    margin-top: 6px;
   }
 
-  .add-question-btn, .add-question-btn-secondary {
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  .add-question-btn {
     display: flex;
     align-items: center;
     gap: 8px;
-    background: #10b981;
+    background-color: #3b82f6;
     color: white;
-    padding: 10px 16px;
+    padding: 8px 14px;
     border-radius: 8px;
+    font-weight: 500;
     border: none;
-    font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: background-color 0.2s;
   }
-
-  .add-question-btn:hover, .add-question-btn-secondary:hover {
-    background: #059669;
+  .add-question-btn:hover {
+    background-color: #2563eb;
   }
 
   .empty-questions {
     text-align: center;
-    padding: 60px 20px;
-    color: #6b7280;
+    padding: 48px;
+    border: 2px dashed #d1d5db;
+    border-radius: 12px;
   }
-
   .empty-icon {
-    font-size: 4rem;
+    font-size: 3rem;
     margin-bottom: 16px;
   }
-
   .empty-questions h3 {
     font-size: 1.25rem;
     font-weight: 600;
     color: #1f2937;
-    margin: 0 0 8px 0;
+    margin-bottom: 8px;
+  }
+  .empty-questions p {
+    color: #6b7280;
+    margin-bottom: 24px;
   }
 
-  .empty-questions p {
-    margin: 0 0 24px 0;
+  .add-question-btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background-color: #10b981;
+    color: white;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  .add-question-btn-secondary:hover {
+    background-color: #059669;
   }
 
   .questions-list {
@@ -676,273 +716,186 @@
   }
 
   .question-card {
-    border: 2px solid #e5e7eb;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
     border-radius: 12px;
-    overflow: hidden;
-    transition: all 0.2s ease;
-  }
-
-  .question-card:hover {
-    border-color: #d1d5db;
   }
 
   .question-header {
-    background: #f8fafc;
-    padding: 16px 20px;
-    border-bottom: 1px solid #e5e7eb;
     display: flex;
-    justify-content: between;
+    justify-content: space-between;
     align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid #e5e7eb;
   }
 
   .question-number {
-    background: #3b82f6;
-    color: white;
-    width: 36px;
-    height: 36px;
+    background-color: #e0e7ff;
+    color: #3730a3;
+    font-weight: 600;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 700;
-    font-size: 0.875rem;
   }
-
+  
   .question-controls {
     display: flex;
+    align-items: center;
     gap: 8px;
   }
-
-  .move-btn, .delete-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    border: none;
+  
+  .move-btn, .delete-btn, .remove-choice-btn {
+    background: none;
+    border: 1px solid #d1d5db;
     border-radius: 6px;
+    padding: 4px;
     cursor: pointer;
-    transition: all 0.2s ease;
-    font-weight: 600;
+    color: #6b7280;
+    transition: background-color 0.2s, color 0.2s;
   }
-
-  .move-btn {
-    background: #e5e7eb;
-    color: #374151;
+  .move-btn:hover, .delete-btn:hover, .remove-choice-btn:hover {
+    background-color: #f3f4f6;
+    color: #1f2937;
   }
-
-  .move-btn:hover:not(:disabled) {
-    background: #d1d5db;
-  }
-
   .move-btn:disabled {
-    opacity: 0.4;
+    opacity: 0.5;
     cursor: not-allowed;
   }
-
-  .delete-btn {
-    background: #fef2f2;
-    color: #dc2626;
+  
+  .delete-btn, .remove-choice-btn {
+    color: #ef4444;
   }
-
-  .delete-btn:hover {
-    background: #fecaca;
+  .delete-btn:hover, .remove-choice-btn:hover {
+    background-color: #fee2e2;
   }
-
+  
   .question-content {
-    padding: 20px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
   }
 
   .choices-section {
-    margin: 20px 0;
+    background: white;
+    padding: 16px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
   }
 
   .choices-header {
     display: flex;
-    justify-content: between;
+    justify-content: space-between;
     align-items: center;
     margin-bottom: 12px;
   }
-
   .choices-header label {
-    font-weight: 600;
-    color: #374151;
-    font-size: 0.875rem;
-    margin: 0;
+    font-weight: 500;
   }
 
   .add-choice-btn {
     display: flex;
     align-items: center;
     gap: 4px;
-    background: #f3f4f6;
-    color: #374151;
-    padding: 6px 12px;
-    border-radius: 6px;
+    background: none;
     border: none;
-    font-size: 0.75rem;
+    color: #2563eb;
+    font-size: 0.875rem;
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.2s ease;
-  }
-
-  .add-choice-btn:hover {
-    background: #e5e7eb;
   }
 
   .choices-list {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 12px;
   }
 
   .choice-item {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 8px;
-    background: #f8fafc;
-    border-radius: 6px;
-    border: 1px solid #e5e7eb;
   }
 
   .choice-marker {
     display: flex;
     align-items: center;
     gap: 8px;
-    min-width: 60px;
   }
-
   .choice-radio {
     width: 16px;
     height: 16px;
+    cursor: pointer;
   }
-
   .choice-label {
-    font-weight: 600;
-    color: #374151;
-    font-size: 0.875rem;
-    min-width: 20px;
+    font-weight: 500;
+    color: #4b5563;
   }
 
   .choice-input {
-    flex: 1;
-    padding: 6px 8px;
+    flex-grow: 1;
+    padding: 8px 10px;
     border: 1px solid #d1d5db;
-    border-radius: 4px;
-    font-size: 0.875rem;
-  }
-
-  .choice-input:focus {
-    outline: none;
-    border-color: #3b82f6;
-  }
-
-  .remove-choice-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    background: #fef2f2;
-    color: #dc2626;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-
-  .remove-choice-btn:hover {
-    background: #fecaca;
-  }
-
-  .no-choices {
-    padding: 20px;
-    text-align: center;
-    color: #6b7280;
-    font-size: 0.875rem;
-    background: #f8fafc;
-    border: 1px dashed #d1d5db;
     border-radius: 6px;
   }
 
-  .no-choices p {
-    margin: 0;
+  .no-choices {
+    text-align: center;
+    color: #6b7280;
+    font-size: 0.875rem;
+    padding: 16px;
   }
 
   .bottom-actions {
     display: flex;
-    justify-content: between;
+    justify-content: flex-end;
     align-items: center;
     gap: 16px;
-    padding: 24px 0;
+    padding: 24px;
+    background-color: white;
+    border-top: 1px solid #e5e7eb;
+    border-radius: 0 0 12px 12px;
+    position: sticky;
+    bottom: 0;
   }
-
+  
   .cancel-btn {
-    color: #6b7280;
-    text-decoration: none;
+    color: #4b5563;
     font-weight: 500;
-    padding: 10px 20px;
-    border-radius: 6px;
-    transition: all 0.2s ease;
+    text-decoration: none;
   }
-
-  .cancel-btn:hover {
-    color: #374151;
-    background: #f3f4f6;
-  }
-
+  
   .save-btn-primary {
     display: flex;
     align-items: center;
     gap: 8px;
-    background: #3b82f6;
+    background-color: #2563eb;
     color: white;
-    padding: 12px 24px;
+    padding: 12px 20px;
     border-radius: 8px;
-    border: none;
     font-weight: 600;
+    border: none;
     cursor: pointer;
-    transition: all 0.2s ease;
-    font-size: 0.875rem;
   }
-
-  .save-btn-primary:hover:not(:disabled) {
-    background: #2563eb;
-  }
-
   .save-btn-primary:disabled {
-    opacity: 0.6;
+    background-color: #d1d5db;
     cursor: not-allowed;
   }
-
-  .spinner {
+  .save-btn-primary .spinner {
     width: 16px;
     height: 16px;
     border: 2px solid rgba(255, 255, 255, 0.3);
-    border-top: 2px solid white;
+    border-top-color: white;
     border-radius: 50%;
     animation: spin 1s linear infinite;
   }
 
   @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-
-  @media (max-width: 768px) {
-    .config-grid {
-      grid-template-columns: 1fr;
-    }
-    
-    .section-header {
-      flex-direction: column;
-      align-items: stretch;
-      gap: 12px;
-    }
-    
-    .bottom-actions {
-      flex-direction: column;
+    to {
+      transform: rotate(360deg);
     }
   }
 </style> 

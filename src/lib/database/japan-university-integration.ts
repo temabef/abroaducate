@@ -9,6 +9,7 @@ export interface JapaneseUniversityData {
     name: string;
     name_japanese: string;
     city: string;
+    state?: string; // Added to fix TypeScript error
     prefecture: string;
     region: string;
     established: number;

@@ -14,9 +14,10 @@
     amount?: string; // For scholarships
   }
 
+  export let userTier: string = 'free';
+
   let reminders: Reminder[] = [];
   let loading = true;
-  let userTier = 'free';
   let emailPreferences = {
     email_enabled: true,
     email_deadlines: true,
@@ -93,8 +94,8 @@
 
         // Process scholarship reminders (these come pre-calculated from the view)
         const scholarshipReminders = (scholarshipsResponse.data || [])
-          .filter(scholarship => scholarship.is_saved || scholarship.is_applied)
-          .map(scholarship => ({
+          .filter(scholarship => scholarship && (scholarship.is_saved || scholarship.is_applied))
+          .map(scholarship => scholarship ? ({
             id: scholarship.scholarship_id,
             title: scholarship.title,
             deadline: scholarship.deadline,
@@ -103,7 +104,8 @@
             urgency: scholarship.urgency as 'critical' | 'urgent' | 'important' | 'moderate',
             provider: scholarship.provider,
             amount: scholarship.amount
-          }));
+          }) : null)
+          .filter(Boolean) as Reminder[];
 
         // Combine and sort by urgency, then by days until deadline
         reminders = [...applicationReminders, ...scholarshipReminders]

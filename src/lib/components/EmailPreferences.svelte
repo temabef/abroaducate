@@ -245,7 +245,7 @@
                 <input 
                   type="checkbox" 
                   checked={preferences.reminder_days.includes(day)}
-                  on:change={() => toggleReminderDay(day)}
+                  onchange={() => toggleReminderDay(day)}
                   class="day-checkbox"
                 />
                 <span class="day-label">

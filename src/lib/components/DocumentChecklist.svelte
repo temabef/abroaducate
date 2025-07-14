@@ -249,8 +249,8 @@
                         on:click={() => toggleCategory(category)}
                     >
                         <div class="flex items-center gap-3">
-                            <span class="text-lg">{categoryLabels[category]?.icon}</span>
-                            <span class="font-medium text-gray-900">{categoryLabels[category]?.name}</span>
+                            <span class="text-lg">{(categoryLabels as any)[category]?.icon}</span>
+                            <span class="font-medium text-gray-900">{(categoryLabels as any)[category]?.name}</span>
                             <span class="text-sm text-gray-600">
                                 ({documents.filter(d => d.status === 'completed' || d.status === 'uploaded').length}/{documents.length})
                             </span>
@@ -293,7 +293,7 @@
                                             <!-- Status Dropdown -->
                                             <select 
                                                 value={document.status}
-                                                on:change={(e) => updateDocumentStatus(document.id, e.target.value)}
+                                                on:change={(e) => updateDocumentStatus(document.id, (e.target as HTMLSelectElement).value)}
                                                 class="text-xs px-2 py-1 rounded border focus:outline-none focus:ring-2 focus:ring-blue-500 {getStatusColor(document.status)}"
                                             >
                                                 <option value="not_started">Not Started</option>

@@ -7,8 +7,8 @@
     let emailStats = {
         today_sent: 0,
         status: 'active',
-        last_digest: null,
-        subscription_days_left: null
+        last_digest: null as string | null,
+        subscription_days_left: null as number | null
     };
 
     let loading = true;

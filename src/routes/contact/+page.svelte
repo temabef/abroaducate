@@ -14,7 +14,7 @@
   let submitted = $state(false);
   let error = $state('');
 
-  async function handleSubmit(event) {
+  async function handleSubmit(event: Event) {
     event.preventDefault();
     
     if (!formData.name || !formData.email || !formData.message || !formData.category) {
@@ -101,7 +101,7 @@
 <SEO 
   title="Contact & Support - Abroaducate"
   description="Get help with your academic applications. Contact our support team for technical issues, billing questions, and application guidance."
-  canonicalUrl="https://abroaducate.com/contact"
+  canonical="https://abroaducate.com/contact"
 />
 
 <div class="min-h-screen bg-gray-50 py-16">

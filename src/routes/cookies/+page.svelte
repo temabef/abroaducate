@@ -60,7 +60,7 @@
 <SEO 
   title="Cookie Policy - Abroaducate"
   description="Learn about how Abroaducate uses cookies to provide and improve our academic application platform services."
-  canonicalUrl="https://abroaducate.com/cookies"
+  canonical="https://abroaducate.com/cookies"
 />
 
 <div class="min-h-screen bg-gray-50 py-16">

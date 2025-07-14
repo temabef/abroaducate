@@ -5,7 +5,7 @@ import { PUBLIC_STRIPE_PUBLISHABLE_KEY } from '$env/static/public';
 export const stripePromise = loadStripe(PUBLIC_STRIPE_PUBLISHABLE_KEY);
 
 // COMPREHENSIVE production-ready subscription plans configuration
-// Matches pricing page exactly with ALL features and limitations
+// Matches SQL configuration and pricing page exactly
 export const SUBSCRIPTION_PLANS = {
     professional: {
         name: 'Academic Professional',
@@ -14,11 +14,11 @@ export const SUBSCRIPTION_PLANS = {
             annual: 10.00
         },
         priceIds: {
-            monthly: 'price_1Rcq0yAg2hnCcpKhPgYdxKyP',
-            annual: 'price_1Rcq2dAg2hnCcpKhEjE7oiKx'
+            monthly: 'price_1Rkmj7C5OCrAkph8nUd67hTJ',
+            annual: 'price_1RkmnsC5OCrAkph8OciObYhn'
         },
         
-        // Document Generation
+        // Document Generation - 50 total documents per month
         documents: {
             total_per_month: 50,
             allocation_type: 'flexible', // Any combination of document types
@@ -26,7 +26,7 @@ export const SUBSCRIPTION_PLANS = {
             templates: 'premium'
         },
         
-        // AI Features with specific limits
+        // AI Features with specific limits - MATCHES SQL EXACTLY
         ai_features: {
             reviews: 15,
             text_enhancements: 25,
@@ -35,7 +35,7 @@ export const SUBSCRIPTION_PLANS = {
             model: 'gpt-4o-mini'
         },
         
-        // University Matching
+        // University Matching - MATCHES SQL EXACTLY
         university_matching: {
             total_universities: 500,
             queries_per_month: 25,
@@ -60,9 +60,14 @@ export const SUBSCRIPTION_PLANS = {
             support_level: 'email_48h'
         },
         
-        // Visa Interview
+        // Visa Interview - MATCHES SQL EXACTLY
         visa_interview: {
-            questions_per_session: 20
+            questions_per_session: 50
+        },
+        
+        // Cold Email - MATCHES SQL EXACTLY
+        cold_email: {
+            emails_per_month: 50
         },
         
         features: [
@@ -76,8 +81,8 @@ export const SUBSCRIPTION_PLANS = {
             'Email reminders & notifications',
             'Complete version history & document tracking',
             'GPT-4o-mini AI Engine',
-            'Cold Email Generator - Professional templates',
-            'Visa Interview Simulator - 20 practice questions per session'
+            'Cold Email Generator - 50 emails per month',
+            'Visa Interview Simulator - 50 practice questions per session'
         ]
     },
     
@@ -88,11 +93,11 @@ export const SUBSCRIPTION_PLANS = {
             annual: 24.00
         },
         priceIds: {
-            monthly: 'price_1Rcq4oAg2hnCcpKhRvZKry06',
-            annual: 'price_1Rcq6HAg2hnCcpKhx4l5gTZF'
+            monthly: 'price_1RkmpQC5OCrAkph8At9XJOnw',
+            annual: 'price_1RkmqsC5OCrAkph8QfDUihYK'
         },
         
-        // Document Generation
+        // Document Generation - UNLIMITED - MATCHES SQL EXACTLY
         documents: {
             total_per_month: null, // Unlimited
             allocation_type: 'unlimited',
@@ -100,16 +105,16 @@ export const SUBSCRIPTION_PLANS = {
             templates: 'premium_plus_custom'
         },
         
-        // AI Features - all unlimited
+        // AI Features - UNLIMITED - MATCHES SQL EXACTLY
         ai_features: {
-            reviews: null,
-            text_enhancements: null,
-            word_optimizations: null,
-            plagiarism_checks: null,
+            reviews: null, // Unlimited
+            text_enhancements: null, // Unlimited
+            word_optimizations: null, // Unlimited
+            plagiarism_checks: null, // Unlimited
             model: 'gpt-4o'
         },
         
-        // University Matching
+        // University Matching - UNLIMITED queries - MATCHES SQL EXACTLY
         university_matching: {
             total_universities: 1500,
             queries_per_month: null, // Unlimited
@@ -138,9 +143,14 @@ export const SUBSCRIPTION_PLANS = {
             custom_branding: true // coming soon
         },
         
-        // Visa Interview
+        // Visa Interview - MATCHES SQL EXACTLY
         visa_interview: {
-            questions_per_session: 30 // All questions
+            questions_per_session: 80
+        },
+        
+        // Cold Email - MATCHES SQL EXACTLY  
+        cold_email: {
+            emails_per_month: 500 // 500 per month as per pricing page
         },
         
         features: [
@@ -155,18 +165,18 @@ export const SUBSCRIPTION_PLANS = {
             'Complete version history & document tracking',
             'Early access to new features',
             'GPT-4o AI Engine - Most advanced AI model available',
-            'Advanced Cold Email Suite - Smart templates + professional guidance',
-            'Visa Interview Simulator - All 30 practice questions per session'
+            'Advanced Cold Email Suite - 500 emails per month',
+            'Visa Interview Simulator - All 80+ practice questions per session'
         ]
     }
 };
 
-// FREE plan configuration (comprehensive feature list)
+// FREE plan configuration - MATCHES SQL EXACTLY
 export const FREE_PLAN = {
     name: 'Academic Starter',
     price: 0,
     
-    // Document Generation
+    // Document Generation - MATCHES SQL EXACTLY
     documents: {
         sops_per_month: 2,
         cover_letters_per_month: 2,
@@ -177,16 +187,16 @@ export const FREE_PLAN = {
         templates: 'basic'
     },
     
-    // AI Features with specific limits
+    // AI Features - MATCHES SQL EXACTLY
     ai_features: {
-        reviews: 3,
-        text_enhancements: 5,
-        word_optimizations: 3,
+        reviews: 1, // CORRECTED to match SQL and pricing page
+        text_enhancements: 1, // CORRECTED to match SQL and pricing page
+        word_optimizations: 1, // CORRECTED to match SQL and pricing page
         plagiarism_checks: 1,
         model: 'gpt-3.5-turbo'
     },
     
-    // University Matching
+    // University Matching - MATCHES SQL EXACTLY
     university_matching: {
         total_universities: 50,
         queries_per_month: 5,
@@ -209,26 +219,27 @@ export const FREE_PLAN = {
         templates_count: 6
     },
     
-    // Visa Interview
+    // Visa Interview - MATCHES SQL EXACTLY
     visa_interview: {
-        questions_per_session: 5
+        questions_per_session: 6 // CORRECTED to match SQL and pricing page
     },
     
-    // Cold Email
+    // Cold Email - MATCHES SQL EXACTLY
     cold_email: {
-        enabled: false
+        emails_per_month: 5 // CORRECTED to match SQL and pricing page
     },
     
     features: [
         '6 Documents/Month: 2 SOPs, 2 Cover Letters, 1 Personal Statement, 1 Academic CV',
-        'AI Features: 3 Reviews, 5 Text Enhancements, 3 Word Optimizations',
+        'AI Features: 1 Review, 1 Text Enhancement, 1 Word Optimization per month',
         'University Matching: 50+ universities with basic matching',
         'Academic Analysis: Quick profile assessment only',
         'Basic templates & PDF/RTF export',
         'Application tracking & basic reminders',
         '6 basic templates per document type',
         'Version history (cover letters only)',
-        'Visa Interview Simulator: 5 practice questions per session',
+        'Visa Interview Simulator: 6 practice questions per session',
+        'Cold Email Generator: 5 emails per month',
         'Community support',
         'GPT-3.5 AI Engine - Reliable and efficient AI'
     ]
@@ -252,10 +263,11 @@ export function hasUnlimitedAccess(planType: string, featureCategory: string, fe
     const plan = getPlanDetails(planType);
     
     if (planType === 'elite') {
-        // Elite has unlimited access to most features
+        // Elite has unlimited access to most features except cold_email (500 limit)
         if (featureCategory === 'documents') return true;
         if (featureCategory === 'ai_features') return true;
         if (featureCategory === 'university_matching' && featureType === 'queries') return true;
+        // Cold email has a limit of 500 per month for elite, not unlimited
     }
     
     return false;
@@ -301,6 +313,9 @@ export function getFeatureLimit(planType: string, featureCategory: string, featu
         case 'visa_interview':
             return plan.visa_interview?.questions_per_session || 0;
             
+        case 'cold_email':
+            return plan.cold_email?.emails_per_month || 0;
+            
         default:
             return 0;
     }
@@ -312,7 +327,7 @@ export function hasFeatureAccess(planType: string, featureCategory: string, feat
     
     switch (featureCategory) {
         case 'cold_email':
-            if (planType === 'free') return false;
+            // All plans including free have cold email access (free gets 5 per month)
             return true;
             
         case 'academic_analysis':

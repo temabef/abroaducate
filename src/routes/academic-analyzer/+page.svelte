@@ -4,10 +4,133 @@
   import { goto } from '$app/navigation';
   import CompactUpgradeModal from '$lib/components/CompactUpgradeModal.svelte';
 
+  // Interfaces for type safety
+  interface Course {
+    code: string;
+    name: string;
+    credits: number;
+    grade: string;
+    usGPA: number;
+    year: string;
+  }
+
+  interface AcademicYearSummary {
+    courses: Course[];
+    gpa: string;
+    totalCredits: number;
+    courseCount: number;
+  }
+
+  interface SubjectSummary {
+    courses: Course[];
+    gpa: string;
+    totalCredits: number;
+    courseCount: number;
+  }
+
+  interface GradeDistribution {
+    byGrade: Record<string, number>;
+    byGPARange: Record<string, number>;
+    totalCourses: number;
+  }
+
+  interface AcademicProfile {
+    hasData: boolean;
+    totalGPA: number;
+    totalCourses: number;
+    studentInfo: {
+      studentName: string;
+      universityName: string;
+      programOfStudy: string;
+    };
+    coursesByYear: Record<string, AcademicYearSummary>;
+    coursesBySubject: Record<string, SubjectSummary>;
+    gradeDistribution: GradeDistribution;
+    creditHours: {
+      total: number;
+      average: number;
+      courseCount: number;
+    };
+    gradingSystem: {
+      country: string;
+      system: string;
+    };
+    extractedAt: string;
+  }
+
+  interface AnalysisResult {
+    hasAnalysis: boolean;
+    message?: string;
+    overall?: {
+      gpa: number;
+      gpaCategory: string;
+      gpaDescription: string;
+      gpaColor: string;
+      totalCredits: number;
+      creditLoadAssessment: string;
+      coursesCompleted: number;
+      averageCreditsPerCourse: number;
+    };
+    strengths?: {
+      category: string;
+      title: string;
+      description: string;
+      impact: string;
+      icon: string;
+    }[];
+    weaknesses?: {
+      category: string;
+      title: string;
+      description: string;
+      severity: string;
+      icon: string;
+    }[];
+    trends?: {
+      hasEnoughData: boolean;
+      message?: string;
+      gpaTrend?: {
+        year: string;
+        gpa: number;
+      }[];
+      creditTrend?: {
+        year: string;
+        credits: number;
+      }[];
+      trendDirection?: string;
+      trendDescription?: string;
+      gpaChange?: string | number;
+      yearsAnalyzed?: number;
+    };
+    recommendations?: {
+      priority: string;
+      category: string;
+      title: string;
+      description: string;
+      actionItems: string[];
+    }[];
+    competitiveness?: {
+      level: string;
+      description: string;
+      opportunities: string[];
+      gpaScore: number;
+      percentile: number;
+    };
+    riskFactors?: {
+      type: string;
+      description: string;
+      severity: string;
+    }[];
+    insights?: {
+      title: string;
+      description: string;
+      type: string;
+    }[];
+  }
+
   // State variables
   let hasData = false;
-  let academicProfile: any = null;
-  let analysis: any = null;
+  let academicProfile: AcademicProfile | null = null;
+  let analysis: AnalysisResult | null = null;
   let loading = true;
   let dataSource = '';
   let activeTab = 'overview';
@@ -96,7 +219,7 @@
 
     // Group courses by year
     const academicYears = ['Year 1', 'Year 2', 'Year 3', 'Year 4', 'Year 5', 'Year 6', 'Postgraduate'];
-    const coursesByYear: Record<string, any> = {};
+    const coursesByYear: Record<string, AcademicYearSummary> = {};
     academicYears.forEach(year => {
       const yearCourses = courses.filter((c: any) => c.year === year);
       if (yearCourses.length > 0) {
@@ -189,7 +312,7 @@
     });
 
     // Calculate GPA for each subject area
-    const result: Record<string, any> = {};
+    const result: Record<string, SubjectSummary> = {};
     Object.keys(categorizedCourses).forEach(category => {
       const courses = categorizedCourses[category];
       if (courses.length > 0) {
@@ -466,7 +589,7 @@
         </div>
       </div>
     </div>
-  {:else if analysis && analysis.hasAnalysis}
+  {:else if analysis && analysis.hasAnalysis && academicProfile}
     <!-- Main Analysis Interface -->
     <div class="space-y-6">
       <!-- Data Source Indicator -->
@@ -493,7 +616,7 @@
             {academicProfile.totalGPA.toFixed(2)}
           </div>
           <div class="text-gray-600 text-sm">Overall GPA</div>
-          <div class="text-xs text-gray-500 mt-1">{analysis.overall.gpaCategory}</div>
+          <div class="text-xs text-gray-500 mt-1">{analysis?.overall?.gpaCategory || 'N/A'}</div>
         </div>
         
         <div class="bg-white rounded-xl shadow-sm border p-6 text-center">
@@ -506,7 +629,7 @@
         
         <div class="bg-white rounded-xl shadow-sm border p-6 text-center">
           <div class="text-3xl font-bold text-gray-900 mb-2">
-            {analysis.strengths.length}
+            {analysis?.strengths?.length || 0}
           </div>
           <div class="text-gray-600 text-sm">Key Strengths</div>
           <div class="text-xs text-green-600 mt-1">Identified</div>
@@ -514,10 +637,10 @@
         
         <div class="bg-white rounded-xl shadow-sm border p-6 text-center">
           <div class="text-3xl font-bold text-gray-900 mb-2">
-            {analysis.competitiveness.percentile}th
+            {analysis?.competitiveness?.percentile || 0}th
           </div>
           <div class="text-gray-600 text-sm">Percentile</div>
-          <div class="text-xs text-blue-600 mt-1">{analysis.competitiveness.level}</div>
+          <div class="text-xs text-blue-600 mt-1">{analysis?.competitiveness?.level || 'N/A'}</div>
         </div>
       </div>
 
@@ -547,21 +670,21 @@
             <!-- Overview Tab -->
             <div class="space-y-6">
               <!-- Student Information -->
-              {#if academicProfile.studentInfo.studentName}
+              {#if academicProfile?.studentInfo?.studentName}
                 <div class="bg-gray-50 rounded-lg p-4">
                   <h3 class="font-semibold text-gray-900 mb-2">📋 Academic Profile</h3>
                   <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                     <div>
                       <span class="font-medium text-gray-700">Student:</span>
-                      <span class="text-gray-600 ml-2">{academicProfile.studentInfo.studentName}</span>
+                      <span class="text-gray-600 ml-2">{academicProfile?.studentInfo?.studentName}</span>
                     </div>
-                    {#if academicProfile.studentInfo.universityName}
+                    {#if academicProfile?.studentInfo?.universityName}
                       <div>
                         <span class="font-medium text-gray-700">University:</span>
                         <span class="text-gray-600 ml-2">{academicProfile.studentInfo.universityName}</span>
                       </div>
                     {/if}
-                    {#if academicProfile.studentInfo.programOfStudy}
+                    {#if academicProfile?.studentInfo?.programOfStudy}
                       <div>
                         <span class="font-medium text-gray-700">Program:</span>
                         <span class="text-gray-600 ml-2">{academicProfile.studentInfo.programOfStudy}</span>
@@ -582,7 +705,7 @@
                         <div class="text-2xl font-bold {getGPAColor(academicProfile.totalGPA)}">
                           {academicProfile.totalGPA.toFixed(2)} GPA
                         </div>
-                        <div class="text-sm text-gray-600">{analysis.overall.gpaDescription}</div>
+                        <div class="text-sm text-gray-600">{analysis.overall?.gpaDescription}</div>
                       </div>
                       <div class="text-3xl">
                         {#if academicProfile.totalGPA >= 3.7}🏆
@@ -595,7 +718,7 @@
                   <div class="space-y-2 text-sm">
                     <div class="flex justify-between">
                       <span class="text-gray-600">Credit Load:</span>
-                      <span class="font-medium">{analysis.overall.creditLoadAssessment}</span>
+                      <span class="font-medium">{analysis.overall?.creditLoadAssessment}</span>
                     </div>
                     <div class="flex justify-between">
                       <span class="text-gray-600">Total Credits:</span>
@@ -662,7 +785,7 @@
             <!-- Strengths Tab -->
             <div class="space-y-4">
               <h3 class="text-xl font-semibold text-gray-900 mb-4">💪 Your Academic Strengths</h3>
-              {#if analysis.strengths.length > 0}
+              {#if analysis.strengths && analysis.strengths.length > 0}
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {#each analysis.strengths as strength}
                     <div class="bg-green-50 border border-green-200 rounded-lg p-6">
@@ -700,7 +823,7 @@
             <!-- Growth Areas Tab -->
             <div class="space-y-4">
               <h3 class="text-xl font-semibold text-gray-900 mb-4">📈 Areas for Growth</h3>
-              {#if analysis.weaknesses.length > 0}
+              {#if analysis.weaknesses && analysis.weaknesses.length > 0}
                 <div class="space-y-4">
                   {#each analysis.weaknesses as weakness}
                     <div class="bg-orange-50 border border-orange-200 rounded-lg p-6">
@@ -738,25 +861,25 @@
             <!-- Trends Tab -->
             <div class="space-y-6">
               <h3 class="text-xl font-semibold text-gray-900 mb-4">📉 Academic Trends</h3>
-              {#if analysis.trends.hasEnoughData}
+              {#if analysis.trends && analysis.trends.hasEnoughData}
                 <div class="bg-white border rounded-lg p-6">
                   <div class="flex items-center justify-between mb-4">
                     <h4 class="font-semibold text-gray-900">GPA Trend Analysis</h4>
                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium {
-                      analysis.trends.trendDirection === 'improving' ? 'bg-green-100 text-green-800' :
-                      analysis.trends.trendDirection === 'declining' ? 'bg-red-100 text-red-800' :
+                      analysis.trends?.trendDirection === 'improving' ? 'bg-green-100 text-green-800' :
+                      analysis.trends?.trendDirection === 'declining' ? 'bg-red-100 text-red-800' :
                       'bg-blue-100 text-blue-800'
                     }">
-                      {analysis.trends.trendDirection === 'improving' ? '📈 Improving' :
-                       analysis.trends.trendDirection === 'declining' ? '📉 Declining' :
+                      {analysis.trends?.trendDirection === 'improving' ? '📈 Improving' :
+                       analysis.trends?.trendDirection === 'declining' ? '📉 Declining' :
                        '➡️ Stable'}
                     </span>
                   </div>
-                  <p class="text-gray-600 mb-4">{analysis.trends.trendDescription}</p>
+                  <p class="text-gray-600 mb-4">{analysis.trends?.trendDescription}</p>
                   
                   <!-- Yearly GPA Chart -->
                   <div class="space-y-3">
-                    {#each analysis.trends.gpaTrend as yearData}
+                    {#each (analysis.trends?.gpaTrend || []) as yearData}
                       <div class="flex items-center space-x-4">
                         <div class="w-20 text-sm font-medium text-gray-700">{yearData.year}</div>
                         <div class="flex-1 bg-gray-200 rounded-full h-6 relative">
@@ -772,13 +895,13 @@
                   </div>
                   
                   <div class="mt-4 text-sm text-gray-600">
-                    <strong>Change:</strong> {analysis.trends.gpaChange > 0 ? '+' : ''}{analysis.trends.gpaChange} points over {analysis.trends.yearsAnalyzed} years
+                    <strong>Change:</strong> {(Number(analysis.trends?.gpaChange) || 0) > 0 ? '+' : ''}{analysis.trends?.gpaChange} points over {analysis.trends?.yearsAnalyzed} years
                   </div>
                 </div>
               {:else}
                 <div class="text-center py-8">
                   <div class="text-4xl mb-4">📊</div>
-                  <p class="text-gray-600">{analysis.trends.message}</p>
+                  <p class="text-gray-600">{analysis.trends?.message}</p>
                 </div>
               {/if}
             </div>
@@ -787,7 +910,7 @@
             <!-- Recommendations Tab -->
             <div class="space-y-4">
               <h3 class="text-xl font-semibold text-gray-900 mb-4">💡 Personalized Recommendations</h3>
-              {#if analysis.recommendations.length > 0}
+              {#if analysis.recommendations && analysis.recommendations.length > 0}
                 <div class="space-y-6">
                   {#each analysis.recommendations as rec}
                     <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
@@ -839,15 +962,15 @@
               
               <div class="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-lg p-6">
                 <div class="text-center mb-6">
-                  <h4 class="text-2xl font-bold text-gray-900 mb-2">{analysis.competitiveness.level}</h4>
-                  <p class="text-gray-600">{analysis.competitiveness.description}</p>
+                  <h4 class="text-2xl font-bold text-gray-900 mb-2">{analysis.competitiveness?.level}</h4>
+                  <p class="text-gray-600">{analysis.competitiveness?.description}</p>
                   <div class="mt-4 flex items-center justify-center space-x-4">
                     <div class="text-center">
-                      <div class="text-3xl font-bold text-blue-600">{analysis.competitiveness.gpaScore.toFixed(2)}</div>
+                      <div class="text-3xl font-bold text-blue-600">{analysis.competitiveness?.gpaScore?.toFixed(2)}</div>
                       <div class="text-sm text-gray-600">Your GPA</div>
                     </div>
                     <div class="text-center">
-                      <div class="text-3xl font-bold text-green-600">{analysis.competitiveness.percentile}th</div>
+                      <div class="text-3xl font-bold text-green-600">{analysis.competitiveness?.percentile}th</div>
                       <div class="text-sm text-gray-600">Percentile</div>
                     </div>
                   </div>
@@ -857,7 +980,7 @@
                   <div class="bg-white rounded-lg p-4">
                     <h5 class="font-semibold text-gray-900 mb-2">🎓 Opportunities</h5>
                     <ul class="space-y-2">
-                      {#each analysis.competitiveness.opportunities as opportunity}
+                      {#each (analysis.competitiveness?.opportunities || []) as opportunity}
                         <li class="flex items-start space-x-2 text-sm">
                           <span class="text-green-500 mt-1">✓</span>
                           <span class="text-gray-700">{opportunity}</span>
@@ -866,20 +989,20 @@
                     </ul>
                   </div>
                   
-                  {#if analysis.insights.length > 0}
+                  {#if analysis.insights && analysis.insights.length > 0}
                     <div class="bg-white rounded-lg p-4 md:col-span-2">
                       <h5 class="font-semibold text-gray-900 mb-2">🔍 Key Insights</h5>
                       <div class="space-y-2">
-                        {#each analysis.insights as insight}
+                        {#each (analysis.insights || []) as insight}
                           <div class="flex items-start space-x-2">
-                            <span class="text-blue-500 mt-1">
-                              {#if insight.type === 'strength'}💪
-                              {:else if insight.type === 'achievement'}🏆
+                                                        <span class="text-blue-500 mt-1">
+                              {#if (insight as any).type === 'strength'}💪
+                              {:else if (insight as any).type === 'achievement'}🏆
                               {:else}💡{/if}
                             </span>
                             <div>
-                              <div class="font-medium text-gray-900 text-sm">{insight.title}</div>
-                              <div class="text-gray-600 text-sm">{insight.description}</div>
+                              <div class="font-medium text-gray-900 text-sm">{(insight as any).title}</div>       
+                              <div class="text-gray-600 text-sm">{(insight as any).description}</div>
                             </div>
                           </div>
                         {/each}
@@ -889,23 +1012,23 @@
                 </div>
               </div>
               
-              {#if analysis.riskFactors.length > 0}
+              {#if analysis.riskFactors && analysis.riskFactors.length > 0}
                 <div class="bg-red-50 border border-red-200 rounded-lg p-6">
                   <h4 class="font-semibold text-red-900 mb-4">⚠️ Risk Factors to Address</h4>
                   <div class="space-y-3">
-                    {#each analysis.riskFactors as risk}
+                    {#each (analysis.riskFactors || []) as risk}
                       <div class="flex items-start space-x-3">
                         <span class="text-red-500 mt-1">⚠️</span>
                         <div>
-                          <div class="font-medium text-red-900">{risk.type}</div>
-                          <div class="text-red-700 text-sm">{risk.description}</div>
+                          <div class="font-medium text-red-900">{(risk as any).type}</div>
+                          <div class="text-red-700 text-sm">{(risk as any).description}</div>
                         </div>
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {
-                          risk.severity === 'high' ? 'bg-red-100 text-red-800' :
-                          risk.severity === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                          (risk as any).severity === 'high' ? 'bg-red-100 text-red-800' :
+                          (risk as any).severity === 'medium' ? 'bg-yellow-100 text-yellow-800' :
                           'bg-blue-100 text-blue-800'
                         }">
-                          {risk.severity}
+                          {(risk as any).severity}
                         </span>
                       </div>
                     {/each}

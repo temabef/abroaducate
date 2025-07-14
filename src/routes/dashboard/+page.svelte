@@ -447,7 +447,7 @@
                         <EmailStatusWidget userTier={dashboardData.user?.tier || 'free'} />
                         
                         <!-- Basic Reminders Widget -->
-                        <BasicReminders userTier={dashboardData.user?.tier || 'free'} />
+                        <BasicReminders userTier={dashboardData.user?.tier ? String(dashboardData.user.tier) : 'free'} />
                         
                         <!-- Activity Feed -->
                         <ActivityFeed activities={dashboardData.activity} />

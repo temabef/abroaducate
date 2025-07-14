@@ -19,12 +19,12 @@
     export let data: any;
     
     // State
-    let checklists = [];
+    let checklists: any[] = [];
     let loading = true;
     let error = '';
     let selectedCountry = country;
     let selectedCategory = category;
-    let usage = null;
+    let usage: any = null;
     let isPreview = false;
     let previewMessage = '';
     
@@ -67,7 +67,7 @@
     };
     
     // Add state to track which checklist is expanded
-    let expandedChecklistId = null;
+    let expandedChecklistId: any = null;
     
     // Add a reactive variable for organized checklists
     $: organizedChecklists = checklists ? organizeByCategory(checklists) : [];
@@ -77,7 +77,7 @@
     });
     
     // Add this function to validate and fix checklist items if needed
-    function validateAndFixChecklistItems(checklistList) {
+    function validateAndFixChecklistItems(checklistList: any) {
         if (!Array.isArray(checklistList)) {
             console.error('Checklists is not an array:', checklistList);
             return [];
@@ -236,7 +236,7 @@
         }
     }
     
-    async function toggleChecklistItem(checklistId, itemId) {
+    async function toggleChecklistItem(checklistId: any, itemId: any) {
         try {
             console.log(`Toggling item ${itemId} for checklist ${checklistId}`);
             
@@ -329,7 +329,7 @@
         }
     }
     
-    async function startChecklist(checklistId) {
+    async function startChecklist(checklistId: any) {
         try {
             // Add timeout protection
             const controller = new AbortController();
@@ -400,7 +400,7 @@
         }
     }
     
-    function getProgressColor(percentage) {
+    function getProgressColor(percentage: any) {
         if (percentage >= 100) return 'bg-green-500';
         if (percentage >= 75) return 'bg-blue-500';
         if (percentage >= 50) return 'bg-yellow-500';
@@ -408,7 +408,7 @@
         return 'bg-red-500';
     }
     
-    function formatEstimatedTime(hours) {
+    function formatEstimatedTime(hours: any) {
         if (!hours) return 'Quick';
         if (hours < 1) return 'Less than 1 hour';
         return hours === 1 ? '1 hour' : `${hours} hours`;
@@ -425,7 +425,7 @@
         loadChecklists();
     }
     
-    function getCategoryIcon(categoryCode) {
+    function getCategoryIcon(categoryCode: any) {
         const cat = categories.find(c => c.code === categoryCode);
         return cat?.icon || '📋';
     }
@@ -442,7 +442,7 @@
     }
     
     // Function to toggle expand/collapse a checklist
-    function toggleExpand(checklistId) {
+    function toggleExpand(checklistId: any) {
         if (expandedChecklistId === checklistId) {
             expandedChecklistId = null; // Collapse if already expanded
         } else {
@@ -451,7 +451,7 @@
     }
     
     // Update the getPriorityColor function to use different colors for different categories
-    function getPriorityColor(category) {
+    function getPriorityColor(category: any) {
         switch (category) {
             case 'visa_application':
                 return 'red';
@@ -476,13 +476,13 @@
     }
     
     // Add the function to get category names
-    function getCategoryName(categoryCode) {
+    function getCategoryName(categoryCode: any) {
         const category = categories.find(c => c.code === categoryCode);
         return category ? category.name : categoryCode;
     }
     
     // Update the organizeByCategory function to better handle duplicate entries
-    function organizeByCategory(checklistList) {
+    function organizeByCategory(checklistList: any) {
         const result = {};
         const seenItems = new Set(); // Track seen items to prevent duplicates
         
@@ -532,11 +532,11 @@
     }
 
     // Helper function to organize checklists into balanced columns
-    function organizeIntoColumns(checklists) {
-        const leftColumn = [];
-        const rightColumn = [];
+    function organizeIntoColumns(checklists: any) {
+        const leftColumn: any[] = [];
+        const rightColumn: any[] = [];
         
-        checklists.forEach((checklist, index) => {
+        checklists.forEach((checklist: any, index: any) => {
             if (index % 2 === 0) {
                 leftColumn.push(checklist);
             } else {

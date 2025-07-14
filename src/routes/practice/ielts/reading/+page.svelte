@@ -79,7 +79,7 @@
       debugInfo = `Successfully loaded ${questions.length} questions with choices`;
       errorMessage = '';
       
-    } catch (e) {
+    } catch (e: any) {
       console.error('Unexpected error loading questions:', e);
       errorMessage = `Unexpected error: ${e.message}`;
       questions = [];
@@ -141,7 +141,7 @@
       debugInfo = `Found ${practiceSets.length} practice sets, loading first set: ${currentSetId}`;
       
       await loadQuestionsForSet(currentSetId);
-    } catch (e) {
+    } catch (e: any) {
       console.error('Unexpected error initializing page:', e);
       errorMessage = `Initialization error: ${e.message}`;
     }

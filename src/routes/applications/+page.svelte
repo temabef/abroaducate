@@ -260,7 +260,7 @@
                                 <div class="flex flex-col items-end gap-2">
                                     <select 
                                         value={app.status}
-                                        onchange={(e) => updateApplicationStatus(app.id, e.target.value)}
+                                        onchange={(e) => updateApplicationStatus(app.id, (e.target as HTMLSelectElement).value)}
                                         class="text-xs px-2 py-1 rounded border focus:outline-none focus:ring-2 focus:ring-blue-500 {getStatusColor(app.status)}"
                                     >
                                         <option value="planning">Planning</option>

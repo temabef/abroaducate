@@ -1,11 +1,27 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   
+  interface Scholarship {
+    id: string;
+    title: string;
+    provider: string;
+    amount: string;
+    deadline: string;
+  }
+  
+  interface Interaction {
+    scholarship_id: string;
+    is_saved: boolean;
+    is_applied: boolean;
+    applied_at?: string;
+    created_at: string;
+  }
+  
   let { data } = $props();
   let { supabase, session } = $derived(data);
 
-  let scholarships = $state([]);
-  let interactions = $state([]);
+  let scholarships = $state<Scholarship[]>([]);
+  let interactions = $state<Interaction[]>([]);
   let isLoading = $state(true);
   let error = $state('');
 
@@ -52,13 +68,13 @@
       
     } catch (err) {
       console.error('General error:', err);
-      error = `General error: ${err.message}`;
+      error = `General error: ${(err as Error).message}`;
     } finally {
       isLoading = false;
     }
   }
 
-  async function saveScholarship(scholarshipId) {
+  async function saveScholarship(scholarshipId: string) {
     try {
       const { error } = await supabase
         .from('user_scholarship_interactions')
@@ -77,7 +93,7 @@
       }
     } catch (err) {
       console.error('Save general error:', err);
-      alert(`Save error: ${err.message}`);
+      alert(`Save error: ${(err as Error).message}`);
     }
   }
 </script>

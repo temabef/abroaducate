@@ -38,7 +38,7 @@
                 dispatch('contentOptimized', {
                     optimizedContent: result.optimized_content,
                     originalWordCount: currentWordCount,
-                    newWordCount: result.optimized_content.split(/\s+/).filter(w => w.length > 0).length
+                    newWordCount: result.optimized_content.split(/\s+/).filter((w: string) => w.length > 0).length
                 });
             }
         }
@@ -100,8 +100,9 @@
     
     <!-- Target Word Count Input -->
     <div class="mb-4">
-        <label class="block text-sm font-medium text-gray-700 mb-2">Target Word Count:</label>
-        <input 
+        <label for="target-word-count" class="block text-sm font-medium text-gray-700 mb-2">Target Word Count:</label>
+        <input
+            id="target-word-count" 
             type="number" 
             bind:value={targetWordCount}
             placeholder="e.g., 500"

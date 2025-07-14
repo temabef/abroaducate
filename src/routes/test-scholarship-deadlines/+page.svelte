@@ -10,7 +10,7 @@
     dataLoaded: false,
     scholarshipCount: 0,
     applicationCount: 0,
-    error: null
+    error: null as string | null
   });
 
   onMount(async () => {
@@ -51,7 +51,7 @@
       testResults.dataLoaded = true;
 
     } catch (error) {
-      testResults.error = error.message;
+      testResults.error = (error as Error).message;
       console.error('Test error:', error);
     }
   }
