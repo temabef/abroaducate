@@ -21,7 +21,6 @@
 
   // Writing state
   let userResponse = '';
-  let wordCount = 0;
   let timeStarted: Date | null = null;
   let timeElapsed = 0;
   let isTimerRunning = false;
@@ -58,7 +57,7 @@
   }
 
   // Word count tracking - now reactive
-  $: wordCount = userResponse.trim() === '' ? 0 : userResponse.trim().split(/\s+/).filter(word => word.length > 0).length;
+  let wordCount = $derived(userResponse.trim() === '' ? 0 : userResponse.trim().split(/\s+/).filter(word => word.length > 0).length);
 
   // Load writing practice sets
   onMount(async () => {

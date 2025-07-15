@@ -3,8 +3,8 @@
   let { session } = $derived(data);
   
   // Simple state - no complex API calls
-  let message = '';
-  let messageType = 'info';
+  let message = $state('');
+  let messageType = $state('info');
 
   function showMessage(text: string, type: 'success' | 'error' | 'info' = 'info') {
     message = text;
@@ -44,10 +44,10 @@
       <a href="/admin/newsletter/campaigns" class="action-btn primary">
         📤 Manage Email Campaigns
       </a>
-      <button class="action-btn" on:click={() => showMessage('Campaign manager ready!', 'success')}>
+      <button class="action-btn" onclick={() => showMessage('Campaign manager ready!', 'success')}>
         📝 Create Campaign
       </button>
-      <button class="action-btn" on:click={() => showMessage('Analytics available in campaign manager', 'info')}>
+      <button class="action-btn" onclick={() => showMessage('Analytics available in campaign manager', 'info')}>
         📊 View Analytics
       </button>
     </div>
@@ -57,10 +57,10 @@
       <h3>📬 Quick Campaign</h3>
       <p>Send study abroad tips or scholarship digest to your imported leads</p>
       <div class="quick-buttons">
-        <button class="quick-btn study-tips" on:click={() => window.location.href='/admin/newsletter/campaigns?template=study-tips'}>
+        <button class="quick-btn study-tips" onclick={() => window.location.href='/admin/newsletter/campaigns?template=study-tips'}>
           📚 Send Study Tips
         </button>
-        <button class="quick-btn scholarship" on:click={() => window.location.href='/admin/newsletter/campaigns?template=scholarship-digest'}>
+        <button class="quick-btn scholarship" onclick={() => window.location.href='/admin/newsletter/campaigns?template=scholarship-digest'}>
           🎓 Send Scholarship Digest
         </button>
       </div>
@@ -131,13 +131,13 @@
   <div class="actions-section">
     <h2>🔧 System Actions</h2>
     <div class="action-buttons">
-      <button class="action-btn" on:click={() => showMessage('Newsletter system is ready to use!', 'success')}>
+      <button class="action-btn" onclick={() => showMessage('Newsletter system is ready to use!', 'success')}>
         ✅ Test System Status
       </button>
       <a href="/newsletter/unsubscribe" target="_blank" class="action-btn">
         🔗 Test Unsubscribe Page
       </a>
-      <button class="action-btn" on:click={() => showMessage('Use the campaign manager for sending emails', 'info')}>
+      <button class="action-btn" onclick={() => showMessage('Use the campaign manager for sending emails', 'info')}>
         📧 Email Settings
       </button>
     </div>

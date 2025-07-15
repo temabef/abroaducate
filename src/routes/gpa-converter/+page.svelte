@@ -87,10 +87,10 @@
   ];
 
   // Reactive variables
-  $: availableGradingSystems = selectedCountry ? Object.keys(getAfricanCountryGradingSystems(selectedCountry)) : [];
-  $: currentGradingSystem = selectedCountry && selectedGradingSystem ? 
-    (getAfricanCountryGradingSystems(selectedCountry) as any)[selectedGradingSystem] : null;
-  $: availableGrades = currentGradingSystem ? Object.keys(currentGradingSystem) : [];
+  let availableGradingSystems = $derived(selectedCountry ? Object.keys(getAfricanCountryGradingSystems(selectedCountry)) : []);
+  let currentGradingSystem = $derived(selectedCountry && selectedGradingSystem ? 
+    (getAfricanCountryGradingSystems(selectedCountry) as any)[selectedGradingSystem] : null);
+  let availableGrades = $derived(currentGradingSystem ? Object.keys(currentGradingSystem) : []);
 
   // Smart Fallback System state
   let showSmartAssist = false;
@@ -162,7 +162,7 @@
     return templates;
   }
   
-  $: courseTemplates = showSmartAssist ? generateDynamicTemplates(extractedText) : [];
+  let courseTemplates = $derived(showSmartAssist ? generateDynamicTemplates(extractedText) : []);
 
 
 

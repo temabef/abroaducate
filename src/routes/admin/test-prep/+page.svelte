@@ -45,13 +45,13 @@
   let selectedSection = $state('all');
 
   // Computed filtered sets
-  $: filteredSets = sets.filter(set => {
+  let filteredSets = $derived(sets.filter(set => {
     const matchesSection = selectedSection === 'all' || set.section === selectedSection;
     const matchesSearch = !searchTerm || 
       set.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       set.section.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesSection && matchesSearch;
-  });
+  }));
 
   onMount(async () => {
     // Check admin permissions before loading data

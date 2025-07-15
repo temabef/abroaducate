@@ -5,7 +5,7 @@
     import { SUBSCRIPTION_PLANS, FREE_PLAN, stripePromise } from '$lib/stripe';
     import type { PageData } from './$types';
     
-    export let data: PageData;
+    let { data }: { data: PageData } = $props();
     
     let { supabase, session } = data;
     let currentPlan = 'free';
@@ -75,9 +75,9 @@
     }
     
     // Calculate plan cards reactively
-    $: freeCard = getPlanCard('free', FREE_PLAN, 0);
-    $: proCard = getPlanCard('professional', SUBSCRIPTION_PLANS.professional, SUBSCRIPTION_PLANS.professional.prices.monthly);
-    $: eliteCard = getPlanCard('elite', SUBSCRIPTION_PLANS.elite, SUBSCRIPTION_PLANS.elite.prices.monthly);
+    let freeCard = $derived(getPlanCard('free', FREE_PLAN, 0));
+    let proCard = $derived(getPlanCard('professional', SUBSCRIPTION_PLANS.professional, SUBSCRIPTION_PLANS.professional.prices.monthly));
+    let eliteCard = $derived(getPlanCard('elite', SUBSCRIPTION_PLANS.elite, SUBSCRIPTION_PLANS.elite.prices.monthly));
 </script>
 
 <svelte:head>

@@ -6,9 +6,10 @@
   import BasicReminders from '$lib/components/BasicReminders.svelte';
 
   // Use the supabase client and session from the layout
-  $: ({ data } = $page);
-  $: ({ supabase, session } = data || {});
-  $: user = session?.user;
+  let data = $derived($page.data);
+  let supabase = $derived(data?.supabase);
+  let session = $derived(data?.session);
+  let user = $derived(session?.user);
   
   interface EmailPreferences {
     email_enabled: boolean;

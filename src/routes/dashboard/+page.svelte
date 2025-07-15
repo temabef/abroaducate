@@ -8,7 +8,7 @@
   import BasicReminders from '$lib/components/BasicReminders.svelte';
   import EmailStatusWidget from '$lib/components/EmailStatusWidget.svelte';
 
-    export let data: PageData;
+    let { data }: { data: PageData } = $props();
     let { supabase, session } = data;
 
     let loading = true;
@@ -129,13 +129,13 @@
     }
 
     // Reactive statements for paginated data
-    $: paginatedSOPs = dashboardData ? getPaginatedItems(dashboardData.documents.sops, sopPage) : [];
-    $: paginatedCoverLetters = dashboardData ? getPaginatedItems(dashboardData.documents.coverLetters, coverLetterPage) : [];
-    $: paginatedPersonalStatements = dashboardData ? getPaginatedItems(dashboardData.documents.personalStatements, personalStatementPage) : [];
+    let paginatedSOPs = $derived(dashboardData ? getPaginatedItems(dashboardData.documents.sops, sopPage) : []);
+    let paginatedCoverLetters = $derived(dashboardData ? getPaginatedItems(dashboardData.documents.coverLetters, coverLetterPage) : []);
+    let paginatedPersonalStatements = $derived(dashboardData ? getPaginatedItems(dashboardData.documents.personalStatements, personalStatementPage) : []);
     
-    $: sopTotalPages = dashboardData ? getTotalPages(dashboardData.documents.sops.length) : 0;
-    $: coverLetterTotalPages = dashboardData ? getTotalPages(dashboardData.documents.coverLetters.length) : 0;
-    $: personalStatementTotalPages = dashboardData ? getTotalPages(dashboardData.documents.personalStatements.length) : 0;
+    let sopTotalPages = $derived(dashboardData ? getTotalPages(dashboardData.documents.sops.length) : 0);
+    let coverLetterTotalPages = $derived(dashboardData ? getTotalPages(dashboardData.documents.coverLetters.length) : 0);
+    let personalStatementTotalPages = $derived(dashboardData ? getTotalPages(dashboardData.documents.personalStatements.length) : 0);
 </script>
 
 <svelte:head>
