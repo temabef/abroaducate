@@ -1,4 +1,7 @@
 <script lang="ts">
+  let { data } = $props();
+  let { session } = $derived(data);
+  
   // Simple state - no complex API calls
   let message = '';
   let messageType = 'info';

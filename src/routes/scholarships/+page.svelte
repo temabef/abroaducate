@@ -73,6 +73,12 @@
   function updateScholarships() {
     console.log("🔍 Filtering - Mode:", viewMode, "Total:", allScholarships.length);
     
+    // Don't proceed if no scholarships are loaded yet
+    if (allScholarships.length === 0) {
+      console.log("⏳ No scholarships loaded yet, skipping filter update");
+      return;
+    }
+    
     // First filter by view mode (all, saved, applied)
     let filtered = [...allScholarships]; // Create a copy to avoid mutation
     
@@ -125,33 +131,52 @@
     totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
     
     // Update display scholarships based on pagination
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    displayScholarships = filtered.slice(startIndex, startIndex + itemsPerPage);
+    updateDisplayScholarships();
     console.log("📄 Display updated - Page:", currentPage, "Showing:", displayScholarships.length);
   }
 
   function goToPage(page: number) {
     if (page >= 1 && page <= totalPages) {
+      console.log(`📄 Going to page ${page} of ${totalPages}`);
       currentPage = page;
-      const startIndex = (currentPage - 1) * itemsPerPage;
-      displayScholarships = filteredScholarships.slice(startIndex, startIndex + itemsPerPage);
+      updateDisplayScholarships();
+      // Smooth scroll to top of results
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }
 
   function nextPage() {
     if (currentPage < totalPages) {
+      console.log(`➡️ Next page: ${currentPage + 1} of ${totalPages}`);
       currentPage++;
-      const startIndex = (currentPage - 1) * itemsPerPage;
-      displayScholarships = filteredScholarships.slice(startIndex, startIndex + itemsPerPage);
+      updateDisplayScholarships();
+      // Smooth scroll to top of results
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }
 
   function prevPage() {
     if (currentPage > 1) {
+      console.log(`⬅️ Previous page: ${currentPage - 1} of ${totalPages}`);
       currentPage--;
-      const startIndex = (currentPage - 1) * itemsPerPage;
-      displayScholarships = filteredScholarships.slice(startIndex, startIndex + itemsPerPage);
+      updateDisplayScholarships();
+      // Smooth scroll to top of results
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
+  }
+
+  function updateDisplayScholarships() {
+    if (filteredScholarships.length === 0) {
+      displayScholarships = [];
+      console.log("📊 No filtered scholarships to display");
+      return;
+    }
+    
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    displayScholarships = filteredScholarships.slice(startIndex, endIndex);
+    console.log(`📊 Displaying ${displayScholarships.length} scholarships (page ${currentPage})`);
+    console.log(`📊 Pagination: ${currentPage}/${totalPages}, Items: ${startIndex + 1}-${Math.min(endIndex, filteredScholarships.length)} of ${filteredScholarships.length}`);
   }
   
   // Simple function to switch view modes
@@ -172,6 +197,8 @@
     error = '';
     
     try {
+      console.log('🔄 Loading scholarships...');
+      
       const { data: scholarshipData, error: fetchError } = await supabase
         .from('scholarships')
         .select('*')
@@ -179,10 +206,12 @@
         .order('created_at', { ascending: false });
 
       if (fetchError) {
-        console.error('Error loading scholarships:', fetchError);
+        console.error('❌ Error loading scholarships:', fetchError);
         error = 'Failed to load scholarships. Please try again.';
         return;
       }
+
+      console.log('✅ Scholarships raw data:', scholarshipData?.length || 0);
 
       // Load user interactions if logged in
       let userInteractions: any[] = [];
@@ -215,35 +244,53 @@
       // Initial filtering after loading
       updateScholarships();
     } catch (err) {
-      console.error('Error:', err);
+      console.error('❌ Error:', err);
       error = 'Failed to load scholarships. Please try again.';
+      allScholarships = [];
+      filteredScholarships = [];
+      displayScholarships = [];
     } finally {
       isLoading = false;
+      console.log('✅ Loading complete. isLoading set to false');
     }
   }
 
   onMount(async () => {
     await loadScholarships();
-    updateScholarships(); // Initial filtering
+    // Initial filtering is already called in loadScholarships
+    // Scroll to top after loading (especially helpful on mobile)
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 
-  // Reactive effects to automatically update when filters change
+  // Watch for changes in search query - use a more controlled approach
+  let previousSearchQuery = $state('');
   $effect(() => {
-    if (searchQuery !== undefined) {
+    if (searchQuery !== previousSearchQuery && allScholarships.length > 0) {
+      console.log('🔍 Search query changed:', searchQuery);
+      previousSearchQuery = searchQuery;
       currentPage = 1;
       updateScholarships();
     }
   });
   
+  // Watch for changes in filters - use a more controlled approach
+  let previousFilters = $state(JSON.stringify(filters));
   $effect(() => {
-    if (filters && Object.values(filters).some(v => v !== '')) {
+    const currentFilters = JSON.stringify(filters);
+    if (currentFilters !== previousFilters && allScholarships.length > 0) {
+      console.log('📋 Filters changed:', filters);
+      previousFilters = currentFilters;
       currentPage = 1;
       updateScholarships();
     }
   });
   
+  // Watch for changes in sort order - use a more controlled approach
+  let previousSortBy = $state(sortBy);
   $effect(() => {
-    if (sortBy) {
+    if (sortBy !== previousSortBy && allScholarships.length > 0) {
+      console.log('📊 Sort order changed:', sortBy);
+      previousSortBy = sortBy;
       updateScholarships();
     }
   });
@@ -497,8 +544,11 @@
         <div class="mt-4 flex gap-4">
           <button
             onclick={() => { 
+              console.log('🧹 Clearing all filters');
               filters = { location: '', level: '', field: '', type: '', amount: '', deadline: '', funding_category: '' };
               searchQuery = '';
+              currentPage = 1;
+              updateScholarships();
             }}
             class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition duration-200"
           >
@@ -527,8 +577,11 @@
         {#if filteredScholarships.length === 0 && allScholarships.length > 0}
           <button
             onclick={() => { 
+              console.log('🧹 Clearing all filters (empty state)');
               filters = { location: '', level: '', field: '', type: '', amount: '', deadline: '', funding_category: '' };
               searchQuery = '';
+              currentPage = 1;
+              updateScholarships();
             }}
             class="text-yellow-600 hover:text-yellow-700 underline"
           >

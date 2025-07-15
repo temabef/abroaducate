@@ -3,20 +3,48 @@
   import { supabase } from '$lib/supabaseClient';
   import { PlusCircle, Edit, Trash2, BookOpen, Volume2, PenTool, Mic } from 'lucide-svelte';
 
-  let sets: any[] = [];
-  let loading = true;
-  let selectedSection = 'all';
-  let searchTerm = '';
+  let { data } = $props();
+  let { session } = $derived(data);
+  
+  interface TestQuestion {
+    id: string;
+    question: string;
+    type: 'multiple_choice' | 'short_answer' | 'essay' | 'listening' | 'reading' | 'speaking';
+    options?: string[];
+    correct_answer?: string;
+    explanation?: string;
+    difficulty: 'beginner' | 'intermediate' | 'advanced';
+    time_limit?: number;
+    order_number: number;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+  }
 
-  // Question type icons mapping
-  const sectionIcons = {
-    reading: BookOpen,
-    listening: Volume2,
-    writing: PenTool,
-    speaking: Mic
-  };
+  interface TestSet {
+    id: string;
+    title: string;
+    section: 'IELTS Reading' | 'IELTS Writing' | 'IELTS Speaking' | 'IELTS Listening';
+    description: string;
+    time_limit: number;
+    is_active: boolean;
+    questions: TestQuestion[];
+    created_at: string;
+    updated_at: string;
+  }
 
-  // Filter and search functionality
+  let sets: TestSet[] = $state([]);
+  let selectedSet: TestSet | null = $state(null);
+  let isLoading = $state(true);
+  let error = $state('');
+  let message = $state('');
+  let messageType = $state<'success' | 'error' | 'info'>('info');
+
+  // Filter and search states
+  let searchTerm = $state('');
+  let selectedSection = $state('all');
+
+  // Computed filtered sets
   $: filteredSets = sets.filter(set => {
     const matchesSection = selectedSection === 'all' || set.section === selectedSection;
     const matchesSearch = !searchTerm || 
@@ -26,12 +54,22 @@
   });
 
   onMount(async () => {
-    await loadSets();
+    // Check admin permissions before loading data
+    if (!session?.user?.email?.includes('admin') && 
+        session?.user?.email !== 'solakolawole62@gmail.com') {
+      console.log('❌ Access denied - not admin user');
+      return;
+    }
+    
+    console.log('✅ Admin access granted, loading test prep data...');
+    await loadTestSets();
   });
 
-  async function loadSets() {
-    loading = true;
+  async function loadTestSets() {
+    isLoading = true;
     try {
+      console.log('🔄 Loading test prep sets...');
+      
       const { data, error } = await supabase
         .from('practice_sets')
         .select(`
@@ -46,14 +84,15 @@
         .order('sort_order');
 
       if (error) {
-        console.error('Error loading sets:', error);
+        console.error('❌ Error loading sets:', error);
       } else {
         sets = data || [];
+        console.log('✅ Loaded', sets.length, 'test prep sets');
       }
     } catch (error) {
-      console.error('Unexpected error loading sets:', error);
+      console.error('❌ Unexpected error loading sets:', error);
     } finally {
-      loading = false;
+      isLoading = false;
     }
   }
 
@@ -72,7 +111,7 @@
         console.error('Error deleting set:', error);
         alert('Failed to delete set. Please try again.');
       } else {
-        await loadSets(); // Refresh the list
+        await loadTestSets(); // Refresh the list
       }
     } catch (error) {
       console.error('Unexpected error deleting set:', error);
@@ -190,7 +229,7 @@
 
   <!-- Content Table -->
   <div class="content-section">
-    {#if loading}
+    {#if isLoading}
       <div class="loading-state">
         <div class="loading-spinner"></div>
         <p>Loading question sets...</p>
