@@ -7,34 +7,34 @@
   import { onMount } from 'svelte';
   import { supabase } from '$lib/supabaseClient';
 
-  export let data;
+  let { data } = $props();
   const { user } = data;
 
   // Practice sets for writing
-  let writingSets: { id: string; title: string; task_type: string }[] = [];
-  let questions: any[] = [];
-  let currentSetId: string | null = null;
-  let currentQuestion: any = null;
-  let loading = true;
-  let debugInfo = '';
-  let errorMessage = '';
+  let writingSets: { id: string; title: string; task_type: string }[] = $state([]);
+  let questions: any[] = $state([]);
+  let currentSetId: string | null = $state(null);
+  let currentQuestion: any = $state(null);
+  let loading = $state(true);
+  let debugInfo = $state('');
+  let errorMessage = $state('');
 
   // Writing state
-  let userResponse = '';
-  let timeStarted: Date | null = null;
-  let timeElapsed = 0;
-  let isTimerRunning = false;
+  let userResponse = $state('');
+  let timeStarted: Date | null = $state(null);
+  let timeElapsed = $state(0);
+  let isTimerRunning = $state(false);
   let timerInterval: NodeJS.Timeout;
-  let showResults = false;
-  let submitted = false;
+  let showResults = $state(false);
+  let submitted = $state(false);
 
   // Assessment data
-  let assessmentCriteria = {
+  let assessmentCriteria = $state({
     taskAchievement: { score: 0, feedback: '' },
     coherenceCohesion: { score: 0, feedback: '' },
     lexicalResource: { score: 0, feedback: '' },
     grammaticalRange: { score: 0, feedback: '' }
-  };
+  });
 
   // Timer functions
   function startTimer() {

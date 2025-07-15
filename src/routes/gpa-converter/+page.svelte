@@ -5,16 +5,16 @@
   import { browser } from '$app/environment';
 
   // State variables
-  let studentName = '';
-  let universityName = '';
-  let programOfStudy = '';
-  let selectedCountry = '';
-  let selectedGradingSystem = '';
-  let selectedGrade = '';
-  let courseName = '';
-  let courseCode = '';
-  let credits = '';
-  let selectedYear = '';
+  let studentName = $state('');
+  let universityName = $state('');
+  let programOfStudy = $state('');
+  let selectedCountry = $state('');
+  let selectedGradingSystem = $state('');
+  let selectedGrade = $state('');
+  let courseName = $state('');
+  let courseCode = $state('');
+  let credits = $state('');
+  let selectedYear = $state('');
   let courses: Array<{ 
     name: string; 
     code?: string;
@@ -23,23 +23,23 @@
     usGPA: number;
     year?: string;
     semester?: string;
-  }> = [];
-  let convertedGPA = 0;
-  let totalCredits = 0;
-  let gpaClass = '';
-  let showResults = false;
+  }> = $state([]);
+  let convertedGPA = $state(0);
+  let totalCredits = $state(0);
+  let gpaClass = $state('');
+  let showResults = $state(false);
 
-  let activeTab: 'manual' | 'upload' = 'manual';
+  let activeTab: 'manual' | 'upload' = $state('manual');
 
   // Upload-related state
-  let selectedFile: File | null = null;
-  let dragActive = false;
-  let processing = false;
-  let extractedCourses: Array<{ name: string; code?: string; grade: string; credits: number; year?: string }> = [];
-  let extractedText = '';
-  let processingProgress = 0;
-  let statusMessage = '';
-  let ocrWorker: any = null;
+  let selectedFile: File | null = $state(null);
+  let dragActive = $state(false);
+  let processing = $state(false);
+  let extractedCourses: Array<{ name: string; code?: string; grade: string; credits: number; year?: string }> = $state([]);
+  let extractedText = $state('');
+  let processingProgress = $state(0);
+  let statusMessage = $state('');
+  let ocrWorker: any = $state(null);
 
   // Smart OCR state
   let detectedSessions: Array<{
@@ -53,12 +53,12 @@
       extraData: Record<string, string>; // Store extra columns we might not need
       confidence: 'high' | 'medium' | 'low';
     }>;
-  }> = [];
-  let showPreview = false;
-  let previewMode = 'sessions'; // 'sessions' or 'table'
+  }> = $state([]);
+  let showPreview = $state(false);
+  let previewMode = $state('sessions'); // 'sessions' or 'table'
   
   // Editing phase state
-  let showEditingPhase = false;
+  let showEditingPhase = $state(false);
   let coursesForEditing: Array<{
     name: string;
     code: string;
@@ -68,12 +68,12 @@
     semester: string;
     confidence: 'high' | 'medium' | 'low';
     sessionName: string;
-  }> = [];
+  }> = $state([]);
 
   // Academic profile analysis state
-  let showAcademicAnalysis = false;
-  let academicProfile: any = null;
-  let analysis: any = null;
+  let showAcademicAnalysis = $state(false);
+  let academicProfile: any = $state(null);
+  let analysis: any = $state(null);
 
   // Academic year options
   const academicYears = [
@@ -93,8 +93,8 @@
   let availableGrades = $derived(currentGradingSystem ? Object.keys(currentGradingSystem) : []);
 
   // Smart Fallback System state
-  let showSmartAssist = false;
-  let smartAssistData = {
+  let showSmartAssist = $state(false);
+  let smartAssistData = $state({
     extractedLines: [] as string[],
     suggestedCourses: [] as Array<{
       line: string;
@@ -105,9 +105,9 @@
         grade: string;
       } | null;
     }>
-  };
+  });
 
-  let selectedTemplate = '';
+  let selectedTemplate = $state('');
   
   // Generate templates based on common African grading system patterns
   function generateDynamicTemplates(extractedText: string) {
@@ -1781,7 +1781,7 @@
               id="student-name"
               type="text"
               bind:value={studentName}
-              on:input={saveData}
+              oninput={saveData}
               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Enter your full name"
             />
@@ -1793,7 +1793,7 @@
               id="university-name"
               type="text"
               bind:value={universityName}
-              on:input={saveData}
+              oninput={saveData}
               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Enter your university name"
             />
@@ -1805,7 +1805,7 @@
               id="program-study"
               type="text"
               bind:value={programOfStudy}
-              on:input={saveData}
+              oninput={saveData}
               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="e.g., Computer Science, Medicine"
             />
@@ -1815,16 +1815,16 @@
         <!-- Country and System Selection -->
         <div class="space-y-4 mb-6">
           <div>
-            <label for="country-select" class="block text-sm font-medium text-gray-700 mb-2">Country</label>
+            <label for="country" class="block text-sm font-medium text-gray-700 mb-2">Country</label>
             <select
-              id="country-select"
+              id="country"
               bind:value={selectedCountry}
-              on:change={updateGradingSystems}
+              onchange={updateGradingSystems}
               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value="">Select your country</option>
+              <option value="">Select Country</option>
               {#each africanCountries as country}
-                <option value={country.toLowerCase().replace(/\s+/g, '_')}>{country}</option>
+                <option value={country}>{country}</option>
               {/each}
             </select>
           </div>
@@ -1834,13 +1834,13 @@
             <select
               id="grading-system"
               bind:value={selectedGradingSystem}
-              on:change={updateGrades}
+              onchange={updateGrades}
               disabled={!selectedCountry}
               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
             >
-              <option value="">Select grading system</option>
-              {#each availableGradingSystems as system}
-                <option value={system}>{formatSystemName(system)}</option>
+              <option value="">Select Grading System</option>
+              {#each gradingSystems as system}
+                <option value={system}>{system}</option>
               {/each}
             </select>
           </div>
@@ -1855,7 +1855,7 @@
               class:text-purple-600={activeTab === 'manual'}
               class:shadow-sm={activeTab === 'manual'}
               class:text-gray-600={activeTab !== 'manual'}
-              on:click={() => activeTab = 'manual'}
+              onclick={() => activeTab = 'manual'}
             >
               ✏️ Manual Entry
             </button>
@@ -1865,7 +1865,7 @@
               class:text-purple-600={activeTab === 'upload'}
               class:shadow-sm={activeTab === 'upload'}
               class:text-gray-600={activeTab !== 'upload'}
-              on:click={() => activeTab = 'upload'}
+              onclick={() => activeTab = 'upload'}
             >
               🚀 Upload Transcript
             </button>
@@ -1958,7 +1958,7 @@
             </div>
             
             <button
-              on:click={addCourse}
+              onclick={addCourse}
               class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
             >
               Add Course
@@ -1993,7 +1993,7 @@
                   </p>
                 </div>
                 <button
-                  on:click={() => selectedFile = null}
+                  onclick={() => selectedFile = null}
                   class="text-red-600 hover:text-red-800 font-medium"
                 >
                   Remove File
@@ -2060,7 +2060,7 @@
           {#if selectedFile && selectedCountry && selectedGradingSystem}
             <div class="text-center">
               <button
-                on:click={processTranscript}
+                onclick={processTranscript}
                 disabled={processing}
                 class="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-8 py-3 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all font-medium text-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >

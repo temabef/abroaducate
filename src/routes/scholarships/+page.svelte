@@ -274,7 +274,7 @@
   });
   
   // Watch for changes in filters - use a more controlled approach
-  let previousFilters = $state(JSON.stringify(filters));
+  let previousFilters = $state('');
   $effect(() => {
     const currentFilters = JSON.stringify(filters);
     if (currentFilters !== previousFilters && allScholarships.length > 0) {
@@ -286,7 +286,7 @@
   });
   
   // Watch for changes in sort order - use a more controlled approach
-  let previousSortBy = $state(sortBy);
+  let previousSortBy = $state('');
   $effect(() => {
     if (sortBy !== previousSortBy && allScholarships.length > 0) {
       console.log('📊 Sort order changed:', sortBy);

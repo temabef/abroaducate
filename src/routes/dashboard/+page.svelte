@@ -11,14 +11,14 @@
     let { data }: { data: PageData } = $props();
     let { supabase, session } = data;
 
-    let loading = true;
-  let dashboardData: any = null;
-  let error: string | null = null;
+    let loading = $state(true);
+  let dashboardData: any = $state(null);
+  let error: string | null = $state(null);
 
   // Pagination state for each section
-  let sopPage = 1;
-  let coverLetterPage = 1;
-  let personalStatementPage = 1;
+  let sopPage = $state(1);
+  let coverLetterPage = $state(1);
+  let personalStatementPage = $state(1);
   const itemsPerPage = 4;
 
     onMount(async () => {

@@ -24,13 +24,13 @@
     instant_alerts: boolean;
   }
 
-  let loading = true;
-  let saving = false;
-  let saveMessage = '';
-  let testingEmail = false;
-  let testEmailResult = '';
+  let loading = $state(true);
+  let saving = $state(false);
+  let saveMessage = $state('');
+  let testingEmail = $state(false);
+  let testEmailResult = $state('');
   
-  let preferences: EmailPreferences = {
+  let preferences: EmailPreferences = $state({
     email_enabled: false,
     email_deadlines: true,
     email_frequency: 'weekly',
@@ -41,10 +41,10 @@
     scholarship_frequency: 'weekly',
     subscription_alerts: true,
     instant_alerts: false
-  };
+  });
 
   // Subscription tier checking
-  let userTier: 'free' | 'professional' | 'elite' = 'free';
+  let userTier: 'free' | 'professional' | 'elite' = $state('free');
 
   onMount(async () => {
     if (!session?.user?.id) {
@@ -249,7 +249,7 @@
                     <span class="text-amber-800"><strong>Calendar Integration:</strong> Sync deadlines automatically with your personal calendar</span>
                   </div>
                 </div>
-                <button on:click={() => goto('/pricing')} class="mt-4 w-full bg-amber-500 text-white py-2 px-4 rounded-lg hover:bg-amber-600 transition-colors">
+                <button onclick={() => goto('/pricing')} class="mt-4 w-full bg-amber-500 text-white py-2 px-4 rounded-lg hover:bg-amber-600 transition-colors">
                   Upgrade to Professional
                 </button>
               </div>
@@ -275,7 +275,7 @@
               <div class="border border-blue-200 rounded-lg p-4 bg-blue-50">
                 <h3 class="font-medium text-blue-900 mb-2">Sync with your Calendar</h3>
                 <p class="text-sm text-blue-800 mb-4">Upgrade to automatically sync application deadlines to your Google, Outlook, or Apple calendar.</p>
-                <button on:click={() => goto('/pricing')} class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
+                <button onclick={() => goto('/pricing')} class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
                   Upgrade to Elite
                 </button>
               </div>
@@ -283,7 +283,7 @@
                <div class="border border-purple-200 rounded-lg p-4 bg-purple-50">
                 <h3 class="font-medium text-purple-900 mb-2">Upgrade for Calendar Sync</h3>
                 <p class="text-sm text-purple-800 mb-4">This is an Elite feature. Upgrade to automatically sync deadlines with your calendar.</p>
-                <button on:click={() => goto('/pricing')} class="bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors">
+                <button onclick={() => goto('/pricing')} class="bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors">
                   Upgrade to Elite
                 </button>
               </div>
@@ -320,7 +320,7 @@
               </div>
               
               <button
-                on:click={sendTestEmail}
+                onclick={sendTestEmail}
                 disabled={testingEmail}
                 class="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white py-2 px-4 rounded-lg transition-colors"
               >
