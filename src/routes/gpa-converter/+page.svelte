@@ -1879,7 +1879,7 @@
             <h3 class="text-lg font-semibold text-gray-900">Add Courses Manually</h3>
             {#if showSmartAssist}
               <button
-                on:click={() => activeTab = 'upload'}
+                onclick={() => activeTab = 'upload'}
                 class="text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded-lg hover:bg-blue-200 transition-colors"
               >
                 ← Back to Smart Assist
@@ -1977,9 +1977,9 @@
             class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center transition-colors duration-200"
             class:border-purple-500={dragActive}
             class:bg-purple-50={dragActive}
-            on:dragover={handleDragOver}
-            on:dragleave={handleDragLeave}
-            on:drop={handleDrop}
+            ondragover={handleDragOver}
+            ondragleave={handleDragLeave}
+            ondrop={handleDrop}
             role="button"
             tabindex="0"
           >
@@ -2041,7 +2041,7 @@
             <input
               type="file"
               accept=".pdf,.png,.jpg,.jpeg"
-              on:change={handleFileInput}
+              onchange={handleFileInput}
               class="hidden"
               id="transcriptFileInput"
             />
@@ -2136,7 +2136,7 @@
                             </div>
                           </div>
                           <button
-                            on:click={() => removeCourseFromSession(sessionIndex, courseIndex)}
+                            onclick={() => removeCourseFromSession(sessionIndex, courseIndex)}
                             class="text-red-600 hover:text-red-800 font-medium text-sm px-2 py-1 rounded"
                           >
                             Remove
@@ -2151,13 +2151,13 @@
               <!-- Action Buttons -->
               <div class="flex gap-3 justify-center">
                 <button
-                  on:click={confirmExtractedSessions}
+                  onclick={confirmExtractedSessions}
                   class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium"
                 >
                   ✅ Confirm & Add All Courses
                 </button>
                 <button
-                  on:click={cancelExtraction}
+                  onclick={cancelExtraction}
                   class="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors font-medium"
                 >
                   ❌ Cancel & Try Again
@@ -2189,7 +2189,7 @@
                           id="edit-course-code-{index}"
                           type="text"
                           bind:value={course.code}
-                          on:input={() => updateEditingCourse(index, 'code', course.code)}
+                          oninput={() => updateEditingCourse(index, 'code', course.code)}
                           class="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                           placeholder="e.g., MTH101"
                         />
@@ -2201,7 +2201,7 @@
                           id="edit-course-name-{index}"
                           type="text"
                           bind:value={course.name}
-                          on:input={() => updateEditingCourse(index, 'name', course.name)}
+                          oninput={() => updateEditingCourse(index, 'name', course.name)}
                           class="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                           placeholder="e.g., Mathematics I"
                         />
@@ -2213,7 +2213,7 @@
                           id="edit-course-credits-{index}"
                           type="number"
                           bind:value={course.credits}
-                          on:input={() => updateEditingCourse(index, 'credits', course.credits)}
+                          oninput={() => updateEditingCourse(index, 'credits', course.credits)}
                           class="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                           min="1"
                           max="12"
@@ -2228,7 +2228,7 @@
                         <select
                           id="edit-course-grade-{index}"
                           bind:value={course.grade}
-                          on:change={() => updateEditingCourse(index, 'grade', course.grade)}
+                          onchange={() => updateEditingCourse(index, 'grade', course.grade)}
                           class="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         >
                           <option value="">Select Grade</option>
@@ -2243,7 +2243,7 @@
                         <select
                           id="edit-course-year-{index}"
                           bind:value={course.year}
-                          on:change={() => updateEditingCourse(index, 'year', course.year)}
+                          onchange={() => updateEditingCourse(index, 'year', course.year)}
                           class="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         >
                           <option value="">Select Year</option>
@@ -2255,7 +2255,7 @@
                       
                       <div class="flex items-end">
                         <button
-                          on:click={() => removeEditingCourse(index)}
+                          onclick={() => removeEditingCourse(index)}
                           class="bg-red-600 text-white px-3 py-2 rounded text-sm hover:bg-red-700 transition-colors"
                         >
                           Remove
@@ -2278,13 +2278,13 @@
               <!-- Action Buttons -->
               <div class="flex gap-3 justify-center">
                 <button
-                  on:click={confirmEditedCourses}
+                  onclick={confirmEditedCourses}
                   class="bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium text-lg"
                 >
                   ✅ Confirm & Add All {coursesForEditing.length} Courses
                 </button>
                 <button
-                  on:click={cancelEditing}
+                  onclick={cancelEditing}
                   class="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors font-medium"
                 >
                   ❌ Cancel & Start Over
@@ -2319,7 +2319,7 @@
                       </div>
                     </div>
                     <button
-                      on:click={() => removeExtractedCourse(index)}
+                      onclick={() => removeExtractedCourse(index)}
                       class="text-red-600 hover:text-red-800 font-medium text-sm px-2 py-1 rounded"
                     >
                       Remove
@@ -2330,7 +2330,7 @@
               
               <div class="text-center">
                 <button
-                  on:click={useExtractedCourses}
+                  onclick={useExtractedCourses}
                   class="bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium text-lg"
                 >
                   ✅ Add These Courses
@@ -2365,7 +2365,7 @@
                       class:bg-blue-100={selectedTemplate === template.id}
                       class:border-blue-500={selectedTemplate === template.id}
                       class:border-gray-300={selectedTemplate !== template.id}
-                      on:click={() => selectTemplate(template.id)}
+                      onclick={() => selectTemplate(template.id)}
                     >
                       <div class="font-medium text-gray-900 mb-1">{template.name}</div>
                       <div class="text-sm text-gray-600 mb-2">{template.example}</div>
@@ -2400,7 +2400,7 @@
                             <div class="text-xs text-gray-500 mt-1">From: {item.line.substring(0, 60)}...</div>
                           </div>
                           <button
-                            on:click={() => quickAddCourse(item.suggested)}
+                            onclick={() => quickAddCourse(item.suggested)}
                             class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
                           >
                             Quick Add
@@ -2433,8 +2433,8 @@
                       class:focus:ring-green-400={!isProcessed}
                       class:opacity-60={isProcessed}
                       class:cursor-default={isProcessed}
-                      on:click={() => !isProcessed && suggestFromLine(line, index)}
-                      on:keydown={(e) => e.key === 'Enter' && !isProcessed && suggestFromLine(line, index)}
+                      onclick={() => !isProcessed && suggestFromLine(line, index)}
+                      onkeydown={(e) => e.key === 'Enter' && !isProcessed && suggestFromLine(line, index)}
                       title={isProcessed ? "Already processed ✅" : "Click to extract course info and add to your list"}
                       disabled={isProcessed}
                     >
@@ -2484,19 +2484,19 @@
 
               <div class="flex gap-3 justify-center">
                 <button
-                  on:click={() => finishSmartAssist()}
+                  onclick={() => finishSmartAssist()}
                   class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium"
                 >
                   ✅ Done - Continue to Conversion
                 </button>
                 <button
-                  on:click={() => switchToManualEntry()}
+                  onclick={() => switchToManualEntry()}
                   class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
                 >
                   📝 Switch to Manual Entry
                 </button>
                 <button
-                  on:click={cancelSmartAssist}
+                  onclick={cancelSmartAssist}
                   class="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors font-medium"
                 >
                   ❌ Cancel & Try Different Image
@@ -2543,7 +2543,7 @@
                           </div>
                         </div>
                         <button
-                          on:click={() => removeCourse(globalIndex)}
+                          onclick={() => removeCourse(globalIndex)}
                           class="text-red-600 hover:text-red-800 font-medium text-sm px-2 py-1 rounded"
                         >
                           Remove
@@ -2580,7 +2580,7 @@
                         </div>
                       </div>
                       <button
-                        on:click={() => removeCourse(globalIndex)}
+                        onclick={() => removeCourse(globalIndex)}
                         class="text-red-600 hover:text-red-800 font-medium text-sm px-2 py-1 rounded"
                       >
                         Remove
@@ -2592,7 +2592,7 @@
             {/if}
             
             <button
-              on:click={convertGPA}
+              onclick={convertGPA}
               class="w-full mt-4 bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 transition-colors font-medium text-lg"
             >
               🚀 Convert My GPA
@@ -2625,7 +2625,7 @@
               </div>
               
               <button
-                on:click={downloadTranscript}
+                onclick={downloadTranscript}
                 class="w-full bg-purple-600 text-white py-3 px-4 rounded-lg hover:bg-purple-700 transition-colors font-medium"
               >
                 📄 Download Transcript (PDF)
@@ -2643,7 +2643,7 @@
                       Get comprehensive insights into your strengths, weaknesses, and competitiveness for studying abroad - completely FREE!
                     </p>
                                          <button
-                       on:click={handleAnalyzeAcademicProfile}
+                       onclick={handleAnalyzeAcademicProfile}
                        class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
                      >
                        📊 Analyze My Profile
@@ -2814,7 +2814,7 @@
                 Find Matching Universities
               </a>
               <button
-                on:click={() => showAcademicAnalysis = false}
+                onclick={() => showAcademicAnalysis = false}
                 class="inline-flex items-center justify-center px-6 py-3 border border-gray-300 text-gray-700 bg-white rounded-lg hover:bg-gray-50 transition-colors font-medium"
               >
                 Close Analysis
@@ -2888,7 +2888,7 @@
           Found course patterns. Check Smart Assist section below!
         </p>
         <button
-          on:click={() => statusMessage = ''}
+          onclick={() => statusMessage = ''}
           class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium text-sm"
         >
           Got it! ✨
@@ -2902,3 +2902,5 @@
   /* Custom styles for better visual appeal */
 
 </style> 
+
+
