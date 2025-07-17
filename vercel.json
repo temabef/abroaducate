@@ -1,165 +1,96 @@
 {
   "redirects": [
-    // Old WordPress scholarship redirects
     {
-      "source": "/scholarship/:slug",
-      "destination": "/scholarships/:slug",
+      "source": "/50-u-s-universities-with-fully-funded-scholarships-for-fall-2025/",
+      "destination": "/scholarships",
       "permanent": true
     },
     {
-      "source": "/scholarships/:slug",
-      "destination": "/scholarships/:slug",
+      "source": "/study-in-ireland-with-funded-scholarships/",
+      "destination": "/scholarships",
       "permanent": true
     },
     {
-      "source": "/category/scholarships/:slug",
-      "destination": "/scholarships/:slug",
-      "permanent": true
-    },
-    
-    // Old blog post redirects
-    {
-      "source": "/:year/:month/:day/:slug",
-      "destination": "/blog/:slug",
+      "source": "/scholarship/hornby-trust-scholarship-at-the-university-of-exeter-in-the-uk/",
+      "destination": "/scholarships",
       "permanent": true
     },
     {
-      "source": "/blog/:slug",
-      "destination": "/blog/:slug",
-      "permanent": true
-    },
-    
-    // Old page redirects
-    {
-      "source": "/about-us",
-      "destination": "/about",
-      "permanent": true
-    },
-    {
-      "source": "/contact-us",
-      "destination": "/contact",
-      "permanent": true
-    },
-    {
-      "source": "/privacy-policy",
-      "destination": "/privacy",
-      "permanent": true
-    },
-    {
-      "source": "/terms-of-service",
-      "destination": "/terms",
-      "permanent": true
-    },
-    
-    // Old tool redirects
-    {
-      "source": "/tools/gpa-converter",
-      "destination": "/gpa-converter",
-      "permanent": true
-    },
-    {
-      "source": "/tools/word-optimization",
-      "destination": "/word-optimization",
-      "permanent": true
-    },
-    
-    // Old application tool redirects
-    {
-      "source": "/statement-of-purpose",
-      "destination": "/sop",
-      "permanent": true
-    },
-    {
-      "source": "/cover-letter",
-      "destination": "/cover-letters",
-      "permanent": true
-    },
-    {
-      "source": "/personal-statement",
-      "destination": "/personal-statements",
-      "permanent": true
-    },
-    {
-      "source": "/academic-cv",
-      "destination": "/academic-cv",
-      "permanent": true
-    },
-    
-    // Old practice tool redirects
-    {
-      "source": "/ielts-practice",
-      "destination": "/practice/ielts",
-      "permanent": true
-    },
-    {
-      "source": "/visa-practice",
+      "source": "/how-to-show-proof-of-funds/",
       "destination": "/visa-interview-practice",
       "permanent": true
     },
-    
-    // Old university redirects
     {
-      "source": "/universities/:slug",
-      "destination": "/universities/:slug",
+      "source": "/studying-in-the-uk-vs-usa/",
+      "destination": "/universities",
       "permanent": true
     },
     {
-      "source": "/university/:slug",
-      "destination": "/universities/:slug",
-      "permanent": true
-    },
-    
-    // Old admin redirects
-    {
-      "source": "/wp-admin",
-      "destination": "/admin",
+      "source": "/affordable-uk-universities/",
+      "destination": "/universities",
       "permanent": true
     },
     {
-      "source": "/admin/:path*",
-      "destination": "/admin/:path*",
-      "permanent": true
-    },
-    
-    // Old API redirects
-    {
-      "source": "/wp-json/:path*",
-      "destination": "/api/:path*",
-      "permanent": true
-    },
-    
-    // Old feed redirects
-    {
-      "source": "/feed",
-      "destination": "/rss.xml",
+      "source": "/scholarship/bold-internship-program-at-google-for-undergraduates/",
+      "destination": "/scholarships",
       "permanent": true
     },
     {
-      "source": "/rss",
-      "destination": "/rss.xml",
+      "source": "/scholarship/2025-mapp-erasmus-mundus-joint-masters-scholarship-in-europe/",
+      "destination": "/scholarships",
       "permanent": true
     },
-    
-    // Old sitemap redirects
     {
-      "source": "/sitemap.xml",
-      "destination": "/sitemap.xml",
+      "source": "/sponsorship-visa-letters/",
+      "destination": "/visa-interview-practice",
+      "permanent": true
+    },
+    {
+      "source": "/scholarship/university-of-bristol-think-big-scholarships-in-uk-2025/",
+      "destination": "/scholarships",
       "permanent": true
     },
     {
       "source": "/sitemap_index.xml",
       "destination": "/sitemap.xml",
       "permanent": true
-    }
-  ],
-  
-  "crons": [
+    },
     {
-      "path": "/api/cron/send-reminders",
-      "schedule": "0 9 * * *"
+      "source": "/apus_header-sitemap.xml",
+      "destination": "/sitemap.xml",
+      "permanent": true
+    },
+    {
+      "source": "/wp-load.php",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/https%3A/linkedin.com/company/abroaducate",
+      "destination": "https://linkedin.com/company/abroaducate",
+      "permanent": true
+    },
+    {
+      "source": "/https%3A/youtube.com/%40saheedkolawole",
+      "destination": "https://youtube.com/@saheedkolawole",
+      "permanent": true
+    },
+    {
+      "source": "/https%3A/instagram.com/abroaducate",
+      "destination": "https://instagram.com/abroaducate",
+      "permanent": true
+    },
+    {
+      "source": "/https%3A/facebook.com/abroaducate",
+      "destination": "https://facebook.com/abroaducate",
+      "permanent": true
+    },
+    {
+      "source": "/https%3A/twitter.com/abroaducate",
+      "destination": "https://twitter.com/abroaducate",
+      "permanent": true
     }
   ],
-  
   "headers": [
     {
       "source": "/(.*)",
