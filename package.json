@@ -41,6 +41,7 @@
 	"dependencies": {
 		"@fortawesome/free-brands-svg-icons": "^6.7.2",
 		"@fortawesome/free-solid-svg-icons": "^6.7.2",
+		"@sendgrid/mail": "^8.1.5",
 		"@stripe/stripe-js": "^7.3.1",
 		"@supabase/auth-helpers-sveltekit": "^0.13.0",
 		"@supabase/gotrue-js": "^2.70.0",
@@ -53,6 +54,7 @@
 		"lucide-svelte": "^0.513.0",
 		"openai": "^5.1.1",
 		"pdfjs-dist": "^3.11.174",
+		"posthog-js": "^1.257.0",
 		"stripe": "^18.2.1",
 		"svelte-fa": "^4.0.4",
 		"svelte-simples": "^1.0.3",

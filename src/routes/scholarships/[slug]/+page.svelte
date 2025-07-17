@@ -2,17 +2,15 @@
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
+  import AuthenticationFlow from '$lib/components/AuthenticationFlow.svelte';
   
   let { data } = $props();
-  let { session, scholarship, savedStatus, relatedScholarships } = $derived(data);
+  let { session, scholarship, savedStatus, relatedScholarships, supabase } = $derived(data);
   
   let isLoading = $state(false); // Data is loaded on the server
   let error = $state('');
   let isSaved = $state(savedStatus);
   let isApplied = $state(false);
-  
-  // Import Supabase from the existing client to avoid creating a new one
-  import { supabase } from '$lib/supabaseClient';
   
   // Get the scholarship ID from the URL parameter
   onMount(() => {
@@ -104,7 +102,10 @@
   
   async function toggleSaved() {
     if (!session?.user?.id) {
-      alert('Please log in to save scholarships');
+      // Instead of alert, show login modal and store intended scholarship
+      pendingSaveScholarshipId = scholarship.id;
+      authMode = 'login';
+      showAuthModal = true;
       return;
     }
     
@@ -236,6 +237,70 @@
       return { text: `${diffDays} days left`, class: 'bg-green-100 text-green-800' };
     } catch (e) {
       return { text: 'Unknown', class: 'bg-gray-100 text-gray-800' };
+    }
+  }
+
+  let showAuthModal = $state(false);
+  let pendingSaveScholarshipId = $state<string | null>(null);
+  let authMode = $state<'login' | 'signup'>('login');
+  let pendingApplicationsRedirect = $state(false);
+
+  function handleApplicationTracker() {
+    if (session) {
+      goto('/applications');
+    } else {
+      pendingApplicationsRedirect = true;
+      authMode = 'login';
+      showAuthModal = true;
+    }
+  }
+
+  function handleAuthSuccess() {
+    if (pendingSaveScholarshipId) {
+      saveScholarshipAfterLogin(pendingSaveScholarshipId);
+      pendingSaveScholarshipId = null;
+    } else if (pendingApplicationsRedirect) {
+      pendingApplicationsRedirect = false;
+      goto('/applications');
+    }
+  }
+
+  async function saveScholarshipAfterLogin(scholarshipId: string) {
+    // Save the scholarship for the now-logged-in user
+    try {
+      // Check if interaction exists
+      const { data: existing, error: fetchError } = await supabase
+        .from('user_scholarship_interactions')
+        .select('id')
+        .eq('user_id', session.user.id)
+        .eq('scholarship_id', scholarshipId)
+        .single();
+      if (fetchError && fetchError.code !== 'PGRST116') {
+        throw fetchError;
+      }
+      let result;
+      if (existing) {
+        result = await supabase
+          .from('user_scholarship_interactions')
+          .update({ is_saved: true })
+          .eq('id', existing.id);
+      } else {
+        result = await supabase
+          .from('user_scholarship_interactions')
+          .insert({
+            user_id: session.user.id,
+            scholarship_id: scholarshipId,
+            is_saved: true,
+            is_applied: false
+          });
+      }
+      if (result.error) {
+        throw result.error;
+      }
+      // Redirect to saved scholarships page
+      goto('/scholarships/my-applications');
+    } catch (err) {
+      alert('Failed to save scholarship after login. Please try again.');
     }
   }
 </script>
@@ -514,7 +579,12 @@
                 
                 <div class="mt-6 p-4 bg-blue-50 border border-blue-100 rounded-lg">
                   <p class="text-sm text-gray-700 mb-3 font-medium">💾 <strong>Quick Save:</strong> Click 'Save' to add this scholarship to your <a href="/scholarships/my-applications" class="text-blue-600 hover:text-blue-700 underline">Saved Scholarships</a> list for easy access later.</p>
-                  <p class="text-sm text-gray-600 mb-2">📊 <strong>Full Tracking:</strong> Use our <a href="/applications" class="text-blue-600 hover:text-blue-700 underline font-medium">Application Tracker →</a> to manually track ALL your applications (including from other platforms) with deadlines, documents, and status updates.</p>
+                  <p class="text-sm text-gray-600 mb-2">📊 <strong>Full Tracking:</strong> Use our <button
+  class="text-blue-600 hover:text-blue-700 underline font-medium bg-transparent border-none p-0 cursor-pointer"
+  onclick={handleApplicationTracker}
+>
+  Application Tracker →
+</button> to manually track ALL your applications (including from other platforms) with deadlines, documents, and status updates.</p>
                 </div>
                 
                 <div class="mt-4 p-4 bg-gray-50 border border-gray-100 rounded-lg text-center">
@@ -568,4 +638,11 @@
       </div>
     </div>
   {/if}
+  <AuthenticationFlow 
+    bind:show={showAuthModal} 
+    {supabase} 
+    mode={authMode} 
+    returnUrl={$page.url.pathname}
+    on:success={handleAuthSuccess}
+  />
 </div> 

@@ -1,10 +1,90 @@
 <script lang="ts">
-  let { data } = $props();
-  let { session } = $derived(data);
+  import { onMount } from 'svelte';
+  import { analytics } from '$lib/utils/posthog';
   
-  // Simple state - no complex API calls
   let message = $state('');
   let messageType = $state('info');
+
+  // Composer state
+  let composerSubject = $state('');
+  let composerHtml = $state('');
+  let composerTestEmail = $state('');
+  let composerPreview = $state(false);
+  let composerLoading = $state(false);
+  let composerTestMessage = $state('');
+
+  // Analytics state
+  let totalSubscribers = $state(0);
+  let activeSubscribers = $state(0);
+  let totalSent = $state(0);
+  let totalOpens = $state(0);
+  let totalClicks = $state(0);
+  let totalUnsubscribes = $state(0);
+  let recentCampaigns = $state([]);
+  let subscriberList = $state([]);
+  let loading = $state(true);
+
+  let campaignId = $state(null);
+  let batchProgress = $state({ sent: 0, total: 0, batchSent: 0, batchFailed: 0, done: false });
+  let sendingBatch = $state(false);
+  let showProgress = $state(false);
+
+  let emailLogs = $state([]);
+  let loadingLogs = $state(false);
+
+  onMount(async () => {
+    // Track newsletter admin page view
+    analytics.trackPageView('Newsletter Admin', {
+      section: 'compose'
+    });
+    
+    await loadAnalytics();
+    await loadRecentCampaigns();
+    await loadSubscriberList();
+  });
+
+  async function loadAnalytics() {
+    try {
+      const response = await fetch('/api/newsletter/analytics');
+      if (response.ok) {
+        const data = await response.json();
+        totalSubscribers = data.total_subscribers || 0;
+        activeSubscribers = data.active_subscribers || 0;
+        totalSent = data.total_sent || 0;
+        totalOpens = data.total_opens || 0;
+        totalClicks = data.total_clicks || 0;
+        totalUnsubscribes = data.total_unsubscribes || 0;
+      }
+    } catch (error) {
+      console.error('Error loading analytics:', error);
+    }
+  }
+
+  async function loadRecentCampaigns() {
+    try {
+      const response = await fetch('/api/newsletter/campaigns/recent');
+      if (response.ok) {
+        const data = await response.json();
+        recentCampaigns = data.campaigns || [];
+      }
+    } catch (error) {
+      console.error('Error loading campaigns:', error);
+    }
+  }
+
+  async function loadSubscriberList() {
+    try {
+      const response = await fetch('/api/newsletter/subscribers/list');
+      if (response.ok) {
+        const data = await response.json();
+        subscriberList = data.subscribers || [];
+      }
+    } catch (error) {
+      console.error('Error loading subscribers:', error);
+    } finally {
+      loading = false;
+    }
+  }
 
   function showMessage(text: string, type: 'success' | 'error' | 'info' = 'info') {
     message = text;
@@ -14,9 +94,169 @@
     }, 3000);
   }
 
+  async function sendTestEmail() {
+    if (!composerTestEmail.trim() || !composerSubject.trim() || !composerHtml.trim()) {
+      composerTestMessage = 'Please fill in all fields.';
+      return;
+    }
+    composerLoading = true;
+    composerTestMessage = '';
+    
+    // Track test email event
+    analytics.trackEvent('newsletter_test_sent', {
+      subject: composerSubject,
+      test_email: composerTestEmail.trim()
+    });
+    
+    try {
+      const response = await fetch('/api/newsletter/custom-send-test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subject: composerSubject,
+          html: composerHtml,
+          test_email: composerTestEmail.trim()
+        })
+      });
+      const data = await response.json();
+      if (response.ok && data.success) {
+        composerTestMessage = `✅ Test email sent to ${composerTestEmail}`;
+      } else {
+        composerTestMessage = data.error || 'Failed to send test email.';
+      }
+    } catch (e) {
+      composerTestMessage = 'Error sending test email.';
+    } finally {
+      composerLoading = false;
+    }
+  }
+
+  async function sendToAllSubscribers() {
+    if (!composerSubject.trim() || !composerHtml.trim()) {
+      showMessage('Please fill in subject and HTML content.', 'error');
+      return;
+    }
+    
+    if (!confirm(`Send this newsletter to all ${activeSubscribers} active subscribers?`)) {
+      return;
+    }
+
+    // Track newsletter campaign start
+    analytics.trackEvent('newsletter_campaign_started', {
+      subject: composerSubject,
+      total_subscribers: activeSubscribers,
+      campaign_type: 'batch_send'
+    });
+
+    sendingBatch = true;
+    showProgress = true;
+    try {
+      // Start new campaign and send first batch
+      const response = await fetch('/api/newsletter/batch-send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subject: composerSubject,
+          html: composerHtml
+        })
+      });
+      const data = await response.json();
+      if (response.ok && data.success) {
+        campaignId = data.campaign_id;
+        batchProgress = {
+          sent: data.sent_count,
+          total: data.total_recipients || activeSubscribers,
+          batchSent: data.batch_sent,
+          batchFailed: data.batch_failed,
+          done: data.done
+        };
+        showMessage(`✅ Sent batch of ${data.batch_sent}.`, 'success');
+      } else {
+        showMessage(data.error || 'Failed to send newsletter.', 'error');
+        showProgress = false;
+      }
+    } catch (e) {
+      showMessage('Error sending newsletter.', 'error');
+      showProgress = false;
+    } finally {
+      sendingBatch = false;
+    }
+  }
+
+  async function sendNextBatch() {
+    if (!campaignId) return;
+    sendingBatch = true;
+    try {
+      const response = await fetch('/api/newsletter/batch-send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subject: composerSubject,
+          html: composerHtml,
+          campaign_id: campaignId
+        })
+      });
+      const data = await response.json();
+      if (response.ok && data.success) {
+        batchProgress = {
+          sent: data.sent_count,
+          total: data.total_recipients || batchProgress.total,
+          batchSent: data.batch_sent,
+          batchFailed: data.batch_failed,
+          done: data.done
+        };
+        showMessage(`✅ Sent batch of ${data.batch_sent}.`, 'success');
+        if (data.done) {
+          showMessage('✅ All subscribers have been sent to!', 'success');
+          campaignId = null;
+        }
+      } else {
+        showMessage(data.error || 'Failed to send batch.', 'error');
+      }
+    } catch (e) {
+      showMessage('Error sending batch.', 'error');
+    } finally {
+      sendingBatch = false;
+    }
+  }
+
+  function resetBatchProgress() {
+    campaignId = null;
+    batchProgress = { sent: 0, total: 0, batchSent: 0, batchFailed: 0, done: false };
+    showProgress = false;
+  }
+
   function formatNumber(num: number): string {
     return new Intl.NumberFormat().format(num);
   }
+
+  function formatDate(dateString: string): string {
+    return new Date(dateString).toLocaleDateString();
+  }
+
+  async function fetchEmailLogs() {
+    if (!campaignId) return;
+    loadingLogs = true;
+    try {
+      const response = await fetch(`/api/newsletter/email-logs?campaign_id=${campaignId}`);
+      const data = await response.json();
+      if (response.ok && data.logs) {
+        emailLogs = data.logs;
+      } else {
+        emailLogs = [];
+      }
+    } catch (e) {
+      emailLogs = [];
+    } finally {
+      loadingLogs = false;
+    }
+  }
+
+  $effect(() => {
+    if (showProgress && campaignId) {
+      fetchEmailLogs();
+    }
+  });
 </script>
 
 <svelte:head>
@@ -26,122 +266,191 @@
 <div class="newsletter-admin">
   <div class="header">
     <h1>📧 Newsletter System Management</h1>
-    <p>Manage your {formatNumber(8000)} subscriber newsletter system</p>
+    <p>Manage your newsletter subscribers, send beautiful campaigns, and view analytics</p>
   </div>
 
-  <!-- Message Display -->
   {#if message}
-    <div class="message {messageType}">
-      {message}
-    </div>
+    <div class="message {messageType}">{message}</div>
   {/if}
 
-  <!-- Campaign Manager Integration -->
-  <div class="campaign-section">
-    <h2>📧 Campaign Manager</h2>
-    <p>Send emails to your {formatNumber(8000)} active subscribers with pre-designed templates.</p>
-    <div class="action-buttons">
-      <a href="/admin/newsletter/campaigns" class="action-btn primary">
-        📤 Manage Email Campaigns
-      </a>
-      <button class="action-btn" onclick={() => showMessage('Campaign manager ready!', 'success')}>
-        📝 Create Campaign
-      </button>
-      <button class="action-btn" onclick={() => showMessage('Analytics available in campaign manager', 'info')}>
-        📊 View Analytics
-      </button>
-    </div>
-    
-    <!-- Quick Campaign Creation -->
-    <div class="quick-campaign">
-      <h3>📬 Quick Campaign</h3>
-      <p>Send study abroad tips or scholarship digest to your imported leads</p>
-      <div class="quick-buttons">
-        <button class="quick-btn study-tips" onclick={() => window.location.href='/admin/newsletter/campaigns?template=study-tips'}>
-          📚 Send Study Tips
-        </button>
-        <button class="quick-btn scholarship" onclick={() => window.location.href='/admin/newsletter/campaigns?template=scholarship-digest'}>
-          🎓 Send Scholarship Digest
-        </button>
+  <!-- Analytics Section -->
+  <div class="analytics-section">
+    <h2>📈 Newsletter Analytics</h2>
+    <div class="analytics-grid">
+      <div class="analytics-card">
+        <h4>Total Subscribers</h4>
+        <p class="big-number">{formatNumber(totalSubscribers)}</p>
+        <small>All time</small>
+      </div>
+      <div class="analytics-card">
+        <h4>Active Subscribers</h4>
+        <p class="big-number">{formatNumber(activeSubscribers)}</p>
+        <small>Ready to receive</small>
+      </div>
+      <div class="analytics-card">
+        <h4>Emails Sent</h4>
+        <p class="big-number">{formatNumber(totalSent)}</p>
+        <small>Total sent</small>
+      </div>
+      <div class="analytics-card">
+        <h4>Opens</h4>
+        <p class="big-number">{formatNumber(totalOpens)}</p>
+        <small>Total opens</small>
+      </div>
+      <div class="analytics-card">
+        <h4>Clicks</h4>
+        <p class="big-number">{formatNumber(totalClicks)}</p>
+        <small>Total clicks</small>
+      </div>
+      <div class="analytics-card">
+        <h4>Unsubscribes</h4>
+        <p class="big-number">{formatNumber(totalUnsubscribes)}</p>
+        <small>Total unsubscribes</small>
       </div>
     </div>
   </div>
 
-  <!-- System Status -->
-  <div class="status-section">
-    <h2>⚡ System Status</h2>
-    <div class="status-grid">
-      <div class="status-card">
-        <h3>Newsletter System</h3>
-        <p class="status-indicator enabled">✅ READY</p>
-        <p class="subtitle">Campaign manager active</p>
-      </div>
-
-      <div class="status-card">
-        <h3>Email Templates</h3>
-        <p class="status-indicator enabled">✅ READY</p>
-        <p class="subtitle">2 templates available</p>
-      </div>
-
-      <div class="status-card">
-        <h3>Total Subscribers</h3>
-        <p class="big-number">{formatNumber(8000)}</p>
-        <p class="subtitle">Imported leads</p>
-      </div>
-
-      <div class="status-card">
-        <h3>Active Subscribers</h3>
-        <p class="big-number">{formatNumber(8000)}</p>
-        <p class="subtitle">Ready to receive emails</p>
-      </div>
+  <!-- Compose Newsletter Section -->
+  <div class="compose-section">
+    <h2>✉️ Compose Newsletter</h2>
+    <label>Subject:</label>
+    <input type="text" bind:value={composerSubject} style="width:100%;margin-bottom:1rem;" placeholder="Email subject" />
+    <label>HTML Content:</label>
+    <textarea bind:value={composerHtml} style="width:100%;height:180px;margin-bottom:1rem;font-family:monospace;font-size:1rem;" placeholder="Paste your HTML here..."></textarea>
+    <label>Test Email Address:</label>
+    <input type="email" bind:value={composerTestEmail} style="width:100%;margin-bottom:1rem;" placeholder="your@email.com" />
+    <div style="margin-bottom:1rem;">
+      <button on:click={sendTestEmail} disabled={composerLoading || sendingBatch} style="margin-right:1rem;">{composerLoading ? 'Sending...' : 'Send Test'}</button>
+      <button on:click={() => composerPreview = !composerPreview} disabled={sendingBatch} style="margin-right:1rem;">{composerPreview ? 'Hide Preview' : 'Show Preview'}</button>
+      <button on:click={sendToAllSubscribers} disabled={composerLoading || sendingBatch || !composerSubject.trim() || !composerHtml.trim()} style="background:#059669;color:white;margin-left:1rem;">
+        {sendingBatch ? 'Sending...' : `Send to All (${formatNumber(activeSubscribers)})`}
+      </button>
+      {#if showProgress}
+        <button on:click={resetBatchProgress} disabled={sendingBatch} style="margin-left:1rem;background:#e5e7eb;color:#374151;">Reset</button>
+      {/if}
     </div>
-  </div>
-
-  <!-- Quick Start Guide -->
-  <div class="guide-section">
-    <h2>🚀 Quick Start Guide</h2>
-    <div class="guide-steps">
-      <div class="step-card">
-        <div class="step-number">1</div>
-        <div class="step-content">
-          <h4>Access Campaign Manager</h4>
-          <p>Click "📤 Manage Email Campaigns" to access the full campaign interface</p>
+    {#if composerTestMessage}
+      <div style="margin-bottom:1rem;color:{composerTestMessage.startsWith('✅') ? 'green' : 'red'};">{composerTestMessage}</div>
+    {/if}
+    {#if composerPreview}
+      <div style="border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin-top:1rem;background:#f9fafb;max-height:300px;overflow:auto;">
+        <h3 style="margin-top:0;">Live Preview</h3>
+        <div>{@html composerHtml}</div>
+      </div>
+    {/if}
+    {#if showProgress}
+      <div class="batch-progress">
+        <div style="margin-top:1rem;margin-bottom:0.5rem;">
+          <strong>Batch Progress:</strong> Sent {formatNumber(batchProgress.sent)} of {formatNumber(batchProgress.total)}
+          {#if batchProgress.done}
+            <span style="color:green;margin-left:1rem;">✅ Complete!</span>
+          {/if}
         </div>
-      </div>
-      
-      <div class="step-card">
-        <div class="step-number">2</div>
-        <div class="step-content">
-          <h4>Create Your First Campaign</h4>
-          <p>Use the "Study Abroad Tips" template to send monthly educational content</p>
+        <div class="progress-bar-wrapper">
+          <div class="progress-bar" style="width:{Math.min(100, (batchProgress.sent / (batchProgress.total || 1)) * 100)}%"></div>
         </div>
-      </div>
-      
-      <div class="step-card">
-        <div class="step-number">3</div>
-        <div class="step-content">
-          <h4>Send to Imported Leads</h4>
-          <p>Target your 8000 imported emails with valuable scholarship and study abroad content</p>
+        <div style="margin-top:0.5rem;">
+          Last batch: <span style="color:green;">{formatNumber(batchProgress.batchSent)} sent</span>, <span style="color:red;">{formatNumber(batchProgress.batchFailed)} failed</span>
         </div>
+        {#if !batchProgress.done}
+          <button on:click={sendNextBatch} disabled={sendingBatch} style="margin-top:1rem;background:#2563eb;color:white;">
+            {sendingBatch ? 'Sending...' : 'Send Next Batch'}
+          </button>
+        {/if}
       </div>
-    </div>
+    {/if}
   </div>
 
-  <!-- Quick Actions -->
-  <div class="actions-section">
-    <h2>🔧 System Actions</h2>
-    <div class="action-buttons">
-      <button class="action-btn" onclick={() => showMessage('Newsletter system is ready to use!', 'success')}>
-        ✅ Test System Status
-      </button>
-      <a href="/newsletter/unsubscribe" target="_blank" class="action-btn">
-        🔗 Test Unsubscribe Page
-      </a>
-      <button class="action-btn" onclick={() => showMessage('Use the campaign manager for sending emails', 'info')}>
-        📧 Email Settings
-      </button>
-    </div>
+  <!-- Recent Campaigns Section -->
+  <div class="campaigns-section">
+    <h2>🗂️ Recent Campaigns</h2>
+    {#if recentCampaigns.length > 0}
+      <div class="campaigns-table">
+        <div class="table-header">
+          <div class="col-name">Subject</div>
+          <div class="col-date">Date</div>
+          <div class="col-sent">Sent</div>
+          <div class="col-opens">Opens</div>
+          <div class="col-clicks">Clicks</div>
+          <div class="col-unsubs">Unsubs</div>
+        </div>
+        {#each recentCampaigns as campaign}
+          <div class="table-row">
+            <div class="col-name">{campaign.subject_line}</div>
+            <div class="col-date">{formatDate(campaign.sent_at)}</div>
+            <div class="col-sent">{formatNumber(campaign.total_sent)}</div>
+            <div class="col-opens">{formatNumber(campaign.total_opens)}</div>
+            <div class="col-clicks">{formatNumber(campaign.total_clicks)}</div>
+            <div class="col-unsubs">{formatNumber(campaign.total_unsubscribes)}</div>
+          </div>
+        {/each}
+      </div>
+    {:else}
+      <p style="text-align:center;color:#6b7280;padding:2rem;">No campaigns sent yet</p>
+    {/if}
   </div>
+
+  <!-- Subscriber List Section -->
+  <div class="subscribers-section">
+    <h2>👥 Subscriber List</h2>
+    <p>Total: <strong>{formatNumber(totalSubscribers)}</strong> | Active: <strong>{formatNumber(activeSubscribers)}</strong></p>
+    {#if subscriberList.length > 0}
+      <div class="subscribers-table">
+        <div class="table-header">
+          <div class="col-email">Email Address</div>
+          <div class="col-status">Status</div>
+          <div class="col-date">Subscribed</div>
+        </div>
+        {#each subscriberList.slice(0, 10) as subscriber}
+          <div class="table-row">
+            <div class="col-email">{subscriber.email}</div>
+            <div class="col-status">
+              <span class="status-badge {subscriber.status === 'active' ? 'active' : 'inactive'}">
+                {subscriber.status}
+              </span>
+            </div>
+            <div class="col-date">{formatDate(subscriber.subscribed_at)}</div>
+          </div>
+        {/each}
+        {#if subscriberList.length > 10}
+          <div class="table-row" style="text-align:center;color:#6b7280;">
+            <div>... and {formatNumber(subscriberList.length - 10)} more subscribers</div>
+          </div>
+        {/if}
+      </div>
+    {:else if loading}
+      <p style="text-align:center;color:#6b7280;padding:2rem;">Loading subscribers...</p>
+    {:else}
+      <p style="text-align:center;color:#6b7280;padding:2rem;">No subscribers found</p>
+    {/if}
+  </div>
+
+  {#if showProgress && campaignId}
+    <div class="email-logs-section">
+      <h3 style="margin-top:2rem;">Email Send Log (Most Recent 50)</h3>
+      <button on:click={fetchEmailLogs} disabled={loadingLogs} style="margin-bottom:0.5rem;">{loadingLogs ? 'Refreshing...' : 'Refresh Log'}</button>
+      {#if loadingLogs}
+        <div>Loading logs...</div>
+      {:else if emailLogs.length === 0}
+        <div>No logs yet.</div>
+      {:else}
+        <div class="logs-table">
+          <div class="logs-header">
+            <div class="log-email">Email</div>
+            <div class="log-status">Status</div>
+            <div class="log-date">Sent At</div>
+          </div>
+          {#each emailLogs.slice(-50).reverse() as log}
+            <div class="logs-row">
+              <div class="log-email">{log.email_address}</div>
+              <div class="log-status {log.status}">{log.status}</div>
+              <div class="log-date">{formatDate(log.sent_at)}</div>
+            </div>
+          {/each}
+        </div>
+      {/if}
+    </div>
+  {/if}
 </div>
 
 <style>
@@ -152,288 +461,185 @@
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     min-height: 100vh;
   }
-
   .header {
     text-align: center;
     margin-bottom: 32px;
   }
-
   .header h1 {
     font-size: 2.5rem;
     font-weight: 700;
     color: #1f2937;
     margin: 0 0 8px 0;
   }
-
   .header p {
     color: #6b7280;
     font-size: 1.1rem;
   }
-
   .message {
     padding: 12px 16px;
     border-radius: 8px;
     margin-bottom: 24px;
     font-weight: 500;
   }
-
   .message.success {
     background: #dcfce7;
     color: #166534;
     border: 1px solid #bbf7d0;
   }
-
   .message.error {
     background: #fef2f2;
     color: #dc2626;
     border: 1px solid #fecaca;
   }
-
   .message.info {
     background: #dbeafe;
     color: #1e40af;
     border: 1px solid #bfdbfe;
   }
-
-  .campaign-section,
-  .status-section,
-  .guide-section,
-  .actions-section {
+  .analytics-section, .compose-section, .campaigns-section, .subscribers-section {
     margin-bottom: 40px;
     background: white;
     border-radius: 12px;
     padding: 24px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   }
-
-  .campaign-section h2,
-  .status-section h2,
-  .guide-section h2,
-  .actions-section h2 {
+  .analytics-section h2, .compose-section h2, .campaigns-section h2, .subscribers-section h2 {
     font-size: 1.5rem;
     font-weight: 600;
     color: #1f2937;
     margin: 0 0 20px 0;
   }
-
-  /* Campaign Manager Styles */
-  .campaign-section {
-    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-    border: 1px solid #bfdbfe;
-  }
-
-  .campaign-section h2 {
-    color: #1e40af;
-  }
-
-  .action-buttons {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    margin-bottom: 20px;
-  }
-
-  .action-btn {
-    display: inline-block;
-    background: #f3f4f6;
-    color: #374151;
-    text-decoration: none;
-    padding: 10px 16px;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    font-size: 0.875rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    border: none;
-  }
-
-  .action-btn:hover {
-    background: #e5e7eb;
-    text-decoration: none;
-  }
-
-  .action-btn.primary {
-    background: #2563eb;
-    color: white;
-    font-weight: 600;
-  }
-
-  .action-btn.primary:hover {
-    background: #1d4ed8;
-  }
-
-  .quick-campaign {
-    margin-top: 20px;
-    padding: 16px;
-    background: white;
-    border-radius: 8px;
-    border: 1px solid #e5e7eb;
-  }
-
-  .quick-campaign h3 {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #1f2937;
-    margin: 0 0 8px 0;
-  }
-
-  .quick-campaign p {
-    font-size: 0.875rem;
-    color: #6b7280;
-    margin: 0 0 16px 0;
-  }
-
-  .quick-buttons {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-  }
-
-  .quick-btn {
-    background: #059669;
-    color: white;
-    border: none;
-    padding: 10px 16px;
-    border-radius: 6px;
-    font-size: 0.875rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    flex: 1;
-    min-width: 140px;
-  }
-
-  .quick-btn:hover {
-    background: #047857;
-    transform: translateY(-1px);
-  }
-
-  .quick-btn.scholarship {
-    background: #7c3aed;
-  }
-
-  .quick-btn.scholarship:hover {
-    background: #6d28d9;
-  }
-
-  /* Status Grid */
-  .status-grid {
+  .analytics-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 20px;
   }
-
-  .status-card {
+  .analytics-card {
     background: #f8fafc;
     border: 1px solid #e5e7eb;
     border-radius: 8px;
     padding: 20px;
     text-align: center;
   }
-
-  .status-card h3 {
+  .analytics-card h4 {
     font-size: 1rem;
     font-weight: 600;
     color: #374151;
     margin: 0 0 8px 0;
   }
-
-  .status-indicator {
-    font-size: 1.25rem;
-    font-weight: 700;
-    margin: 8px 0;
-  }
-
-  .status-indicator.enabled {
-    color: #059669;
-  }
-
   .big-number {
     font-size: 1.75rem;
     font-weight: 700;
     color: #1f2937;
     margin: 0;
   }
-
-  .subtitle {
-    font-size: 0.875rem;
+  .analytics-card small {
     color: #6b7280;
-    margin: 4px 0;
+    font-size: 0.875rem;
   }
-
-  /* Guide Steps */
-  .guide-steps {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  .step-card {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 16px;
-    background: #f9fafb;
+  .campaigns-table, .subscribers-table {
+    width: 100%;
+    margin-top: 12px;
     border-radius: 8px;
+    overflow: hidden;
+    background: #f9fafb;
     border: 1px solid #e5e7eb;
   }
-
-  .step-number {
+  .table-header, .table-row {
     display: flex;
     align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    background: #2563eb;
-    color: white;
-    border-radius: 50%;
-    font-weight: 600;
-    font-size: 0.875rem;
-    flex-shrink: 0;
+    padding: 10px 16px;
   }
-
-  .step-content h4 {
+  .table-header {
+    background: #f3f4f6;
+    font-weight: 600;
+    color: #374151;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .table-row {
+    border-bottom: 1px solid #e5e7eb;
     font-size: 1rem;
-    font-weight: 600;
-    color: #1f2937;
-    margin: 0 0 4px 0;
+    color: #374151;
   }
-
-  .step-content p {
+  .col-name, .col-date, .col-sent, .col-opens, .col-clicks, .col-unsubs, .col-email, .col-status {
+    flex: 1;
+    min-width: 120px;
+    word-break: break-all;
+  }
+  .status-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
     font-size: 0.875rem;
-    color: #6b7280;
-    margin: 0;
+    font-weight: 500;
   }
-
-  @media (max-width: 768px) {
-    .newsletter-admin {
-      padding: 60px 16px 24px 16px;
-    }
-
-    .header h1 {
-      font-size: 2rem;
-    }
-
-    .action-buttons {
-      flex-direction: column;
-    }
-
-    .quick-buttons {
-      flex-direction: column;
-    }
-
-    .quick-btn {
-      min-width: auto;
-    }
-
-    .status-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .step-card {
-      flex-direction: column;
-      text-align: center;
-    }
+  .status-badge.active {
+    background: #dcfce7;
+    color: #166534;
+  }
+  .status-badge.inactive {
+    background: #fef2f2;
+    color: #dc2626;
+  }
+  .batch-progress {
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+  }
+  .progress-bar-wrapper {
+    width: 100%;
+    height: 16px;
+    background: #e5e7eb;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .progress-bar {
+    height: 100%;
+    background: #059669;
+    transition: width 0.3s;
+  }
+  .email-logs-section {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 1.5rem;
+  }
+  .logs-table {
+    width: 100%;
+    margin-top: 8px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+  }
+  .logs-header, .logs-row {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+  }
+  .logs-header {
+    background: #f3f4f6;
+    font-weight: 600;
+    color: #374151;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .logs-row {
+    border-bottom: 1px solid #e5e7eb;
+    font-size: 1rem;
+    color: #374151;
+  }
+  .log-email, .log-status, .log-date {
+    flex: 1;
+    min-width: 120px;
+    word-break: break-all;
+  }
+  .log-status.sent {
+    color: #059669;
+  }
+  .log-status.failed {
+    color: #dc2626;
   }
 </style>

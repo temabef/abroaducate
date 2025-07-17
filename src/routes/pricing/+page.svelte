@@ -1,6 +1,7 @@
 <script lang="ts">
   import { page } from '$app/stores';
   import AuthenticationFlow from '$lib/components/AuthenticationFlow.svelte';
+  import { analytics } from '$lib/utils/posthog';
   
   let { data } = $props();
   let { session, supabase } = $derived(data);
@@ -40,6 +41,13 @@
   };
 
   async function handleUpgrade(plan: string) {
+    // Track pricing page interaction
+    analytics.trackEvent('pricing_plan_selected', {
+      plan: plan,
+      billing_cycle: billingCycle,
+      user_id: session?.user?.id
+    });
+    
     if (plan === 'free') {
       // Handle free plan - show signup modal
       if (!session) {
@@ -86,6 +94,13 @@
       }
 
       if (data.checkoutUrl) {
+        // Track checkout redirect
+        analytics.trackEvent('checkout_redirected', {
+          plan: plan,
+          billing_cycle: billingCycle,
+          user_id: session?.user?.id
+        });
+        
         // Redirect to Stripe checkout
         window.location.href = data.checkoutUrl;
       }

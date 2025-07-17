@@ -3,6 +3,7 @@
     import { goto } from '$app/navigation';
     import CoverLetterGenerator from '$lib/components/CoverLetterGenerator.svelte';
     import type { PageData } from './$types';
+    import { analytics } from '$lib/utils/posthog';
     
     async function signInWithGoogle() {
         const currentUrl = '/cover-letters';
@@ -73,6 +74,12 @@
     }
     
     onMount(async () => {
+        // Track cover letter page view
+        analytics.trackPageView('Cover Letter Generator', {
+            user_id: session?.user?.id,
+            has_saved_letters: savedCoverLetters.length > 0
+        });
+        
         if (session?.user) {
             loading = true;
             await Promise.all([loadUserData(), loadExistingSOPs(), loadSavedCoverLetters()]);

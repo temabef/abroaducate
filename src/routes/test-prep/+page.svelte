@@ -4,6 +4,29 @@
 </svelte:head>
 
 <script lang="ts">
+  import AuthenticationFlow from '$lib/components/AuthenticationFlow.svelte';
+  import { goto } from '$app/navigation';
+  let { data } = $props();
+  let { session, supabase } = $derived(data);
+  let showAuthModal = $state(false);
+  let pendingPracticeRedirect = $state<string | null>(null);
+
+  function handleStartPractice(link: string) {
+    if (session) {
+      goto(link);
+    } else {
+      pendingPracticeRedirect = link;
+      showAuthModal = true;
+    }
+  }
+
+  function handleAuthSuccess() {
+    if (pendingPracticeRedirect) {
+      goto(pendingPracticeRedirect);
+      pendingPracticeRedirect = null;
+    }
+  }
+
   interface WeekPlan { 
     week: number; 
     title: string; 
@@ -412,9 +435,12 @@
               <span>📚 {test.difficulty}</span>
             </div>
             {#if test.status === 'Available'}
-              <a href={test.link} class="block w-full text-center bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition">
+              <button
+                class="block w-full text-center bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition"
+                onclick={() => handleStartPractice(test.link)}
+              >
                 Start Practice
-              </a>
+              </button>
             {:else}
               <button disabled class="block w-full text-center bg-gray-300 text-gray-500 py-2 px-4 rounded-md cursor-not-allowed">
                 {test.status}
@@ -607,15 +633,24 @@
         <h2 class="text-2xl font-bold mb-2">Ready to Start Your IELTS Journey?</h2>
         <p class="mb-4">Begin with our Reading practice tests and track your progress through the comprehensive study plan.</p>
         <div class="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
-          <a href="/practice/ielts/reading" class="inline-block px-6 py-3 bg-white text-blue-700 font-semibold rounded-md hover:bg-gray-100 transition">
+          <button
+            class="inline-block px-6 py-3 bg-white text-blue-700 font-semibold rounded-md hover:bg-gray-100 transition"
+            onclick={() => handleStartPractice('/practice/ielts/reading')}
+          >
             Start Reading Practice
-          </a>
-          <a href="/practice/ielts/writing" class="inline-block px-6 py-3 bg-white text-green-700 font-semibold rounded-md hover:bg-gray-100 transition">
+          </button>
+          <button
+            class="inline-block px-6 py-3 bg-white text-green-700 font-semibold rounded-md hover:bg-gray-100 transition"
+            onclick={() => handleStartPractice('/practice/ielts/writing')}
+          >
             Practice Writing
-          </a>
-          <a href="/practice/ielts/speaking" class="inline-block px-6 py-3 bg-white text-purple-700 font-semibold rounded-md hover:bg-gray-100 transition">
+          </button>
+          <button
+            class="inline-block px-6 py-3 bg-white text-purple-700 font-semibold rounded-md hover:bg-gray-100 transition"
+            onclick={() => handleStartPractice('/practice/ielts/speaking')}
+          >
             Practice Speaking
-          </a>
+          </button>
         </div>
       </div>
     </div>
@@ -634,3 +669,10 @@
     </div>
   </div>
 </section> 
+<AuthenticationFlow
+  bind:show={showAuthModal}
+  {supabase}
+  mode="login"
+  returnUrl={pendingPracticeRedirect || '/test-prep'}
+  on:success={handleAuthSuccess}
+/> 

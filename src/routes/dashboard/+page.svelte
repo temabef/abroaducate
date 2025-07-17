@@ -2,11 +2,12 @@
     import { onMount } from 'svelte';
     import { goto } from '$app/navigation';
     import type { PageData } from './$types';
-  import QuickActions from '$lib/components/QuickActions.svelte';
-  import DocumentCard from '$lib/components/DocumentCard.svelte';
-  import ActivityFeed from '$lib/components/ActivityFeed.svelte';
-  import BasicReminders from '$lib/components/BasicReminders.svelte';
-  import EmailStatusWidget from '$lib/components/EmailStatusWidget.svelte';
+    import QuickActions from '$lib/components/QuickActions.svelte';
+    import DocumentCard from '$lib/components/DocumentCard.svelte';
+    import ActivityFeed from '$lib/components/ActivityFeed.svelte';
+    import BasicReminders from '$lib/components/BasicReminders.svelte';
+    import EmailStatusWidget from '$lib/components/EmailStatusWidget.svelte';
+    import { analytics } from '$lib/utils/posthog';
 
     let { data }: { data: PageData } = $props();
     let { supabase, session } = data;
@@ -26,6 +27,12 @@
             goto('/');
             return;
         }
+        
+        // Track dashboard page view
+        analytics.trackPageView('Dashboard', {
+            user_id: session.user.id,
+            has_documents: dashboardData?.summary?.total_documents > 0
+        });
         
         await loadDashboardData();
     });

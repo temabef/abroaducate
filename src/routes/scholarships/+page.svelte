@@ -1,5 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import AuthenticationFlow from '$lib/components/AuthenticationFlow.svelte';
+  import { analytics } from '$lib/utils/posthog';
   
   let { data } = $props();
   let { supabase, session } = $derived(data);
@@ -256,6 +258,12 @@
   }
 
   onMount(async () => {
+    // Track scholarships page view
+    analytics.trackPageView('Scholarships', {
+      user_id: session?.user?.id,
+      view_mode: viewMode
+    });
+    
     await loadScholarships();
     // Initial filtering is already called in loadScholarships
     // Scroll to top after loading (especially helpful on mobile)
@@ -313,9 +321,15 @@
     return 'text-gray-600';
   }
 
+  let showAuthModal = $state(false);
+  let pendingSaveScholarshipId = $state<string | null>(null);
+  let authMode = $state<'login' | 'signup'>('login');
+
   async function toggleSaved(scholarshipId: string) {
     if (!session?.user?.id) {
-      alert('Please log in to save scholarships');
+      pendingSaveScholarshipId = scholarshipId;
+      authMode = 'login';
+      showAuthModal = true;
       return;
     }
     
@@ -331,6 +345,15 @@
       
       const scholarship = allScholarships[scholarshipIndex];
       const currentSavedState = scholarship.saved;
+      
+      // Track scholarship save action
+      analytics.trackEvent('scholarship_saved', {
+        scholarship_id: scholarshipId,
+        scholarship_title: scholarship.title,
+        provider: scholarship.provider,
+        action: currentSavedState ? 'unsaved' : 'saved',
+        user_id: session?.user?.id
+      });
       
       // Check if interaction exists in database
       const { data: existing, error: fetchError } = await supabase
@@ -380,6 +403,49 @@
     } catch (err) {
       console.error('Error saving scholarship:', err);
       alert('Failed to update. Please try again.');
+    }
+  }
+
+  function handleAuthSuccess() {
+    if (pendingSaveScholarshipId) {
+      saveScholarshipAfterLogin(pendingSaveScholarshipId);
+      pendingSaveScholarshipId = null;
+    }
+  }
+
+  async function saveScholarshipAfterLogin(scholarshipId: string) {
+    try {
+      const scholarshipIndex = allScholarships.findIndex(s => s.id === scholarshipId);
+      if (scholarshipIndex === -1) return;
+      // Check if interaction exists
+      const { data: existing, error: fetchError } = await supabase
+        .from('user_scholarship_interactions')
+        .select('id')
+        .eq('user_id', session.user.id)
+        .eq('scholarship_id', scholarshipId)
+        .single();
+      if (fetchError && fetchError.code !== 'PGRST116') throw fetchError;
+      let result;
+      if (existing) {
+        result = await supabase
+          .from('user_scholarship_interactions')
+          .update({ is_saved: true })
+          .eq('id', existing.id);
+      } else {
+        result = await supabase
+          .from('user_scholarship_interactions')
+          .insert({
+            user_id: session.user.id,
+            scholarship_id: scholarshipId,
+            is_saved: true,
+            is_applied: false
+          });
+      }
+      if (result.error) throw result.error;
+      allScholarships[scholarshipIndex].saved = true;
+      updateScholarships();
+    } catch (err) {
+      alert('Failed to save scholarship after login. Please try again.');
     }
   }
 </script>
@@ -789,4 +855,11 @@
       </div>
     </div>
   </div>
+  <AuthenticationFlow
+    bind:show={showAuthModal}
+    {supabase}
+    mode={authMode}
+    returnUrl={globalThis.$page?.url?.pathname || '/scholarships'}
+    on:success={handleAuthSuccess}
+  />
 </div> 

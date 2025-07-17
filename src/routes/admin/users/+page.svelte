@@ -1,70 +1,150 @@
+<!--
+To enable fast admin user panel loading, create this RPC in Supabase SQL editor:
+
+CREATE OR REPLACE FUNCTION admin_user_panel_data()
+RETURNS TABLE (
+  user_id uuid,
+  email text,
+  full_name text,
+  created_at timestamptz,
+  updated_at timestamptz,
+  subscription_plan varchar,
+  subscription_status varchar,
+  current_period_end timestamptz,
+  newsletter_status varchar,
+  weekly_updates boolean,
+  marketing_emails boolean,
+  scholarship_digest boolean,
+  newsletter_subscribed_at timestamptz
+) AS $$
+  SELECT
+    p.id AS user_id,
+    p.email,
+    p.full_name,
+    p.created_at,
+    p.updated_at,
+    us.plan_type AS subscription_plan,
+    us.status AS subscription_status,
+    us.current_period_end,
+    ns.status AS newsletter_status,
+    ns.weekly_updates,
+    ns.marketing_emails,
+    ns.scholarship_digest,
+    ns.subscribed_at AS newsletter_subscribed_at
+  FROM profiles p
+  LEFT JOIN user_subscriptions us ON us.user_id = p.id AND us.status = 'active'
+  LEFT JOIN newsletter_subscribers ns ON ns.user_id = p.id;
+$$ LANGUAGE sql STABLE;
+-->
+
 <script lang="ts">
   import { onMount } from 'svelte';
   
   let { data } = $props();
   let { supabase, session } = $derived(data);
+
+  // Debug: Log session user ID
+  console.log('Session user ID:', session?.user?.id);
+
+  // Debug: Log Supabase URL and session user
+  console.log('Supabase URL:', supabase?.rest?.url || supabase?.url);
+  console.log('Session user:', session?.user);
   
   let loading = $state(false);
   let message = $state('');
   let messageType = $state('info');
   
-  // User Statistics - simplified static data since analytics work elsewhere
+  // Pagination state
+  let pageSize = 10;
+  let currentPage = $state(1);
+  let totalUsers = $state(0);
+  let totalPages = $state(1);
+
+  // User Statistics - dynamic
   let userStats = $state({
-    total_users: 9,
-    active_users: 3,
-    premium_users: 2,
+    total_users: 0,
+    active_users: 0,
+    premium_users: 0,
     newsletter_subscribers: 0,
-    recent_signups: 6,
-    free_users: 7,
-    professional_users: 1,
-    elite_users: 1
+    recent_signups: 0,
+    free_users: 0,
+    professional_users: 0,
+    elite_users: 0
   });
   
   // User List
   let users = $state<any[]>([]);
   let searchTerm = $state('');
   let filterType = $state('all'); // all, premium, free, newsletter
+  let now = new Date();
   
   onMount(async () => {
-    // Load basic user data without complex analytics
-    await loadBasicUserData();
+    await loadUserData();
   });
 
-  async function loadBasicUserData() {
-    try {
-      // Just load the user list without complex analytics
-      const { data: usersData, error: usersListError } = await supabase
-        .from('profiles')
-        .select(`
-          id,
-          email,
-          full_name,
-          created_at,
-          last_sign_in_at
-        `)
-        .order('created_at', { ascending: false })
-        .limit(20); // Smaller limit for faster loading
+  $effect(() => {
+    currentPage; // reference to make this effect depend on currentPage
+    loadUserData();
+  });
 
-      if (!usersListError && usersData) {
-        users = usersData.map(user => ({
-          ...user,
-          subscription_status: null, // Simplified - no complex subscription checking
-          plan_type: null,
-          newsletter_subscribed: false
-        }));
-        
-        console.log('Loaded basic users list:', users.length, 'users');
-      }
+  async function loadUserData() {
+    loading = true;
+    try {
+      // Fetch paginated users and total count
+      const from = (currentPage - 1) * pageSize;
+      const to = from + pageSize - 1;
+      const { data: usersData, error, count } = await supabase
+        .rpc('admin_user_panel_data', {}, { count: 'exact' })
+        .range(from, to);
+      if (error) throw error;
+      users = usersData || [];
+      totalUsers = count || 0;
+      totalPages = Math.max(1, Math.ceil(totalUsers / pageSize));
+      computeUserStats(users);
     } catch (error) {
-      console.error('Error loading basic user data:', error);
+      console.error('Error loading user data:', error);
       users = [];
+      userStats = {
+        total_users: 0,
+        active_users: 0,
+        premium_users: 0,
+        newsletter_subscribers: 0,
+        recent_signups: 0,
+        free_users: 0,
+        professional_users: 0,
+        elite_users: 0
+      };
+    } finally {
+      loading = false;
     }
   }
 
-  // Remove complex data loading functions - keep it simple
-  
-  async function sendUserCampaign() {
-    showMessage('User campaigns ready for deployment!', 'info');
+  // Compute real statistics from user list
+  function computeUserStats(userList: any[]) {
+    const now = new Date();
+    const daysAgo = (dateStr: string, days: number) => {
+      if (!dateStr) return false;
+      const d = new Date(dateStr);
+      return (now.getTime() - d.getTime()) < days * 24 * 60 * 60 * 1000;
+    };
+    let total = userList.length;
+    let active = userList.filter(u => daysAgo(u.updated_at || u.last_sign_in_at, 30)).length;
+    let recent = userList.filter(u => daysAgo(u.created_at, 30)).length;
+    let premium = userList.filter(u => ['professional','elite'].includes((u.subscription_plan||'').toLowerCase()) && u.subscription_status === 'active').length;
+    let free = userList.filter(u => (u.subscription_plan||'free').toLowerCase() === 'free').length;
+    let professional = userList.filter(u => (u.subscription_plan||'').toLowerCase() === 'professional').length;
+    let elite = userList.filter(u => (u.subscription_plan||'').toLowerCase() === 'elite').length;
+    let newsletter = userList.filter(u => u.newsletter_status === 'subscribed' || u.weekly_updates || u.marketing_emails || u.scholarship_digest).length;
+    userStats = {
+      total_users: total,
+      active_users: active,
+      premium_users: premium,
+      newsletter_subscribers: newsletter,
+      recent_signups: recent,
+      free_users: free,
+      professional_users: professional,
+      elite_users: elite
+    };
   }
 
   function showMessage(text: string, type: 'success' | 'error' | 'info' = 'info') {
@@ -79,12 +159,21 @@
     return new Intl.NumberFormat().format(num);
   }
 
-  function getUserPlanName(): string {
-    return 'Academic Starter'; // Simplified
+  // Plan badge helper
+  function getUserPlanType(user: any): 'premium' | 'free' {
+    if (["professional","elite"].includes((user.subscription_plan||'').toLowerCase())) return 'premium';
+    return 'free';
+  }
+  function getUserPlanName(user: any): string {
+    if (!user.subscription_plan) return 'Academic Starter';
+    if (user.subscription_plan.toLowerCase() === 'professional') return 'Academic Professional';
+    if (user.subscription_plan.toLowerCase() === 'elite') return 'Academic Elite';
+    return 'Academic Starter';
   }
 
-  function getUserPlanType(): 'premium' | 'free' {
-    return 'free'; // Simplified
+  // Newsletter badge helper
+  function isNewsletterSubscribed(user: any): boolean {
+    return user.newsletter_status === 'subscribed' || user.weekly_updates || user.marketing_emails || user.scholarship_digest;
   }
 
   // Filter users based on search and filter type  
@@ -92,9 +181,147 @@
     const matchesSearch = !searchTerm || 
       user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.full_name?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    return matchesSearch; // Simplified filtering
+    let matchesFilter = true;
+    if (filterType === 'premium') matchesFilter = getUserPlanType(user) === 'premium';
+    if (filterType === 'free') matchesFilter = getUserPlanType(user) === 'free';
+    if (filterType === 'newsletter') matchesFilter = isNewsletterSubscribed(user);
+    return matchesSearch && matchesFilter;
   }));
+
+  // Pagination controls
+  function nextPage() {
+    if (currentPage < totalPages) currentPage += 1;
+  }
+  function prevPage() {
+    if (currentPage > 1) currentPage -= 1;
+  }
+
+  // Management actions
+  function handleManageUser(user: any) {
+    // Example: show a modal or dropdown for actions
+    showMessage(`Manage user: ${user.email} (coming soon)`, 'info');
+    // TODO: Implement real actions (view, disable, etc.)
+  }
+
+  // Modal state
+  let showUserModal = $state(false);
+  let selectedUser = $state(null);
+  let editFullName = $state('');
+  let disableMessage = $state('');
+  let disableSuccess = $state(false);
+
+  function openUserModal(user) {
+    selectedUser = user;
+    editFullName = user.full_name || '';
+    showUserModal = true;
+    disableMessage = '';
+    disableSuccess = false;
+  }
+  function closeUserModal() {
+    showUserModal = false;
+    selectedUser = null;
+    editFullName = '';
+    disableMessage = '';
+    disableSuccess = false;
+  }
+  async function saveUserEdit() {
+    if (!selectedUser) return;
+    const { error } = await supabase.from('profiles').update({ full_name: editFullName }).eq('id', selectedUser.user_id);
+    if (error) {
+      disableMessage = 'Error updating user: ' + error.message;
+      disableSuccess = false;
+    } else {
+      selectedUser.full_name = editFullName;
+      disableMessage = 'User updated successfully!';
+      disableSuccess = true;
+      await loadUserData();
+    }
+  }
+  async function disableUser() {
+    if (!selectedUser) return;
+    // Soft disable: set a disabled flag (add this column if not present)
+    const { error } = await supabase.from('profiles').update({ disabled: true }).eq('id', selectedUser.user_id);
+    if (error) {
+      disableMessage = 'Error disabling user: ' + error.message;
+      disableSuccess = false;
+    } else {
+      disableMessage = 'User disabled successfully!';
+      disableSuccess = true;
+      await loadUserData();
+    }
+  }
+
+// Campaign modal state
+let showCampaignModal = $state(false);
+let campaignType = $state('');
+let campaignSubject = $state('');
+let campaignBody = $state('');
+let campaignMessage = $state('');
+let showTemplatesModal = $state(false);
+let selectedTemplate = $state('');
+let showPromoModal = $state(false);
+let promoSubject = $state('Upgrade to Premium!');
+let promoBody = $state('Unlock premium features by upgrading your plan.');
+let promoMessage = $state('');
+
+function openCampaignModal() {
+  campaignType = 'user';
+  campaignSubject = '';
+  campaignBody = '';
+  campaignMessage = '';
+  showCampaignModal = true;
+}
+function openTemplatesModal() {
+  showTemplatesModal = true;
+  selectedTemplate = '';
+}
+function openPromoModal() {
+  showPromoModal = true;
+  promoSubject = 'Upgrade to Premium!';
+  promoBody = 'Unlock premium features by upgrading your plan.';
+  promoMessage = '';
+}
+function closeCampaignModal() {
+  showCampaignModal = false;
+}
+function closeTemplatesModal() {
+  showTemplatesModal = false;
+}
+function closePromoModal() {
+  showPromoModal = false;
+}
+function selectTemplate(template) {
+  selectedTemplate = template;
+  campaignSubject = template.subject;
+  campaignBody = template.body;
+  showTemplatesModal = false;
+  showCampaignModal = true;
+}
+async function sendCampaign() {
+  campaignMessage = '';
+  try {
+    const response = await fetch('/api/newsletter/campaigns/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        campaign_id: '2f9c92e0-9917-49c5-8d6b-4489964294c9',
+        send_immediately: true
+      })
+    });
+    const result = await response.json();
+    if (result.success) {
+      campaignMessage = 'Campaign sent to all users!';
+    } else {
+      campaignMessage = 'Error: ' + (result.error || 'Unknown error');
+    }
+  } catch (e) {
+    campaignMessage = 'Error sending campaign: ' + e.message;
+  }
+}
+async function sendPromo() {
+  // TODO: Integrate with backend/email system
+  promoMessage = 'Premium promotion sent (simulated)!';
+}
 </script>
 
 <svelte:head>
@@ -188,29 +415,83 @@
         <h4>📚 Study Tips & Updates</h4>
         <p>Send personalized study abroad tips and platform updates to your registered users</p>
         <div class="campaign-actions">
-          <button class="campaign-btn primary" onclick={sendUserCampaign}>
+          <button class="campaign-btn primary" onclick={openCampaignModal}>
             Create User Campaign
           </button>
-          <button class="campaign-btn" onclick={() => showMessage('User email templates ready!', 'info')}>
+          <button class="campaign-btn" onclick={openTemplatesModal}>
             View Templates
           </button>
         </div>
       </div>
-      
       <div class="campaign-card">
         <h4>🎓 Premium Features</h4>
         <p>Promote premium features to Academic Starter users and share success stories</p>
         <div class="campaign-actions">
-          <button class="campaign-btn" onclick={() => showMessage('Premium promotion campaigns ready!', 'info')}>
+          <button class="campaign-btn" onclick={openPromoModal}>
             Premium Promotion
           </button>
-          <button class="campaign-btn" onclick={() => showMessage('Success story templates available!', 'info')}>
+          <button class="campaign-btn" disabled>
             Success Stories
           </button>
         </div>
       </div>
     </div>
   </div>
+
+  <!-- Campaign Modals -->
+{#if showCampaignModal}
+  <div class="modal-backdrop" style="position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.3);z-index:1000;display:flex;align-items:center;justify-content:center;">
+    <div class="modal-content" style="background:#fff;padding:2rem;border-radius:12px;min-width:350px;max-width:95vw;box-shadow:0 2px 16px rgba(0,0,0,0.15);">
+      <h2>Create User Campaign</h2>
+      <label>Subject:</label>
+      <input type="text" bind:value={campaignSubject} style="width:100%;margin-bottom:1rem;">
+      <label>Message:</label>
+      <textarea bind:value={campaignBody} style="width:100%;height:120px;margin-bottom:1rem;"></textarea>
+      <button onclick={sendCampaign} style="margin-right:1rem;">Send Campaign</button>
+      <button onclick={closeCampaignModal} style="background:#eee;">Close</button>
+      {#if campaignMessage}
+        <div style="margin-top:1rem;color:green;">{campaignMessage}</div>
+      {/if}
+    </div>
+  </div>
+{/if}
+
+{#if showTemplatesModal}
+  <div class="modal-backdrop" style="position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.3);z-index:1000;display:flex;align-items:center;justify-content:center;">
+    <div class="modal-content" style="background:#fff;padding:2rem;border-radius:12px;min-width:350px;max-width:95vw;box-shadow:0 2px 16px rgba(0,0,0,0.15);">
+      <h2>Email Templates</h2>
+      <ul style="list-style:none;padding:0;">
+        <li style="margin-bottom:1rem;">
+          <button onclick={() => selectTemplate({subject:'Welcome to Abroaducate!',body:'Thank you for joining. Here are some tips to get started...'})}>Welcome Email</button>
+        </li>
+        <li style="margin-bottom:1rem;">
+          <button onclick={() => selectTemplate({subject:'Platform Update',body:'Check out our latest features and improvements.'})}>Platform Update</button>
+        </li>
+        <li style="margin-bottom:1rem;">
+          <button onclick={() => selectTemplate({subject:'Upgrade Offer',body:'Unlock premium features by upgrading your plan.'})}>Upgrade Offer</button>
+        </li>
+      </ul>
+      <button onclick={closeTemplatesModal} style="background:#eee;">Close</button>
+    </div>
+  </div>
+{/if}
+
+{#if showPromoModal}
+  <div class="modal-backdrop" style="position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.3);z-index:1000;display:flex;align-items:center;justify-content:center;">
+    <div class="modal-content" style="background:#fff;padding:2rem;border-radius:12px;min-width:350px;max-width:95vw;box-shadow:0 2px 16px rgba(0,0,0,0.15);">
+      <h2>Premium Promotion</h2>
+      <label>Subject:</label>
+      <input type="text" bind:value={promoSubject} style="width:100%;margin-bottom:1rem;">
+      <label>Message:</label>
+      <textarea bind:value={promoBody} style="width:100%;height:120px;margin-bottom:1rem;"></textarea>
+      <button onclick={sendPromo} style="margin-right:1rem;">Send Promotion</button>
+      <button onclick={closePromoModal} style="background:#eee;">Close</button>
+      {#if promoMessage}
+        <div style="margin-top:1rem;color:green;">{promoMessage}</div>
+      {/if}
+    </div>
+  </div>
+{/if}
 
   <!-- User List Management -->
   <div class="users-section">
@@ -258,6 +539,14 @@
       </div>
     </div>
     
+    <!-- Pagination controls above the user table -->
+    <div class="pagination-controls" style="margin-bottom: 1rem; display: flex; align-items: center; gap: 1rem;">
+      <button onclick={prevPage} disabled={currentPage === 1}>Previous</button>
+      <span>Page {currentPage} of {totalPages}</span>
+      <button onclick={nextPage} disabled={currentPage === totalPages}>Next</button>
+      <span>({totalUsers} users total)</span>
+    </div>
+    
     <!-- User Table -->
     <div class="user-table-container">
       {#if loading}
@@ -275,7 +564,7 @@
             </tr>
           </thead>
           <tbody>
-            {#each filteredUsers as user (user.id)}
+            {#each filteredUsers as user (user.user_id)}
               <tr>
                 <td>
                   <div class="user-info">
@@ -284,19 +573,19 @@
                   </div>
                 </td>
                 <td>
-                  <span class="status-badge {user.newsletter_subscribed ? 'subscribed' : 'unsubscribed'}">
-                    {user.newsletter_subscribed ? 'Subscribed' : 'Not Subscribed'}
+                  <span class="status-badge {isNewsletterSubscribed(user) ? 'subscribed' : 'unsubscribed'}">
+                    {isNewsletterSubscribed(user) ? 'Subscribed' : 'Not Subscribed'}
                   </span>
                 </td>
                 <td>
-                  <span class="plan-badge {getUserPlanType()}">
-                    {getUserPlanName()}
+                  <span class="plan-badge {getUserPlanType(user)}">
+                    {getUserPlanName(user)}
                   </span>
                 </td>
-                <td>{new Date(user.created_at).toLocaleDateString()}</td>
-                <td>{user.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleDateString() : 'N/A'}</td>
+                <td>{user.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}</td>
+                <td>{user.updated_at ? new Date(user.updated_at).toLocaleDateString() : 'N/A'}</td>
                 <td>
-                  <button class="action-btn small" onclick={() => showMessage('User management actions available after deployment', 'info')}>
+                  <button class="action-btn small" onclick={() => openUserModal(user)}>
                     Manage
                   </button>
                 </td>

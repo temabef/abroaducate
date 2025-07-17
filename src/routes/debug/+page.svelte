@@ -2,6 +2,7 @@
     import { onMount } from 'svelte';
     import { loadStateFromSessionStorage, pendingGeneration } from '$lib/stores';
     import { get } from 'svelte/store';
+    import { analytics } from '$lib/utils/posthog';
     
     export let data;
     let { session, supabase } = data;
@@ -19,36 +20,37 @@
         pendingGeneration.set(false);
         location.reload();
     }
+
+    function testPostHog() {
+      analytics.trackEvent('test_event', {
+        test_property: 'test_value',
+        timestamp: new Date().toISOString()
+      });
+      alert('Test event sent to PostHog! Check your dashboard.');
+    }
 </script>
 
-<div class="debug-container">
-    <h1>Debug Information</h1>
+<svelte:head>
+  <title>Debug - Abroaducate</title>
+</svelte:head>
+
+<div class="min-h-screen bg-gray-50 py-20">
+  <div class="max-w-4xl mx-auto px-4">
+    <h1 class="text-3xl font-bold text-gray-900 mb-8">Debug Page</h1>
     
-    <div class="debug-section">
-        <h2>Session Status</h2>
-        <p><strong>Logged in:</strong> {session ? 'Yes' : 'No'}</p>
-        {#if session}
-            <p><strong>User ID:</strong> {session.user.id}</p>
-            <p><strong>Email:</strong> {session.user.email}</p>
-        {/if}
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+      <h2 class="text-xl font-semibold mb-4">PostHog Analytics Test</h2>
+      <button 
+        on:click={testPostHog}
+        class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+      >
+        Send Test Event to PostHog
+      </button>
+      <p class="text-sm text-gray-600 mt-2">
+        Click this button to manually send a test event to PostHog for verification.
+      </p>
     </div>
-    
-    <div class="debug-section">
-        <h2>Form State</h2>
-        <p><strong>Has form data:</strong> {Object.keys(formData).length > 0 ? 'Yes' : 'No'}</p>
-        <p><strong>Pending generation:</strong> {isPending ? 'Yes' : 'No'}</p>
-        {#if Object.keys(formData).length > 0}
-            <details>
-                <summary>Show form data</summary>
-                <pre>{JSON.stringify(formData, null, 2)}</pre>
-            </details>
-        {/if}
-    </div>
-    
-    <div class="debug-section">
-        <h2>Actions</h2>
-        <button on:click={clearStorage}>Clear All Storage</button>
-    </div>
+  </div>
 </div>
 
 <style>

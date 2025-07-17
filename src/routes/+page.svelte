@@ -7,6 +7,7 @@
   
   let showAuthModal = $state(false);
   let openFAQ = $state<number | null>(1); // First FAQ open by default
+  let pendingDashboardRedirect = $state(false);
 
   function toggleFAQ(index: number) {
     openFAQ = openFAQ === index ? null : index;
@@ -20,6 +21,22 @@
   
   function showSignup() {
     showAuthModal = true;
+  }
+
+  function handleManageApplications() {
+    if (session) {
+      goto('/dashboard');
+    } else {
+      pendingDashboardRedirect = true;
+      showAuthModal = true;
+    }
+  }
+
+  function handleAuthSuccess() {
+    if (pendingDashboardRedirect) {
+      pendingDashboardRedirect = false;
+      goto('/dashboard');
+    }
   }
 </script>
 
@@ -394,9 +411,12 @@
               <p class="text-sm text-gray-600">Automated reminders & notifications</p>
             </div>
           </div>
-          <a href="/dashboard" class="bg-purple-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-purple-700 transition duration-300 inline-block">
+          <button
+            class="bg-purple-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-purple-700 transition duration-300 inline-block"
+            onclick={handleManageApplications}
+          >
             Manage Applications →
-          </a>
+          </button>
         </div>
 
         <!-- Stage 5: Next Steps -->
@@ -770,7 +790,7 @@
             <li><a href="/sop" class="hover:text-white transition duration-300">SOP Generator</a></li>    
             <li><a href="/universities" class="hover:text-white transition duration-300">University Search</a></li>
             <li><a href="/scholarships" class="hover:text-white transition duration-300">Scholarships</a></li>
-            <li><a href="/practice/ielts/reading" class="hover:text-white transition duration-300">IELTS Practice</a></li>
+            <li><a href="/test-prep" class="hover:text-white transition duration-300">Test Prep</a></li>
             <li><a href="/academic-cv" class="hover:text-white transition duration-300">Academic CV</a></li>
             <li class="text-gray-500 text-sm italic">... and more</li>
           </ul>
@@ -783,7 +803,12 @@
             <li><a href="/visa-interview-practice" class="hover:text-white transition duration-300">Visa Interview</a></li>
             <li><a href="/pricing" class="hover:text-white transition duration-300">Pricing</a></li>
             <li><a href="/contact" class="hover:text-white transition duration-300">Contact Support</a></li>
-            <li><a href="/dashboard" class="hover:text-white transition duration-300">Dashboard</a></li>
+            <li><button 
+  class="hover:text-white transition duration-300 bg-transparent border-none p-0 cursor-pointer" 
+  onclick={handleManageApplications}
+>
+  Dashboard
+</button></li>
           </ul>
         </div>
         

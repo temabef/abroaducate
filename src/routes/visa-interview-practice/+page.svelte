@@ -1,8 +1,17 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import VisaInterviewPractice from '$lib/components/VisaInterviewPractice.svelte';
+	import { analytics } from '$lib/utils/posthog';
 
 	let { data } = $props();
 	let { session, supabase } = $derived(data);
+
+	onMount(() => {
+		// Track visa interview practice page view
+		analytics.trackPageView('Visa Interview Practice', {
+			user_id: session?.user?.id
+		});
+	});
 </script>
 
 <svelte:head>

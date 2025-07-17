@@ -13,9 +13,9 @@ jobs:
     steps:
       - name: Send Email Reminders
         run: |
-          curl -X POST "${{ secrets.APP_URL }}/api/cron/send-reminders" \
+          curl -X POST "https://abroaducate.com/api/cron/send-reminders" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
-            -H "Content-Type: application/json"
+            -H "Content-Type: application/json" \
+            --max-time 300
         env:
-          APP_URL: ${{ secrets.APP_URL }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }} 

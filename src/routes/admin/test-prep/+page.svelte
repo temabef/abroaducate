@@ -3,6 +3,13 @@
   import { supabase } from '$lib/supabaseClient';
   import { PlusCircle, Edit, Trash2, BookOpen, Volume2, PenTool, Mic } from 'lucide-svelte';
 
+  const sectionIcons = {
+    reading: BookOpen,
+    listening: Volume2,
+    writing: PenTool,
+    speaking: Mic
+  };
+
   let { data } = $props();
   let { session } = $derived(data);
   

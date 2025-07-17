@@ -4,6 +4,7 @@
     import { formStore, loadStateFromSessionStorage, saveStateToSessionStorage, pendingGeneration } from '$lib/stores';
     import { browser } from '$app/environment';
     import { goto } from '$app/navigation';
+    import { analytics } from '$lib/utils/posthog';
 
     import Step1 from './form/Step1_University.svelte';
     import Step2 from './form/Step2_Academics.svelte';
@@ -161,9 +162,18 @@
             return;
         }
         
-        // Save final state and set pending generation flag
+        // Track SOP form submission
         const currentState = get(formStore);
+        analytics.trackFormSubmission('SOP Generation', {
+            university: currentState.universityData.university,
+            program: currentState.universityData.program,
+            country: currentState.universityData.country,
+            has_work_experience: currentState.showWorkExperienceForm,
+            has_organizations: currentState.showOrganizationsForm,
+            has_community_service: currentState.showCommunityServiceForm
+        });
         
+        // Save final state and set pending generation flag
         saveStateToSessionStorage(currentState);
         pendingGeneration.set(true);
         

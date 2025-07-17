@@ -1,8 +1,182 @@
 {
+  "redirects": [
+    // Old WordPress scholarship redirects
+    {
+      "source": "/scholarship/:slug",
+      "destination": "/scholarships/:slug",
+      "permanent": true
+    },
+    {
+      "source": "/scholarships/:slug",
+      "destination": "/scholarships/:slug",
+      "permanent": true
+    },
+    {
+      "source": "/category/scholarships/:slug",
+      "destination": "/scholarships/:slug",
+      "permanent": true
+    },
+    
+    // Old blog post redirects
+    {
+      "source": "/:year/:month/:day/:slug",
+      "destination": "/blog/:slug",
+      "permanent": true
+    },
+    {
+      "source": "/blog/:slug",
+      "destination": "/blog/:slug",
+      "permanent": true
+    },
+    
+    // Old page redirects
+    {
+      "source": "/about-us",
+      "destination": "/about",
+      "permanent": true
+    },
+    {
+      "source": "/contact-us",
+      "destination": "/contact",
+      "permanent": true
+    },
+    {
+      "source": "/privacy-policy",
+      "destination": "/privacy",
+      "permanent": true
+    },
+    {
+      "source": "/terms-of-service",
+      "destination": "/terms",
+      "permanent": true
+    },
+    
+    // Old tool redirects
+    {
+      "source": "/tools/gpa-converter",
+      "destination": "/gpa-converter",
+      "permanent": true
+    },
+    {
+      "source": "/tools/word-optimization",
+      "destination": "/word-optimization",
+      "permanent": true
+    },
+    
+    // Old application tool redirects
+    {
+      "source": "/statement-of-purpose",
+      "destination": "/sop",
+      "permanent": true
+    },
+    {
+      "source": "/cover-letter",
+      "destination": "/cover-letters",
+      "permanent": true
+    },
+    {
+      "source": "/personal-statement",
+      "destination": "/personal-statements",
+      "permanent": true
+    },
+    {
+      "source": "/academic-cv",
+      "destination": "/academic-cv",
+      "permanent": true
+    },
+    
+    // Old practice tool redirects
+    {
+      "source": "/ielts-practice",
+      "destination": "/practice/ielts",
+      "permanent": true
+    },
+    {
+      "source": "/visa-practice",
+      "destination": "/visa-interview-practice",
+      "permanent": true
+    },
+    
+    // Old university redirects
+    {
+      "source": "/universities/:slug",
+      "destination": "/universities/:slug",
+      "permanent": true
+    },
+    {
+      "source": "/university/:slug",
+      "destination": "/universities/:slug",
+      "permanent": true
+    },
+    
+    // Old admin redirects
+    {
+      "source": "/wp-admin",
+      "destination": "/admin",
+      "permanent": true
+    },
+    {
+      "source": "/admin/:path*",
+      "destination": "/admin/:path*",
+      "permanent": true
+    },
+    
+    // Old API redirects
+    {
+      "source": "/wp-json/:path*",
+      "destination": "/api/:path*",
+      "permanent": true
+    },
+    
+    // Old feed redirects
+    {
+      "source": "/feed",
+      "destination": "/rss.xml",
+      "permanent": true
+    },
+    {
+      "source": "/rss",
+      "destination": "/rss.xml",
+      "permanent": true
+    },
+    
+    // Old sitemap redirects
+    {
+      "source": "/sitemap.xml",
+      "destination": "/sitemap.xml",
+      "permanent": true
+    },
+    {
+      "source": "/sitemap_index.xml",
+      "destination": "/sitemap.xml",
+      "permanent": true
+    }
+  ],
+  
   "crons": [
     {
       "path": "/api/cron/send-reminders",
       "schedule": "0 9 * * *"
+    }
+  ],
+  
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        }
+      ]
     }
   ]
 } 

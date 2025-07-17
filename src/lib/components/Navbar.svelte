@@ -1,5 +1,6 @@
 <script lang="ts">
   import { page } from '$app/stores';
+  import { goto } from '$app/navigation';
   import AuthenticationFlow from './AuthenticationFlow.svelte';
   
   let { data } = $props<{ data: { session: any; supabase: any } }>();
@@ -14,6 +15,7 @@
   let mobileMenuOpen = $state(false);
   let showAuthModal = $state(false);
   let authMode = $state<'login' | 'signup'>('login');
+  let pendingApplicationsRedirect = $state(false);
 
   function showLogin() {
     authMode = 'login';
@@ -31,6 +33,23 @@
     await supabase.auth.signOut();
   }
 
+  function handleApplicationsNav() {
+    if (session) {
+      goto('/applications');
+    } else {
+      pendingApplicationsRedirect = true;
+      authMode = 'login';
+      showAuthModal = true;
+    }
+  }
+
+  function handleAuthSuccess() {
+    if (pendingApplicationsRedirect) {
+      pendingApplicationsRedirect = false;
+      goto('/applications');
+    }
+  }
+
   // Close dropdowns when clicking outside
   function closeAllDropdowns() {
     startJourneyDropdownOpen = false;
@@ -38,6 +57,17 @@
     findFundingDropdownOpen = false;
     submitAppsDropdownOpen = false;
     nextStepsDropdownOpen = false;
+  }
+
+  // Close mobile menu when navigation item is clicked
+  function closeMobileMenu() {
+    mobileMenuOpen = false;
+  }
+
+  // Navigation wrapper functions that close mobile menu
+  function navigateTo(path: string) {
+    closeMobileMenu();
+    window.location.href = path;
   }
 </script>
 
@@ -216,13 +246,13 @@
                 <div class="text-sm text-gray-500">Integrated funding opportunities</div>
               </div>
             </a>
-            <a href="/scholarships/my-applications" class="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition duration-200">
+            <button class="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition duration-200 bg-transparent border-none w-full text-left" onclick={handleApplicationsNav}>
               <span class="text-lg mr-3">📊</span>
               <div>
                                   <div class="font-medium">Saved Scholarships</div>
                 <div class="text-sm text-gray-500">Track funding applications</div>
               </div>
-            </a>
+            </button>
           </div>
         {/if}
       </div>
@@ -255,13 +285,13 @@
                 <div class="text-sm text-gray-500">Overview of all applications</div>
               </div>
             </a>
-            <a href="/applications" class="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition duration-200">
+            <button class="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition duration-200 bg-transparent border-none w-full text-left" onclick={handleApplicationsNav}>
               <span class="text-lg mr-3">📋</span>
               <div>
                 <div class="font-medium">Application Tracker</div>
                 <div class="text-sm text-gray-500">Track status & deadlines</div>
               </div>
-            </a>
+            </button>
 
             <a href="/sop-review" class="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition duration-200">
               <span class="text-lg mr-3">🔍</span>
@@ -377,10 +407,10 @@
             </svg>
           </summary>
           <div class="pl-4 space-y-1">
-            <a href="/academic-analyzer" class="block py-2 text-gray-300 hover:text-white transition duration-300">Academic Profile Analyzer</a>
-            <a href="/gpa-converter" class="block py-2 text-gray-300 hover:text-white transition duration-300">GPA Converter</a>
-            <a href="/universities" class="block py-2 text-gray-300 hover:text-white transition duration-300">University Matching</a>
-            <a href="/test-prep" class="block py-2 text-gray-300 hover:text-white transition duration-300">Test Prep</a>
+            <button onclick={() => navigateTo('/academic-analyzer')} class="block w-full text-left py-2 text-gray-300 hover:text-white transition duration-300 bg-transparent border-none">Academic Profile Analyzer</button>
+            <button onclick={() => navigateTo('/gpa-converter')} class="block w-full text-left py-2 text-gray-300 hover:text-white transition duration-300 bg-transparent border-none">GPA Converter</button>
+            <button onclick={() => navigateTo('/universities')} class="block w-full text-left py-2 text-gray-300 hover:text-white transition duration-300 bg-transparent border-none">University Matching</button>
+            <button onclick={() => navigateTo('/test-prep')} class="block w-full text-left py-2 text-gray-300 hover:text-white transition duration-300 bg-transparent border-none">Test Prep</button>
           </div>
         </details>
 
@@ -393,12 +423,12 @@
             </svg>
           </summary>
           <div class="pl-4 space-y-1">
-            <a href="/sop" class="block py-2 text-gray-300 hover:text-white transition duration-300">Statement of Purpose</a>
-            <a href="/cover-letters" class="block py-2 text-gray-300 hover:text-white transition duration-300">Cover Letters</a>
-            <a href="/personal-statements" class="block py-2 text-gray-300 hover:text-white transition duration-300">Personal Statements</a>
-            <a href="/academic-cv" class="block py-2 text-gray-300 hover:text-white transition duration-300">Academic CV</a>
-            <a href="/sop-review" class="block py-2 text-gray-300 hover:text-white transition duration-300">Document Review</a>
-            <a href="/ai-features-demo" class="block py-2 text-blue-300 hover:text-white transition duration-300">AI Tools Hub</a>
+            <button onclick={() => navigateTo('/sop')} class="block w-full text-left py-2 text-gray-300 hover:text-white transition duration-300 bg-transparent border-none">Statement of Purpose</button>
+            <button onclick={() => navigateTo('/cover-letters')} class="block w-full text-left py-2 text-gray-300 hover:text-white transition duration-300 bg-transparent border-none">Cover Letters</button>
+            <button onclick={() => navigateTo('/personal-statements')} class="block w-full text-left py-2 text-gray-300 hover:text-white transition duration-300 bg-transparent border-none">Personal Statements</button>
+            <button onclick={() => navigateTo('/academic-cv')} class="block w-full text-left py-2 text-gray-300 hover:text-white transition duration-300 bg-transparent border-none">Academic CV</button>
+            <button onclick={() => navigateTo('/sop-review')} class="block w-full text-left py-2 text-gray-300 hover:text-white transition duration-300 bg-transparent border-none">Document Review</button>
+            <button onclick={() => navigateTo('/ai-features-demo')} class="block w-full text-left py-2 text-blue-300 hover:text-white transition duration-300 bg-transparent border-none">AI Tools Hub</button>
           </div>
         </details>
 
@@ -411,9 +441,11 @@
             </svg>
           </summary>
           <div class="pl-4 space-y-1">
-            <a href="/scholarships" class="block py-2 text-gray-300 hover:text-white transition duration-300">Browse Scholarships</a>
-            <a href="/universities" class="block py-2 text-gray-300 hover:text-white transition duration-300">University + Scholarship Pairing</a>
-            <a href="/scholarships/my-applications" class="block py-2 text-gray-300 hover:text-white transition duration-300">My Applications</a>
+            <button onclick={() => navigateTo('/scholarships')} class="block w-full text-left py-2 text-gray-300 hover:text-white transition duration-300 bg-transparent border-none">Browse Scholarships</button>
+            <button onclick={() => navigateTo('/universities')} class="block w-full text-left py-2 text-gray-300 hover:text-white transition duration-300 bg-transparent border-none">University + Scholarship Pairing</button>
+            <button class="block py-2 text-gray-300 hover:text-white transition duration-300 bg-transparent border-none w-full text-left" onclick={() => { closeMobileMenu(); handleApplicationsNav(); }}>
+              My Applications
+            </button>
           </div>
         </details>
 
@@ -426,11 +458,13 @@
             </svg>
           </summary>
           <div class="pl-4 space-y-1">
-            <a href="/dashboard" class="block py-2 text-gray-300 hover:text-white transition duration-300">Dashboard</a>
-            <a href="/applications" class="block py-2 text-gray-300 hover:text-white transition duration-300">Application Tracker</a>
+            <button onclick={() => navigateTo('/dashboard')} class="block w-full text-left py-2 text-gray-300 hover:text-white transition duration-300 bg-transparent border-none">Dashboard</button>
+            <button class="block py-2 text-gray-300 hover:text-white transition duration-300 bg-transparent border-none w-full text-left" onclick={() => { closeMobileMenu(); handleApplicationsNav(); }}>
+              Application Tracker
+            </button>
 
-            <a href="/sop-review" class="block py-2 text-gray-300 hover:text-white transition duration-300">Document Review</a>
-            <a href="/cold-email-generator" class="block py-2 text-gray-300 hover:text-white transition duration-300">Cold Email Generator</a>
+            <button onclick={() => navigateTo('/sop-review')} class="block w-full text-left py-2 text-gray-300 hover:text-white transition duration-300 bg-transparent border-none">Document Review</button>
+            <button onclick={() => navigateTo('/cold-email-generator')} class="block w-full text-left py-2 text-gray-300 hover:text-white transition duration-300 bg-transparent border-none">Cold Email Generator</button>
           </div>
         </details>
 
@@ -443,8 +477,8 @@
             </svg>
           </summary>
           <div class="pl-4 space-y-1">
-            <a href="/document-checklists" class="block py-2 text-gray-300 hover:text-white transition duration-300">Document Checklists</a>
-            <a href="/visa-interview-practice" class="block py-2 text-gray-300 hover:text-white transition duration-300">Visa Interview Practice</a>
+            <button onclick={() => navigateTo('/document-checklists')} class="block w-full text-left py-2 text-gray-300 hover:text-white transition duration-300 bg-transparent border-none">Document Checklists</button>
+            <button onclick={() => navigateTo('/visa-interview-practice')} class="block w-full text-left py-2 text-gray-300 hover:text-white transition duration-300 bg-transparent border-none">Visa Interview Practice</button>
 
           </div>
         </details>
@@ -452,23 +486,23 @@
         <!-- Mobile Auth Buttons -->
         {#if session}
           <div class="pt-2 border-t border-gray-700 space-y-2">
-            <a href="/dashboard" class="block w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition duration-300 text-center">
+            <button onclick={() => navigateTo('/dashboard')} class="block w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition duration-300 text-center">
               Dashboard
-            </a>
-            <a href="/account" class="block w-full px-4 py-2 text-sm font-medium text-white bg-transparent border border-white rounded-md hover:bg-white hover:text-[#0A192F] transition duration-300 text-center">
+            </button>
+            <button onclick={() => navigateTo('/account')} class="block w-full px-4 py-2 text-sm font-medium text-white bg-transparent border border-white rounded-md hover:bg-white hover:text-[#0A192F] transition duration-300 text-center">
               Account
-            </a>
+            </button>
           </div>
         {:else}
           <div class="pt-2 border-t border-gray-700 space-y-2">
             <button 
-              onclick={showLogin}
+              onclick={() => { closeMobileMenu(); showLogin(); }}
               class="block w-full px-4 py-2 text-sm font-medium text-white bg-transparent border border-white rounded-md hover:bg-white hover:text-[#0A192F] transition duration-300 text-center"
             >
               Login
             </button>
             <button 
-              onclick={showSignup}
+              onclick={() => { closeMobileMenu(); showSignup(); }}
               class="block w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition duration-300 text-center"
             >
               Create Account
@@ -485,6 +519,6 @@
   bind:show={showAuthModal} 
   {supabase} 
   mode={authMode} 
-  returnUrl={$page.url.pathname}
-/> 
+  returnUrl={pendingApplicationsRedirect ? '/applications' : $page.url.pathname}
+  on:success={handleAuthSuccess}
 /> 

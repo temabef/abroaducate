@@ -1,8 +1,17 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import FormSection from '$lib/components/FormSection.svelte';
+  import { analytics } from '$lib/utils/posthog';
   
   let { data } = $props();
   let { session, supabase } = $derived(data);
+
+  onMount(() => {
+    // Track SOP page view
+    analytics.trackPageView('SOP Generator', {
+      user_id: session?.user?.id
+    });
+  });
 </script>
 
 <svelte:head>

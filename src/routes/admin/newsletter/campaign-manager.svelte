@@ -59,6 +59,12 @@
     summary: {}
   };
 
+  let showTestModal = false;
+  let testEmail = '';
+  let testCampaignId = '';
+  let testMessage = '';
+  let testLoading = false;
+
   onMount(async () => {
     await loadDashboardData();
     await loadTemplates();
@@ -218,6 +224,48 @@
   }
 
   $: totalTargetedSubscribers = getSelectedSegmentInfo().reduce((sum, seg) => sum + (seg.active_count || 0), 0);
+
+  function openTestModal(campaignId) {
+    testCampaignId = campaignId;
+    testEmail = '';
+    testMessage = '';
+    showTestModal = true;
+  }
+  function closeTestModal() {
+    showTestModal = false;
+    testCampaignId = '';
+    testEmail = '';
+    testMessage = '';
+  }
+  async function sendTestEmail() {
+    if (!testEmail.trim()) {
+      testMessage = 'Please enter a valid email address.';
+      return;
+    }
+    testLoading = true;
+    testMessage = '';
+    try {
+      const response = await fetch('/api/newsletter/campaigns/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          campaign_id: testCampaignId,
+          send_immediately: true,
+          test_email: testEmail.trim()
+        })
+      });
+      const data = await response.json();
+      if (response.ok && data.success) {
+        testMessage = `✅ Test email sent to ${testEmail}`;
+      } else {
+        testMessage = data.error || 'Failed to send test email.';
+      }
+    } catch (e) {
+      testMessage = 'Error sending test email.';
+    } finally {
+      testLoading = false;
+    }
+  }
 </script>
 
 <svelte:head>
@@ -408,6 +456,14 @@
                   disabled={loading}
                 >
                   Send Now
+                </button>
+                <button
+                  class="send-btn small"
+                  style="margin-left: 0.5rem;"
+                  on:click={() => openTestModal(campaign.id)}
+                  disabled={loading}
+                >
+                  Send Test
                 </button>
               {:else if campaign.status === 'scheduled'}
                 <span class="text-yellow-600">⏰ Scheduled</span>
