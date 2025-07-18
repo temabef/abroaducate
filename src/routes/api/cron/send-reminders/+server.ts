@@ -13,10 +13,11 @@ const fromEmail = FROM_EMAIL || 'hello@abroaducate.com';
 const from = `${fromName} <${fromEmail}>`;
 
 // SendGrid email sending function
-async function sendEmailViaSendGrid(to: string, subject: string, htmlContent: string, textContent: string): Promise<boolean> {
+async function sendEmailViaSendGrid(to: string, subject: string, htmlContent: string, textContent: string): Promise<{ success: boolean, error?: string }> {
   if (!SENDGRID_API_KEY) {
-    console.error('❌ SendGrid API key not configured');
-    return false;
+    const errMsg = '❌ SendGrid API key not configured';
+    console.error(errMsg);
+    return { success: false, error: errMsg };
   }
 
   try {
@@ -39,22 +40,25 @@ async function sendEmailViaSendGrid(to: string, subject: string, htmlContent: st
 
     if (response.ok) {
       console.log(`✅ Email sent successfully to ${to}: ${subject}`);
-      return true;
+      return { success: true };
     } else {
       const errorText = await response.text();
       console.error(`❌ SendGrid error for ${to}:`, errorText);
-      return false;
+      return { success: false, error: errorText };
     }
   } catch (error) {
     console.error(`❌ Error sending email to ${to}:`, error);
-    return false;
+    return { success: false, error: String(error) };
   }
 }
 
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    // Verify cron authorization
+    // Debug logging for troubleshooting
     const authHeader = request.headers.get('authorization');
+    console.log('DEBUG: Received Authorization header:', authHeader);
+    console.log('DEBUG: Server CRON_SECRET:', CRON_SECRET);
+    // Verify cron authorization
     if (authHeader !== `Bearer ${CRON_SECRET}`) {
       console.error('❌ Unauthorized cron request');
       return json({ error: 'Unauthorized' }, { status: 401 });
@@ -372,7 +376,8 @@ async function sendScholarshipDigest(email: string, userId: string | null, sourc
     const textContent = generateScholarshipDigestText(scholarships, source);
     
     // Send email via SendGrid
-    const emailSent = await sendEmailViaSendGrid(email, subject, htmlContent, textContent);
+    const sendResult = await sendEmailViaSendGrid(email, subject, htmlContent, textContent);
+    const emailSent = sendResult.success;
     
     // Log email activity
     try {
@@ -386,7 +391,7 @@ async function sendScholarshipDigest(email: string, userId: string | null, sourc
             recipient: email,
             subject: subject,
             status: emailSent ? 'sent' : 'failed',
-            content_summary: `${scholarships.length} new scholarships`,
+            content_summary: emailSent ? `${scholarships.length} new scholarships` : (sendResult.error || 'Unknown error'),
             sent_at: new Date().toISOString()
           });
       } else {
@@ -398,6 +403,7 @@ async function sendScholarshipDigest(email: string, userId: string | null, sourc
             subject_line: subject,
             email_type: 'scholarship_digest',
             status: emailSent ? 'sent' : 'failed',
+            content_summary: emailSent ? `${scholarships.length} new scholarships` : (sendResult.error || 'Unknown error'),
             sent_at: new Date().toISOString()
           });
       }
@@ -447,7 +453,8 @@ async function sendApplicationReminders(email: string, userId: string, instantAl
         const textContent = generateApplicationReminderText(app, daysUntil, urgency);
         
         // Send email via SendGrid
-        const emailSent = await sendEmailViaSendGrid(email, subject, htmlContent, textContent);
+        const sendResult = await sendEmailViaSendGrid(email, subject, htmlContent, textContent);
+        const emailSent = sendResult.success;
         
         // Log email activity
         if (emailSent) {
@@ -490,7 +497,8 @@ async function sendSubscriptionAlert(email: string, userId: string, planType: st
     const textContent = generateSubscriptionAlertText(planType, daysUntilExpiry);
     
     // Send email via SendGrid
-    const emailSent = await sendEmailViaSendGrid(email, subject, htmlContent, textContent);
+    const sendResult = await sendEmailViaSendGrid(email, subject, htmlContent, textContent);
+    const emailSent = sendResult.success;
     
     // Log email activity
     try {
