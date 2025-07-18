@@ -56,7 +56,9 @@ export const POST: RequestHandler = async ({ request }) => {
   try {
     // Debug logging for troubleshooting
     const authHeader = request.headers.get('authorization');
+    const testHeader = request.headers.get('x-test-header');
     console.log('DEBUG: Received Authorization header:', authHeader);
+    console.log('DEBUG: X-Test-Header:', testHeader);
     console.log('DEBUG: Server CRON_SECRET:', CRON_SECRET);
     // Verify cron authorization
     if (authHeader !== `Bearer ${CRON_SECRET}`) {
