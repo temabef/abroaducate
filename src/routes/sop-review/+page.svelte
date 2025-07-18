@@ -143,22 +143,22 @@
         
         <!-- Quick Actions -->
         <div class="mt-8 text-center">
-            <div class="inline-flex gap-4">
+            <div class="flex flex-col sm:inline-flex gap-4 w-full items-center">
                 <a 
                     href="/sop-generator" 
-                    class="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all font-medium"
+                    class="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all font-medium w-full sm:w-auto"
                 >
                     📝 Generate New SOP
                 </a>
                 <a 
                     href="/applications" 
-                    class="px-6 py-3 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all font-medium"
+                    class="px-6 py-3 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all font-medium w-full sm:w-auto"
                 >
                     📋 My Applications
                 </a>
                 <a 
                     href="/dashboard" 
-                    class="px-6 py-3 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all font-medium"
+                    class="px-6 py-3 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all font-medium w-full sm:w-auto"
                 >
                     🏠 Dashboard
                 </a>

@@ -22,13 +22,13 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
             return json({ error: 'Question ID is required' }, { status: 400 });
         }
 
-        // Check usage limits using new comprehensive system - using text_enhancements for visa practice
-        const usageCheck = await checkComprehensiveUsageLimit(session.user.id, 'text_enhancements');
+        // Check usage limits using new comprehensive system - use visa_interview_questions for visa practice
+        const usageCheck = await checkComprehensiveUsageLimit(session.user.id, 'visa_interview_questions');
         
         if (!usageCheck.allowed) {
             return json({
                 error: 'Usage limit exceeded',
-                message: usageCheck.message,
+                message: usageCheck.message || 'You have reached your monthly limit for visa interview practice questions.',
                 planType: usageCheck.planType,
                 currentUsage: usageCheck.currentUsage,
                 limit: usageCheck.limit,
@@ -67,7 +67,7 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
         }
 
         // Increment usage counter
-        await incrementComprehensiveUsage(session.user.id, 'text_enhancements');
+        await incrementComprehensiveUsage(session.user.id, 'visa_interview_questions');
 
         return json({
             success: true,

@@ -763,6 +763,32 @@
                 </div>
               </div>
             </div>
+            <!-- Quick Actions: Top of main editor, mobile-friendly -->
+            <div class="flex flex-col sm:flex-row gap-2 w-full mt-4">
+              <button
+                onclick={() => goto('/dashboard')}
+                class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm font-medium w-full sm:w-auto"
+              >
+                📋 Back to Dashboard
+              </button>
+              <button
+                onclick={copyToClipboard}
+                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium w-full sm:w-auto"
+              >
+                📎 Copy Cover Letter
+              </button>
+              <button
+                onclick={exportToWord}
+                disabled={exporting}
+                class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium disabled:opacity-50 w-full sm:w-auto"
+              >
+                {#if exporting}
+                  ⏳ Generating Word...
+                {:else}
+                  📝 Export as Word
+                {/if}
+              </button>
+            </div>
           </div>
           
           <!-- Rich Text Editor -->

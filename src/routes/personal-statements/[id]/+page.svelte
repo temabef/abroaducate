@@ -715,45 +715,41 @@
     
     <!-- Header -->
     <div class="bg-white rounded-lg shadow-sm border p-6 mb-6">
-      <div class="flex justify-between items-start">
-        <div>
-          <h1 class="text-2xl font-bold text-gray-900 mb-2">{title}</h1>
-          <div class="flex items-center gap-4 text-sm text-gray-600">
-            <span>📊 {wordCount} words</span>
-            <span>📝 {characterCount} characters</span>
-            <span>📋 {personalStatement.application_type.replace('_', ' ').toUpperCase()}</span>
-            {#if saving}
-              <span class="text-blue-600 flex items-center gap-1">
-                <div class="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
-                Auto-saving...
-              </span>
-            {:else if hasUnsavedChanges && !saving}
-              <span class="text-orange-600">⚠️ Unsaved changes</span>
-            {:else if lastSaved}
-              <span class="text-green-600">✅ Auto-saved {lastSaved.toLocaleTimeString()}</span>
-            {/if}
-          </div>
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900 mb-2">{title}</h1>
+        <div class="flex items-center gap-4 text-sm text-gray-600 mb-4">
+          <span>📊 {wordCount} words</span>
+          <span>📝 {characterCount} characters</span>
+          <span>📋 {personalStatement.application_type.replace('_', ' ').toUpperCase()}</span>
+          {#if saving}
+            <span class="text-blue-600 flex items-center gap-1">
+              <div class="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
+              Auto-saving...
+            </span>
+          {:else if hasUnsavedChanges && !saving}
+            <span class="text-orange-600">⚠️ Unsaved changes</span>
+          {:else if lastSaved}
+            <span class="text-green-600">✅ Auto-saved {lastSaved.toLocaleTimeString()}</span>
+          {/if}
         </div>
-        
-        <div class="flex gap-2">
+        <!-- Action Buttons: Now inside main content, stacked on mobile -->
+        <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto mt-4">
           <button
             onclick={() => goto('/dashboard')}
-            class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm font-medium"
+            class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm font-medium w-full sm:w-auto"
           >
             📋 Back to Dashboard
           </button>
           <button
             onclick={copyToClipboard}
-            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium w-full sm:w-auto"
           >
             📎 Copy Personal Statement
           </button>
-          
-          <!-- Export Button -->
           <button
             onclick={exportToWord}
             disabled={exporting}
-            class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium disabled:opacity-50"
+            class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium disabled:opacity-50 w-full sm:w-auto"
           >
             {#if exporting}
               ⏳ Generating Word...
@@ -763,7 +759,6 @@
           </button>
         </div>
       </div>
-      
       <!-- Version History Indicator -->
       <VersionHistoryIndicator
         currentVersionCount={versions.length}

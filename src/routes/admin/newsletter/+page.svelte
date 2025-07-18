@@ -12,6 +12,7 @@
   let composerPreview = $state(false);
   let composerLoading = $state(false);
   let composerTestMessage = $state('');
+  let composerBatchSize = $state(100);
 
   // Analytics state
   let totalSubscribers = $state(0);
@@ -157,7 +158,8 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           subject: composerSubject,
-          html: composerHtml
+          html: composerHtml,
+          batch_size: composerBatchSize
         })
       });
       const data = await response.json();
@@ -193,7 +195,8 @@
         body: JSON.stringify({
           subject: composerSubject,
           html: composerHtml,
-          campaign_id: campaignId
+          campaign_id: campaignId,
+          batch_size: composerBatchSize
         })
       });
       const data = await response.json();
@@ -319,6 +322,8 @@
     <textarea bind:value={composerHtml} style="width:100%;height:180px;margin-bottom:1rem;font-family:monospace;font-size:1rem;" placeholder="Paste your HTML here..."></textarea>
     <label>Test Email Address:</label>
     <input type="email" bind:value={composerTestEmail} style="width:100%;margin-bottom:1rem;" placeholder="your@email.com" />
+    <label>Batch Size:</label>
+    <input type="number" min="1" max="1000" bind:value={composerBatchSize} style="width:120px;margin-bottom:1rem;" placeholder="Batch size" />
     <div style="margin-bottom:1rem;">
       <button on:click={sendTestEmail} disabled={composerLoading || sendingBatch} style="margin-right:1rem;">{composerLoading ? 'Sending...' : 'Send Test'}</button>
       <button on:click={() => composerPreview = !composerPreview} disabled={sendingBatch} style="margin-right:1rem;">{composerPreview ? 'Hide Preview' : 'Show Preview'}</button>

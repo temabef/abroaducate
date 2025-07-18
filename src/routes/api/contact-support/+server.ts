@@ -101,7 +101,7 @@ Reply directly to this email to respond to the user.
     /*
     await emailService.send({
       to: 'support@abroaducate.com',
-      from: 'noreply@abroaducate.com',
+      from: 'hello@abroaducate.com',
       replyTo: email,
       subject: emailSubject,
       text: emailBody
@@ -138,7 +138,7 @@ support@abroaducate.com
     /*
     await emailService.send({
       to: email,
-      from: 'support@abroaducate.com',
+      from: 'hello@abroaducate.com',
       subject: autoReplySubject,
       text: autoReplyBody
     });

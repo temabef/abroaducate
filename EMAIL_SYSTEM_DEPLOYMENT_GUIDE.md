@@ -73,7 +73,7 @@ SENDGRID_API_KEY=your_sendgrid_key_here
 RESEND_API_KEY=your_resend_key_here
 
 # Email Configuration
-FROM_EMAIL=noreply@abroaducate.com
+FROM_EMAIL=hello@abroaducate.com
 FROM_NAME=Abroaducate Team
 ```
 

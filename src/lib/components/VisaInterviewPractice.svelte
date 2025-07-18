@@ -23,6 +23,8 @@
     let showAuthModal = $state(false);
     let pendingAnswer = $state(''); // Store answer during login process
     let isAuthenticated = $state(false);
+    let showLimitModal = $state(false);
+    let limitModalMessage = '';
 
     // Reactive getters
     let currentQuestion = $derived(practiceQuestions[currentQuestionIndex]);
@@ -140,7 +142,8 @@
             const result = await response.json();
             if (!response.ok) {
                 if (result.upgradeRequired) {
-                    alert(`${result.message}\n\nUpgrade to continue practicing!`);
+                    showLimitModal = true;
+                    limitModalMessage = result.message || 'You have reached your monthly limit for visa interview practice questions.';
                     return;
                 }
                 throw new Error(result.error);
@@ -171,6 +174,10 @@
     function onAuthClose() {
         showAuthModal = false;
         pendingAnswer = ''; // Clear pending answer if user cancels
+    }
+
+    function closeLimitModal() {
+        showLimitModal = false;
     }
 
     function getScoreColor(score: number): string {
@@ -424,4 +431,15 @@
         on:success={onAuthSuccess}
         on:close={onAuthClose}
     />
+{/if} 
+
+{#if showLimitModal}
+    <div class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-lg p-8 max-w-sm w-full text-center">
+            <h2 class="text-xl font-bold text-blue-700 mb-4">Visa Interview Practice Limit Reached</h2>
+            <p class="mb-6 text-blue-900">{limitModalMessage}</p>
+            <a href="/pricing" class="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition mb-4">Upgrade Plan</a>
+            <button onclick={closeLimitModal} class="w-full bg-gray-200 text-gray-800 px-4 py-2 rounded-lg font-medium hover:bg-gray-300 transition">Close</button>
+        </div>
+    </div>
 {/if} 

@@ -8,7 +8,9 @@ import { createClient } from '@supabase/supabase-js';
 const supabase = createClient(PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
 // Email service configuration
-const fromEmail = FROM_EMAIL || 'noreply@abroaducate.com';
+const fromName = process.env.FROM_NAME || 'Abroaducate';
+const fromEmail = FROM_EMAIL || 'hello@abroaducate.com';
+const from = `${fromName} <${fromEmail}>`;
 
 // SendGrid email sending function
 async function sendEmailViaSendGrid(to: string, subject: string, htmlContent: string, textContent: string): Promise<boolean> {
@@ -26,7 +28,7 @@ async function sendEmailViaSendGrid(to: string, subject: string, htmlContent: st
       },
       body: JSON.stringify({
         personalizations: [{ to: [{ email: to }] }],
-        from: { email: fromEmail, name: 'Abroaducate' },
+        from: { email: fromEmail, name: fromName },
         subject: subject,
         content: [
           { type: 'text/plain', value: textContent },

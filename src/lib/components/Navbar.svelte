@@ -67,7 +67,7 @@
   // Navigation wrapper functions that close mobile menu
   function navigateTo(path: string) {
     closeMobileMenu();
-    window.location.href = path;
+    goto(path); // Use SvelteKit's client-side navigation for all navigation
   }
 </script>
 

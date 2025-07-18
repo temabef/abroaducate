@@ -10,9 +10,12 @@
         addAward,
         removeAward
     } from '$lib/stores/cvStore';
+    import { createEventDispatcher } from 'svelte';
     
-    let currentSection = 'personal';
-    
+    const dispatch = createEventDispatcher();
+
+    // Step-by-step navigation
+    let currentSectionIndex = 0;
     const sections = [
         { id: 'personal', label: 'Personal Info', icon: '👤' },
         { id: 'education', label: 'Education', icon: '🎓' },
@@ -22,6 +25,49 @@
         { id: 'awards', label: 'Awards', icon: '🏆' },
         { id: 'optional', label: 'Optional', icon: '📋' }
     ];
+    let currentSection = sections[currentSectionIndex].id;
+
+    // Update currentSection when index changes
+    $: currentSection = sections[currentSectionIndex].id;
+
+    function goToSection(index: number) {
+        // Only allow going back or to current
+        if (index <= currentSectionIndex) {
+            currentSectionIndex = index;
+        }
+    }
+    function nextSection() {
+        if (currentSectionIndex < sections.length - 1) {
+            currentSectionIndex++;
+        }
+    }
+    function prevSection() {
+        if (currentSectionIndex > 0) {
+            currentSectionIndex--;
+        }
+    }
+
+    let showValidationModal = false;
+    let missingFields: string[] = [];
+
+    function validateRequiredFields() {
+        missingFields = [];
+        if (!$cvFormStore.personalInfo.fullName) missingFields.push('Full Name');
+        if (!$cvFormStore.personalInfo.email) missingFields.push('Email');
+        // Add more required fields as needed
+        return missingFields.length === 0;
+    }
+
+    function handleGenerate() {
+        if (!validateRequiredFields()) {
+            showValidationModal = true;
+            return;
+        }
+        dispatch('generate');
+    }
+    function closeValidationModal() {
+        showValidationModal = false;
+    }
     
     function addSkill(type: 'technical' | 'software') {
         cvFormStore.update(data => ({
@@ -67,14 +113,11 @@
 <div class="bg-white rounded-lg shadow-lg p-8">
     <!-- Section Navigation -->
     <div class="flex flex-wrap gap-2 mb-8 border-b pb-4">
-        {#each sections as section}
+        {#each sections as section, i}
             <button
-                on:click={() => currentSection = section.id}
-                class="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors {
-                    currentSection === section.id 
-                    ? 'bg-indigo-600 text-white' 
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }"
+                on:click={() => goToSection(i)}
+                class="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors {currentSection === section.id ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}"
+                disabled={i > currentSectionIndex}
             >
                 <span>{section.icon}</span>
                 {section.label}
@@ -725,6 +768,30 @@
                     we'll include the most relevant sections based on your academic field and the information 
                     you've provided in the main sections.
                 </p>
+            </div>
+        </div>
+    {/if}
+
+    <!-- Navigation Buttons: Always visible at the bottom of the form -->
+    <div class="flex flex-col sm:flex-row justify-between items-center mt-8 pt-6 border-t gap-4">
+        <button on:click={prevSection} class="btn btn-secondary w-full sm:w-auto" disabled={currentSectionIndex === 0}>Previous</button>
+        {#if currentSectionIndex < sections.length - 1}
+            <button on:click={nextSection} class="btn btn-primary w-full sm:w-auto">Next</button>
+        {:else}
+            <button on:click={handleGenerate} class="btn btn-primary bg-green-600 hover:bg-green-700 w-full sm:w-auto">Generate Academic CV</button>
+        {/if}
+    </div>
+
+    {#if showValidationModal}
+        <div class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg shadow-lg p-8 max-w-sm w-full text-center">
+                <h2 class="text-xl font-bold text-red-600 mb-4">Please fill in the required details</h2>
+                <ul class="mb-4 text-left text-red-500">
+                    {#each missingFields as field}
+                        <li>• {field}</li>
+                    {/each}
+                </ul>
+                <button on:click={closeValidationModal} class="btn btn-primary w-full">OK</button>
             </div>
         </div>
     {/if}

@@ -340,7 +340,7 @@
                 </div>
             </div>
             
-            <!-- Quick Actions -->
+            <!-- Quick Actions (original position at the bottom) -->
             <div class="mt-12 text-center">
                 <div class="inline-flex gap-4">
                     <a 

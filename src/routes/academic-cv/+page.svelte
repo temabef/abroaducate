@@ -129,24 +129,15 @@
         {:else}
             <!-- CV Builder Form -->
             <div class="mb-12">
-                <CVFormSections />
-                
-                <!-- Generate Button -->
-                <div class="text-center mt-8">
-                    <button 
-                        on:click={generateCV}
-                        disabled={isGenerating}
-                        class="bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-colors inline-flex items-center gap-3"
-                    >
-                        {#if isGenerating}
-                            <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                            Generating Your CV...
-                        {:else}
-                            ✨ Generate Academic CV
-                        {/if}
+                <CVFormSections on:generate={generateCV} />
+                {#if isGenerating}
+                  <div class="text-center mt-8">
+                    <button disabled class="bg-indigo-600 text-white px-8 py-4 rounded-lg font-semibold text-lg inline-flex items-center gap-3">
+                      <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                      Generating Your CV...
                     </button>
-                    <p class="text-sm text-gray-500 mt-2">Instant PDF & DOCX download • No signup required</p>
-                </div>
+                  </div>
+                {/if}
             </div>
         {/if}
 

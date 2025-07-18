@@ -15,11 +15,13 @@ export const POST: RequestHandler = async ({ request }) => {
             }), { status: 400 });
         }
 
+        const fromName = process.env.FROM_NAME || 'Abroaducate';
         const fromEmail = FROM_EMAIL;
+        const from = `${fromName} <${fromEmail}>`;
         
         await sgMail.send({
             to: test_email,
-            from: fromEmail,
+            from: from,
             subject: subject,
             html: html
         });

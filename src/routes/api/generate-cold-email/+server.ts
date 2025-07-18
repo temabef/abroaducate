@@ -131,7 +131,12 @@ Return the response in this exact JSON format:
     }
 
     const openaiData = await openaiResponse.json();
-    const emailContent = openaiData.choices[0]?.message?.content?.trim();
+    let emailContent = openaiData.choices[0]?.message?.content?.trim();
+    
+    // Strip Markdown code block if present
+    if (emailContent && emailContent.startsWith('```')) {
+      emailContent = emailContent.replace(/^```[a-zA-Z]*\s*/, '').replace(/```$/, '').trim();
+    }
     
     let emailResult;
     try {
@@ -162,7 +167,7 @@ Return the response in this exact JSON format:
       usage_info: {
         current: usageCheck.currentUsage + 1,
         limit: usageCheck.limit,
-                  remaining: usageCheck.limit ? usageCheck.limit - (usageCheck.currentUsage + 1) : null
+        remaining: usageCheck.limit ? usageCheck.limit - (usageCheck.currentUsage + 1) : null
       }
     });
 

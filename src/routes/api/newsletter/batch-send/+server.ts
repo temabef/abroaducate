@@ -8,7 +8,9 @@ import sgMail from '@sendgrid/mail';
 const supabase = createClient(PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
 const sendgridApiKey = process.env.SENDGRID_API_KEY;
-const fromEmail = process.env.SENDGRID_FROM_EMAIL || process.env.FROM_EMAIL || 'noreply@abroaducate.com';
+const fromName = process.env.FROM_NAME || 'Abroaducate';
+const fromEmail = process.env.SENDGRID_FROM_EMAIL || process.env.FROM_EMAIL || 'hello@abroaducate.com';
+const from = `${fromName} <${fromEmail}>`;
 
 if (sendgridApiKey) {
   sgMail.setApiKey(sendgridApiKey);
@@ -112,7 +114,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     const logs = [];
     const messages = batch.map(subscriber => ({
       to: subscriber.email,
-      from: fromEmail,
+      from: from,
       subject: subject,
       html: html,
       trackingSettings: {
