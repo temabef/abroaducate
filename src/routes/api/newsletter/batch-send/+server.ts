@@ -23,7 +23,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
       return json({ error: 'Authentication required' }, { status: 401 });
     }
 
-    const { subject, html, campaign_id, batch_size } = await request.json();
+    const { subject, html, campaign_id, batch_size, total_recipients } = await request.json();
     const batchSize = batch_size || 500;
     if (!subject || !html) {
       return json({ error: 'Subject and HTML content are required' }, { status: 400 });
@@ -154,15 +154,12 @@ export const POST: RequestHandler = async ({ request, locals }) => {
         total_failed: campaign.total_failed + failedCount
       })
       .eq('id', campaignId);
-    // Optionally update total_recipients if this is the first batch
+    // Update total_recipients if this is the first batch
     if (!campaign_id) {
-      const { count } = await supabase
-        .from('newsletter_subscribers')
-        .select('id', { count: 'exact', head: true })
-        .eq('status', 'active');
+      const totalRecipients = total_recipients || 0;
       await supabase
         .from('newsletter_campaigns')
-        .update({ total_recipients: count || 0 })
+        .update({ total_recipients: totalRecipients })
         .eq('id', campaignId);
     }
     return json({
