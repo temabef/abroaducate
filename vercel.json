@@ -89,6 +89,71 @@
       "source": "/https%3A/twitter.com/abroaducate",
       "destination": "https://twitter.com/abroaducate",
       "permanent": true
+    },
+    {
+      "source": "/blog/:slug*",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/scholarship/:slug*",
+      "destination": "/scholarships",
+      "permanent": true
+    },
+    {
+      "source": "/scholarship-type/:slug*",
+      "destination": "/scholarships",
+      "permanent": true
+    },
+    {
+      "source": "/scholarships-list",
+      "destination": "/scholarships",
+      "permanent": true
+    },
+    {
+      "source": "/candidate/:slug*",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/top-uk-universities-that-accept-lower-grade/",
+      "destination": "/universities",
+      "permanent": true
+    },
+    {
+      "source": "/best-countries-in-europe-scholarships/",
+      "destination": "/scholarships",
+      "permanent": true
+    },
+    {
+      "source": "/u-s-schools-that-accept-hnd/",
+      "destination": "/universities",
+      "permanent": true
+    },
+    {
+      "source": "/explaining-study-gap-in-visa-interview/",
+      "destination": "/visa-interview-practice",
+      "permanent": true
+    },
+    {
+      "source": "/how-to-show-proof-of-funds/",
+      "destination": "/visa-interview-practice",
+      "permanent": true
+    },
+    {
+      "source": "/toefl-vs-ielts-vs-duolingo/",
+      "destination": "/practice/ielts",
+      "permanent": true
+    },
+    {
+      "source": "/category/scholarships/:slug*",
+      "destination": "/scholarships",
+      "permanent": true
+    },
+    {
+      "source": "/about-us",
+      "destination": "/",
+      "permanent": true
     }
   ],
   "headers": [
