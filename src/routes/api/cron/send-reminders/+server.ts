@@ -54,21 +54,14 @@ async function sendEmailViaSendGrid(to: string, subject: string, htmlContent: st
 
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    // Debug logging for troubleshooting
+    // Production-safe authorization logic with x-authorization fallback
     let authHeader = request.headers.get('authorization');
     const xAuthHeader = request.headers.get('x-authorization');
-    const testHeader = request.headers.get('x-test-header');
-    console.log('DEBUG: Received Authorization header:', authHeader);
-    console.log('DEBUG: Received X-Authorization header:', xAuthHeader);
-    console.log('DEBUG: X-Test-Header:', testHeader);
-    console.log('DEBUG: Server CRON_SECRET:', CRON_SECRET);
-    // Fallback to x-authorization if authorization is missing
     if (!authHeader && xAuthHeader) {
       authHeader = xAuthHeader;
     }
     // Verify cron authorization
     if (authHeader !== `Bearer ${CRON_SECRET}`) {
-      console.error('❌ Unauthorized cron request');
       return json({ error: 'Unauthorized' }, { status: 401 });
     }
 
