@@ -81,39 +81,74 @@ export const POST: RequestHandler = async ({ request }) => {
     };
 
     // ============ SCHOLARSHIP DIGEST (EVERYONE - WEEKLY/DAILY) ============
-    
-    // Send scholarship digest based on user preferences
-    const { data: scholarshipUsers } = await supabase
+    // Updated: Use new columns for daily/weekly digest and prevent double sending
+    const { data: allUsers } = await supabase
       .from('user_preferences')
       .select(`
         user_id,
-        scholarship_digest,
-        scholarship_frequency
-      `)
-      .eq('scholarship_digest', true);
+        scholarship_digest_weekly,
+        scholarship_digest_daily
+      `);
 
-    console.log(`📊 Processing scholarship digest for ${scholarshipUsers?.length || 0} users`);
+    // Get user tiers for all users
+    const { data: allSubs } = await supabase
+      .from('user_subscriptions')
+      .select('user_id, plan_type, status');
 
-    for (const user of scholarshipUsers || []) {
-      const shouldSendToday = 
-        (user.scholarship_frequency === 'weekly' && dayOfWeek === 1) || // Monday for weekly
-        (user.scholarship_frequency === 'daily'); // Every day for daily
+    const userTierMap = new Map();
+    for (const sub of allSubs || []) {
+      if (sub.status === 'active') {
+        userTierMap.set(sub.user_id, sub.plan_type);
+      }
+    }
 
-      if (shouldSendToday) {
-        try {
-          // Get user email from auth.users
-          const { data: authUser } = await supabase.auth.admin.getUserById(user.user_id);
-          
-          if (authUser.user?.email) {
+    for (const user of allUsers || []) {
+      const planType = userTierMap.get(user.user_id) || 'free';
+      const isPaid = planType === 'professional' || planType === 'elite';
+      const isMonday = dayOfWeek === 1;
+      let sendDaily = false;
+      let sendWeekly = false;
+      if (isPaid) {
+        if (isMonday) {
+          // If both are enabled, send only daily
+          if (user.scholarship_digest_daily && user.scholarship_digest_weekly) {
+            sendDaily = true;
+          } else if (user.scholarship_digest_daily) {
+            sendDaily = true;
+          } else if (user.scholarship_digest_weekly) {
+            sendWeekly = true;
+          }
+        } else {
+          if (user.scholarship_digest_daily) {
+            sendDaily = true;
+          }
+        }
+      } else {
+        // Free users: only weekly
+        if (isMonday && user.scholarship_digest_weekly) {
+          sendWeekly = true;
+        }
+      }
+      // Send the appropriate digest
+      try {
+        const { data: authUser } = await supabase.auth.admin.getUserById(user.user_id);
+        if (authUser.user?.email) {
+          if (sendDaily) {
+            const emailSent = await sendScholarshipDigest(authUser.user.email, user.user_id);
+            if (emailSent) {
+              emailsProcessed.scholarship_digest++;
+              totalEmailsSent++;
+            }
+          } else if (sendWeekly) {
             const emailSent = await sendScholarshipDigest(authUser.user.email, user.user_id);
             if (emailSent) {
               emailsProcessed.scholarship_digest++;
               totalEmailsSent++;
             }
           }
-        } catch (error) {
-          console.error(`Error sending scholarship digest to user ${user.user_id}:`, error);
         }
+      } catch (error) {
+        console.error(`Error sending scholarship digest to user ${user.user_id}:`, error);
       }
     }
 
@@ -597,7 +632,7 @@ The Abroaducate Team
 }
 
 function generateApplicationReminderHTML(app: any, daysUntil: number, urgency: string): string {
-  const urgencyColors = {
+  const urgencyColors: Record<string, string> = {
     critical: '#DC2626',
     urgent: '#EA580C',
     important: '#D97706',

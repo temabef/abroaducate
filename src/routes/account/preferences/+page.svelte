@@ -14,12 +14,11 @@
   interface EmailPreferences {
     email_enabled: boolean;
     email_deadlines: boolean;
-    email_frequency: 'immediate' | 'daily' | 'weekly';
+    scholarship_digest_weekly: boolean;
+    scholarship_digest_daily: boolean;
     timezone: string;
     calendar_enabled: boolean;
     calendar_provider: 'google' | 'outlook' | 'apple';
-    scholarship_digest: boolean;
-    scholarship_frequency: 'weekly' | 'daily';
     subscription_alerts: boolean;
     instant_alerts: boolean;
   }
@@ -33,12 +32,11 @@
   let preferences: EmailPreferences = $state({
     email_enabled: false,
     email_deadlines: true,
-    email_frequency: 'weekly',
+    scholarship_digest_weekly: true,
+    scholarship_digest_daily: false,
     timezone: 'UTC',
     calendar_enabled: false,
     calendar_provider: 'google',
-    scholarship_digest: true,
-    scholarship_frequency: 'weekly',
     subscription_alerts: true,
     instant_alerts: false
   });
@@ -80,22 +78,26 @@
         preferences = {
           email_enabled: prefsData.email_enabled ?? (userTier !== 'free'),
           email_deadlines: prefsData.email_deadlines ?? true,
-          email_frequency: prefsData.email_frequency ?? 'weekly',
+          scholarship_digest_weekly: prefsData.scholarship_digest_weekly ?? true,
+          scholarship_digest_daily: userTier !== 'free'
+            ? (prefsData.scholarship_digest_daily ?? true)
+            : false,
           timezone: prefsData.timezone ?? 'UTC',
           calendar_enabled: prefsData.calendar_enabled ?? false,
           calendar_provider: prefsData.calendar_provider ?? 'google',
-          scholarship_digest: prefsData.scholarship_digest ?? true,
-          scholarship_frequency: prefsData.scholarship_frequency ?? 'weekly',
           subscription_alerts: prefsData.subscription_alerts ?? true,
           instant_alerts: prefsData.instant_alerts ?? false
         };
       } else {
         preferences.email_enabled = userTier !== 'free';
+        preferences.scholarship_digest_weekly = true;
+        preferences.scholarship_digest_daily = userTier !== 'free';
       }
     } catch (err) {
       console.error('Error loading preferences:', err);
-      // Set safe defaults
       preferences.email_enabled = userTier !== 'free';
+      preferences.scholarship_digest_weekly = true;
+      preferences.scholarship_digest_daily = userTier !== 'free';
     }
   }
 
@@ -216,139 +218,69 @@
               </span>
             </div>
 
-            <!-- Scholarship Digest (Always Available) -->
+            <!-- Scholarship Digest Section -->
             <div class="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
               <div class="flex items-center justify-between mb-3">
-                <h3 class="font-medium text-blue-900">📊 Weekly Scholarship Digest</h3>
-                <span class="px-2 py-1 bg-blue-600 text-white text-xs rounded-full">FREE</span>
+                <h3 class="font-medium text-blue-900">📊 Scholarship Digest</h3>
+                <span class="px-2 py-1 bg-blue-600 text-white text-xs rounded-full">
+                  {userTier === 'free' ? 'FREE' : 'PREMIUM'}
+                </span>
               </div>
               <p class="text-sm text-blue-800 mb-3">
-                Get a weekly summary of new scholarships matching your profile - completely free for all users!
+                Get scholarship updates matching your profile.
               </p>
-              <div class="flex items-center justify-between">
-                <span class="text-sm text-blue-700">Weekly scholarship updates</span>
-                <label class="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" class="sr-only peer" bind:checked={preferences.scholarship_digest} />
-                  <div class="w-11 h-6 bg-blue-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-blue-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                </label>
-              </div>
-            </div>
-
-            <!-- Premium Features Section -->
-            {#if userTier === 'free'}
-              <!-- Free User - Upgrade Benefits Display -->
-              <div class="border border-amber-200 rounded-lg p-4 bg-amber-50 mb-6">
-                <h3 class="font-medium text-amber-900 mb-3">🚀 Upgrade for Premium Email Features</h3>
-                <div class="space-y-3 text-sm">
-                  <div class="flex items-center gap-3">
-                    <span class="text-amber-600">⏰</span>
-                    <span class="text-amber-800"><strong>Application Deadline Reminders:</strong> Never miss a deadline with personalized reminders</span>
-                  </div>
-                  <div class="flex items-center gap-3">
-                    <span class="text-amber-600">📅</span>
-                    <span class="text-amber-800"><strong>Calendar Integration:</strong> Sync deadlines automatically with your personal calendar</span>
-                  </div>
-                </div>
-                <button onclick={() => goto('/pricing')} class="mt-4 w-full bg-amber-500 text-white py-2 px-4 rounded-lg hover:bg-amber-600 transition-colors">
-                  Upgrade to Professional
-                </button>
-              </div>
-            {:else}
-              <!-- Premium User - Deadline Reminders -->
-              <div class="mb-6">
-                <h3 class="font-medium text-gray-900 mb-3">⏰ Application Deadline Reminders</h3>
+              <div class="space-y-2">
+                <!-- Weekly Digest Toggle (all users) -->
                 <div class="flex items-center justify-between">
-                  <span class="text-sm text-gray-600">Receive email alerts for upcoming deadlines</span>
+                  <span class="text-sm text-blue-700">Weekly scholarship updates</span>
                   <label class="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" class="sr-only peer" bind:checked={preferences.email_deadlines} />
-                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    <input type="checkbox" class="sr-only peer" bind:checked={preferences.scholarship_digest_weekly} on:change={savePreferences} />
+                    <div class="w-11 h-6 bg-blue-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-blue-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                   </label>
                 </div>
-              </div>
-            {/if}
-          </div>
-
-          <!-- Calendar Integration Section -->
-          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 class="text-xl font-semibold text-gray-900 mb-4">🗓️ Calendar Integration</h2>
-            {#if userTier === 'free'}
-              <div class="border border-blue-200 rounded-lg p-4 bg-blue-50">
-                <h3 class="font-medium text-blue-900 mb-2">Sync with your Calendar</h3>
-                <p class="text-sm text-blue-800 mb-4">Upgrade to automatically sync application deadlines to your Google, Outlook, or Apple calendar.</p>
-                <button onclick={() => goto('/pricing')} class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
-                  Upgrade to Elite
-                </button>
-              </div>
-            {:else if userTier === 'professional'}
-               <div class="border border-purple-200 rounded-lg p-4 bg-purple-50">
-                <h3 class="font-medium text-purple-900 mb-2">Upgrade for Calendar Sync</h3>
-                <p class="text-sm text-purple-800 mb-4">This is an Elite feature. Upgrade to automatically sync deadlines with your calendar.</p>
-                <button onclick={() => goto('/pricing')} class="bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors">
-                  Upgrade to Elite
-                </button>
-              </div>
-            {:else}
-              <div class="flex items-center justify-between">
-                 <span class="text-sm text-gray-600">Enable calendar integration</span>
-                  <label class="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" class="sr-only peer" bind:checked={preferences.calendar_enabled} />
-                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                  </label>
-              </div>
-            {/if}
-          </div>
-          
-          <!-- Test Email Section -->
-          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 class="font-medium text-gray-900 mb-4">🧪 Test Your Email Setup</h3>
-            <p class="text-sm text-gray-600 mb-4">
-              Send a test email to verify your notification settings are working correctly.
-            </p>
-            
-            <div class="space-y-4">
-              <div>
-                <label for="testEmail" class="block text-sm font-medium text-gray-700 mb-2">
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  id="testEmail"
-                  value={user?.email || ''}
-                  readonly
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
-                />
-              </div>
-              
-              <button
-                onclick={sendTestEmail}
-                disabled={testingEmail}
-                class="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white py-2 px-4 rounded-lg transition-colors"
-              >
-                {#if testingEmail}
-                  <div class="flex items-center justify-center gap-2">
-                    <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    Sending...
+                {#if userTier !== 'free'}
+                  <!-- Daily Digest Toggle (paid users only) -->
+                  <div class="flex items-center justify-between mt-2">
+                    <span class="text-sm text-blue-700">Daily scholarship updates</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" class="sr-only peer" bind:checked={preferences.scholarship_digest_daily} on:change={savePreferences} />
+                      <div class="w-11 h-6 bg-blue-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-blue-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    </label>
                   </div>
-                {:else}
-                  📤 Send Test Email
+                  <!-- Application Deadline Reminders (paid users only, only once) -->
+                  <div class="mb-6">
+                    <h3 class="font-medium text-gray-900 mb-3">⏰ Application Deadline Reminders</h3>
+                    <div class="flex items-center justify-between">
+                      <span class="text-sm text-gray-600">Receive email alerts for upcoming deadlines</span>
+                      <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" class="sr-only peer" bind:checked={preferences.email_deadlines} on:change={savePreferences} />
+                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <!-- Subscription Expiry Alerts (paid users only) -->
+                  <div class="mb-6">
+                    <h3 class="font-medium text-gray-900 mb-3">💳 Subscription Expiry Alerts</h3>
+                    <div class="flex items-center justify-between">
+                      <span class="text-sm text-gray-600">Receive email alerts before your subscription expires</span>
+                      <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" class="sr-only peer" bind:checked={preferences.subscription_alerts} on:change={savePreferences} />
+                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                      </label>
+                    </div>
+                  </div>
                 {/if}
-              </button>
-              
-              {#if testEmailResult}
-                <div class="text-sm {testEmailResult.includes('Error') ? 'text-red-600' : 'text-green-600'} font-medium">
-                  {testEmailResult}
-                </div>
-              {/if}
+              </div>
             </div>
           </div>
-        </div>
 
-        <!-- Sidebar (Reminders) -->
-        <div class="lg:col-span-1 space-y-6">
-          
-          <!-- Basic Reminders Widget -->
-          <BasicReminders />
+          <!-- Sidebar (Reminders) -->
+          <div class="lg:col-span-1 space-y-6">
+            
+            <!-- Basic Reminders Widget -->
+            <BasicReminders />
 
+          </div>
         </div>
       </div>
     </div>

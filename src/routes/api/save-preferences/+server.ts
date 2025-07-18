@@ -22,14 +22,28 @@ export const POST: RequestHandler = async ({ request, locals }) => {
       return json({ error: 'Preferences data required' }, { status: 400 });
     }
 
+    const allowedFields = [
+      'email_enabled',
+      'email_deadlines',
+      'scholarship_digest_weekly',
+      'scholarship_digest_daily',
+      'subscription_alerts',
+      // add more if needed
+    ];
+    const filteredPreferences: Record<string, any> = {};
+    for (const key of allowedFields) {
+      if (preferences.hasOwnProperty(key)) {
+        filteredPreferences[key] = preferences[key];
+      }
+    }
     // Save preferences to database
     const { error: upsertError } = await supabase
       .from('user_preferences')
       .upsert({
         user_id: session.user.id,
-        ...preferences,
+        ...filteredPreferences,
         updated_at: new Date().toISOString()
-      });
+      }, { onConflict: 'user_id' });
 
     if (upsertError) {
       console.error('Error saving preferences:', upsertError);
@@ -45,12 +59,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
           activity_type: 'preferences_updated',
           entity_type: 'settings',
           description: 'Updated email and notification preferences',
-          metadata: {
-            email_enabled: preferences.email_enabled,
-            scholarship_digest: preferences.scholarship_digest,
-            email_deadlines: preferences.email_deadlines,
-            subscription_alerts: preferences.subscription_alerts
-          }
+          metadata: filteredPreferences // Only log allowed fields
         });
     } catch (activityError) {
       // Don't fail the request if activity logging fails
