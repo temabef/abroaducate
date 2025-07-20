@@ -1,81 +1,31 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 	<head>
 		<meta charset="utf-8" />
-		<!-- Favicon setup for all browsers and devices -->
-		<link rel="icon" href="%sveltekit.assets%/favicon-32x32.svg" type="image/svg+xml" />
-		<link rel="icon" href="%sveltekit.assets%/favicon-16x16.svg" type="image/svg+xml" sizes="16x16" />
-		<link rel="alternate icon" href="%sveltekit.assets%/favicon.png" />
-		
-		<!-- Apple Touch Icon -->
-		<link rel="apple-touch-icon" href="%sveltekit.assets%/apple-touch-icon.svg" />
-		
-		<!-- PWA Icons -->
-		<link rel="icon" href="%sveltekit.assets%/favicon-192x192.svg" sizes="192x192" type="image/svg+xml" />
-		<link rel="icon" href="%sveltekit.assets%/favicon-512x512.svg" sizes="512x512" type="image/svg+xml" />
-		
-		<!-- Web App Manifest -->
-		<link rel="manifest" href="%sveltekit.assets%/manifest.json" />
+		<link rel="icon" href="%sveltekit.assets%/favicon.png" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		
-		<!-- Basic SEO Meta Tags -->
-		<meta name="robots" content="index, follow" />
-		<meta name="author" content="Abroaducate" />
-		<meta name="theme-color" content="#3B82F6" />
-		
-		<!-- Open Graph Meta Tags for Social Media -->
-		<meta property="og:site_name" content="Abroaducate" />
-		<meta property="og:type" content="website" />
-		<meta property="og:locale" content="en_US" />
-		
-		<!-- Twitter Card Meta Tags -->
-		<meta name="twitter:card" content="summary_large_image" />
-		<meta name="twitter:site" content="@abroaducate" />
-		<meta name="twitter:creator" content="@abroaducate" />
-		
-		<!-- Preconnect to external domains for performance -->
-		<link rel="preconnect" href="https://fonts.googleapis.com" />
-		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-		
-		<!-- Structured Data for Organization -->
-		<script type="application/ld+json">
-		{
-			"@context": "https://schema.org",
-			"@type": "Organization",
-			"name": "Abroaducate",
-			"description": "AI-powered academic application platform helping students worldwide achieve their study abroad dreams",
-			"url": "https://abroaducate.com",
-			"logo": "https://abroaducate.com/logo.svg",
-			"sameAs": [
-				"https://twitter.com/abroaducate",
-				"https://linkedin.com/company/abroaducate"
-			],
-			"contactPoint": {
-				"@type": "ContactPoint",
-				"email": "support@abroaducate.com",
-				"contactType": "Customer Support"
-			},
-			"foundingDate": "2024",
-			"knowsAbout": [
-				"Statement of Purpose Writing",
-				"University Applications",
-				"Scholarship Search",
-				"Academic Document Creation",
-				"IELTS Test Preparation",
-				"Study Abroad Guidance"
-			]
-		}
-		</script>
-		
 		%sveltekit.head%
-		<!-- Google tag (gtag.js) -->
-		<script async src="https://www.googletagmanager.com/gtag/js?id=G-L0SKBY98GT"></script>
-		<script>
-			window.dataLayer = window.dataLayer || [];
-			function gtag(){dataLayer.push(arguments);}
-			gtag('js', new Date());
-			gtag('config', 'G-L0SKBY98GT');
-		</script>
+		
+		<!-- CSS Stability Fix -->
+		<style>
+			/* Prevent CSS from breaking during HMR */
+			* {
+				box-sizing: border-box;
+			}
+			
+			/* Ensure critical styles are always loaded */
+			body {
+				margin: 0;
+				padding: 0;
+				font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+			}
+			
+			/* Prevent layout shifts */
+			img, video, iframe {
+				max-width: 100%;
+				height: auto;
+			}
+		</style>
 	</head>
 	<body data-sveltekit-preload-data="hover">
 		<div style="display: contents">%sveltekit.body%</div>

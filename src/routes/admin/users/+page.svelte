@@ -1,890 +1,381 @@
-<!--
-To enable fast admin user panel loading, create this RPC in Supabase SQL editor:
-
-CREATE OR REPLACE FUNCTION admin_user_panel_data()
-RETURNS TABLE (
-  user_id uuid,
-  email text,
-  full_name text,
-  created_at timestamptz,
-  updated_at timestamptz,
-  subscription_plan varchar,
-  subscription_status varchar,
-  current_period_end timestamptz,
-  newsletter_status varchar,
-  weekly_updates boolean,
-  marketing_emails boolean,
-  scholarship_digest boolean,
-  newsletter_subscribed_at timestamptz
-) AS $$
-  SELECT
-    p.id AS user_id,
-    p.email,
-    p.full_name,
-    p.created_at,
-    p.updated_at,
-    us.plan_type AS subscription_plan,
-    us.status AS subscription_status,
-    us.current_period_end,
-    ns.status AS newsletter_status,
-    ns.weekly_updates,
-    ns.marketing_emails,
-    ns.scholarship_digest,
-    ns.subscribed_at AS newsletter_subscribed_at
-  FROM profiles p
-  LEFT JOIN user_subscriptions us ON us.user_id = p.id AND us.status = 'active'
-  LEFT JOIN newsletter_subscribers ns ON ns.user_id = p.id;
-$$ LANGUAGE sql STABLE;
--->
-
+<!-- Simple User Management Page -->
 <script lang="ts">
   import { onMount } from 'svelte';
-  
-  let { data } = $props();
-  let { supabase, session } = $derived(data);
+  import { supabase } from '$lib/supabaseClient';
+  import type { User } from '$lib/types';
 
-  // Debug: Log session user ID
-  console.log('Session user ID:', session?.user?.id);
-
-  // Debug: Log Supabase URL and session user
-  console.log('Supabase URL:', supabase?.rest?.url || supabase?.url);
-  console.log('Session user:', session?.user);
-  
-  let loading = $state(false);
-  let message = $state('');
-  let messageType = $state('info');
-  
-  // Pagination state
-  let pageSize = 10;
-  let currentPage = $state(1);
-  let totalUsers = $state(0);
-  let totalPages = $state(1);
-
-  // User Statistics - dynamic
-  let userStats = $state({
-    total_users: 0,
-    active_users: 0,
-    premium_users: 0,
-    newsletter_subscribers: 0,
-    recent_signups: 0,
-    free_users: 0,
-    professional_users: 0,
-    elite_users: 0
-  });
-  
-  // User List
-  let users = $state<any[]>([]);
+  // State management
+  let users: User[] = $state([]);
+  let loading = $state(true);
   let searchTerm = $state('');
-  let filterType = $state('all'); // all, premium, free, newsletter
-  let now = new Date();
-  
-  onMount(async () => {
-    await loadUserData();
-  });
+  let currentPage = $state(1);
+  let itemsPerPage = $state(10);
+  let filteredUsers = $state<User[]>([]);
 
+  // Analytics data
+  let totalUsers = $state(0);
+  let activeUsers = $state(0);
+  let recentSignups = $state(0);
+  let premiumUsers = $state(0);
+
+  // Pagination
   $effect(() => {
-    currentPage; // reference to make this effect depend on currentPage
-    loadUserData();
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    filteredUsers = users
+      .filter(user => 
+        user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (user.full_name && user.full_name.toLowerCase().includes(searchTerm.toLowerCase()))
+      )
+      .slice(startIndex, endIndex);
   });
 
-  async function loadUserData() {
+  const totalPages = $derived(Math.ceil(users.filter(user => 
+    user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (user.full_name && user.full_name.toLowerCase().includes(searchTerm.toLowerCase()))
+  ).length / itemsPerPage));
+
+  // Load users
+  async function loadUsers() {
     loading = true;
     try {
-      // Fetch paginated users and total count
-      const from = (currentPage - 1) * pageSize;
-      const to = from + pageSize - 1;
-      const { data: usersData, error, count } = await supabase
-        .rpc('admin_user_panel_data', {}, { count: 'exact' })
-        .range(from, to);
-      if (error) throw error;
-      users = usersData || [];
-      totalUsers = count || 0;
-      totalPages = Math.max(1, Math.ceil(totalUsers / pageSize));
-      computeUserStats(users);
+      // Try API endpoint first
+      const response = await fetch('/api/admin/get-users');
+      if (response.ok) {
+        const data = await response.json();
+        users = data.users || [];
+        totalUsers = users.length;
+      } else {
+        // Fallback to direct Supabase query
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        users = data || [];
+        totalUsers = users.length;
+      }
+
+      // Calculate analytics
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+      activeUsers = users.filter(user => {
+        const lastActive = new Date(user.updated_at);
+        return lastActive >= thirtyDaysAgo;
+      }).length;
+
+      recentSignups = users.filter(user => {
+        const signupDate = new Date(user.created_at);
+        return signupDate >= thirtyDaysAgo;
+      }).length;
+
+      premiumUsers = users.filter(user => 
+        user.subscription_plan === 'professional' || user.subscription_plan === 'elite'
+      ).length;
+
     } catch (error) {
-      console.error('Error loading user data:', error);
-      users = [];
-      userStats = {
-        total_users: 0,
-        active_users: 0,
-        premium_users: 0,
-        newsletter_subscribers: 0,
-        recent_signups: 0,
-        free_users: 0,
-        professional_users: 0,
-        elite_users: 0
-      };
+      console.error('Error loading users:', error);
     } finally {
       loading = false;
     }
   }
 
-  // Compute real statistics from user list
-  function computeUserStats(userList: any[]) {
-    const now = new Date();
-    const daysAgo = (dateStr: string, days: number) => {
-      if (!dateStr) return false;
-      const d = new Date(dateStr);
-      return (now.getTime() - d.getTime()) < days * 24 * 60 * 60 * 1000;
-    };
-    let total = userList.length;
-    let active = userList.filter(u => daysAgo(u.updated_at || u.last_sign_in_at, 30)).length;
-    let recent = userList.filter(u => daysAgo(u.created_at, 30)).length;
-    let premium = userList.filter(u => ['professional','elite'].includes((u.subscription_plan||'').toLowerCase()) && u.subscription_status === 'active').length;
-    let free = userList.filter(u => (u.subscription_plan||'free').toLowerCase() === 'free').length;
-    let professional = userList.filter(u => (u.subscription_plan||'').toLowerCase() === 'professional').length;
-    let elite = userList.filter(u => (u.subscription_plan||'').toLowerCase() === 'elite').length;
-    let newsletter = userList.filter(u => u.newsletter_status === 'subscribed' || u.weekly_updates || u.marketing_emails || u.scholarship_digest).length;
-    userStats = {
-      total_users: total,
-      active_users: active,
-      premium_users: premium,
-      newsletter_subscribers: newsletter,
-      recent_signups: recent,
-      free_users: free,
-      professional_users: professional,
-      elite_users: elite
-    };
+  // Format date
+  function formatDate(dateString: string): string {
+    return new Date(dateString).toLocaleDateString();
   }
 
-  function showMessage(text: string, type: 'success' | 'error' | 'info' = 'info') {
-    message = text;
-    messageType = type;
-    setTimeout(() => {
-      message = '';
-    }, 3000);
-  }
-
-  function formatNumber(num: number): string {
-    return new Intl.NumberFormat().format(num);
-  }
-
-  // Plan badge helper
-  function getUserPlanType(user: any): 'premium' | 'free' {
-    if (["professional","elite"].includes((user.subscription_plan||'').toLowerCase())) return 'premium';
-    return 'free';
-  }
-  function getUserPlanName(user: any): string {
-    if (!user.subscription_plan) return 'Academic Starter';
-    if (user.subscription_plan.toLowerCase() === 'professional') return 'Academic Professional';
-    if (user.subscription_plan.toLowerCase() === 'elite') return 'Academic Elite';
-    return 'Academic Starter';
-  }
-
-  // Newsletter badge helper
-  function isNewsletterSubscribed(user: any): boolean {
-    return user.newsletter_status === 'subscribed' || user.weekly_updates || user.marketing_emails || user.scholarship_digest;
-  }
-
-  // Filter users based on search and filter type  
-  const filteredUsers = $derived(users.filter(user => {
-    const matchesSearch = !searchTerm || 
-      user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.full_name?.toLowerCase().includes(searchTerm.toLowerCase());
-    let matchesFilter = true;
-    if (filterType === 'premium') matchesFilter = getUserPlanType(user) === 'premium';
-    if (filterType === 'free') matchesFilter = getUserPlanType(user) === 'free';
-    if (filterType === 'newsletter') matchesFilter = isNewsletterSubscribed(user);
-    return matchesSearch && matchesFilter;
-  }));
-
-  // Pagination controls
-  function nextPage() {
-    if (currentPage < totalPages) currentPage += 1;
-  }
-  function prevPage() {
-    if (currentPage > 1) currentPage -= 1;
-  }
-
-  // Management actions
-  function handleManageUser(user: any) {
-    // Example: show a modal or dropdown for actions
-    showMessage(`Manage user: ${user.email} (coming soon)`, 'info');
-    // TODO: Implement real actions (view, disable, etc.)
-  }
-
-  // Modal state
-  let showUserModal = $state(false);
-  let selectedUser = $state(null);
-  let editFullName = $state('');
-  let disableMessage = $state('');
-  let disableSuccess = $state(false);
-
-  function openUserModal(user) {
-    selectedUser = user;
-    editFullName = user.full_name || '';
-    showUserModal = true;
-    disableMessage = '';
-    disableSuccess = false;
-  }
-  function closeUserModal() {
-    showUserModal = false;
-    selectedUser = null;
-    editFullName = '';
-    disableMessage = '';
-    disableSuccess = false;
-  }
-  async function saveUserEdit() {
-    if (!selectedUser) return;
-    const { error } = await supabase.from('profiles').update({ full_name: editFullName }).eq('id', selectedUser.user_id);
-    if (error) {
-      disableMessage = 'Error updating user: ' + error.message;
-      disableSuccess = false;
-    } else {
-      selectedUser.full_name = editFullName;
-      disableMessage = 'User updated successfully!';
-      disableSuccess = true;
-      await loadUserData();
+  // Get user initials
+  function getUserInitials(user: User): string {
+    if (user.full_name) {
+      return user.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
     }
-  }
-  async function disableUser() {
-    if (!selectedUser) return;
-    // Soft disable: set a disabled flag (add this column if not present)
-    const { error } = await supabase.from('profiles').update({ disabled: true }).eq('id', selectedUser.user_id);
-    if (error) {
-      disableMessage = 'Error disabling user: ' + error.message;
-      disableSuccess = false;
-    } else {
-      disableMessage = 'User disabled successfully!';
-      disableSuccess = true;
-      await loadUserData();
-    }
+    return user.email.split('@')[0].slice(0, 2).toUpperCase();
   }
 
-// Campaign modal state
-let showCampaignModal = $state(false);
-let campaignType = $state('');
-let campaignSubject = $state('');
-let campaignBody = $state('');
-let campaignMessage = $state('');
-let showTemplatesModal = $state(false);
-let selectedTemplate = $state('');
-let showPromoModal = $state(false);
-let promoSubject = $state('Upgrade to Premium!');
-let promoBody = $state('Unlock premium features by upgrading your plan.');
-let promoMessage = $state('');
-
-function openCampaignModal() {
-  campaignType = 'user';
-  campaignSubject = '';
-  campaignBody = '';
-  campaignMessage = '';
-  showCampaignModal = true;
-}
-function openTemplatesModal() {
-  showTemplatesModal = true;
-  selectedTemplate = '';
-}
-function openPromoModal() {
-  showPromoModal = true;
-  promoSubject = 'Upgrade to Premium!';
-  promoBody = 'Unlock premium features by upgrading your plan.';
-  promoMessage = '';
-}
-function closeCampaignModal() {
-  showCampaignModal = false;
-}
-function closeTemplatesModal() {
-  showTemplatesModal = false;
-}
-function closePromoModal() {
-  showPromoModal = false;
-}
-function selectTemplate(template) {
-  selectedTemplate = template;
-  campaignSubject = template.subject;
-  campaignBody = template.body;
-  showTemplatesModal = false;
-  showCampaignModal = true;
-}
-async function sendCampaign() {
-  campaignMessage = '';
-  try {
-    const response = await fetch('/api/newsletter/campaigns/send', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        campaign_id: '2f9c92e0-9917-49c5-8d6b-4489964294c9',
-        send_immediately: true
-      })
-    });
-    const result = await response.json();
-    if (result.success) {
-      campaignMessage = 'Campaign sent to all users!';
-    } else {
-      campaignMessage = 'Error: ' + (result.error || 'Unknown error');
-    }
-  } catch (e) {
-    campaignMessage = 'Error sending campaign: ' + e.message;
+  // Get user display name
+  function getUserDisplayName(user: User): string {
+    return user.full_name || user.email.split('@')[0];
   }
-}
-async function sendPromo() {
-  // TODO: Integrate with backend/email system
-  promoMessage = 'Premium promotion sent (simulated)!';
-}
+
+  onMount(() => {
+    loadUsers();
+  });
 </script>
 
 <svelte:head>
-  <title>User Management - Admin</title>
+  <title>User Management - Admin Dashboard</title>
 </svelte:head>
 
-<div class="user-management">
-  <div class="header">
-    <h1>👥 User Management</h1>
-    <p>Manage your {formatNumber(userStats.total_users)} registered users and their email preferences</p>
+<div class="container mx-auto px-4 py-8">
+  <!-- Header -->
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-900 mb-2">👥 User Management</h1>
+    <p class="text-gray-600">Simple user overview and management</p>
   </div>
 
-  <!-- Message Display -->
-  {#if message}
-    <div class="message {messageType}">
-      {message}
-    </div>
-  {/if}
-
-  <!-- User Statistics -->
-  <div class="stats-section">
-    <h2>📊 User Statistics</h2>
-    <div class="stats-grid">
-      <div class="stat-card">
-        <h3>Total Users</h3>
-        <p class="big-number">{formatNumber(userStats.total_users)}</p>
-        <p class="stat-note">Registered accounts</p>
-      </div>
-      
-      <div class="stat-card">
-        <h3>Active Users</h3>
-        <p class="big-number">{formatNumber(userStats.active_users)}</p>
-        <p class="stat-note">Last 30 days</p>
-      </div>
-      
-      <div class="stat-card">
-        <h3>Premium Users</h3>
-        <p class="big-number">{formatNumber(userStats.premium_users)}</p>
-        <p class="stat-note">Professional + Elite</p>
-      </div>
-      
-      <div class="stat-card">
-        <h3>Newsletter Subs</h3>
-        <p class="big-number">{formatNumber(userStats.newsletter_subscribers)}</p>
-        <p class="stat-note">Opted in to emails</p>
-      </div>
-      
-      <div class="stat-card">
-        <h3>Recent Signups</h3>
-        <p class="big-number">{formatNumber(userStats.recent_signups)}</p>
-        <p class="stat-note">Last 30 days</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- Plan Breakdown (matching Analytics Dashboard) -->
-  <div class="plans-section">
-    <h2>💎 Subscription Plan Breakdown</h2>
-    <div class="stats-grid">
-      <div class="stat-card">
-        <h3>Academic Starter</h3>
-        <p class="big-number">{formatNumber(userStats.free_users)}</p>
-        <p class="stat-note">{userStats.total_users > 0 ? Math.round((userStats.free_users / userStats.total_users) * 100) : 0}% of total users</p>
-      </div>
-      
-      <div class="stat-card">
-        <h3>Academic Professional</h3>
-        <p class="big-number">{formatNumber(userStats.professional_users)}</p>
-        <p class="stat-note">{userStats.total_users > 0 ? Math.round((userStats.professional_users / userStats.total_users) * 100) : 0}% of total users</p>
-      </div>
-      
-      <div class="stat-card">
-        <h3>Academic Elite</h3>
-        <p class="big-number">{formatNumber(userStats.elite_users)}</p>
-        <p class="stat-note">{userStats.total_users > 0 ? Math.round((userStats.elite_users / userStats.total_users) * 100) : 0}% of total users</p>
-      </div>
-      
-      <div class="stat-card">
-        <h3>Conversion Rate</h3>
-        <p class="big-number">{userStats.total_users > 0 ? Math.round((userStats.premium_users / userStats.total_users) * 100) : 0}%</p>
-        <p class="stat-note">Free to Premium conversion</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- Email Campaign Management for Users -->
-  <div class="email-section">
-    <h2>📧 Email Campaigns for Registered Users</h2>
-    <div class="campaign-options">
-      <div class="campaign-card">
-        <h4>📚 Study Tips & Updates</h4>
-        <p>Send personalized study abroad tips and platform updates to your registered users</p>
-        <div class="campaign-actions">
-          <button class="campaign-btn primary" onclick={openCampaignModal}>
-            Create User Campaign
-          </button>
-          <button class="campaign-btn" onclick={openTemplatesModal}>
-            View Templates
-          </button>
+  <!-- Analytics Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div class="flex items-center">
+        <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+          </svg>
+        </div>
+        <div class="ml-4">
+          <p class="text-sm font-medium text-gray-600">Total Users</p>
+          <p class="text-2xl font-semibold text-gray-900">{totalUsers}</p>
         </div>
       </div>
-      <div class="campaign-card">
-        <h4>🎓 Premium Features</h4>
-        <p>Promote premium features to Academic Starter users and share success stories</p>
-        <div class="campaign-actions">
-          <button class="campaign-btn" onclick={openPromoModal}>
-            Premium Promotion
-          </button>
-          <button class="campaign-btn" disabled>
-            Success Stories
-          </button>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div class="flex items-center">
+        <div class="p-3 rounded-full bg-green-100 text-green-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+        <div class="ml-4">
+          <p class="text-sm font-medium text-gray-600">Active Users</p>
+          <p class="text-2xl font-semibold text-gray-900">{activeUsers}</p>
+          <p class="text-xs text-gray-500">Last 30 days</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div class="flex items-center">
+        <div class="p-3 rounded-full bg-purple-100 text-purple-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+          </svg>
+        </div>
+        <div class="ml-4">
+          <p class="text-sm font-medium text-gray-600">Recent Signups</p>
+          <p class="text-2xl font-semibold text-gray-900">{recentSignups}</p>
+          <p class="text-xs text-gray-500">Last 30 days</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div class="flex items-center">
+        <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+          </svg>
+        </div>
+        <div class="ml-4">
+          <p class="text-sm font-medium text-gray-600">Premium Users</p>
+          <p class="text-2xl font-semibold text-gray-900">{premiumUsers}</p>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Campaign Modals -->
-{#if showCampaignModal}
-  <div class="modal-backdrop" style="position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.3);z-index:1000;display:flex;align-items:center;justify-content:center;">
-    <div class="modal-content" style="background:#fff;padding:2rem;border-radius:12px;min-width:350px;max-width:95vw;box-shadow:0 2px 16px rgba(0,0,0,0.15);">
-      <h2>Create User Campaign</h2>
-      <label>Subject:</label>
-      <input type="text" bind:value={campaignSubject} style="width:100%;margin-bottom:1rem;">
-      <label>Message:</label>
-      <textarea bind:value={campaignBody} style="width:100%;height:120px;margin-bottom:1rem;"></textarea>
-      <button onclick={sendCampaign} style="margin-right:1rem;">Send Campaign</button>
-      <button onclick={closeCampaignModal} style="background:#eee;">Close</button>
-      {#if campaignMessage}
-        <div style="margin-top:1rem;color:green;">{campaignMessage}</div>
-      {/if}
-    </div>
-  </div>
-{/if}
-
-{#if showTemplatesModal}
-  <div class="modal-backdrop" style="position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.3);z-index:1000;display:flex;align-items:center;justify-content:center;">
-    <div class="modal-content" style="background:#fff;padding:2rem;border-radius:12px;min-width:350px;max-width:95vw;box-shadow:0 2px 16px rgba(0,0,0,0.15);">
-      <h2>Email Templates</h2>
-      <ul style="list-style:none;padding:0;">
-        <li style="margin-bottom:1rem;">
-          <button onclick={() => selectTemplate({subject:'Welcome to Abroaducate!',body:'Thank you for joining. Here are some tips to get started...'})}>Welcome Email</button>
-        </li>
-        <li style="margin-bottom:1rem;">
-          <button onclick={() => selectTemplate({subject:'Platform Update',body:'Check out our latest features and improvements.'})}>Platform Update</button>
-        </li>
-        <li style="margin-bottom:1rem;">
-          <button onclick={() => selectTemplate({subject:'Upgrade Offer',body:'Unlock premium features by upgrading your plan.'})}>Upgrade Offer</button>
-        </li>
-      </ul>
-      <button onclick={closeTemplatesModal} style="background:#eee;">Close</button>
-    </div>
-  </div>
-{/if}
-
-{#if showPromoModal}
-  <div class="modal-backdrop" style="position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.3);z-index:1000;display:flex;align-items:center;justify-content:center;">
-    <div class="modal-content" style="background:#fff;padding:2rem;border-radius:12px;min-width:350px;max-width:95vw;box-shadow:0 2px 16px rgba(0,0,0,0.15);">
-      <h2>Premium Promotion</h2>
-      <label>Subject:</label>
-      <input type="text" bind:value={promoSubject} style="width:100%;margin-bottom:1rem;">
-      <label>Message:</label>
-      <textarea bind:value={promoBody} style="width:100%;height:120px;margin-bottom:1rem;"></textarea>
-      <button onclick={sendPromo} style="margin-right:1rem;">Send Promotion</button>
-      <button onclick={closePromoModal} style="background:#eee;">Close</button>
-      {#if promoMessage}
-        <div style="margin-top:1rem;color:green;">{promoMessage}</div>
-      {/if}
-    </div>
-  </div>
-{/if}
-
-  <!-- User List Management -->
-  <div class="users-section">
-    <h2>👤 User List & Management</h2>
-    
-    <!-- Search and Filter -->
-    <div class="controls">
-      <div class="search-bar">
-        <input 
-          type="text" 
-          placeholder="Search users by email or name..." 
-          bind:value={searchTerm}
-        />
+  <!-- Search and Controls -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+    <div class="flex flex-col sm:flex-row gap-4 items-center justify-between">
+      <div class="flex-1 max-w-md">
+        <div class="relative">
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+          </div>
+          <input
+            type="text"
+            bind:value={searchTerm}
+            placeholder="Search users by email or name..."
+            class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
       </div>
-      
-      <div class="filter-tabs">
-        <button 
-          class="filter-tab" 
-          class:active={filterType === 'all'} 
-          onclick={() => filterType = 'all'}
-        >
-          All Users ({formatNumber(userStats.total_users)})
-        </button>
-        <button 
-          class="filter-tab" 
-          class:active={filterType === 'premium'} 
-          onclick={() => filterType = 'premium'}
-        >
-          Premium ({formatNumber(userStats.premium_users)})
-        </button>
-        <button 
-          class="filter-tab" 
-          class:active={filterType === 'free'} 
-          onclick={() => filterType = 'free'}
-        >
-          Academic Starter ({formatNumber(userStats.free_users)})
-        </button>
-        <button 
-          class="filter-tab" 
-          class:active={filterType === 'newsletter'} 
-          onclick={() => filterType = 'newsletter'}
-        >
-          Newsletter Subs ({formatNumber(userStats.newsletter_subscribers)})
-        </button>
+      <button
+        onclick={loadUsers}
+        disabled={loading}
+        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+        </svg>
+        {loading ? 'Loading...' : '🔄 Refresh'}
+      </button>
+    </div>
+  </div>
+
+  <!-- User List -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h3 class="text-lg font-medium text-gray-900">
+        👤 User List ({users.filter(user => 
+          user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (user.full_name && user.full_name.toLowerCase().includes(searchTerm.toLowerCase()))
+        ).length} users)
+      </h3>
+    </div>
+
+    {#if loading}
+      <div class="p-8 text-center">
+        <div class="inline-flex items-center">
+          <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          Loading users...
+        </div>
       </div>
-    </div>
-    
-    <!-- Pagination controls above the user table -->
-    <div class="pagination-controls" style="margin-bottom: 1rem; display: flex; align-items: center; gap: 1rem;">
-      <button onclick={prevPage} disabled={currentPage === 1}>Previous</button>
-      <span>Page {currentPage} of {totalPages}</span>
-      <button onclick={nextPage} disabled={currentPage === totalPages}>Next</button>
-      <span>({totalUsers} users total)</span>
-    </div>
-    
-    <!-- User Table -->
-    <div class="user-table-container">
-      {#if loading}
-        <div class="loading-state">Loading users...</div>
-      {:else}
-        <table class="user-table">
-          <thead>
+    {:else if filteredUsers.length === 0}
+      <div class="p-8 text-center text-gray-500">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+        </svg>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">No users found</h3>
+        <p class="mt-1 text-sm text-gray-500">
+          {searchTerm ? 'Try adjusting your search terms.' : 'No users have registered yet.'}
+        </p>
+      </div>
+    {:else}
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
             <tr>
-              <th>User</th>
-              <th>Status</th>
-              <th>Plan</th>
-              <th>Signed Up</th>
-              <th>Last Seen</th>
-              <th>Actions</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Plan</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Registered</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Active</th>
             </tr>
           </thead>
-          <tbody>
-            {#each filteredUsers as user (user.user_id)}
-              <tr>
-                <td>
-                  <div class="user-info">
-                    <span class="font-semibold">{user.full_name || 'N/A'}</span>
-                    <span class="text-sm text-gray-600">{user.email}</span>
+          <tbody class="bg-white divide-y divide-gray-200">
+            {#each filteredUsers as user}
+              <tr class="hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="flex items-center">
+                    <div class="flex-shrink-0 h-10 w-10">
+                      <div class="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white font-medium text-sm">
+                        {getUserInitials(user)}
+                      </div>
+                    </div>
+                    <div class="ml-4">
+                      <div class="text-sm font-medium text-gray-900">{getUserDisplayName(user)}</div>
+                      <div class="text-sm text-gray-500">ID: {user.id.slice(0, 8)}...</div>
+                    </div>
                   </div>
                 </td>
-                <td>
-                  <span class="status-badge {isNewsletterSubscribed(user) ? 'subscribed' : 'unsubscribed'}">
-                    {isNewsletterSubscribed(user) ? 'Subscribed' : 'Not Subscribed'}
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.email}</td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                    {user.subscription_plan || 'free'}
                   </span>
                 </td>
-                <td>
-                  <span class="plan-badge {getUserPlanType(user)}">
-                    {getUserPlanName(user)}
-                  </span>
-                </td>
-                <td>{user.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}</td>
-                <td>{user.updated_at ? new Date(user.updated_at).toLocaleDateString() : 'N/A'}</td>
-                <td>
-                  <button class="action-btn small" onclick={() => openUserModal(user)}>
-                    Manage
-                  </button>
-                </td>
-              </tr>
-            {:else}
-              <tr>
-                <td colspan="6" class="text-center py-8">No users found.</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{formatDate(user.created_at)}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{formatDate(user.updated_at)}</td>
               </tr>
             {/each}
           </tbody>
         </table>
+      </div>
+
+      <!-- Pagination -->
+      {#if totalPages > 1}
+        <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+          <div class="flex-1 flex justify-between sm:hidden">
+            <button
+              onclick={() => currentPage = Math.max(1, currentPage - 1)}
+              disabled={currentPage === 1}
+              class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Previous
+            </button>
+            <button
+              onclick={() => currentPage = Math.min(totalPages, currentPage + 1)}
+              disabled={currentPage === totalPages}
+              class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Next
+            </button>
+          </div>
+          <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+            <div>
+              <p class="text-sm text-gray-700">
+                Showing <span class="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span> to <span class="font-medium">{Math.min(currentPage * itemsPerPage, users.filter(user => 
+                  user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  (user.full_name && user.full_name.toLowerCase().includes(searchTerm.toLowerCase()))
+                ).length)}</span> of <span class="font-medium">{users.filter(user => 
+                  user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  (user.full_name && user.full_name.toLowerCase().includes(searchTerm.toLowerCase()))
+                ).length}</span> results
+              </p>
+            </div>
+            <div>
+              <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                <button
+                  onclick={() => currentPage = Math.max(1, currentPage - 1)}
+                  disabled={currentPage === 1}
+                  class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <span class="sr-only">Previous</span>
+                  <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                  </svg>
+                </button>
+                
+                {#each Array.from({length: totalPages}, (_, i) => i + 1) as page}
+                  <button
+                    onclick={() => currentPage = page}
+                    class="relative inline-flex items-center px-4 py-2 border text-sm font-medium {page === currentPage ? 'z-10 bg-blue-50 border-blue-500 text-blue-600' : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'}"
+                  >
+                    {page}
+                  </button>
+                {/each}
+                
+                <button
+                  onclick={() => currentPage = Math.min(totalPages, currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <span class="sr-only">Next</span>
+                  <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                  </svg>
+                </button>
+              </nav>
+            </div>
+          </div>
+        </div>
       {/if}
-    </div>
+    {/if}
   </div>
 
-  <!-- Deployment Instructions -->
-  <div class="deployment-section">
-    <h2>🚀 After Deployment: User Email Management</h2>
-    <div class="deployment-info">
-      <h4>Registered User Email Strategy:</h4>
-      <ul>
-        <li><strong>Welcome Series:</strong> Automated onboarding emails for new users</li>
-        <li><strong>Feature Updates:</strong> Monthly platform updates and new features</li>
-        <li><strong>Personalized Tips:</strong> Study abroad advice based on user's profile</li>
-        <li><strong>Premium Promotion:</strong> Targeted upgrade campaigns for Academic Starter users</li>
-        <li><strong>Success Stories:</strong> User testimonials and achievements</li>
-        <li><strong>Re-engagement:</strong> Win back inactive users</li>
-      </ul>
-      
-      <h4>Difference from Imported Leads (8,300+ emails):</h4>
-      <ul>
-        <li><strong>Imported Leads:</strong> Focus on trust-building and platform introduction</li>
-        <li><strong>Registered Users:</strong> Focus on value delivery and engagement</li>
-        <li><strong>Academic Starter:</strong> Encourage premium upgrades</li>
-        <li><strong>Academic Professional/Elite:</strong> Retention and advanced features</li>
-      </ul>
+  <!-- Help Section -->
+  <div class="mt-8 bg-blue-50 rounded-lg p-6">
+    <div class="flex">
+      <div class="flex-shrink-0">
+        <svg class="h-5 w-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+      </div>
+      <div class="ml-3">
+        <h3 class="text-sm font-medium text-blue-800">📋 About This Page</h3>
+        <div class="mt-2 text-sm text-blue-700">
+          <p><strong>Total Users:</strong> All registered users from the system</p>
+          <p><strong>Active Users:</strong> Users who have been active in the last 30 days</p>
+          <p><strong>Recent Signups:</strong> Users who registered in the last 30 days</p>
+          <p><strong>Premium Users:</strong> Users with Professional or Elite subscriptions</p>
+        </div>
+        <div class="mt-3 text-sm text-blue-700">
+          <p><strong>🔧 What You Can Do</strong></p>
+          <p>• View Users: See all registered users with their details</p>
+          <p>• Search: Find specific users by email or name</p>
+          <p>• Monitor Growth: Track user registration and activity</p>
+          <p>• Refresh Data: Get the latest user information</p>
+        </div>
+      </div>
     </div>
   </div>
-</div>
-
-<style>
-  .user-management {
-    max-width: 1200px;
-    margin: 2rem auto;
-    padding: 2rem;
-    background-color: #f9fafb;
-    border-radius: 12px;
-    font-family: 'Inter', sans-serif;
-  }
-
-  .header {
-    text-align: center;
-    margin-bottom: 2rem;
-  }
-
-  .header h1 {
-    font-size: 2.25rem;
-    font-weight: 700;
-    color: #111827;
-  }
-
-  .header p {
-    font-size: 1rem;
-    color: #6b7280;
-    margin-top: 0.5rem;
-  }
-
-  .message {
-    padding: 1rem;
-    border-radius: 8px;
-    margin-bottom: 2rem;
-    text-align: center;
-  }
-
-  .message.info {
-    background-color: #e0f2fe;
-    color: #0c4a6e;
-  }
-
-  .message.success {
-    background-color: #dcfce7;
-    color: #166534;
-  }
-
-  .message.error {
-    background-color: #fee2e2;
-    color: #991b1b;
-  }
-
-  .stats-section,
-  .plans-section,
-  .email-section,
-  .users-section {
-    background-color: #ffffff;
-    padding: 1.5rem;
-    border-radius: 12px;
-    margin-bottom: 2rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  }
-
-  h2 {
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: #1f2937;
-    margin-bottom: 1.5rem;
-  }
-
-  .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 1.5rem;
-  }
-
-  .stat-card {
-    background-color: #f9fafb;
-    padding: 1.5rem;
-    border-radius: 8px;
-    text-align: center;
-  }
-
-  .stat-card h3 {
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: #6b7280;
-    text-transform: uppercase;
-  }
-
-  .big-number {
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: #111827;
-    margin: 0.5rem 0;
-  }
-
-  .stat-note {
-    font-size: 0.875rem;
-    color: #6b7280;
-  }
-
-  .campaign-options {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
-  }
-
-  .campaign-card {
-    background-color: #f9fafb;
-    padding: 1.5rem;
-    border-radius: 8px;
-  }
-
-  .campaign-card h4 {
-    font-size: 1.125rem;
-    font-weight: 600;
-    color: #1f2937;
-  }
-
-  .campaign-card p {
-    font-size: 0.875rem;
-    color: #6b7280;
-    margin: 0.5rem 0 1rem;
-    min-height: 40px;
-  }
-
-  .campaign-actions {
-    display: flex;
-    gap: 0.5rem;
-  }
-
-  .campaign-btn {
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
-    border: 1px solid #d1d5db;
-    background-color: #ffffff;
-    color: #374151;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background-color 0.2s;
-  }
-
-  .campaign-btn.primary {
-    background-color: #2563eb;
-    color: #ffffff;
-    border-color: #2563eb;
-  }
-
-  .campaign-btn:hover {
-    background-color: #f3f4f6;
-  }
-
-  .campaign-btn.primary:hover {
-    background-color: #1d4ed8;
-  }
-
-  .controls {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-    flex-wrap: wrap;
-    gap: 1rem;
-  }
-
-  .search-bar {
-    flex-grow: 1;
-  }
-
-  .search-bar input {
-    width: 100%;
-    max-width: 400px;
-    padding: 0.6rem 1rem;
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
-    font-size: 0.875rem;
-  }
-
-  .filter-tabs {
-    display: flex;
-    background-color: #e5e7eb;
-    border-radius: 8px;
-    padding: 4px;
-  }
-
-  .filter-tab {
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
-    border: none;
-    background-color: transparent;
-    color: #4b5563;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  .filter-tab.active {
-    background-color: #ffffff;
-    color: #111827;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  }
-
-  .user-table-container {
-    overflow-x: auto;
-    background-color: #fff;
-    border-radius: 8px;
-  }
-
-  .user-table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-
-  .user-table th, .user-table td {
-    padding: 1rem;
-    text-align: left;
-    border-bottom: 1px solid #e5e7eb;
-    white-space: nowrap;
-  }
-
-  .user-table th {
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    color: #6b7280;
-    font-weight: 600;
-  }
-
-  .user-info .font-semibold {
-    display: block;
-  }
-
-  .status-badge, .plan-badge {
-    padding: 0.2rem 0.6rem;
-    border-radius: 999px;
-    font-size: 0.75rem;
-    font-weight: 500;
-    text-transform: capitalize;
-  }
-
-  .status-badge.subscribed {
-    background-color: #dcfce7;
-    color: #166534;
-  }
-
-  .status-badge.unsubscribed {
-    background-color: #fee2e2;
-    color: #991b1b;
-  }
-
-  .plan-badge.premium {
-    background-color: #dbeafe;
-    color: #1e40af;
-  }
-
-  .plan-badge.free {
-    background-color: #e5e7eb;
-    color: #4b5563;
-  }
-
-  .action-btn.small {
-    font-size: 0.875rem;
-    padding: 0.3rem 0.8rem;
-  }
-</style> 
+</div> 

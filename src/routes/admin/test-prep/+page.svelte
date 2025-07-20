@@ -298,7 +298,7 @@
                       <Edit size={16} />
                     </a>
                     <button 
-                      on:click={() => deleteSet(set.id, set.title)}
+                      onclick={() => deleteSet(set.id, set.title)}
                       class="action-btn delete"
                       title="Delete question set"
                     >

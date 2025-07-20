@@ -26,15 +26,19 @@ export interface DeviceFingerprint {
 
 export class DeviceFingerprintService {
     private fingerprint: DeviceFingerprint | null = null;
+    private hasUserInteracted: boolean = false;
 
     /**
-     * Generate a comprehensive device fingerprint
+     * Mark that user has interacted (for audio fingerprinting)
+     */
+    markUserInteraction(): void {
+        this.hasUserInteracted = true;
+    }
+
+    /**
+     * Generate device fingerprint
      */
     async generateFingerprint(): Promise<DeviceFingerprint> {
-        if (!browser) {
-            throw new Error('Device fingerprinting only available in browser');
-        }
-
         if (this.fingerprint) {
             return this.fingerprint;
         }
@@ -55,9 +59,9 @@ export class DeviceFingerprintService {
             audio: await this.getAudioFingerprint()
         };
 
-        // Create a hash of all characteristics
-        const fingerprintString = JSON.stringify(characteristics);
-        const fingerprint = await this.hashString(fingerprintString);
+        // Create fingerprint hash
+        const fingerprintData = JSON.stringify(characteristics);
+        const fingerprint = await this.hashString(fingerprintData);
 
         this.fingerprint = {
             fingerprint,
@@ -140,7 +144,17 @@ export class DeviceFingerprintService {
      */
     private async getAudioFingerprint(): Promise<string> {
         try {
+            // Only create audio context after user interaction to avoid autoplay warnings
+            if (!this.hasUserInteracted) {
+                return 'audio-pending';
+            }
+            
             const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+            
+            // Resume context if suspended
+            if (audioContext.state === 'suspended') {
+                await audioContext.resume();
+            }
             
             // Create oscillator
             const oscillator = audioContext.createOscillator();

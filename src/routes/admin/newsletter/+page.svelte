@@ -717,6 +717,24 @@
       fetchEmailLogs();
     }
   });
+
+  // Test SendGrid configuration
+  async function testSendGridConfig() {
+    try {
+      const response = await fetch('/api/newsletter/test-sendgrid');
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        showMessage('✅ SendGrid is working! Test email sent to your inbox.', 'success');
+      } else {
+        showMessage(`❌ SendGrid test failed: ${data.error}`, 'error');
+        console.error('SendGrid test details:', data);
+      }
+    } catch (error) {
+      showMessage('❌ Failed to test SendGrid configuration.', 'error');
+      console.error('SendGrid test error:', error);
+    }
+  }
 </script>
 
 <svelte:head>
@@ -768,6 +786,16 @@
         <small>Total unsubscribes</small>
       </div>
     </div>
+    
+    <!-- SendGrid Test Button -->
+    <div class="sendgrid-test-section">
+      <h3>🔧 SendGrid Configuration Test</h3>
+      <p>Test if your SendGrid email service is properly configured for newsletter automation.</p>
+      <button onclick={testSendGridConfig} class="test-sendgrid-btn">
+        🧪 Test SendGrid Configuration
+      </button>
+      <small>This will send a test email to your admin email address to verify SendGrid is working.</small>
+    </div>
   </div>
 
   <!-- Compose Newsletter Section -->
@@ -796,22 +824,22 @@
     <div class="template-section">
       <h3>📋 Choose Template</h3>
       <div class="template-grid">
-        <button class="template-card" on:click={() => loadTemplate('welcome')}>
+        <button class="template-card" onclick={() => loadTemplate('welcome')}>
           <div class="template-icon">👋</div>
           <div class="template-title">Welcome Email</div>
           <div class="template-desc">Welcome new subscribers</div>
         </button>
-        <button class="template-card" on:click={() => loadTemplate('newsletter')}>
+        <button class="template-card" onclick={() => loadTemplate('newsletter')}>
           <div class="template-icon">📰</div>
           <div class="template-title">Newsletter</div>
           <div class="template-desc">Regular newsletter update</div>
         </button>
-        <button class="template-card" on:click={() => loadTemplate('announcement')}>
+        <button class="template-card" onclick={() => loadTemplate('announcement')}>
           <div class="template-icon">📢</div>
           <div class="template-title">Announcement</div>
           <div class="template-desc">Important announcement</div>
         </button>
-        <button class="template-card" on:click={() => loadTemplate('promotion')}>
+        <button class="template-card" onclick={() => loadTemplate('promotion')}>
           <div class="template-icon">🎉</div>
           <div class="template-title">Promotion</div>
           <div class="template-desc">Special offer or promotion</div>
@@ -848,10 +876,10 @@
               placeholder="Batch size"
             />
             <div class="batch-presets">
-              <button type="button" on:click={() => composerBatchSize = 50} class="preset-btn">50</button>
-              <button type="button" on:click={() => composerBatchSize = 100} class="preset-btn">100</button>
-              <button type="button" on:click={() => composerBatchSize = 200} class="preset-btn">200</button>
-              <button type="button" on:click={() => composerBatchSize = 500} class="preset-btn">500</button>
+              <button type="button" onclick={() => composerBatchSize = 50} class="preset-btn">50</button>
+              <button type="button" onclick={() => composerBatchSize = 100} class="preset-btn">100</button>
+              <button type="button" onclick={() => composerBatchSize = 200} class="preset-btn">200</button>
+              <button type="button" onclick={() => composerBatchSize = 500} class="preset-btn">500</button>
             </div>
           </div>
         </div>
@@ -861,14 +889,14 @@
         <div class="form-group">
           <label for="html-content">📝 Email Content</label>
           <div class="editor-toolbar">
-            <button type="button" on:click={() => insertText('<h1>', '</h1>')} class="toolbar-btn">H1</button>
-            <button type="button" on:click={() => insertText('<h2>', '</h2>')} class="toolbar-btn">H2</button>
-            <button type="button" on:click={() => insertText('<strong>', '</strong>')} class="toolbar-btn">Bold</button>
-            <button type="button" on:click={() => insertText('<em>', '</em>')} class="toolbar-btn">Italic</button>
-            <button type="button" on:click={() => insertText('<a href="">', '</a>')} class="toolbar-btn">Link</button>
-            <button type="button" on:click={() => insertText('<img src="" alt="" style="max-width:100%;">')} class="toolbar-btn">Image</button>
-            <button type="button" on:click={() => insertText('<div style="background:#f3f4f6;padding:1rem;border-radius:8px;margin:1rem 0;">', '</div>')} class="toolbar-btn">Box</button>
-            <button type="button" on:click={() => insertText('<button style="background:#2563eb;color:white;padding:12px 24px;border:none;border-radius:6px;text-decoration:none;display:inline-block;">', '</button>')} class="toolbar-btn">Button</button>
+            <button type="button" onclick={() => insertText('<h1>', '</h1>')} class="toolbar-btn">H1</button>
+            <button type="button" onclick={() => insertText('<h2>', '</h2>')} class="toolbar-btn">H2</button>
+            <button type="button" onclick={() => insertText('<strong>', '</strong>')} class="toolbar-btn">Bold</button>
+            <button type="button" onclick={() => insertText('<em>', '</em>')} class="toolbar-btn">Italic</button>
+            <button type="button" onclick={() => insertText('<a href="">', '</a>')} class="toolbar-btn">Link</button>
+            <button type="button" onclick={() => insertText('<img src="" alt="" style="max-width:100%;">')} class="toolbar-btn">Image</button>
+            <button type="button" onclick={() => insertText('<div style="background:#f3f4f6;padding:1rem;border-radius:8px;margin:1rem 0;">', '</div>')} class="toolbar-btn">Box</button>
+            <button type="button" onclick={() => insertText('<button style="background:#2563eb;color:white;padding:12px 24px;border:none;border-radius:6px;text-decoration:none;display:inline-block;">', '</button>')} class="toolbar-btn">Button</button>
           </div>
           <textarea 
             id="html-content"
@@ -896,7 +924,7 @@
               placeholder="your@email.com"
             />
           </div>
-          <button on:click={sendTestEmail} disabled={composerLoading || sendingBatch} class="test-btn">
+          <button onclick={sendTestEmail} disabled={composerLoading || sendingBatch} class="test-btn">
             {composerLoading ? 'Sending...' : 'Send Test Email'}
           </button>
         </div>
@@ -974,11 +1002,11 @@
               
               <div class="auto-send-actions">
                 {#if !autoSending}
-                  <button on:click={startAutoSend} disabled={!composerSubject.trim() || !composerHtml.trim()} class="auto-start-btn">
+                  <button onclick={startAutoSend} disabled={!composerSubject.trim() || !composerHtml.trim()} class="auto-start-btn">
                     🚀 Start Automated Sending
                   </button>
                 {:else}
-                  <button on:click={stopAutoSend} class="auto-stop-btn">
+                  <button onclick={stopAutoSend} class="auto-stop-btn">
                     ⏹️ Stop Automated Sending
                   </button>
                 {/if}
@@ -1033,22 +1061,26 @@
       <!-- Action Buttons -->
       <div class="action-buttons">
         <div class="primary-actions">
-          <button on:click={() => composerPreview = !composerPreview} disabled={sendingBatch} class="preview-btn">
+          <button onclick={() => composerPreview = !composerPreview} disabled={sendingBatch} class="preview-btn">
             {composerPreview ? '👁️ Hide Preview' : '👁️ Show Preview'}
           </button>
-          <button on:click={sendToAllSubscribers} disabled={composerLoading || sendingBatch || !composerSubject.trim() || !composerHtml.trim()} class="send-btn">
-            {sendingBatch ? '📤 Sending...' : `📤 Send to All (${formatNumber(activeSubscribers)})`}
+          <button
+            onclick={sendToAllSubscribers}
+            disabled={composerLoading || sendingBatch || !composerSubject.trim() || !composerHtml.trim()}
+            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {sendingBatch ? 'Sending...' : `📤 Send to All (${formatNumber(activeSubscribers)})`}
           </button>
         </div>
         
         <div class="secondary-actions">
           {#if hasActiveCampaign && !showProgress}
-            <button on:click={resumeCampaign} disabled={sendingBatch} class="resume-btn">
+            <button onclick={resumeCampaign} disabled={sendingBatch} class="resume-btn">
               📧 Resume Campaign
             </button>
           {/if}
           {#if showProgress}
-            <button on:click={resetBatchProgress} disabled={sendingBatch} class="reset-btn">
+            <button onclick={resetBatchProgress} disabled={sendingBatch} class="reset-btn">
               🔄 Reset Campaign
             </button>
           {/if}
@@ -1099,7 +1131,7 @@
                 ✅ Campaign completed successfully!
               </div>
             {:else}
-              <button on:click={sendNextBatch} disabled={sendingBatch} class="next-batch-btn">
+              <button onclick={sendNextBatch} disabled={sendingBatch} class="next-batch-btn">
                 {sendingBatch ? '📤 Sending Next Batch...' : '📤 Send Next Batch'}
               </button>
             {/if}
@@ -1176,7 +1208,7 @@
   {#if showProgress && campaignId}
     <div class="email-logs-section">
       <h3 style="margin-top:2rem;">Email Send Log (Most Recent 50)</h3>
-      <button on:click={fetchEmailLogs} disabled={loadingLogs} style="margin-bottom:0.5rem;">{loadingLogs ? 'Refreshing...' : 'Refresh Log'}</button>
+      <button onclick={fetchEmailLogs} disabled={loadingLogs} style="margin-bottom:0.5rem;">{loadingLogs ? 'Refreshing...' : 'Refresh Log'}</button>
       {#if loadingLogs}
         <div>Loading logs...</div>
       {:else if emailLogs.length === 0}
@@ -2186,5 +2218,47 @@
       border-radius: 8px;
       margin-bottom: 0.5rem;
     }
+  }
+
+  .sendgrid-test-section {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+  }
+
+  .sendgrid-test-section h3 {
+    margin: 0 0 0.5rem 0;
+    color: #1f2937;
+    font-size: 1.1rem;
+  }
+
+  .sendgrid-test-section p {
+    margin: 0 0 1rem 0;
+    color: #6b7280;
+    font-size: 0.9rem;
+  }
+
+  .test-sendgrid-btn {
+    background: #059669;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 0.5rem;
+  }
+
+  .test-sendgrid-btn:hover {
+    background: #047857;
+    transform: translateY(-1px);
+  }
+
+  .sendgrid-test-section small {
+    color: #6b7280;
+    font-size: 0.8rem;
   }
 </style>

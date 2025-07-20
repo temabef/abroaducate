@@ -4,7 +4,7 @@
     import { browser } from '$app/environment';
     import { deviceFingerprintService } from '$lib/services/deviceFingerprintService';
     import { emailVerificationService, type EmailAnalysis } from '$lib/services/emailVerificationService';
-    import { getBaseUrl } from '$lib/config/site';
+    import { getBaseUrl, getEmailBaseUrl } from '$lib/config/site';
 
     const dispatch = createEventDispatcher();
 
@@ -51,6 +51,11 @@
             }
         }
     });
+
+    // Mark user interaction for audio fingerprinting
+    function handleUserInteraction() {
+        deviceFingerprintService.markUserInteraction();
+    }
 
     function close() {
         show = false;
@@ -214,16 +219,16 @@
             console.warn('Failed to log registration event:', logError);
         }
 
-        // Create account
+        // Create account with Supabase's built-in email confirmation
         const { data, error: signupError } = await supabase.auth.signUp({
             email,
             password,
             options: {
                 data: {
                     full_name: fullName,
-                    email_verified: false,
                     registration_method: 'email'
-                }
+                },
+                emailRedirectTo: `${getBaseUrl()}/auth/callback`
             }
         });
 
@@ -233,23 +238,16 @@
             // Store device fingerprint
             await deviceFingerprintService.storeFingerprint(supabase, data.user.id);
 
-            // Generate and send verification token
-            try {
-                const verificationToken = await emailVerificationService.generateVerificationToken(
-                    supabase, 
-                    data.user.id, 
-                    email
-                );
-
-                // Use production URL for email verification
-                const baseUrl = getBaseUrl();
-                
-                await emailVerificationService.sendVerificationEmail(
-                    email, 
-                    verificationToken.token, 
-                    baseUrl
-                );
-
+            // Check if email confirmation is required
+            if (data.user.email_confirmed_at) {
+                // User is already confirmed, auto-login
+                success = 'Account created successfully! Redirecting...';
+                setTimeout(() => {
+                    close();
+                    window.location.href = returnUrl;
+                }, 1000);
+            } else {
+                // Email confirmation required
                 success = 'Account created! Please check your email to verify your account before signing in.';
                 
                 // Switch to login mode after successful signup
@@ -257,9 +255,6 @@
                     mode = 'login';
                     clearForm();
                 }, 3000);
-            } catch (verificationError) {
-                console.error('Verification email failed:', verificationError);
-                success = 'Account created! Please contact support for email verification.';
             }
         }
     }
@@ -303,7 +298,7 @@
 
         try {
             const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-                redirectTo: `${getProductionUrl()}/auth/reset-password`
+                redirectTo: `${getEmailBaseUrl()}/auth/reset-password`
             });
 
             if (resetError) throw resetError;
@@ -465,6 +460,7 @@
                                     type="email"
                                     bind:value={email}
                                     on:blur={analyzeEmailAddress}
+                                    on:click={handleUserInteraction}
                                     placeholder="Enter your email"
                                     required
                                 />

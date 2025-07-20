@@ -28,9 +28,23 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     if (!subject || !html) {
       return json({ error: 'Subject and HTML content are required' }, { status: 400 });
     }
+    
+    // Enhanced SendGrid configuration check
     if (!sendgridApiKey) {
-      return json({ error: 'SendGrid API key not configured' }, { status: 500 });
+      console.error('SendGrid API key not configured');
+      return json({ 
+        error: 'SendGrid API key not configured. Please check your environment variables.',
+        details: 'SENDGRID_API_KEY environment variable is missing or empty'
+      }, { status: 500 });
     }
+
+    console.log('📧 Newsletter batch send started:', {
+      subject,
+      batchSize,
+      hasApiKey: !!sendgridApiKey,
+      fromEmail,
+      fromName
+    });
 
     let campaign = null;
     let campaignId = campaign_id;
@@ -52,10 +66,11 @@ export const POST: RequestHandler = async ({ request, locals }) => {
         .single();
       if (campaignError) {
         console.error('Error creating campaign:', campaignError);
-        return json({ error: 'Failed to create campaign' }, { status: 500 });
+        return json({ error: 'Failed to create campaign: ' + campaignError.message }, { status: 500 });
       }
       campaign = newCampaign;
       campaignId = newCampaign.id;
+      console.log('✅ Campaign created:', campaignId);
     } else {
       // Fetch existing campaign
       const { data: existingCampaign, error: fetchError } = await supabase
@@ -64,9 +79,11 @@ export const POST: RequestHandler = async ({ request, locals }) => {
         .eq('id', campaignId)
         .single();
       if (fetchError || !existingCampaign) {
+        console.error('Campaign not found:', campaignId);
         return json({ error: 'Campaign not found' }, { status: 404 });
       }
       campaign = existingCampaign;
+      console.log('✅ Using existing campaign:', campaignId);
     }
 
     // Get next batch of subscribers who have NOT been sent this campaign
@@ -85,10 +102,18 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     }
     query = query.limit(batchSize);
     const { data: batch, error: batchError } = await query;
+    
     if (batchError) {
       console.error('Error fetching batch:', batchError);
-      return json({ error: 'Failed to fetch batch' }, { status: 500 });
+      return json({ error: 'Failed to fetch batch: ' + batchError.message }, { status: 500 });
     }
+    
+    console.log('📧 Batch details:', {
+      batchSize: batch?.length || 0,
+      alreadySent: sentIds.length,
+      totalRecipients: total_recipients
+    });
+
     if (!batch || batch.length === 0) {
       // All done
       await supabase
@@ -122,13 +147,25 @@ export const POST: RequestHandler = async ({ request, locals }) => {
         openTracking: { enable: true }
       }
     }));
+    
+    console.log('📧 Attempting to send batch via SendGrid...');
     try {
       await sgMail.send(messages);
       sentCount = batch.length;
+      console.log('✅ SendGrid batch sent successfully:', sentCount);
     } catch (sendError) {
-      console.error('Error sending batch:', sendError);
+      console.error('❌ SendGrid batch send failed:', sendError);
       failedCount = batch.length;
+      
+      // Return detailed error information
+      return json({ 
+        error: 'Failed to send emails via SendGrid',
+        details: sendError instanceof Error ? sendError.message : 'Unknown SendGrid error',
+        sendgridError: true,
+        batchSize: batch.length
+      }, { status: 500 });
     }
+    
     // Log each send
     for (const subscriber of batch) {
       logs.push({
@@ -141,9 +178,16 @@ export const POST: RequestHandler = async ({ request, locals }) => {
         sent_at: new Date().toISOString()
       });
     }
+    
     if (logs.length > 0) {
-      await supabase.from('newsletter_email_logs').insert(logs);
+      const { error: logError } = await supabase.from('newsletter_email_logs').insert(logs);
+      if (logError) {
+        console.error('Error logging email sends:', logError);
+      } else {
+        console.log('✅ Email logs saved:', logs.length);
+      }
     }
+    
     // Update campaign progress
     const totalSent = sentIds.length + sentCount;
     await supabase
@@ -154,25 +198,26 @@ export const POST: RequestHandler = async ({ request, locals }) => {
         total_failed: campaign.total_failed + failedCount
       })
       .eq('id', campaignId);
-    // Update total_recipients if this is the first batch
-    if (!campaign_id) {
-      const totalRecipients = total_recipients || 0;
-      await supabase
-        .from('newsletter_campaigns')
-        .update({ total_recipients: totalRecipients })
-        .eq('id', campaignId);
-    }
+
+    console.log('✅ Campaign updated:', {
+      campaignId,
+      totalSent,
+      batchSent: sentCount,
+      failed: failedCount
+    });
+
     return json({
       success: true,
       campaign_id: campaignId,
-      sent_count: totalSent,
       batch_sent: sentCount,
-      batch_failed: failedCount,
-      total_recipients: campaign.total_recipients,
+      total_sent: totalSent,
       done: false
     });
-  } catch (error) {
-    console.error('Error in batch send endpoint:', error);
-    return json({ error: 'Internal server error' }, { status: 500 });
+  } catch (e) {
+    console.error('❌ Newsletter batch send exception:', e);
+    return json({ 
+      error: e.message || 'Internal server error',
+      exception: true
+    }, { status: 500 });
   }
 }; 
