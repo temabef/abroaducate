@@ -106,7 +106,7 @@
         error = '';
         
         try {
-            const redirectUrl = `${window.location.origin}/auth/callback?next=${encodeURIComponent(returnUrl)}`;
+            const redirectUrl = `${getBaseUrl()}/auth/callback?next=${encodeURIComponent(returnUrl)}`;
             
             await supabase.auth.signInWithOAuth({
                 provider: 'google',
