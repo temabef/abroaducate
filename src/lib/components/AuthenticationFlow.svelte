@@ -4,6 +4,7 @@
     import { browser } from '$app/environment';
     import { deviceFingerprintService } from '$lib/services/deviceFingerprintService';
     import { emailVerificationService, type EmailAnalysis } from '$lib/services/emailVerificationService';
+    import { getBaseUrl } from '$lib/config/site';
 
     const dispatch = createEventDispatcher();
 
@@ -240,10 +241,13 @@
                     email
                 );
 
+                // Use production URL for email verification
+                const baseUrl = getBaseUrl();
+                
                 await emailVerificationService.sendVerificationEmail(
                     email, 
                     verificationToken.token, 
-                    window.location.origin
+                    baseUrl
                 );
 
                 success = 'Account created! Please check your email to verify your account before signing in.';
@@ -258,6 +262,11 @@
                 success = 'Account created! Please contact support for email verification.';
             }
         }
+    }
+
+    // Function to get the correct production URL
+    function getProductionUrl(): string {
+        return getBaseUrl();
     }
 
     async function handleLogin() {
@@ -294,7 +303,7 @@
 
         try {
             const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-                redirectTo: `${window.location.origin}/auth/reset-password`
+                redirectTo: `${getProductionUrl()}/auth/reset-password`
             });
 
             if (resetError) throw resetError;
