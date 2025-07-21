@@ -93,40 +93,25 @@
   let isAdmin = $state(false);
 
   onMount(async () => {
-    // Check admin status first
+    // Use only role-based admin check via Supabase RPC
     if (session?.user) {
-      const adminCheck = 
-        session?.user?.email === 'solakolawole62@gmail.com' || 
-        session?.user?.email === 'admin@abroaducate.com' || 
-        session?.user?.email?.includes('admin') ||
-        session?.user?.user_metadata?.role === 'admin';
-        
-      if (adminCheck) {
-        isAdmin = true;
-        console.log('✅ Admin access granted for:', session.user.email);
-        await loadScholarships();
-        return;
-      }
-    }
-    
-    // Try RPC function as secondary check
-    try {
-      const { data: canManage, error: permissionError } = await supabase.rpc('can_manage_scholarships');
-      
-      if (permissionError) {
-        console.error('❌ Permission check failed:', permissionError);
+      try {
+        const { data: canManage, error: permissionError } = await supabase.rpc('can_manage_scholarships');
+        if (permissionError) {
+          console.error('❌ Permission check failed:', permissionError);
+          isAdmin = false;
+        } else if (canManage) {
+          isAdmin = true;
+          console.log('✅ Admin access granted via RPC');
+          await loadScholarships();
+        } else {
+          isAdmin = false;
+          console.log('❌ Access denied - not admin');
+        }
+      } catch (error) {
+        console.error('❌ RPC call failed:', error);
         isAdmin = false;
-      } else if (canManage) {
-        isAdmin = true;
-        console.log('✅ Admin access granted via RPC');
-        await loadScholarships();
-      } else {
-        isAdmin = false;
-        console.log('❌ Access denied - not admin');
       }
-    } catch (error) {
-      console.error('❌ RPC call failed:', error);
-      isAdmin = false;
     }
   });
 

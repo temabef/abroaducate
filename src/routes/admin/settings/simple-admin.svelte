@@ -114,54 +114,44 @@
   }
   
   // Remove an admin directly
-  async function handleRemoveAdmin(email: string, userId: string) {
+  async function handleRemoveAdmin(email: string, userId: string, role: string) {
     if (!confirm(`Are you sure you want to remove admin privileges from ${email || userId}?`)) {
       return;
     }
-    
+    if (role === 'super_admin' || role === 'super-admin') {
+      alert('Cannot remove super admin users');
+      return;
+    }
     try {
-      // Check if this is a protected email
-      const protectedEmails = ['admin@abroaducate.com', 'solakolawole62@gmail.com'];
-      if (protectedEmails.includes(email)) {
-        alert('Cannot remove super admin users');
-        return;
-      }
-      
       // Use the remove_admin_user function instead of direct table access
       const { data: result, error: deleteError } = await supabase.rpc('remove_admin_user', {
         admin_email: email
       });
-      
       if (deleteError) {
         alert(`Error: ${deleteError.message}`);
         return;
       }
-      
       await loadAdminUsers();
     } catch (e: any) {
       alert(`Exception: ${e instanceof Error ? e.message : 'Unknown error'}`);
       console.error('Exception removing admin:', e);
     }
   }
-  
+
   // Update an admin's role
-  async function handleUpdateRole(email: string, userId: string) {
-    // Check if this is a protected email
-    const protectedEmails = ['admin@abroaducate.com', 'solakolawole62@gmail.com'];
-    if (protectedEmails.includes(email)) {
+  async function handleUpdateRole(email: string, userId: string, role: string) {
+    if (role === 'super_admin' || role === 'super-admin') {
       alert('Cannot change role of super admin users');
       return;
     }
-    
     // Show a dialog to select the new role
     const newRole = prompt(`Select new role for ${email || userId}:
 Available roles:
 - super_admin
 - admin
 - content_admin
-- scholarship_admin`, 'admin');
-    
-    if (!newRole) return; // User cancelled
+- scholarship_admin`);
+    if (!newRole) return;
     
     try {
       // Use the add_admin_user function to update role (it handles upserts)
@@ -303,8 +293,9 @@ Available roles:
                         {admin.role}
                       </span>
                       <button
-                        onclick={() => handleUpdateRole(admin.email, admin.user_id)}
+                        onclick={() => handleUpdateRole(admin.email, admin.user_id, admin.role)}
                         class="text-blue-600 hover:text-blue-900 text-xs"
+                        disabled={admin.role === 'super_admin' || admin.role === 'super-admin'}
                       >
                         Change
                       </button>
@@ -315,10 +306,10 @@ Available roles:
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
-                      onclick={() => handleRemoveAdmin(admin.email, admin.user_id)}
+                      onclick={() => handleRemoveAdmin(admin.email, admin.user_id, admin.role)}
                       class="text-red-600 hover:text-red-900"
                       title="Remove admin"
-                      disabled={['admin@abroaducate.com', 'solakolawole62@gmail.com'].includes(admin.email)}
+                      disabled={admin.role === 'super_admin' || admin.role === 'super-admin'}
                     >
                       Remove
                     </button>

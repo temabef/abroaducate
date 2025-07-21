@@ -2,6 +2,34 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { DocxExporter, type DocxExportRequest } from '$lib/services/DocxExporter';
 
+// Simple in-memory per-user rate limiter (resets on server restart)
+const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+const RATE_LIMIT_MAX = 10; // 10 exports per window
+const userExportMap = new Map();
+
+function checkUserRateLimit(userId: string) {
+  const now = Date.now();
+  let entry = userExportMap.get(userId);
+  if (!entry) {
+    entry = { count: 1, first: now };
+    userExportMap.set(userId, entry);
+    return false;
+  } else {
+    if (now - entry.first < RATE_LIMIT_WINDOW_MS) {
+      if (entry.count >= RATE_LIMIT_MAX) {
+        return true;
+      }
+      entry.count++;
+    } else {
+      // Reset window
+      entry.count = 1;
+      entry.first = now;
+    }
+    userExportMap.set(userId, entry);
+    return false;
+  }
+}
+
 interface WordExportRequest {
   content: string;
   title: string;
@@ -20,6 +48,11 @@ export const POST: RequestHandler = async ({ request, locals: { supabase } }) =>
   
   if (!session?.user) {
     return json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  // Rate limiting
+  if (checkUserRateLimit(session.user.id)) {
+    return json({ error: 'Too many exports. Please try again in an hour.' }, { status: 429 });
   }
 
   try {

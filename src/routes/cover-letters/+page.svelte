@@ -133,6 +133,47 @@
         };
         return colors[positionType as keyof typeof colors] || 'bg-gray-100 text-gray-800';
     }
+
+    async function exportCoverLetter(coverLetterId: string, jobTitle: string, companyName: string) {
+        try {
+            // Fetch the cover letter content from the API
+            const response = await supabase
+                .from('cover_letters')
+                .select('generated_content')
+                .eq('id', coverLetterId)
+                .single();
+            const content = response.data?.generated_content;
+            if (!content) {
+                alert('Cover letter content not found. Please open and save the cover letter first.');
+                return;
+            }
+            const exportRes = await fetch('/api/export-word', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    content,
+                    title: `${jobTitle} - ${companyName}`,
+                    type: 'cover_letter'
+                })
+            });
+            if (!exportRes.ok) {
+                const errorData = await exportRes.json();
+                throw new Error(errorData.error || 'Export failed');
+            }
+            const blob = await exportRes.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${jobTitle.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_')}_Cover_Letter.docx`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('Export error:', error);
+            alert(`Export failed: ${error instanceof Error ? error.message : 'Please try again'}`);
+        }
+    }
 </script>
 
 <svelte:head>
@@ -282,10 +323,7 @@
                                             ✏️ Edit
                                         </button>
                                         <button
-                                            onclick={() => {
-                                                // Download or view functionality
-                                                window.open(`/api/export-document`, '_blank');
-                                            }}
+                                            onclick={() => exportCoverLetter(coverLetter.id, coverLetter.job_title, coverLetter.company_name)}
                                             class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm"
                                         >
                                             📤 Export

@@ -1,7 +1,53 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import sgMail from '@sendgrid/mail';
+
+const sendgridApiKey = process.env.SENDGRID_API_KEY;
+const fromName = process.env.FROM_NAME || 'Abroaducate';
+const fromEmail = process.env.SENDGRID_FROM_EMAIL || process.env.FROM_EMAIL || 'hello@abroaducate.com';
+const from = `${fromName} <${fromEmail}>`;
+
+if (sendgridApiKey) {
+  sgMail.setApiKey(sendgridApiKey);
+}
+
+// Simple in-memory rate limiter (per IP, resets on server restart)
+const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+const RATE_LIMIT_MAX = 5; // 5 requests per window
+const rateLimitMap = new Map();
+
+function getClientIp(request: Request) {
+  // Try to get IP from headers (works for most deployments)
+  return (
+    request.headers.get('x-forwarded-for') ||
+    request.headers.get('x-real-ip') ||
+    // fallback: not reliable in serverless, but fine for dev
+    'unknown'
+  );
+}
 
 export const POST: RequestHandler = async ({ request, locals: { supabase } }) => {
+  // Rate limiting logic
+  const ip = getClientIp(request);
+  const now = Date.now();
+  let entry = rateLimitMap.get(ip);
+  if (!entry) {
+    entry = { count: 1, first: now };
+    rateLimitMap.set(ip, entry);
+  } else {
+    if (now - entry.first < RATE_LIMIT_WINDOW_MS) {
+      if (entry.count >= RATE_LIMIT_MAX) {
+        return json({ error: 'Too many requests. Please try again in an hour.' }, { status: 429 });
+      }
+      entry.count++;
+    } else {
+      // Reset window
+      entry.count = 1;
+      entry.first = now;
+    }
+    rateLimitMap.set(ip, entry);
+  }
+
   try {
     const { name, email, category, subject, message, priority } = await request.json();
 
@@ -83,30 +129,19 @@ User Agent: ${request.headers.get('user-agent') || 'Unknown'}
 Reply directly to this email to respond to the user.
     `.trim();
 
-    // In a real implementation, you would send this email using a service like:
-    // - SendGrid
-    // - Postmark  
-    // - AWS SES
-    // - Resend
-    // 
-    // For now, we'll log it and return success
-    // You can implement actual email sending when you're ready
-
-    console.log('📧 NEW SUPPORT REQUEST:');
-    console.log('Subject:', emailSubject);
-    console.log('Body:', emailBody);
-
-    // TODO: Replace this with actual email sending
-    // Example with a hypothetical email service:
-    /*
-    await emailService.send({
-      to: 'support@abroaducate.com',
-      from: 'hello@abroaducate.com',
-      replyTo: email,
-      subject: emailSubject,
-      text: emailBody
-    });
-    */
+    // Send support request email to support@abroaducate.com
+    try {
+      await sgMail.send({
+        to: 'support@abroaducate.com',
+        from,
+        replyTo: email,
+        subject: emailSubject,
+        text: emailBody,
+        html: emailBody.replace(/\n/g, '<br>')
+      });
+    } catch (sendError) {
+      console.error('SendGrid support email failed:', sendError);
+    }
 
     // Send auto-reply to user
     const autoReplySubject = `We received your support request - ${category} inquiry`;
@@ -129,20 +164,17 @@ The Abroaducate Support Team
 support@abroaducate.com
     `.trim();
 
-    console.log('📧 AUTO-REPLY TO USER:');
-    console.log('To:', email);
-    console.log('Subject:', autoReplySubject);
-    console.log('Body:', autoReplyBody);
-
-    // TODO: Send auto-reply email to user
-    /*
-    await emailService.send({
-      to: email,
-      from: 'hello@abroaducate.com',
-      subject: autoReplySubject,
-      text: autoReplyBody
-    });
-    */
+    try {
+      await sgMail.send({
+        to: email,
+        from,
+        subject: autoReplySubject,
+        text: autoReplyBody,
+        html: autoReplyBody.replace(/\n/g, '<br>')
+      });
+    } catch (sendError) {
+      console.error('SendGrid auto-reply failed:', sendError);
+    }
 
     return json({ 
       success: true, 

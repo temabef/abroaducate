@@ -61,15 +61,22 @@
   }));
 
   onMount(async () => {
-    // Check admin permissions before loading data
-    if (!session?.user?.email?.includes('admin') && 
-        session?.user?.email !== 'solakolawole62@gmail.com') {
-      console.log('❌ Access denied - not admin user');
+    // Use only role-based admin check via Supabase RPC
+    if (!session?.user) {
+      console.log('❌ Access denied - not logged in');
       return;
     }
-    
-    console.log('✅ Admin access granted, loading test prep data...');
-    await loadTestSets();
+    try {
+      const { data: canManageContent, error } = await supabase.rpc('can_manage_content');
+      if (error || !canManageContent) {
+        console.log('❌ Access denied - not admin user');
+        return;
+      }
+      console.log('✅ Admin access granted, loading test prep data...');
+      await loadTestSets();
+    } catch (err) {
+      console.error('❌ Error checking admin role:', err);
+    }
   });
 
   async function loadTestSets() {

@@ -399,10 +399,6 @@
               <p class="text-sm text-gray-600">Centralized tracking & status updates</p>
             </div>
             <div class="bg-white p-4 rounded-lg border border-purple-200">
-              <h4 class="font-semibold text-gray-900 mb-2">Calendar Integration</h4>
-              <p class="text-sm text-gray-600">Google Calendar sync with reminders</p>
-            </div>
-            <div class="bg-white p-4 rounded-lg border border-purple-200">
               <h4 class="font-semibold text-gray-900 mb-2">Cold Email Generator</h4>
               <p class="text-sm text-gray-600">Professional professor outreach</p>
             </div>

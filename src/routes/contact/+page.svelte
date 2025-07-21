@@ -4,7 +4,7 @@
   let formData = $state({
     name: '',
     email: '',
-    category: '',
+    category: 'general', // Default to 'general'
     subject: '',
     message: '',
     priority: 'normal'
@@ -36,7 +36,8 @@
 
       if (response.ok) {
         submitted = true;
-        formData = { name: '', email: '', category: '', subject: '', message: '', priority: 'normal' };
+        formData = { name: '', email: '', category: 'general', subject: '', message: '', priority: 'normal' };
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
         throw new Error('Failed to send message');
       }

@@ -1,7 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { getSupabase } from '$lib/supabase';
-  import CalendarIntegration from './CalendarIntegration.svelte';
 
   const supabase = getSupabase();
 
@@ -221,14 +220,6 @@
               </div>
 
               <div class="reminder-actions">
-                <CalendarIntegration 
-                  scholarship={{
-                    id: reminder.scholarship_id,
-                    title: reminder.title,
-                    provider: reminder.provider,
-                    deadline: reminder.deadline
-                  }}
-                />
                 <a 
                   href="/scholarships/my-applications" 
                   class="view-button"

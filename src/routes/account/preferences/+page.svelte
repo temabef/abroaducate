@@ -17,8 +17,6 @@
     scholarship_digest_weekly: boolean;
     scholarship_digest_daily: boolean;
     timezone: string;
-    calendar_enabled: boolean;
-    calendar_provider: 'google' | 'outlook' | 'apple';
     subscription_alerts: boolean;
     instant_alerts: boolean;
   }
@@ -35,8 +33,6 @@
     scholarship_digest_weekly: true,
     scholarship_digest_daily: false,
     timezone: 'UTC',
-    calendar_enabled: false,
-    calendar_provider: 'google',
     subscription_alerts: true,
     instant_alerts: false
   });
@@ -83,8 +79,6 @@
             ? (prefsData.scholarship_digest_daily ?? true)
             : false,
           timezone: prefsData.timezone ?? 'UTC',
-          calendar_enabled: prefsData.calendar_enabled ?? false,
-          calendar_provider: prefsData.calendar_provider ?? 'google',
           subscription_alerts: prefsData.subscription_alerts ?? true,
           instant_alerts: prefsData.instant_alerts ?? false
         };

@@ -23,13 +23,6 @@ export async function isUserAdmin() {
     
     if (error) {
       console.error('Error checking admin status:', error);
-      
-      // Last resort fallback - check user email directly
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user && (user.email === 'admin@abroaducate.com' || user.email === 'solakolawole62@gmail.com')) {
-        return true;
-      }
-      
       return false;
     }
     

@@ -81,7 +81,7 @@ Detailed Scores:
             // Key Recommendations
             if (overall.recommendations?.length > 0) {
                 formattedContent += `KEY RECOMMENDATIONS:
-${overall.recommendations.map(rec => `• ${rec}`).join('\n')}
+${overall.recommendations.map((rec: any) => `• ${rec}`).join('\n')}
 
 `;
             }
@@ -89,7 +89,7 @@ ${overall.recommendations.map(rec => `• ${rec}`).join('\n')}
             // Strengths
             if (overall.overallStrengths?.length > 0) {
                 formattedContent += `STRENGTHS:
-${overall.overallStrengths.map(strength => `✓ ${strength}`).join('\n')}
+${overall.overallStrengths.map((strength: any) => `✓ ${strength}`).join('\n')}
 
 `;
             }
@@ -97,7 +97,7 @@ ${overall.overallStrengths.map(strength => `✓ ${strength}`).join('\n')}
             // Weaknesses
             if (overall.overallWeaknesses?.length > 0) {
                 formattedContent += `AREAS FOR IMPROVEMENT:
-${overall.overallWeaknesses.map(weakness => `⚠ ${weakness}`).join('\n')}
+${overall.overallWeaknesses.map((weakness: any) => `⚠ ${weakness}`).join('\n')}
 
 `;
             }
@@ -105,7 +105,7 @@ ${overall.overallWeaknesses.map(weakness => `⚠ ${weakness}`).join('\n')}
             // Critical Issues
             if (overall.criticalIssues?.length > 0) {
                 formattedContent += `CRITICAL ISSUES:
-${overall.criticalIssues.map(issue => `🚨 ${issue}`).join('\n')}
+${overall.criticalIssues.map((issue: any) => `🚨 ${issue}`).join('\n')}
 
 `;
             }
@@ -118,7 +118,7 @@ PARAGRAPH-BY-PARAGRAPH ANALYSIS
 =====================================================
 
 `;
-            analysisResult.paragraphAnalyses.forEach((paragraph, index) => {
+            analysisResult.paragraphAnalyses.forEach((paragraph: any, index: number) => {
                 formattedContent += `PARAGRAPH ${index + 1} ${paragraph.category ? `(${paragraph.category.replace('_', ' ').toUpperCase()})` : ''}
 Score: ${paragraph.score || 'N/A'}/100 ${paragraph.importance ? `| Priority: ${paragraph.importance.toUpperCase()}` : ''}
 
@@ -129,21 +129,21 @@ Original Text:
                 
                 if (paragraph.strengths?.length > 0) {
                     formattedContent += `Strengths:
-${paragraph.strengths.map(s => `✓ ${s}`).join('\n')}
+${paragraph.strengths.map((s: any) => `✓ ${s}`).join('\n')}
 
 `;
                 }
 
                 if (paragraph.weaknesses?.length > 0) {
                     formattedContent += `Areas to Improve:
-${paragraph.weaknesses.map(w => `⚠ ${w}`).join('\n')}
+${paragraph.weaknesses.map((w: any) => `⚠ ${w}`).join('\n')}
 
 `;
                 }
 
                 if (paragraph.suggestions?.length > 0) {
                     formattedContent += `Improvement Suggestions:
-${paragraph.suggestions.map(s => `→ ${s}`).join('\n')}
+${paragraph.suggestions.map((s: any) => `→ ${s}`).join('\n')}
 
 `;
                 }
@@ -218,6 +218,43 @@ Session: ${reviewMode} review mode
     // Format impression text
     function formatImpression(impression: string): string {
         return impression.replace('_', ' ').toUpperCase();
+    }
+
+    let loading = false;
+    let error = '';
+
+    async function analyzeSOP() {
+        error = '';
+        if (!sopText.trim()) {
+            error = 'Please enter your SOP text.';
+            return;
+        }
+        loading = true;
+        try {
+            const response = await fetch('/api/ai-features', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    type: 'sop_review',
+                    content: sopText,
+                    options: {
+                        reviewMode,
+                        universityName,
+                        programName
+                    }
+                })
+            });
+            const data = await response.json();
+            if (!response.ok || data.error) {
+                error = data.error || 'Failed to analyze SOP.';
+                return;
+            }
+            analysisResult = data.result;
+        } catch (e: any) {
+            error = e?.message || 'Failed to analyze SOP.';
+        } finally {
+            loading = false;
+        }
     }
 </script>
 
@@ -402,20 +439,28 @@ This is paragraph 3 covering my professional experience and achievements..."
                         </label>
                     </div>
                 </div>
+
+                <!-- Analyze Button (now truly below review type) -->
+                <div class="mt-6 text-center">
+                    <button
+                        class="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold text-lg shadow hover:bg-blue-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                        onclick={analyzeSOP}
+                        disabled={loading || !sopText.trim()}
+                    >
+                        {#if loading}
+                            <span class="animate-spin mr-2">🔄</span>Analyzing...
+                        {:else}
+                            🔍 Analyze My SOP
+                        {/if}
+                    </button>
+                    {#if error}
+                        <div class="mt-3 text-red-600 text-sm">{error}</div>
+                    {/if}
+                </div>
             </div>
             
             <!-- AI Feature Widget for SOP Review -->
-            <div class="p-6">
-                <AIFeatureWidget 
-                    featureType="sop_review"
-                    content={sopText}
-                    options={reviewOptions}
-                    placeholder="Paste your Statement of Purpose here for comprehensive analysis..."
-                    buttonText="🔍 Analyze My SOP"
-                    on:success={handleAnalysisSuccess}
-                    on:error={(e) => console.error('Analysis error:', e.detail)}
-                />
-            </div>
+            <!-- Removed <AIFeatureWidget ... /> to prevent duplicate blue box -->
         {:else}
             <!-- Analysis Results -->
             <div class="p-6">
@@ -514,7 +559,7 @@ This is paragraph 3 covering my professional experience and achievements..."
                                 <div>
                                     <h5 class="font-bold text-gray-900 mb-4">📝 Paragraph-by-Paragraph Analysis</h5>
                                     <div class="space-y-4">
-                                        {#each analysisResult.paragraphAnalyses as paragraph, index}
+                                        {#each analysisResult.paragraphAnalyses as paragraph}
                                             <div class="border border-gray-200 rounded-lg overflow-hidden">
                                                 <!-- Paragraph Header -->
                                                 <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
@@ -522,7 +567,7 @@ This is paragraph 3 covering my professional experience and achievements..."
                                                         <div class="flex items-center gap-3">
                                                             <h6 class="font-semibold text-gray-900">
                                                                 {#if paragraph.category === 'introduction'}🚀{:else if paragraph.category === 'academic_background'}📚{:else if paragraph.category === 'experience'}💼{:else if paragraph.category === 'goals'}🎯{:else if paragraph.category === 'conclusion'}🏁{:else}📝{/if}
-                                                                Paragraph {index + 1}
+                                                                Paragraph {paragraph.index + 1}
                                                                 {#if paragraph.category}
                                                                     <span class="text-sm text-gray-600">({paragraph.category.replace('_', ' ')})</span>
                                                                 {/if}

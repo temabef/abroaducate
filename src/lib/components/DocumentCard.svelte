@@ -1,85 +1,101 @@
 <script lang="ts">
-  export let type: 'sop' | 'cover_letter' | 'personal_statement';
-  export let title: string;
-  export let lastEdited: string;
-  export let metadata: string;
-  export let editUrl: string;
-  export let wordCount: number | null = null;
+import { onMount } from 'svelte';
+export let type: 'sop' | 'cover_letter' | 'personal_statement';
+export let title: string;
+export let lastEdited: string;
+export let metadata: string;
+export let editUrl: string;
+export let wordCount: number | null = null;
 
-  let exporting = false;
+let exporting = false;
+let documentContent = '';
 
-  function formatDate(dateString: string) {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - date.getTime());
-    const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffHours < 1) return 'Just now';
-    if (diffHours < 24) return `${diffHours} hour${diffHours === 1 ? '' : 's'} ago`;
-    if (diffDays === 1) return 'Yesterday';
-    if (diffDays < 7) return `${diffDays} days ago`;
-    return date.toLocaleDateString();
-  }
-
-  function getDocumentIcon(type: string) {
-    switch (type) {
-      case 'sop': return '📄';
-      case 'cover_letter': return '📧';
-      case 'personal_statement': return '💭';
-      default: return '📝';
-    }
-  }
-
-  async function exportToWord() {
-    // Extract document ID from editUrl
-    const urlParts = editUrl.split('/');
-    const documentId = urlParts[urlParts.length - 1];
-    
-    exporting = true;
-    
+// Fetch document content on mount if not provided as a prop
+onMount(async () => {
+  if (!documentContent && editUrl) {
     try {
-      const response = await fetch('/api/export-document', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          documentId,
-          documentType: type
-        })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Export failed');
+      const urlParts = editUrl.split('/');
+      const documentId = urlParts[urlParts.length - 1];
+      let apiUrl = '';
+      if (type === 'sop') apiUrl = `/api/sop/${documentId}`;
+      else if (type === 'cover_letter') apiUrl = `/api/cover-letter/${documentId}`;
+      else if (type === 'personal_statement') apiUrl = `/api/personal-statements/${documentId}`;
+      if (apiUrl) {
+        const response = await fetch(apiUrl);
+        if (response.ok) {
+          const data = await response.json();
+          if (type === 'personal_statement') {
+            documentContent = data.generated_content || '';
+          } else {
+            documentContent = data.content || data.generated_content || '';
+          }
+        }
       }
-
-      // Create download link
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      
-      // Extract filename from response headers or create one
-      const contentDisposition = response.headers.get('content-disposition');
-      let filename = 'document.docx';
-      if (contentDisposition) {
-        const matches = /filename="(.+)"/.exec(contentDisposition);
-        if (matches) filename = matches[1];
-      }
-      
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-      
-    } catch (error) {
-      console.error('Export error:', error);
-      alert(`Export failed: ${error instanceof Error ? error.message : 'Please try again'}`);
-    } finally {
-      exporting = false;
+    } catch (e) {
+      // Ignore errors, user can still try to export from the edit page
     }
   }
+});
+
+function formatDate(dateString: string) {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffTime = Math.abs(now.getTime() - date.getTime());
+  const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  if (diffHours < 1) return 'Just now';
+  if (diffHours < 24) return `${diffHours} hour${diffHours === 1 ? '' : 's'} ago`;
+  if (diffDays === 1) return 'Yesterday';
+  if (diffDays < 7) return `${diffDays} days ago`;
+  return date.toLocaleDateString();
+}
+
+function getDocumentIcon(type: string) {
+  switch (type) {
+    case 'sop': return '📄';
+    case 'cover_letter': return '📧';
+    case 'personal_statement': return '💭';
+    default: return '📝';
+  }
+}
+
+async function exportToWord() {
+  exporting = true;
+  try {
+    // If documentContent is still empty, alert the user
+    if (!documentContent) {
+      alert('Document content not available for export. Please open and save the document first.');
+      return;
+    }
+    const response = await fetch('/api/export-word', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        content: documentContent,
+        title,
+        type
+      })
+    });
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Export failed');
+    }
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${title.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_')}.docx`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error('Export error:', error);
+    alert(`Export failed: ${error instanceof Error ? error.message : 'Please try again'}`);
+  } finally {
+    exporting = false;
+  }
+}
 </script>
 
 <div class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all duration-200 hover:border-gray-300">

@@ -364,7 +364,6 @@
             free: {
                 email_notifications: { available: true, label: 'Weekly scholarship digest' },
                 version_history: { available: true, label: 'Cover letters only (3 versions)' },
-                calendar_integration: { available: false, label: 'Upgrade required' },
                 priority_support: { available: false, label: 'Community support only' },
                 advanced_analytics: { available: false, label: 'Basic stats only' },
                 gpa_analysis: { available: true, label: 'Quick assessment' },
@@ -373,7 +372,6 @@
             professional: {
                 email_notifications: { available: true, label: 'Daily emails + deadline reminders' },
                 version_history: { available: true, label: 'All documents (10 versions)' },
-                calendar_integration: { available: true, label: 'Google/Outlook sync' },
                 priority_support: { available: true, label: '48h email response' },
                 advanced_analytics: { available: true, label: 'Full dashboard' },
                 gpa_analysis: { available: true, label: 'Comprehensive + Quick' },
@@ -382,7 +380,6 @@
             elite: {
                 email_notifications: { available: true, label: 'Instant alerts + all features' },
                 version_history: { available: true, label: 'Unlimited versions' },
-                calendar_integration: { available: true, label: 'All providers + API access' },
                 priority_support: { available: true, label: '24h priority response' },
                 advanced_analytics: { available: true, label: 'Advanced insights + API' },
                 gpa_analysis: { available: true, label: 'All features + recommendations' },
