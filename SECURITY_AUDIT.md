@@ -81,6 +81,17 @@
 - **Data Encryption**: Ensure all sensitive data is encrypted at rest and in transit.
 - **Backup & Recovery**: Regularly test database backups and recovery procedures.
 
+## 🚧 Planned AWS Integrations
+
+- **AWS SES (Simple Email Service)**
+  - Planned migration from SendGrid to SES for all transactional and bulk email sending, leveraging AWS credits for cost savings and scalability.
+
+- **AWS Lambda (Serverless Functions)**
+  - Planned use for offloading heavy/slow tasks (e.g., university matching, OCR, document generation) to improve app responsiveness and scalability.
+
+- **AWS ElastiCache (Redis)**
+  - Planned migration of rate limiting and caching from in-memory to managed Redis, for global, persistent, and scalable enforcement across all app instances.
+
 ---
 
 **This document should be updated as new security measures are implemented or new risks are identified.** 

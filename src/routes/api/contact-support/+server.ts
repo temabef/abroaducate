@@ -1,14 +1,18 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import sgMail from '@sendgrid/mail';
+import { SENDGRID_API_KEY, FROM_EMAIL } from '$env/static/private';
 
-const sendgridApiKey = process.env.SENDGRID_API_KEY;
 const fromName = process.env.FROM_NAME || 'Abroaducate';
-const fromEmail = process.env.SENDGRID_FROM_EMAIL || process.env.FROM_EMAIL || 'hello@abroaducate.com';
+const fromEmail = FROM_EMAIL || 'hello@abroaducate.com';
 const from = `${fromName} <${fromEmail}>`;
 
-if (sendgridApiKey) {
-  sgMail.setApiKey(sendgridApiKey);
+// Log environment variable status (mask API key)
+console.log('[Contact API] SENDGRID_API_KEY:', SENDGRID_API_KEY ? SENDGRID_API_KEY.slice(0, 6) + '...' : 'NOT SET');
+console.log('[Contact API] fromEmail:', fromEmail);
+
+if (SENDGRID_API_KEY) {
+  sgMail.setApiKey(SENDGRID_API_KEY);
 }
 
 // Simple in-memory rate limiter (per IP, resets on server restart)
@@ -130,17 +134,21 @@ Reply directly to this email to respond to the user.
     `.trim();
 
     // Send support request email to support@abroaducate.com
+    const supportEmailMessage = {
+      to: 'support@abroaducate.com',
+      from: { email: fromEmail, name: fromName },
+      replyTo: email,
+      subject: `[Support ID: ${supportRequest.id}] ${emailSubject}`,
+      text: emailBody,
+      html: emailBody.replace(/\n/g, '<br>')
+    };
+    console.log('[Contact API] Sending support email with message:', JSON.stringify({ ...supportEmailMessage, text: undefined, html: undefined }));
     try {
-      await sgMail.send({
-        to: 'support@abroaducate.com',
-        from,
-        replyTo: email,
-        subject: emailSubject,
-        text: emailBody,
-        html: emailBody.replace(/\n/g, '<br>')
-      });
+      const sendResult = await sgMail.send(supportEmailMessage);
+      console.log('[Contact API] SendGrid support email send result:', sendResult);
     } catch (sendError) {
       console.error('SendGrid support email failed:', sendError);
+      return json({ error: 'Failed to send support email. Please try again later.' }, { status: 500 });
     }
 
     // Send auto-reply to user
@@ -164,16 +172,18 @@ The Abroaducate Support Team
 support@abroaducate.com
     `.trim();
 
+    console.log(`[Contact API] Attempting to send auto-reply to user: ${email}`);
     try {
       await sgMail.send({
         to: email,
-        from,
+        from: { email: fromEmail, name: fromName },
         subject: autoReplySubject,
         text: autoReplyBody,
         html: autoReplyBody.replace(/\n/g, '<br>')
       });
     } catch (sendError) {
       console.error('SendGrid auto-reply failed:', sendError);
+      return json({ error: 'Failed to send auto-reply email. Please check your email address or try again later.' }, { status: 500 });
     }
 
     return json({ 
