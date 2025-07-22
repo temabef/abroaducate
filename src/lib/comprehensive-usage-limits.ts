@@ -18,11 +18,11 @@ export interface ComprehensiveUsageCheck {
 const AI_FEATURE_LIMITS: Record<string, Record<string, number | null>> = {
 	free: {
 		// Document Generation - MATCHES PRICING PAGE EXACTLY
-		sop_generation: 2,
-		cover_letter_generation: 2,
+		sop_generation: 1,
+		cover_letter_generation: 1,
 		personal_statement_generation: 1,
 		academic_cv_generation: 1,
-		total_documents: 6, // 2+2+1+1
+		total_documents: 4, // 1+1+1+1
 		
 		// AI Enhancement Features - MATCHES PRICING PAGE EXACTLY
 		reviews: 1, // CORRECTED: Was 3, now 1 to match pricing

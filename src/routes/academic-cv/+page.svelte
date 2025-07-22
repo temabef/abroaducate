@@ -66,9 +66,6 @@
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <!-- Header Section -->
         <div class="text-center mb-12">
-            <div class="inline-flex items-center bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-medium mb-4">
-                ✨ No Signup Required - Instant Download
-            </div>
             <h1 class="text-4xl font-bold text-gray-900 mb-4">📄 Academic CV Builder</h1>
             <p class="text-xl text-gray-600 max-w-3xl mx-auto">
                 Create professional academic CVs tailored to your field and career stage. 
