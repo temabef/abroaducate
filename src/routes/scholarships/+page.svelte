@@ -268,6 +268,27 @@
     // Initial filtering is already called in loadScholarships
     // Scroll to top after loading (especially helpful on mobile)
     window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // Google AdSense script injection (only once)
+    let adsScript: HTMLScriptElement | null = null;
+    if (!document.querySelector('script[src*="adsbygoogle.js"]')) {
+      adsScript = document.createElement('script');
+      adsScript.async = true;
+      adsScript.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9343038264406927";
+      adsScript.crossOrigin = "anonymous";
+      document.head.appendChild(adsScript);
+    }
+    // Render the ad after script loads or immediately if already loaded
+    const renderAds = () => {
+      if ((window as any).adsbygoogle) {
+        (window as any).adsbygoogle.push({});
+      }
+    };
+    if (adsScript) {
+      adsScript.onload = renderAds;
+    } else {
+      renderAds();
+    }
   });
 
   // Watch for changes in search query - use a more controlled approach
@@ -796,6 +817,16 @@
               </div>
             </div>
           {/each}
+
+          <!-- Google AdSense Ad Card -->
+          <div class="bg-white rounded-lg shadow-sm border flex items-center justify-center min-h-[200px]">
+            <ins class="adsbygoogle"
+                 style="display:block"
+                 data-ad-client="ca-pub-9343038264406927"
+                 data-ad-slot="7563850500"
+                 data-ad-format="auto"
+                 data-full-width-responsive="true"></ins>
+          </div>
         </div>
 
         <!-- Pagination -->
