@@ -64,6 +64,219 @@
         }
     };
     
+    // Validation error states
+    let nameError = '';
+    let emailError = '';
+    let phoneError = '';
+    let addressError = '';
+    let jobTitleError = '';
+    let companyNameError = '';
+    let researchAreaError = '';
+    let companyResearchError = '';
+    let experienceError = '';
+    let achievementsError = '';
+    let publicationsError = '';
+    let businessImpactError = '';
+    let motivationsError = '';
+    let careerGoalsError = '';
+    
+    // Validation functions
+    function validateName() {
+        const name = coverLetterData.personalInfo.name.trim();
+        if (!name) {
+            nameError = 'Full name is required';
+        } else if (name.length < 2) {
+            nameError = 'Name must be at least 2 characters';
+        } else if (!/^[a-zA-Z\s]+$/.test(name)) {
+            nameError = 'Name should only contain letters and spaces';
+        } else {
+            nameError = '';
+        }
+    }
+    
+    function validateEmail() {
+        const email = coverLetterData.personalInfo.email.trim();
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!email) {
+            emailError = 'Email is required';
+        } else if (!emailRegex.test(email)) {
+            emailError = 'Please enter a valid email address';
+        } else {
+            emailError = '';
+        }
+    }
+    
+    function validatePhone() {
+        const phone = coverLetterData.personalInfo.phone.trim();
+        if (!phone) {
+            phoneError = 'Phone number is required';
+        } else if (phone.length < 10) {
+            phoneError = 'Phone number must be at least 10 digits';
+        } else {
+            phoneError = '';
+        }
+    }
+    
+    function validateAddress() {
+        const address = coverLetterData.personalInfo.address.trim();
+        if (!address) {
+            addressError = 'Address is required';
+        } else if (address.length < 5) {
+            addressError = 'Address must be at least 5 characters';
+        } else {
+            addressError = '';
+        }
+    }
+    
+    function validateJobTitle() {
+        const jobTitle = coverLetterData.jobTitle.trim();
+        if (!jobTitle) {
+            jobTitleError = 'Job title is required';
+        } else if (jobTitle.length < 3) {
+            jobTitleError = 'Job title must be at least 3 characters';
+        } else {
+            jobTitleError = '';
+        }
+    }
+    
+    function validateCompanyName() {
+        const companyName = coverLetterData.companyName.trim();
+        if (!companyName) {
+            companyNameError = 'Company/Institution name is required';
+        } else if (companyName.length < 2) {
+            companyNameError = 'Company name must be at least 2 characters';
+        } else {
+            companyNameError = '';
+        }
+    }
+    
+    function validateResearchArea() {
+        const researchArea = coverLetterData.positionDetails.researchArea?.trim() || '';
+        if (coverLetterData.positionType === 'academic' && !researchArea) {
+            researchAreaError = 'Research area is required for academic positions';
+        } else if (researchArea && researchArea.length < 3) {
+            researchAreaError = 'Research area must be at least 3 characters';
+        } else {
+            researchAreaError = '';
+        }
+    }
+    
+    function validateCompanyResearch() {
+        const companyResearch = coverLetterData.positionDetails.companyResearch?.trim() || '';
+        if (coverLetterData.positionType === 'industry' && !companyResearch) {
+            companyResearchError = 'Company research is required for industry positions';
+        } else if (companyResearch && companyResearch.length < 10) {
+            companyResearchError = 'Company research must be at least 10 characters';
+        } else {
+            companyResearchError = '';
+        }
+    }
+    
+    function validateExperience() {
+        const experience = coverLetterData.positionDetails.experience.trim();
+        if (!experience) {
+            experienceError = 'Relevant experience is required';
+        } else if (experience.length < 20) {
+            experienceError = 'Experience description must be at least 20 characters';
+        } else {
+            experienceError = '';
+        }
+    }
+    
+    function validateAchievements() {
+        const achievements = coverLetterData.positionDetails.achievements.trim();
+        if (!achievements) {
+            achievementsError = 'Key achievements are required';
+        } else if (achievements.length < 15) {
+            achievementsError = 'Achievements must be at least 15 characters';
+        } else {
+            achievementsError = '';
+        }
+    }
+    
+    function validatePublications() {
+        const publications = coverLetterData.positionDetails.publications?.trim() || '';
+        if (coverLetterData.positionType === 'academic' && !publications) {
+            publicationsError = 'Publications are required for academic positions';
+        } else if (publications && publications.length < 10) {
+            publicationsError = 'Publications must be at least 10 characters';
+        } else {
+            publicationsError = '';
+        }
+    }
+    
+    function validateBusinessImpact() {
+        const businessImpact = coverLetterData.positionDetails.businessImpact?.trim() || '';
+        if (coverLetterData.positionType === 'industry' && !businessImpact) {
+            businessImpactError = 'Business impact is required for industry positions';
+        } else if (businessImpact && businessImpact.length < 15) {
+            businessImpactError = 'Business impact must be at least 15 characters';
+        } else {
+            businessImpactError = '';
+        }
+    }
+    
+    function validateMotivations() {
+        const motivations = coverLetterData.positionDetails.motivations.trim();
+        if (!motivations) {
+            motivationsError = 'Motivation is required';
+        } else if (motivations.length < 15) {
+            motivationsError = 'Motivation must be at least 15 characters';
+        } else {
+            motivationsError = '';
+        }
+    }
+    
+    function validateCareerGoals() {
+        const careerGoals = coverLetterData.positionDetails.careerGoals.trim();
+        if (!careerGoals) {
+            careerGoalsError = 'Career goals are required';
+        } else if (careerGoals.length < 15) {
+            careerGoalsError = 'Career goals must be at least 15 characters';
+        } else {
+            careerGoalsError = '';
+        }
+    }
+    
+    // Validate all fields for current step
+    function validateCurrentStep() {
+        if (currentStep === 1) {
+            validateName();
+            validateEmail();
+            validatePhone();
+            validateAddress();
+        } else if (currentStep === 2) {
+            validateJobTitle();
+            validateCompanyName();
+            validateResearchArea();
+            validateCompanyResearch();
+        } else if (currentStep === 3) {
+            validateExperience();
+            validateAchievements();
+            validatePublications();
+            validateBusinessImpact();
+            validateMotivations();
+            validateCareerGoals();
+        }
+    }
+    
+    // Check if current step is valid
+    function isCurrentStepValid(): boolean {
+        validateCurrentStep();
+        if (currentStep === 1) {
+            return !nameError && !emailError && !phoneError && !addressError;
+        } else if (currentStep === 2) {
+            return !jobTitleError && !companyNameError && 
+                   (coverLetterData.positionType !== 'academic' || !researchAreaError) &&
+                   (coverLetterData.positionType !== 'industry' || !companyResearchError);
+        } else if (currentStep === 3) {
+            return !experienceError && !achievementsError && !motivationsError && !careerGoalsError &&
+                   (coverLetterData.positionType !== 'academic' || !publicationsError) &&
+                   (coverLetterData.positionType !== 'industry' || !businessImpactError);
+        }
+        return true;
+    }
+    
     // Position type options
     const positionTypes = [
         {
@@ -135,7 +348,7 @@
     }
     
     function nextStep() {
-        if (currentStep < totalSteps) {
+        if (currentStep < totalSteps && isCurrentStepValid()) {
             currentStep++;
         }
     }
@@ -318,9 +531,13 @@
                                 id="cl-full-name"
                                 type="text" 
                                 bind:value={coverLetterData.personalInfo.name}
+                                oninput={validateName}
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 placeholder="Your full name"
                             />
+                            {#if nameError}
+                                <p class="text-red-500 text-sm mt-1">{nameError}</p>
+                            {/if}
                         </div>
                         <div>
                             <label for="cl-email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
@@ -328,9 +545,13 @@
                                 id="cl-email"
                                 type="email" 
                                 bind:value={coverLetterData.personalInfo.email}
+                                oninput={validateEmail}
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 placeholder="your.email@example.com"
                             />
+                            {#if emailError}
+                                <p class="text-red-500 text-sm mt-1">{emailError}</p>
+                            {/if}
                         </div>
                         <div>
                             <label for="cl-phone" class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
@@ -338,9 +559,13 @@
                                 id="cl-phone"
                                 type="tel" 
                                 bind:value={coverLetterData.personalInfo.phone}
+                                oninput={validatePhone}
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 placeholder="Your phone number"
                             />
+                            {#if phoneError}
+                                <p class="text-red-500 text-sm mt-1">{phoneError}</p>
+                            {/if}
                         </div>
                         <div>
                             <label for="cl-address" class="block text-sm font-medium text-gray-700 mb-1">Address</label>
@@ -348,9 +573,13 @@
                                 id="cl-address"
                                 type="text" 
                                 bind:value={coverLetterData.personalInfo.address}
+                                oninput={validateAddress}
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 placeholder="City, Country"
                             />
+                            {#if addressError}
+                                <p class="text-red-500 text-sm mt-1">{addressError}</p>
+                            {/if}
                         </div>
                     </div>
                 </div>
@@ -369,9 +598,13 @@
                                 id="cl-job-title"
                                 type="text" 
                                 bind:value={coverLetterData.jobTitle}
+                                oninput={validateJobTitle}
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 placeholder={coverLetterData.positionType === 'academic' ? 'e.g., PhD in Computer Science' : 'e.g., Senior Software Engineer'}
                             />
+                            {#if jobTitleError}
+                                <p class="text-red-500 text-sm mt-1">{jobTitleError}</p>
+                            {/if}
                         </div>
                         <div>
                             <label for="cl-company-name" class="block text-sm font-medium text-gray-700 mb-1">
@@ -381,9 +614,13 @@
                                 id="cl-company-name"
                                 type="text" 
                                 bind:value={coverLetterData.companyName}
+                                oninput={validateCompanyName}
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 placeholder={coverLetterData.positionType === 'academic' ? 'e.g., Stanford University' : 'e.g., Google Inc.'}
                             />
+                            {#if companyNameError}
+                                <p class="text-red-500 text-sm mt-1">{companyNameError}</p>
+                            {/if}
                         </div>
                     </div>
                     
@@ -416,9 +653,13 @@
                                 id="cl-research-area"
                                 type="text" 
                                 bind:value={coverLetterData.positionDetails.researchArea}
+                                oninput={validateResearchArea}
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 placeholder="e.g., Machine Learning, Computational Biology"
                             />
+                            {#if researchAreaError}
+                                <p class="text-red-500 text-sm mt-1">{researchAreaError}</p>
+                            {/if}
                         </div>
                     {:else if coverLetterData.positionType === 'industry'}
                         <div>
@@ -426,10 +667,14 @@
                             <textarea 
                                 id="cl-company-research"
                                 bind:value={coverLetterData.positionDetails.companyResearch}
+                                oninput={validateCompanyResearch}
                                 rows="3"
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 placeholder="What do you know about this company? Recent achievements, culture, values..."
                             ></textarea>
+                            {#if companyResearchError}
+                                <p class="text-red-500 text-sm mt-1">{companyResearchError}</p>
+                            {/if}
                         </div>
                     {/if}
                 </div>
@@ -446,10 +691,14 @@
                         <textarea 
                             id="cl-experience"
                             bind:value={coverLetterData.positionDetails.experience}
+                            oninput={validateExperience}
                             rows="4"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             placeholder="Describe your relevant work experience, research projects, internships..."
                         ></textarea>
+                        {#if experienceError}
+                            <p class="text-red-500 text-sm mt-1">{experienceError}</p>
+                        {/if}
                         {#if existingSOPData}
                             <p class="text-xs text-gray-500 mt-1">✨ Pre-filled from your SOP. Feel free to edit.</p>
                         {/if}
@@ -460,10 +709,14 @@
                         <textarea 
                             id="cl-achievements"
                             bind:value={coverLetterData.positionDetails.achievements}
+                            oninput={validateAchievements}
                             rows="3"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             placeholder="Highlight your key accomplishments, awards, publications, projects..."
                         ></textarea>
+                        {#if achievementsError}
+                            <p class="text-red-500 text-sm mt-1">{achievementsError}</p>
+                        {/if}
                     </div>
                     
                     <!-- Position-specific fields -->
@@ -473,10 +726,14 @@
                             <textarea 
                                 id="cl-publications"
                                 bind:value={coverLetterData.positionDetails.publications}
+                                oninput={validatePublications}
                                 rows="3"
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 placeholder="List your publications, conferences, academic contributions..."
                             ></textarea>
+                            {#if publicationsError}
+                                <p class="text-red-500 text-sm mt-1">{publicationsError}</p>
+                            {/if}
                         </div>
                     {:else if coverLetterData.positionType === 'industry'}
                         <div>
@@ -484,10 +741,14 @@
                             <textarea 
                                 id="cl-business-impact"
                                 bind:value={coverLetterData.positionDetails.businessImpact}
+                                oninput={validateBusinessImpact}
                                 rows="3"
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 placeholder="Quantify your impact: increased efficiency by X%, led teams of Y people..."
                             ></textarea>
+                            {#if businessImpactError}
+                                <p class="text-red-500 text-sm mt-1">{businessImpactError}</p>
+                            {/if}
                         </div>
                     {/if}
                     
@@ -496,10 +757,14 @@
                         <textarea 
                             id="cl-motivations"
                             bind:value={coverLetterData.positionDetails.motivations}
+                            oninput={validateMotivations}
                             rows="3"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             placeholder="Why are you interested in this position? What motivates you?"
                         ></textarea>
+                        {#if motivationsError}
+                            <p class="text-red-500 text-sm mt-1">{motivationsError}</p>
+                        {/if}
                     </div>
                     
                     <div>
@@ -507,10 +772,14 @@
                         <textarea 
                             id="cl-career-goals"
                             bind:value={coverLetterData.positionDetails.careerGoals}
+                            oninput={validateCareerGoals}
                             rows="3"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             placeholder="What are your short-term and long-term career objectives?"
                         ></textarea>
+                        {#if careerGoalsError}
+                            <p class="text-red-500 text-sm mt-1">{careerGoalsError}</p>
+                        {/if}
                     </div>
                 </div>
             </div>
@@ -624,10 +893,7 @@
                 {#if currentStep < totalSteps}
                     <button
                         onclick={nextStep}
-                        disabled={
-                            (currentStep === 1 && !coverLetterData.positionType) ||
-                            (currentStep === 2 && (!coverLetterData.jobTitle || !coverLetterData.companyName))
-                        }
+                        disabled={!isCurrentStepValid()}
                         class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                         Next →

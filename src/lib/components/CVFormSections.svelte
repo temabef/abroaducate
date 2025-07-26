@@ -30,17 +30,230 @@
     // Update currentSection when index changes
     $: currentSection = sections[currentSectionIndex].id;
 
+    // Validation error states
+    let fullNameError = '';
+    let emailError = '';
+    let phoneError = '';
+    let addressError = '';
+    let websiteError = '';
+    let orcidError = '';
+    let academicFieldError = '';
+    let educationErrors: string[][] = [];
+    let experienceErrors: string[][] = [];
+    let publicationErrors: string[][] = [];
+    let awardErrors: string[][] = [];
+    let skillErrors: { technical: string[], software: string[] } = { technical: [], software: [] };
+    let languageErrors: string[][] = [];
+
+    // Validation functions
+    function validateFullName() {
+        const fullName = $cvFormStore.personalInfo.fullName.trim();
+        if (!fullName) {
+            fullNameError = 'Full name is required';
+        } else if (fullName.length < 2) {
+            fullNameError = 'Full name must be at least 2 characters';
+        } else if (!/^[a-zA-Z\s]+$/.test(fullName)) {
+            fullNameError = 'Full name should only contain letters and spaces';
+        } else {
+            fullNameError = '';
+        }
+    }
+
+    function validateEmail() {
+        const email = $cvFormStore.personalInfo.email.trim();
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!email) {
+            emailError = 'Email is required';
+        } else if (!emailRegex.test(email)) {
+            emailError = 'Please enter a valid email address';
+        } else {
+            emailError = '';
+        }
+    }
+
+    function validatePhone() {
+        const phone = $cvFormStore.personalInfo.phone.trim();
+        if (phone && phone.length < 10) {
+            phoneError = 'Phone number must be at least 10 digits';
+        } else {
+            phoneError = '';
+        }
+    }
+
+    function validateAddress() {
+        const address = $cvFormStore.personalInfo.address.trim();
+        if (address && address.length < 5) {
+            addressError = 'Address must be at least 5 characters';
+        } else {
+            addressError = '';
+        }
+    }
+
+    function validateWebsite() {
+        const website = $cvFormStore.personalInfo.website.trim();
+        if (website) {
+            const urlRegex = /^https?:\/\/.+/;
+            if (!urlRegex.test(website)) {
+                websiteError = 'Website must be a valid URL starting with http:// or https://';
+            } else {
+                websiteError = '';
+            }
+        } else {
+            websiteError = '';
+        }
+    }
+
+    function validateOrcid() {
+        const orcid = $cvFormStore.personalInfo.orcid.trim();
+        if (orcid) {
+            const orcidRegex = /^\d{4}-\d{4}-\d{4}-\d{4}$/;
+            if (!orcidRegex.test(orcid)) {
+                orcidError = 'ORCID must be in format: 0000-0000-0000-0000';
+            } else {
+                orcidError = '';
+            }
+        } else {
+            orcidError = '';
+        }
+    }
+
+    function validateAcademicField() {
+        const academicField = $cvFormStore.academicField;
+        if (!academicField) {
+            academicFieldError = 'Academic field is required';
+        } else {
+            academicFieldError = '';
+        }
+    }
+
+    function validateEducation() {
+        educationErrors = $cvFormStore.education.map(edu => {
+            const errors: string[] = [];
+            if (!edu.degree?.trim()) errors.push('Degree is required');
+            if (!edu.institution?.trim()) errors.push('Institution is required');
+            if (!edu.year?.trim()) errors.push('Year is required');
+            if (edu.degree?.trim() && edu.degree.length < 3) errors.push('Degree must be at least 3 characters');
+            if (edu.institution?.trim() && edu.institution.length < 2) errors.push('Institution must be at least 2 characters');
+            return errors;
+        });
+    }
+
+    function validateExperience() {
+        experienceErrors = $cvFormStore.experience.map(exp => {
+            const errors: string[] = [];
+            if (!exp.title?.trim()) errors.push('Title is required');
+            if (!exp.institution?.trim()) errors.push('Institution is required');
+            if (!exp.duration?.trim()) errors.push('Duration is required');
+            if (exp.title?.trim() && exp.title.length < 3) errors.push('Title must be at least 3 characters');
+            if (exp.institution?.trim() && exp.institution.length < 2) errors.push('Institution must be at least 2 characters');
+            return errors;
+        });
+    }
+
+    function validatePublications() {
+        publicationErrors = $cvFormStore.publications.map(pub => {
+            const errors: string[] = [];
+            if (!pub.title?.trim()) errors.push('Title is required');
+            if (!pub.authors?.trim()) errors.push('Authors are required');
+            if (pub.title?.trim() && pub.title.length < 5) errors.push('Title must be at least 5 characters');
+            if (pub.authors?.trim() && pub.authors.length < 3) errors.push('Authors must be at least 3 characters');
+            return errors;
+        });
+    }
+
+    function validateAwards() {
+        awardErrors = $cvFormStore.awards.map(award => {
+            const errors: string[] = [];
+            if (!award.title?.trim()) errors.push('Award title is required');
+            if (!award.organization?.trim()) errors.push('Organization is required');
+            if (award.title?.trim() && award.title.length < 3) errors.push('Award title must be at least 3 characters');
+            if (award.organization?.trim() && award.organization.length < 2) errors.push('Organization must be at least 2 characters');
+            return errors;
+        });
+    }
+
+    function validateSkills() {
+        skillErrors = {
+            technical: $cvFormStore.skills.technical.map(skill => 
+                skill.trim() && skill.length < 2 ? 'Skill must be at least 2 characters' : ''
+            ),
+            software: $cvFormStore.skills.software.map(skill => 
+                skill.trim() && skill.length < 2 ? 'Software must be at least 2 characters' : ''
+            )
+        };
+    }
+
+    function validateLanguages() {
+        languageErrors = $cvFormStore.skills.languages.map(lang => {
+            const errors: string[] = [];
+            if (!lang.language?.trim()) errors.push('Language is required');
+            if (!lang.proficiency?.trim()) errors.push('Proficiency is required');
+            if (lang.language?.trim() && lang.language.length < 2) errors.push('Language must be at least 2 characters');
+            return errors;
+        });
+    }
+
+    // Validate current section
+    function validateCurrentSection() {
+        if (currentSection === 'personal') {
+            validateFullName();
+            validateEmail();
+            validatePhone();
+            validateAddress();
+            validateWebsite();
+            validateOrcid();
+            validateAcademicField();
+        } else if (currentSection === 'education') {
+            validateEducation();
+        } else if (currentSection === 'experience') {
+            validateExperience();
+        } else if (currentSection === 'publications') {
+            validatePublications();
+        } else if (currentSection === 'skills') {
+            validateSkills();
+            validateLanguages();
+        } else if (currentSection === 'awards') {
+            validateAwards();
+        }
+    }
+
+    // Check if current section is valid
+    function isCurrentSectionValid(): boolean {
+        validateCurrentSection();
+        
+        if (currentSection === 'personal') {
+            return !fullNameError && !emailError && !phoneError && !addressError && 
+                   !websiteError && !orcidError && !academicFieldError;
+        } else if (currentSection === 'education') {
+            return educationErrors.every(errors => errors.length === 0);
+        } else if (currentSection === 'experience') {
+            return experienceErrors.every(errors => errors.length === 0);
+        } else if (currentSection === 'publications') {
+            return publicationErrors.every(errors => errors.length === 0);
+        } else if (currentSection === 'skills') {
+            return skillErrors.technical.every(error => !error) && 
+                   skillErrors.software.every(error => !error) &&
+                   languageErrors.every(errors => errors.length === 0);
+        } else if (currentSection === 'awards') {
+            return awardErrors.every(errors => errors.length === 0);
+        }
+        
+        return true;
+    }
+
     function goToSection(index: number) {
         // Only allow going back or to current
         if (index <= currentSectionIndex) {
             currentSectionIndex = index;
         }
     }
+    
     function nextSection() {
-        if (currentSectionIndex < sections.length - 1) {
+        if (currentSectionIndex < sections.length - 1 && isCurrentSectionValid()) {
             currentSectionIndex++;
         }
     }
+    
     function prevSection() {
         if (currentSectionIndex > 0) {
             currentSectionIndex--;
@@ -54,7 +267,15 @@
         missingFields = [];
         if (!$cvFormStore.personalInfo.fullName) missingFields.push('Full Name');
         if (!$cvFormStore.personalInfo.email) missingFields.push('Email');
-        // Add more required fields as needed
+        if (!$cvFormStore.academicField) missingFields.push('Academic Field');
+        
+        // Validate education entries
+        $cvFormStore.education.forEach((edu, index) => {
+            if (!edu.degree) missingFields.push(`Education ${index + 1}: Degree`);
+            if (!edu.institution) missingFields.push(`Education ${index + 1}: Institution`);
+            if (!edu.year) missingFields.push(`Education ${index + 1}: Year`);
+        });
+        
         return missingFields.length === 0;
     }
 
@@ -65,6 +286,7 @@
         }
         dispatch('generate');
     }
+    
     function closeValidationModal() {
         showValidationModal = false;
     }
@@ -135,30 +357,42 @@
                     <label class="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
                     <input 
                         bind:value={$cvFormStore.personalInfo.fullName}
+                        oninput={validateFullName}
                         type="text" 
                         class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                         placeholder="Dr. Jane Smith"
                     >
+                    {#if fullNameError}
+                        <p class="text-red-500 text-xs mt-1">{fullNameError}</p>
+                    {/if}
                 </div>
                 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Email *</label>
                     <input 
                         bind:value={$cvFormStore.personalInfo.email}
+                        oninput={validateEmail}
                         type="email" 
                         class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                         placeholder="jane.smith@university.edu"
                     >
+                    {#if emailError}
+                        <p class="text-red-500 text-xs mt-1">{emailError}</p>
+                    {/if}
                 </div>
                 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Phone</label>
                     <input 
                         bind:value={$cvFormStore.personalInfo.phone}
+                        oninput={validatePhone}
                         type="text" 
                         class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                         placeholder="+1 (555) 123-4567"
                     >
+                    {#if phoneError}
+                        <p class="text-red-500 text-xs mt-1">{phoneError}</p>
+                    {/if}
                 </div>
                 
                 <div>
@@ -169,6 +403,9 @@
                         class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                         placeholder="City, State, Country"
                     >
+                    {#if addressError}
+                        <p class="text-red-500 text-xs mt-1">{addressError}</p>
+                    {/if}
                 </div>
                 
                 <div>
@@ -179,6 +416,9 @@
                         class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                         placeholder="https://www.yoursite.com"
                     >
+                    {#if websiteError}
+                        <p class="text-red-500 text-xs mt-1">{websiteError}</p>
+                    {/if}
                 </div>
                 
                 <div>
@@ -189,6 +429,9 @@
                         class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                         placeholder="0000-0000-0000-0000"
                     >
+                    {#if orcidError}
+                        <p class="text-red-500 text-xs mt-1">{orcidError}</p>
+                    {/if}
                 </div>
             </div>
             
@@ -206,6 +449,9 @@
                     <option value="arts">Arts & Creative Fields</option>
                     <option value="other">Other</option>
                 </select>
+                {#if academicFieldError}
+                    <p class="text-red-500 text-xs mt-1">{academicFieldError}</p>
+                {/if}
             </div>
         </div>
     {/if}
@@ -244,6 +490,13 @@
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                 placeholder="Ph.D. in Computer Science"
                             >
+                            {#if educationErrors[index].length > 0}
+                                <ul class="text-red-500 text-xs mt-1">
+                                    {#each educationErrors[index] as error}
+                                        <li>• {error}</li>
+                                    {/each}
+                                </ul>
+                            {/if}
                         </div>
                         
                         <div>
@@ -254,6 +507,13 @@
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                 placeholder="Stanford University"
                             >
+                            {#if educationErrors[index].length > 0}
+                                <ul class="text-red-500 text-xs mt-1">
+                                    {#each educationErrors[index] as error}
+                                        <li>• {error}</li>
+                                    {/each}
+                                </ul>
+                            {/if}
                         </div>
                         
                         <div>
@@ -264,6 +524,13 @@
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                 placeholder="2020 or 2018-2022"
                             >
+                            {#if educationErrors[index].length > 0}
+                                <ul class="text-red-500 text-xs mt-1">
+                                    {#each educationErrors[index] as error}
+                                        <li>• {error}</li>
+                                    {/each}
+                                </ul>
+                            {/if}
                         </div>
                         
                         <div>
@@ -351,6 +618,13 @@
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                 placeholder="Postdoctoral Researcher"
                             >
+                            {#if experienceErrors[index].length > 0}
+                                <ul class="text-red-500 text-xs mt-1">
+                                    {#each experienceErrors[index] as error}
+                                        <li>• {error}</li>
+                                    {/each}
+                                </ul>
+                            {/if}
                         </div>
                         
                         <div>
@@ -361,6 +635,13 @@
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                 placeholder="MIT"
                             >
+                            {#if experienceErrors[index].length > 0}
+                                <ul class="text-red-500 text-xs mt-1">
+                                    {#each experienceErrors[index] as error}
+                                        <li>• {error}</li>
+                                    {/each}
+                                </ul>
+                            {/if}
                         </div>
                         
                         <div>
@@ -371,6 +652,13 @@
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                 placeholder="2020-Present or Jan 2020 - Dec 2022"
                             >
+                            {#if experienceErrors[index].length > 0}
+                                <ul class="text-red-500 text-xs mt-1">
+                                    {#each experienceErrors[index] as error}
+                                        <li>• {error}</li>
+                                    {/each}
+                                </ul>
+                            {/if}
                         </div>
                         
                         <div>
@@ -438,6 +726,13 @@
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                 placeholder="Deep Learning Approaches for Natural Language Processing"
                             >
+                            {#if publicationErrors[index].length > 0}
+                                <ul class="text-red-500 text-xs mt-1">
+                                    {#each publicationErrors[index] as error}
+                                        <li>• {error}</li>
+                                    {/each}
+                                </ul>
+                            {/if}
                         </div>
                         
                         <div>
@@ -448,6 +743,13 @@
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                 placeholder="Smith, J., Johnson, A., & Brown, C."
                             >
+                            {#if publicationErrors[index].length > 0}
+                                <ul class="text-red-500 text-xs mt-1">
+                                    {#each publicationErrors[index] as error}
+                                        <li>• {error}</li>
+                                    {/each}
+                                </ul>
+                            {/if}
                         </div>
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -469,6 +771,13 @@
                                     class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                     placeholder="2023"
                                 >
+                                {#if publicationErrors[index].length > 0}
+                                    <ul class="text-red-500 text-xs mt-1">
+                                        {#each publicationErrors[index] as error}
+                                            <li>• {error}</li>
+                                        {/each}
+                                    </ul>
+                                {/if}
                             </div>
                         </div>
                         
@@ -526,6 +835,9 @@
                                 ×
                             </button>
                         </div>
+                        {#if skillErrors.technical[index]}
+                            <p class="text-red-500 text-xs mt-1">{skillErrors.technical[index]}</p>
+                        {/if}
                     {/each}
                 </div>
             </div>
@@ -569,6 +881,13 @@
                                 ×
                             </button>
                         </div>
+                        {#if languageErrors[index].length > 0}
+                            <ul class="text-red-500 text-xs mt-1">
+                                {#each languageErrors[index] as error}
+                                    <li>• {error}</li>
+                                {/each}
+                            </ul>
+                        {/if}
                     {/each}
                 </div>
             </div>
@@ -601,6 +920,9 @@
                                 ×
                             </button>
                         </div>
+                        {#if skillErrors.software[index]}
+                            <p class="text-red-500 text-xs mt-1">{skillErrors.software[index]}</p>
+                        {/if}
                     {/each}
                 </div>
             </div>
@@ -641,6 +963,13 @@
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                 placeholder="Excellence in Research Award"
                             >
+                            {#if awardErrors[index].length > 0}
+                                <ul class="text-red-500 text-xs mt-1">
+                                    {#each awardErrors[index] as error}
+                                        <li>• {error}</li>
+                                    {/each}
+                                </ul>
+                            {/if}
                         </div>
                         
                         <div>
@@ -651,6 +980,13 @@
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                 placeholder="National Science Foundation"
                             >
+                            {#if awardErrors[index].length > 0}
+                                <ul class="text-red-500 text-xs mt-1">
+                                    {#each awardErrors[index] as error}
+                                        <li>• {error}</li>
+                                    {/each}
+                                </ul>
+                            {/if}
                         </div>
                         
                         <div>
@@ -661,6 +997,13 @@
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                 placeholder="2023"
                             >
+                            {#if awardErrors[index].length > 0}
+                                <ul class="text-red-500 text-xs mt-1">
+                                    {#each awardErrors[index] as error}
+                                        <li>• {error}</li>
+                                    {/each}
+                                </ul>
+                            {/if}
                         </div>
                     </div>
                     
@@ -774,11 +1117,11 @@
 
     <!-- Navigation Buttons: Always visible at the bottom of the form -->
     <div class="flex flex-col sm:flex-row justify-between items-center mt-8 pt-6 border-t gap-4">
-        <button on:click={prevSection} class="btn btn-secondary w-full sm:w-auto" disabled={currentSectionIndex === 0}>Previous</button>
+        <button onclick={prevSection} class="btn btn-secondary w-full sm:w-auto" disabled={currentSectionIndex === 0}>Previous</button>
         {#if currentSectionIndex < sections.length - 1}
-            <button on:click={nextSection} class="btn btn-primary w-full sm:w-auto">Next</button>
+            <button onclick={nextSection} disabled={!isCurrentSectionValid()} class="btn btn-primary w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed">Next</button>
         {:else}
-            <button on:click={handleGenerate} class="btn btn-primary bg-green-600 hover:bg-green-700 w-full sm:w-auto">Generate Academic CV</button>
+            <button onclick={handleGenerate} class="btn btn-primary bg-green-600 hover:bg-green-700 w-full sm:w-auto">Generate Academic CV</button>
         {/if}
     </div>
 

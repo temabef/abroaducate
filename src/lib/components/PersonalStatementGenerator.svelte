@@ -67,6 +67,210 @@
         }
     };
     
+    // Validation error states
+    let nameError = '';
+    let emailError = '';
+    let currentEducationError = '';
+    let hometownError = '';
+    let institutionNameError = '';
+    let programNameError = '';
+    let formativeExperienceError = '';
+    let challengesOvercomeError = '';
+    let valuesAndBeliefsError = '';
+    let passionsAndInterestsError = '';
+    let communityImpactError = '';
+    let futureGoalsError = '';
+    let whyThisProgramError = '';
+    let academicInterestsError = '';
+    let needExplanationError = '';
+    let legalInterestError = '';
+    let serviceExperienceError = '';
+    let culturalGoalsError = '';
+    let leadershipExperienceError = '';
+    
+    // Validation functions
+    function validateName() {
+        const name = personalStatementData.personalInfo.name.trim();
+        if (!name) {
+            nameError = 'Full name is required';
+        } else if (name.length < 2) {
+            nameError = 'Name must be at least 2 characters';
+        } else if (!/^[a-zA-Z\s]+$/.test(name)) {
+            nameError = 'Name should only contain letters and spaces';
+        } else {
+            nameError = '';
+        }
+    }
+    
+    function validateEmail() {
+        const email = personalStatementData.personalInfo.email.trim();
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!email) {
+            emailError = 'Email is required';
+        } else if (!emailRegex.test(email)) {
+            emailError = 'Please enter a valid email address';
+        } else {
+            emailError = '';
+        }
+    }
+    
+    function validateCurrentEducation() {
+        const education = personalStatementData.personalInfo.currentEducation.trim();
+        if (!education) {
+            currentEducationError = 'Current education level is required';
+        } else if (education.length < 3) {
+            currentEducationError = 'Education level must be at least 3 characters';
+        } else {
+            currentEducationError = '';
+        }
+    }
+    
+    function validateHometown() {
+        const hometown = personalStatementData.personalInfo.hometown.trim();
+        if (!hometown) {
+            hometownError = 'Hometown is required';
+        } else if (hometown.length < 3) {
+            hometownError = 'Hometown must be at least 3 characters';
+        } else {
+            hometownError = '';
+        }
+    }
+    
+    function validateInstitutionName() {
+        const institution = personalStatementData.institutionName.trim();
+        if (!institution) {
+            institutionNameError = 'Institution name is required';
+        } else if (institution.length < 2) {
+            institutionNameError = 'Institution name must be at least 2 characters';
+        } else {
+            institutionNameError = '';
+        }
+    }
+    
+    function validateProgramName() {
+        const program = personalStatementData.programName.trim();
+        if (!program) {
+            programNameError = 'Program name is required';
+        } else if (program.length < 3) {
+            programNameError = 'Program name must be at least 3 characters';
+        } else {
+            programNameError = '';
+        }
+    }
+    
+    function validateFormativeExperience() {
+        const experience = personalStatementData.personalDetails.formativeExperience.trim();
+        if (!experience) {
+            formativeExperienceError = 'Formative experience is required';
+        } else if (experience.length < 20) {
+            formativeExperienceError = 'Formative experience must be at least 20 characters';
+        } else {
+            formativeExperienceError = '';
+        }
+    }
+    
+    function validateChallengesOvercome() {
+        const challenges = personalStatementData.personalDetails.challengesOvercome.trim();
+        if (!challenges) {
+            challengesOvercomeError = 'Challenges overcome is required';
+        } else if (challenges.length < 15) {
+            challengesOvercomeError = 'Challenges must be at least 15 characters';
+        } else {
+            challengesOvercomeError = '';
+        }
+    }
+    
+    function validateValuesAndBeliefs() {
+        const values = personalStatementData.personalDetails.valuesAndBeliefs.trim();
+        if (!values) {
+            valuesAndBeliefsError = 'Values and beliefs are required';
+        } else if (values.length < 15) {
+            valuesAndBeliefsError = 'Values and beliefs must be at least 15 characters';
+        } else {
+            valuesAndBeliefsError = '';
+        }
+    }
+    
+    function validatePassionsAndInterests() {
+        const passions = personalStatementData.personalDetails.passionsAndInterests.trim();
+        if (!passions) {
+            passionsAndInterestsError = 'Passions and interests are required';
+        } else if (passions.length < 15) {
+            passionsAndInterestsError = 'Passions and interests must be at least 15 characters';
+        } else {
+            passionsAndInterestsError = '';
+        }
+    }
+    
+    function validateCommunityImpact() {
+        const impact = personalStatementData.personalDetails.communityImpact.trim();
+        if (!impact) {
+            communityImpactError = 'Community impact is required';
+        } else if (impact.length < 15) {
+            communityImpactError = 'Community impact must be at least 15 characters';
+        } else {
+            communityImpactError = '';
+        }
+    }
+    
+    function validateFutureGoals() {
+        const goals = personalStatementData.personalDetails.futureGoals.trim();
+        if (!goals) {
+            futureGoalsError = 'Future goals are required';
+        } else if (goals.length < 15) {
+            futureGoalsError = 'Future goals must be at least 15 characters';
+        } else {
+            futureGoalsError = '';
+        }
+    }
+    
+    function validateWhyThisProgram() {
+        const why = personalStatementData.personalDetails.whyThisProgram.trim();
+        if (!why) {
+            whyThisProgramError = 'Why this program is required';
+        } else if (why.length < 20) {
+            whyThisProgramError = 'Why this program must be at least 20 characters';
+        } else {
+            whyThisProgramError = '';
+        }
+    }
+    
+    // Validate all fields for current step
+    function validateCurrentStep() {
+        if (currentStep === 1) {
+            validateName();
+            validateEmail();
+            validateCurrentEducation();
+            validateHometown();
+        } else if (currentStep === 2) {
+            validateInstitutionName();
+            validateProgramName();
+        } else if (currentStep === 3) {
+            validateFormativeExperience();
+            validateChallengesOvercome();
+            validateValuesAndBeliefs();
+            validatePassionsAndInterests();
+            validateCommunityImpact();
+            validateFutureGoals();
+            validateWhyThisProgram();
+        }
+    }
+    
+    // Check if current step is valid
+    function isCurrentStepValid(): boolean {
+        validateCurrentStep();
+        if (currentStep === 1) {
+            return !nameError && !emailError && !currentEducationError && !hometownError;
+        } else if (currentStep === 2) {
+            return !institutionNameError && !programNameError;
+        } else if (currentStep === 3) {
+            return !formativeExperienceError && !challengesOvercomeError && 
+                   !valuesAndBeliefsError && !passionsAndInterestsError && 
+                   !communityImpactError && !futureGoalsError && !whyThisProgramError;
+        }
+        return true;
+    }
+    
     // Application type options
     const applicationTypes = [
         {
@@ -146,7 +350,7 @@
     }
     
     function nextStep() {
-        if (currentStep < totalSteps) {
+        if (currentStep < totalSteps && isCurrentStepValid()) {
             currentStep++;
         }
     }
@@ -343,9 +547,13 @@
                                 id="ps-full-name"
                                 type="text" 
                                 bind:value={personalStatementData.personalInfo.name}
+                                oninput={validateName}
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                                 placeholder="Your full name"
                             />
+                            {#if nameError}
+                                <p class="text-red-500 text-sm mt-1">{nameError}</p>
+                            {/if}
                         </div>
                         <div>
                             <label for="ps-email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
@@ -353,9 +561,13 @@
                                 id="ps-email"
                                 type="email" 
                                 bind:value={personalStatementData.personalInfo.email}
+                                oninput={validateEmail}
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                                 placeholder="your.email@example.com"
                             />
+                            {#if emailError}
+                                <p class="text-red-500 text-sm mt-1">{emailError}</p>
+                            {/if}
                         </div>
                         <div>
                             <label for="ps-education" class="block text-sm font-medium text-gray-700 mb-1">Current Education Level</label>
@@ -363,9 +575,13 @@
                                 id="ps-education"
                                 type="text" 
                                 bind:value={personalStatementData.personalInfo.currentEducation}
+                                oninput={validateCurrentEducation}
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                                 placeholder="e.g., High School Senior, College Junior"
                             />
+                            {#if currentEducationError}
+                                <p class="text-red-500 text-sm mt-1">{currentEducationError}</p>
+                            {/if}
                         </div>
                         <div>
                             <label for="ps-hometown" class="block text-sm font-medium text-gray-700 mb-1">Hometown</label>
@@ -373,9 +589,13 @@
                                 id="ps-hometown"
                                 type="text" 
                                 bind:value={personalStatementData.personalInfo.hometown}
+                                oninput={validateHometown}
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                                 placeholder="City, State/Country"
                             />
+                            {#if hometownError}
+                                <p class="text-red-500 text-sm mt-1">{hometownError}</p>
+                            {/if}
                         </div>
                     </div>
                 </div>
@@ -396,9 +616,13 @@
                                 id="ps-institution"
                                 type="text" 
                                 bind:value={personalStatementData.institutionName}
+                                oninput={validateInstitutionName}
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                                 placeholder={personalStatementData.applicationType === 'scholarship' ? 'e.g., Gates Foundation, Merit Scholarship' : 'e.g., Harvard University'}
                             />
+                            {#if institutionNameError}
+                                <p class="text-red-500 text-sm mt-1">{institutionNameError}</p>
+                            {/if}
                         </div>
                         <div>
                             <label for="ps-program" class="block text-sm font-medium text-gray-700 mb-1">
@@ -408,9 +632,13 @@
                                 id="ps-program"
                                 type="text" 
                                 bind:value={personalStatementData.programName}
+                                oninput={validateProgramName}
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                                 placeholder={personalStatementData.applicationType === 'scholarship' ? 'e.g., Need-based, Academic Excellence' : 'e.g., Computer Science, Pre-Med'}
                             />
+                            {#if programNameError}
+                                <p class="text-red-500 text-sm mt-1">{programNameError}</p>
+                            {/if}
                         </div>
                     </div>
                     

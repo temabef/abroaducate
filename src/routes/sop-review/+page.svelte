@@ -2,12 +2,19 @@
     import { page } from '$app/stores';
     import { onMount } from 'svelte';
     import SOPReviewerNew from '$lib/components/SOPReviewerNew.svelte';
+    import AuthenticationFlow from '$lib/components/AuthenticationFlow.svelte';
     
     export let data;
+    let { session, supabase } = data;
     
     let existingSOP = '';
     let universityName = '';
     let programName = '';
+    
+    // Authentication state
+    let showAuthModal = false;
+    let authMode: 'login' | 'signup' = 'login';
+    let pendingAnalysis = false;
     
     // Check if we have query parameters for pre-populating
     onMount(() => {
@@ -16,6 +23,22 @@
         universityName = urlParams.get('university') || '';
         programName = urlParams.get('program') || '';
     });
+    
+    // Handle authentication events from SOPReviewerNew
+    function handleAuthRequired(event: CustomEvent) {
+        authMode = event.detail?.mode || 'login';
+        showAuthModal = true;
+    }
+    
+    function handleAuthSuccess() {
+        showAuthModal = false;
+        // The SOPReviewerNew component will automatically retry the analysis
+        // when the session becomes available
+    }
+    
+    function handleAuthClose() {
+        showAuthModal = false;
+    }
 </script>
 
 <svelte:head>
@@ -81,6 +104,8 @@
                 {existingSOP}
                 {universityName}
                 {programName}
+                {session}
+                on:auth={handleAuthRequired}
             />
         </div>
         
@@ -166,6 +191,16 @@
         </div>
     </div>
 </div>
+
+<!-- Authentication Modal -->
+<AuthenticationFlow 
+    bind:show={showAuthModal} 
+    {supabase} 
+    mode={authMode} 
+    returnUrl="/sop-review"
+    on:success={handleAuthSuccess}
+    on:close={handleAuthClose}
+/>
 
 <style>
     /* Custom animations for enhanced UX */

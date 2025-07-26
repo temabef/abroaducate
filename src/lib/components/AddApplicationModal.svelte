@@ -25,6 +25,101 @@
         linked_sop_ids: []
     };
 
+    // Validation error states
+    let universityNameError = '';
+    let programNameError = '';
+    let countryError = '';
+    let applicationDeadlineError = '';
+    let applicationLinkError = '';
+    let notesError = '';
+
+    // Validation functions
+    function validateUniversityName() {
+        const universityName = formData.university_name.trim();
+        if (!universityName) {
+            universityNameError = 'University name is required';
+        } else if (universityName.length < 2) {
+            universityNameError = 'University name must be at least 2 characters';
+        } else {
+            universityNameError = '';
+        }
+    }
+
+    function validateProgramName() {
+        const programName = formData.program_name.trim();
+        if (!programName) {
+            programNameError = 'Program name is required';
+        } else if (programName.length < 3) {
+            programNameError = 'Program name must be at least 3 characters';
+        } else {
+            programNameError = '';
+        }
+    }
+
+    function validateCountry() {
+        const country = formData.country.trim();
+        if (country && country.length < 2) {
+            countryError = 'Country must be at least 2 characters';
+        } else {
+            countryError = '';
+        }
+    }
+
+    function validateApplicationDeadline() {
+        const deadline = formData.application_deadline;
+        if (deadline) {
+            const deadlineDate = new Date(deadline);
+            const today = new Date();
+            if (deadlineDate < today) {
+                applicationDeadlineError = 'Deadline cannot be in the past';
+            } else {
+                applicationDeadlineError = '';
+            }
+        } else {
+            applicationDeadlineError = '';
+        }
+    }
+
+    function validateApplicationLink() {
+        const link = formData.application_link.trim();
+        if (link) {
+            const urlRegex = /^https?:\/\/.+/;
+            if (!urlRegex.test(link)) {
+                applicationLinkError = 'Application link must be a valid URL starting with http:// or https://';
+            } else {
+                applicationLinkError = '';
+            }
+        } else {
+            applicationLinkError = '';
+        }
+    }
+
+    function validateNotes() {
+        const notes = formData.notes.trim();
+        if (notes && notes.length > 1000) {
+            notesError = 'Notes must be less than 1000 characters';
+        } else {
+            notesError = '';
+        }
+    }
+
+    // Validate all fields
+    function validateAllFields() {
+        validateUniversityName();
+        validateProgramName();
+        validateCountry();
+        validateApplicationDeadline();
+        validateApplicationLink();
+        validateNotes();
+    }
+
+    // Check if form is valid
+    function isFormValid(): boolean {
+        validateAllFields();
+        return !universityNameError && !programNameError && !countryError && 
+               !applicationDeadlineError && !applicationLinkError && !notesError;
+    }
+
     let loading = false;
     let error = '';
 
@@ -44,11 +139,17 @@
             linked_sop_ids: []
         };
         error = '';
+        // Clear validation errors
+        universityNameError = '';
+        programNameError = '';
+        countryError = '';
+        applicationDeadlineError = '';
+        applicationLinkError = '';
+        notesError = '';
     }
 
     async function handleSubmit() {
-        if (!formData.university_name || !formData.program_name) {
-            error = 'University name and program name are required';
+        if (!isFormValid()) {
             return;
         }
 
@@ -110,10 +211,14 @@
                         id="university"
                         type="text"
                         bind:value={formData.university_name}
+                        oninput={validateUniversityName}
                         placeholder="e.g., Stanford University"
                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         required
                     />
+                    {#if universityNameError}
+                        <p class="text-red-500 text-xs mt-1">{universityNameError}</p>
+                    {/if}
                 </div>
 
                 <!-- Program Name -->
@@ -125,10 +230,14 @@
                         id="program"
                         type="text"
                         bind:value={formData.program_name}
+                        oninput={validateProgramName}
                         placeholder="e.g., Master of Computer Science"
                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         required
                     />
+                    {#if programNameError}
+                        <p class="text-red-500 text-xs mt-1">{programNameError}</p>
+                    {/if}
                 </div>
 
                 <!-- Country -->
@@ -139,6 +248,7 @@
                     <select
                         id="country"
                         bind:value={formData.country}
+                        onchange={validateCountry}
                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                         <option value="">Select Country</option>
@@ -195,6 +305,9 @@
                         <option value="Ukraine">Ukraine</option>
                         <option value="United Arab Emirates">United Arab Emirates</option>
                     </select>
+                    {#if countryError}
+                        <p class="text-red-500 text-xs mt-1">{countryError}</p>
+                    {/if}
                 </div>
 
                 <!-- Application Deadline -->
@@ -206,8 +319,12 @@
                         id="deadline"
                         type="date"
                         bind:value={formData.application_deadline}
+                        onchange={validateApplicationDeadline}
                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
+                    {#if applicationDeadlineError}
+                        <p class="text-red-500 text-xs mt-1">{applicationDeadlineError}</p>
+                    {/if}
                 </div>
 
                 <!-- Application Link -->
@@ -219,12 +336,16 @@
                         id="application-link"
                         type="url"
                         bind:value={formData.application_link}
+                        oninput={validateApplicationLink}
                         placeholder="e.g., https://apply.university.edu/programs/ms-cs"
                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                     <p class="text-xs text-gray-500 mt-1">
                         Application portal, program page, or relevant URL
                     </p>
+                    {#if applicationLinkError}
+                        <p class="text-red-500 text-xs mt-1">{applicationLinkError}</p>
+                    {/if}
                 </div>
 
                 <!-- Notes -->
@@ -235,6 +356,7 @@
                     <textarea
                         id="notes"
                         bind:value={formData.notes}
+                        oninput={validateNotes}
                         placeholder="Personal notes, requirements, contacts, deadlines, etc."
                         rows="2"
                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
@@ -242,6 +364,9 @@
                     <p class="text-xs text-gray-500 mt-1">
                         Personal thoughts, requirements, contacts, etc.
                     </p>
+                    {#if notesError}
+                        <p class="text-red-500 text-xs mt-1">{notesError}</p>
+                    {/if}
                 </div>
 
                 <!-- Link Existing SOPs -->
@@ -282,8 +407,8 @@
                     </button>
                     <button
                         onclick={handleSubmit}
-                        disabled={loading}
-                        class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
+                        disabled={loading || !isFormValid()}
+                        class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {loading ? 'Creating...' : 'Create Application'}
                     </button>

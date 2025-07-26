@@ -44,6 +44,29 @@
   - Only the owner can export their own documents.
   - File size/content validation handled by backend logic.
 
+- **Backend Input Validation & Sanitization (Phase 1 Complete)**
+  - All API endpoints now use `zod` schema validation for input.
+  - Input sanitization with `.trim()` applied to all string fields.
+  - Proper error responses with detailed validation feedback.
+  - Protection against injection attacks and malformed data.
+  - See also: SECURITY_MIGRATION_CHECKLIST.md for critical DB/RLS/email/admin migrations (all applied).
+
+- **Frontend Form Validation (Phase 1 Complete)**
+  - All major user-facing forms now have real-time validation, error displays, and submission protection:
+    - Authentication (login/signup)
+    - Cover Letter Generator (multi-step)
+    - Personal Statement Generator (multi-step)
+    - Scholarship Form (admin)
+    - CV Builder (multi-section)
+    - Application Modal (add application)
+  - Features include: minimum length, regex, URL, date, numeric range, and conditional validation.
+  - Submit buttons disabled until all validation passes.
+  - User-friendly error messages for all fields.
+
+- **Critical Security Migrations (see SECURITY_MIGRATION_CHECKLIST.md)**
+  - Admin access, email security, RLS, and newsletter security migrations applied.
+  - Supabase environment and dashboard settings verified (RLS, password strength, CORS, etc).
+
 ## 🟡 Remaining/Recommended Security Tasks
 
 - **Persistent Rate Limiting**
@@ -64,33 +87,45 @@
 - **Content Validation**
   - Add stricter validation for document content length and type if needed.
 
-- **Security Headers**
-  - Ensure all responses set strict security headers (CSP, X-Frame-Options, etc.).
-
-- **User Session Management**
-  - Review session expiration and invalidation policies.
-
 - **Penetration Testing**
   - Schedule regular manual or automated security testing.
 
-## 📝 Suggestions for Further Hardening
+- **User Activity Monitoring**
+  - Alert on suspicious export or login activity.
 
-- **Automated Security Scans**: Integrate tools like Snyk or GitHub Dependabot.
-- **User Activity Monitoring**: Alert on suspicious export or login activity.
-- **Admin Panel Lockdown**: Add IP allowlisting or 2FA for admin routes.
-- **Data Encryption**: Ensure all sensitive data is encrypted at rest and in transit.
-- **Backup & Recovery**: Regularly test database backups and recovery procedures.
+- **Admin Panel Lockdown**
+  - Add IP allowlisting or 2FA for admin routes.
 
-## 🚧 Planned AWS Integrations
+- **Data Encryption**
+  - Ensure all sensitive data is encrypted at rest and in transit.
 
-- **AWS SES (Simple Email Service)**
-  - Planned migration from SendGrid to SES for all transactional and bulk email sending, leveraging AWS credits for cost savings and scalability.
+- **Backup & Recovery**
+  - Regularly test database backups and recovery procedures.
 
-- **AWS Lambda (Serverless Functions)**
-  - Planned use for offloading heavy/slow tasks (e.g., university matching, OCR, document generation) to improve app responsiveness and scalability.
+## 🚧 Phase 2: Security Headers & Session Management (Next Steps)
 
-- **AWS ElastiCache (Redis)**
-  - Planned migration of rate limiting and caching from in-memory to managed Redis, for global, persistent, and scalable enforcement across all app instances.
+- **Security Headers**
+  - Ensure all responses set strict security headers (CSP, X-Frame-Options, HSTS, etc.).
+  - Review and implement Content Security Policy (CSP) for all frontend routes.
+  - Add/verify X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy, etc.
+
+- **User Session Management**
+  - Review session expiration and invalidation policies.
+  - Ensure secure cookie flags (HttpOnly, Secure, SameSite) are set for all session cookies.
+  - Implement session timeout and forced logout on password/email change.
+
+- **CSRF Protection**
+  - Implement CSRF tokens for all forms and API endpoints that mutate data.
+
+- **Rate Limiting (Persistent)**
+  - Move in-memory rate limiting to persistent store (e.g., Redis/ElastiCache) for production.
+
+- **Audit Logging**
+  - Add/verify audit logging for all sensitive actions (admin, export, user changes).
+
+- **Penetration Testing & Monitoring**
+  - Run security scans and penetration tests after all above measures are in place.
+  - Set up security monitoring/alerting for suspicious activity.
 
 ---
 

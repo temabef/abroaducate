@@ -5,6 +5,7 @@
     export let existingSOP: string = '';
     export let universityName: string = '';
     export let programName: string = '';
+    export let session: any = null;
     
     const dispatch = createEventDispatcher();
     
@@ -13,6 +14,9 @@
     let inputMethod: 'paste' | 'upload' | 'existing' = existingSOP ? 'existing' : 'paste';
     let uploadedFile: File | null = null;
     let analysisResult: any = null;
+    
+    // Authentication state
+    let pendingAnalysis = false;
     
     // Text resize functionality
     let textareaExpanded = false;
@@ -41,6 +45,11 @@
     function handleAnalysisSuccess(event: CustomEvent) {
         analysisResult = event.detail.result;
         dispatch('analysisComplete', { result: analysisResult });
+    }
+    
+    // Handle authentication required
+    function handleAuthRequired() {
+        dispatch('auth');
     }
     
     // Export analysis function
@@ -203,6 +212,15 @@ Session: ${reviewMode} review mode
         programName: programName || 'Graduate Program'
     };
     
+    // Reactive effect to handle session changes
+    $: if (session && pendingAnalysis && sopText.trim() && !loading) {
+        // User just logged in and has pending analysis, auto-trigger analysis
+        pendingAnalysis = false;
+        setTimeout(() => {
+            analyzeSOP();
+        }, 1000); // Delay to ensure session is fully established after redirect
+    }
+    
     // Calculate stats
     $: paragraphs = sopText.split('\n\n').filter(p => p.trim().length > 0);
     $: wordCount = sopText.split(/\s+/).filter(w => w.length > 0).length;
@@ -229,6 +247,14 @@ Session: ${reviewMode} review mode
             error = 'Please enter your SOP text.';
             return;
         }
+        
+        // Check if user is authenticated
+        if (!session) {
+            pendingAnalysis = true;
+            dispatch('auth');
+            return;
+        }
+        
         loading = true;
         try {
             const response = await fetch('/api/ai-features', {
