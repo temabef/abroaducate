@@ -337,7 +337,7 @@
     <div class="flex flex-wrap gap-2 mb-8 border-b pb-4">
         {#each sections as section, i}
             <button
-                on:click={() => goToSection(i)}
+                onclick={() => goToSection(i)}
                 class="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors {currentSection === section.id ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}"
                 disabled={i > currentSectionIndex}
             >
@@ -462,7 +462,7 @@
             <div class="flex justify-between items-center">
                 <h3 class="text-xl font-bold text-gray-900">🎓 Education</h3>
                 <button 
-                    on:click={addEducation}
+                    onclick={addEducation}
                     class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-indigo-700 transition-colors"
                 >
                     + Add Education
@@ -474,7 +474,7 @@
                     <div class="flex justify-between items-start">
                         <h4 class="font-medium text-gray-900">Education #{index + 1}</h4>
                         <button 
-                            on:click={() => removeEducation(index)}
+                            onclick={() => removeEducation(index)}
                             class="text-red-600 hover:text-red-800 text-sm"
                         >
                             Remove
@@ -590,7 +590,7 @@
             <div class="flex justify-between items-center">
                 <h3 class="text-xl font-bold text-gray-900">💼 Professional Experience</h3>
                 <button 
-                    on:click={addExperience}
+                    onclick={addExperience}
                     class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-indigo-700 transition-colors"
                 >
                     + Add Experience
@@ -602,7 +602,7 @@
                     <div class="flex justify-between items-start">
                         <h4 class="font-medium text-gray-900">Experience #{index + 1}</h4>
                         <button 
-                            on:click={() => removeExperience(index)}
+                            onclick={() => removeExperience(index)}
                             class="text-red-600 hover:text-red-800 text-sm"
                         >
                             Remove
@@ -698,7 +698,7 @@
             <div class="flex justify-between items-center">
                 <h3 class="text-xl font-bold text-gray-900">📚 Publications</h3>
                 <button 
-                    on:click={addPublication}
+                    onclick={addPublication}
                     class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-indigo-700 transition-colors"
                 >
                     + Add Publication
@@ -710,7 +710,7 @@
                     <div class="flex justify-between items-start">
                         <h4 class="font-medium text-gray-900">Publication #{index + 1}</h4>
                         <button 
-                            on:click={() => removePublication(index)}
+                            onclick={() => removePublication(index)}
                             class="text-red-600 hover:text-red-800 text-sm"
                         >
                             Remove
@@ -812,7 +812,7 @@
                 <div class="flex justify-between items-center">
                     <h4 class="text-lg font-medium text-gray-800">Technical Skills</h4>
                     <button 
-                        on:click={() => addSkill('technical')}
+                        onclick={() => addSkill('technical')}
                         class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 transition-colors"
                     >
                         + Add Skill
@@ -829,7 +829,7 @@
                                 placeholder="Machine Learning, Data Analysis, etc."
                             >
                             <button 
-                                on:click={() => removeSkill('technical', index)}
+                                onclick={() => removeSkill('technical', index)}
                                 class="text-red-600 hover:text-red-800 px-2"
                             >
                                 ×
@@ -847,7 +847,7 @@
                 <div class="flex justify-between items-center">
                     <h4 class="text-lg font-medium text-gray-800">Languages</h4>
                     <button 
-                        on:click={addLanguage}
+                        onclick={addLanguage}
                         class="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 transition-colors"
                     >
                         + Add Language
@@ -875,7 +875,7 @@
                                 <option value="Basic">Basic</option>
                             </select>
                             <button 
-                                on:click={() => removeLanguage(index)}
+                                onclick={() => removeLanguage(index)}
                                 class="text-red-600 hover:text-red-800 px-2"
                             >
                                 ×
@@ -897,7 +897,7 @@
                 <div class="flex justify-between items-center">
                     <h4 class="text-lg font-medium text-gray-800">Software & Tools</h4>
                     <button 
-                        on:click={() => addSkill('software')}
+                        onclick={() => addSkill('software')}
                         class="bg-purple-600 text-white px-3 py-1 rounded text-sm hover:bg-purple-700 transition-colors"
                     >
                         + Add Software
@@ -914,7 +914,7 @@
                                 placeholder="Python, R, MATLAB, etc."
                             >
                             <button 
-                                on:click={() => removeSkill('software', index)}
+                                onclick={() => removeSkill('software', index)}
                                 class="text-red-600 hover:text-red-800 px-2"
                             >
                                 ×
@@ -935,7 +935,7 @@
             <div class="flex justify-between items-center">
                 <h3 class="text-xl font-bold text-gray-900">🏆 Awards & Honors</h3>
                 <button 
-                    on:click={addAward}
+                    onclick={addAward}
                     class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-indigo-700 transition-colors"
                 >
                     + Add Award
@@ -947,7 +947,7 @@
                     <div class="flex justify-between items-start">
                         <h4 class="font-medium text-gray-900">Award #{index + 1}</h4>
                         <button 
-                            on:click={() => removeAward(index)}
+                            onclick={() => removeAward(index)}
                             class="text-red-600 hover:text-red-800 text-sm"
                         >
                             Remove
@@ -1134,7 +1134,7 @@
                         <li>• {field}</li>
                     {/each}
                 </ul>
-                <button on:click={closeValidationModal} class="btn btn-primary w-full">OK</button>
+                <button onclick={closeValidationModal} class="btn btn-primary w-full">OK</button>
             </div>
         </div>
     {/if}
