@@ -1,5 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import { z } from 'zod';
 import { OPENAI_API_KEY } from '$env/static/private';
 import { getAIModelForUser } from '$lib/ai-models';
 
@@ -10,10 +11,25 @@ export const POST: RequestHandler = async ({ request, locals: { supabase } }) =>
         return json({ error: 'Unauthorized' }, { status: 401 });
     }
     
+    // Define schema for validation
+    const sopReviewSchema = z.object({
+        sopText: z.string().min(10).max(50000), // Reasonable limits for SOP text
+        reviewMode: z.enum(['comprehensive', 'quick', 'academic']).default('comprehensive'),
+        universityName: z.string().max(200).optional(),
+        programName: z.string().max(200).optional()
+    });
+    
     try {
-        const { sopText, reviewMode, universityName, programName } = await request.json();
+        const requestData = await request.json();
+
+        // Validate and sanitize input
+        const parsed = sopReviewSchema.safeParse(requestData);
+        if (!parsed.success) {
+            return json({ error: 'Invalid input', details: parsed.error.flatten() }, { status: 400 });
+        }
+        const data = parsed.data;
         
-        if (!sopText?.trim()) {
+        if (!data.sopText?.trim()) {
             return json({ error: 'SOP text is required' }, { status: 400 });
         }
 
@@ -21,10 +37,10 @@ export const POST: RequestHandler = async ({ request, locals: { supabase } }) =>
         const aiModel = await getAIModelForUser(supabase, session.user.id);
         
         // Enhanced analysis with OpenAI
-        const analysis = await analyzeSOPWithAI(sopText, reviewMode, universityName, programName, aiModel);
+        const analysis = await analyzeSOPWithAI(data.sopText.trim(), data.reviewMode, data.universityName?.trim(), data.programName?.trim(), aiModel);
         
         // Store analysis in database for future reference
-        await saveAnalysisToDatabase(supabase, session.user.id, sopText, analysis, universityName, programName);
+        await saveAnalysisToDatabase(supabase, session.user.id, data.sopText.trim(), analysis, data.universityName?.trim(), data.programName?.trim());
         
         return json({
             success: true,

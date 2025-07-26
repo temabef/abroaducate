@@ -36,6 +36,42 @@
     let deviceFingerprint = '';
     let riskAssessment: any = null;
 
+    // Add regex-based email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    let emailFormatError = '';
+    let passwordStrength = '';
+    let passwordStrengthColor = '';
+
+    // Real-time validation for email
+    $: if (email && !emailRegex.test(email)) {
+        emailFormatError = 'Invalid email format';
+    } else {
+        emailFormatError = '';
+    }
+
+    // Password strength meter (signup only)
+    function getPasswordStrength(pw: string) {
+        if (pw.length < 8) return { label: 'Too short', color: 'red' };
+        return { label: 'Strong', color: 'green' };
+    }
+
+    $: if (mode === 'signup' && password) {
+        const { label, color } = getPasswordStrength(password);
+        passwordStrength = label;
+        passwordStrengthColor = color;
+    } else {
+        passwordStrength = '';
+        passwordStrengthColor = '';
+    }
+
+    // Real-time validation for full name (signup)
+    let fullNameError = '';
+    $: if (mode === 'signup' && fullName && fullName.trim().length < 2) {
+        fullNameError = 'Full name is too short';
+    } else {
+        fullNameError = '';
+    }
+
     // Initialize device fingerprinting
     onMount(async () => {
         if (browser) {
@@ -449,6 +485,9 @@
                                     placeholder="Enter your full name"
                                     required
                                 />
+                                {#if fullNameError}
+                                    <div class="input-error">{fullNameError}</div>
+                                {/if}
                             </div>
                         {/if}
 
@@ -460,10 +499,13 @@
                                     type="email"
                                     bind:value={email}
                                     on:blur={analyzeEmailAddress}
-                                    on:click={handleUserInteraction}
+                                    on:input
                                     placeholder="Enter your email"
                                     required
                                 />
+                                {#if emailFormatError}
+                                    <div class="input-error">{emailFormatError}</div>
+                                {/if}
                                 {#if emailAnalysisLoading}
                                     <div class="input-spinner"></div>
                                 {:else if emailAnalysis}
@@ -511,6 +553,9 @@
                                     {/if}
                                 </button>
                             </div>
+                            {#if mode === 'signup' && password}
+                                <div class="password-strength" style="color: {passwordStrengthColor}">{passwordStrength}</div>
+                            {/if}
                         </div>
 
                         {#if mode === 'signup'}
@@ -1075,5 +1120,16 @@
             padding: 0.625rem 0.75rem;
             font-size: 0.9rem;
         }
+    }
+
+    .input-error {
+        color: #DC2626;
+        font-size: 0.85rem;
+        margin-top: 0.25rem;
+    }
+    .password-strength {
+        font-size: 0.85rem;
+        margin-top: 0.25rem;
+        font-weight: 500;
     }
 </style>

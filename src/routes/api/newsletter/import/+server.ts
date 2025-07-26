@@ -1,5 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import { z } from 'zod';
 import { createClient } from '@supabase/supabase-js';
 import { PUBLIC_SUPABASE_URL } from '$env/static/public';
 import { SUPABASE_SERVICE_ROLE_KEY } from '$env/static/private';
@@ -81,8 +82,24 @@ export const POST: RequestHandler = async ({ request, locals }) => {
       return json({ error: 'Admin access required' }, { status: 403 });
     }
 
+    // Define schema for validation
+    const importSchema = z.object({
+      emails: z.array(z.string().email()).min(1).max(10000),
+      source: z.string().min(1).max(100),
+      overwriteExisting: z.boolean().optional().default(false),
+      validateEmails: z.boolean().optional().default(true)
+    });
+
     const requestData: ImportRequest = await request.json();
-    const { emails, source, overwriteExisting = false, validateEmails = true } = requestData;
+
+    // Validate and sanitize input
+    const parsed = importSchema.safeParse(requestData);
+    if (!parsed.success) {
+      return json({ error: 'Invalid input', details: parsed.error.flatten() }, { status: 400 });
+    }
+    const data = parsed.data;
+
+    const { emails, source, overwriteExisting = false, validateEmails = true } = data;
 
     // Validate request data
     if (!emails || !Array.isArray(emails) || emails.length === 0) {

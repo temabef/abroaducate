@@ -1,5 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import { z } from 'zod';
 
 export const POST: RequestHandler = async ({ request, locals: { supabase, getSession } }) => {
     const session = await getSession();
@@ -8,18 +9,28 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
         return json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    try {
-        const { 
-            university_name, 
-            program_name, 
-            country,
-            application_deadline,
-            application_link,
-            notes,
-            linked_sop_ids = []
-        } = await request.json();
+    // Define schema for validation
+    const applicationSchema = z.object({
+        university_name: z.string().min(1).max(200),
+        program_name: z.string().min(1).max(200),
+        country: z.string().min(1).max(100),
+        application_deadline: z.string().optional().nullable(),
+        application_link: z.string().url().optional().nullable(),
+        notes: z.string().max(1000).optional().nullable(),
+        linked_sop_ids: z.array(z.string()).optional().default([])
+    });
 
-        if (!university_name || !program_name) {
+    try {
+        const requestData = await request.json();
+        
+        // Validate and sanitize input
+        const parsed = applicationSchema.safeParse(requestData);
+        if (!parsed.success) {
+            return json({ error: 'Invalid input', details: parsed.error.flatten() }, { status: 400 });
+        }
+        const data = parsed.data;
+
+        if (!data.university_name || !data.program_name) {
             return json({ error: 'University name and program name are required' }, { status: 400 });
         }
 
@@ -51,21 +62,21 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
         };
 
         const userLimit = limits[subscriptionTier as keyof typeof limits] || limits.free;
-        
+
         if (existingCount >= userLimit) {
             return json({ 
-                error: `Application limit reached. ${subscriptionTier === 'free' ? 'Upgrade to Professional for 1000 applications.' : 'You have reached your application limit.'}`,
-                limit_reached: true,
-                current_count: existingCount,
-                limit: userLimit === Infinity ? 'unlimited' : userLimit
+                error: 'Application limit reached', 
+                limit: userLimit,
+                current: existingCount,
+                subscription: subscriptionTier
             }, { status: 403 });
         }
 
         // Create simple requirements checklist
         const defaultRequirements = {
             sop: { 
-                completed: linked_sop_ids.length > 0, 
-                linked_sop_ids: linked_sop_ids,
+                completed: data.linked_sop_ids.length > 0, 
+                linked_sop_ids: data.linked_sop_ids,
                 label: 'Statement of Purpose',
                 required: true
             },
@@ -101,12 +112,12 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
         // Create the application entry
         const insertData = {
             user_id: session.user.id,
-            university_name,
-            program_name,
-            country,
-            application_deadline: application_deadline || null,
-            application_link: application_link || null,
-            notes: notes || null,
+            university_name: data.university_name.trim(),
+            program_name: data.program_name.trim(),
+            country: data.country.trim(),
+            application_deadline: data.application_deadline || null,
+            application_link: data.application_link || null,
+            notes: data.notes?.trim() || null,
             requirements_checklist: defaultRequirements,
             status: 'planning',
             created_at: new Date().toISOString(),

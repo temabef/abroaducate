@@ -1,5 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import { z } from 'zod';
 
 export const POST: RequestHandler = async ({ request, locals: { supabase } }) => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -8,14 +9,35 @@ export const POST: RequestHandler = async ({ request, locals: { supabase } }) =>
         return json({ error: 'Unauthorized' }, { status: 401 });
     }
     
+    // Define schema for validation
+    const personalStatementSchema = z.object({
+        applicationType: z.string().min(1).max(100),
+        programName: z.string().min(1).max(200),
+        institutionName: z.string().min(1).max(200),
+        applicationDeadline: z.string().optional().nullable(),
+        personalInfo: z.any(), // You can further specify if you know the structure
+        personalDetails: z.any(),
+        customRequests: z.any(),
+        wordLimit: z.number().int().min(0).max(10000).optional(),
+        generatedContent: z.string().min(1),
+        wordCount: z.number().int().min(0).max(10000).optional()
+    });
+    
     try {
         const personalStatementData = await request.json();
         
+        // Validate and sanitize input
+        const parsed = personalStatementSchema.safeParse(personalStatementData);
+        if (!parsed.success) {
+            return json({ error: 'Invalid input', details: parsed.error.flatten() }, { status: 400 });
+        }
+        const data = parsed.data;
+        
         console.log('Attempting to save personal statement:', {
             user_id: session.user.id,
-            application_type: personalStatementData.applicationType,
-            program_name: personalStatementData.programName,
-            university_name: personalStatementData.institutionName
+            application_type: data.applicationType,
+            program_name: data.programName,
+            university_name: data.institutionName
         });
         
         // Insert personal statement into database
@@ -23,18 +45,18 @@ export const POST: RequestHandler = async ({ request, locals: { supabase } }) =>
             .from('personal_statements')
             .insert({
                 user_id: session.user.id,
-                application_type: personalStatementData.applicationType,
-                program_name: personalStatementData.programName,
-                institution_name: personalStatementData.institutionName,
-                application_deadline: personalStatementData.applicationDeadline || null,
+                application_type: data.applicationType.trim(),
+                program_name: data.programName.trim(),
+                institution_name: data.institutionName.trim(),
+                application_deadline: data.applicationDeadline || null,
                 form_data: {
-                    personalInfo: personalStatementData.personalInfo,
-                    personalDetails: personalStatementData.personalDetails,
-                    customRequests: personalStatementData.customRequests,
-                    wordLimit: personalStatementData.wordLimit
+                    personalInfo: data.personalInfo,
+                    personalDetails: data.personalDetails,
+                    customRequests: data.customRequests,
+                    wordLimit: data.wordLimit
                 },
-                generated_content: personalStatementData.generatedContent,
-                word_count: personalStatementData.wordCount || 0,
+                generated_content: data.generatedContent.trim(),
+                word_count: data.wordCount || 0,
                 status: 'draft',
                 version: 1
             })
@@ -57,8 +79,8 @@ export const POST: RequestHandler = async ({ request, locals: { supabase } }) =>
                     personal_statement_id: personalStatement.id,
                     action_type: 'created',
                     session_data: {
-                        application_type: personalStatementData.applicationType,
-                        word_count: personalStatementData.wordCount,
+                        application_type: data.applicationType,
+                        word_count: data.wordCount,
                         generation_method: 'ai_generated'
                     }
                 });

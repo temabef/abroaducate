@@ -50,6 +50,25 @@
             formStore.removeAchievement(index);
         }
     }
+
+    // Real-time validation state for organizations and community service
+    let orgErrors: { name: string; role: string; description: string }[] = [];
+    let commServiceErrors: { organization: string; role: string; impact: string }[] = [];
+
+    $: if ($formStore.showOrganizationsForm) {
+        orgErrors = $formStore.organizations.map(org => ({
+            name: org.name.trim().length < 2 ? 'Organization name is required (min 2 characters).' : '',
+            role: org.role.trim().length < 2 ? 'Role is required (min 2 characters).' : '',
+            description: org.description.trim().length < 2 ? 'Description is required (min 2 characters).' : ''
+        }));
+    }
+    $: if ($formStore.showCommunityServiceForm) {
+        commServiceErrors = $formStore.communityServices.map(service => ({
+            organization: service.organization.trim().length < 2 ? 'Organization is required (min 2 characters).' : '',
+            role: service.role.trim().length < 2 ? 'Role is required (min 2 characters).' : '',
+            impact: service.impact.trim().length < 2 ? 'Impact is required (min 2 characters).' : ''
+        }));
+    }
 </script>
 
 <div class="step-content">
@@ -169,6 +188,9 @@
                             placeholder="e.g., Student Council, Red Cross, Debate Club"
                             required
                         >
+                        {#if orgErrors[index]?.name}
+                            <div class="input-error">{orgErrors[index].name}</div>
+                        {/if}
                     </div>
                     
                     <div class="form-group mb-3">
@@ -183,6 +205,9 @@
                             placeholder="e.g., President, Volunteer, Member"
                             required
                         >
+                        {#if orgErrors[index]?.role}
+                            <div class="input-error">{orgErrors[index].role}</div>
+                        {/if}
                     </div>
                     
                     <div class="form-group">
@@ -197,6 +222,9 @@
                             rows="3"
                             required
                         ></textarea>
+                        {#if orgErrors[index]?.description}
+                            <div class="input-error">{orgErrors[index].description}</div>
+                        {/if}
                     </div>
                 </div>
             {/each}
@@ -255,6 +283,9 @@
                             placeholder="e.g., Local Food Bank, Animal Shelter"
                             required
                         >
+                        {#if commServiceErrors[index]?.organization}
+                            <div class="input-error">{commServiceErrors[index].organization}</div>
+                        {/if}
                     </div>
                     
                     <div class="form-group mb-3">
@@ -269,6 +300,9 @@
                             placeholder="e.g., Volunteer, Coordinator, Tutor"
                             required
                         >
+                        {#if commServiceErrors[index]?.role}
+                            <div class="input-error">{commServiceErrors[index].role}</div>
+                        {/if}
                     </div>
                     
                     <div class="form-group">
@@ -283,6 +317,9 @@
                             rows="3"
                             required
                         ></textarea>
+                        {#if commServiceErrors[index]?.impact}
+                            <div class="input-error">{commServiceErrors[index].impact}</div>
+                        {/if}
                     </div>
                 </div>
             {/each}
@@ -475,5 +512,11 @@
     input[type="checkbox"] {
         margin-right: 0.5rem;
         accent-color: #3B82F6;
+    }
+
+    .input-error {
+        color: #DC2626;
+        font-size: 0.85rem;
+        margin-top: 0.25rem;
     }
 </style> 

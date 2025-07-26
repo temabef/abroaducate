@@ -1,5 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import { z } from 'zod';
 import { handleAIFeatureRequest, type AIFeatureRequest } from '$lib/services/aiFeatureService';
 import { checkComprehensiveUsageLimit, incrementComprehensiveUsage } from '$lib/comprehensive-usage-limits';
 
@@ -10,22 +11,32 @@ export const POST: RequestHandler = async ({ request, locals: { getSession } }) 
 		return json({ error: 'Unauthorized' }, { status: 401 });
 	}
 
+	// Define schema for validation
+	const aiFeatureSchema = z.object({
+		type: z.string().min(1).max(50),
+		content: z.string().min(1).max(10000),
+		options: z.record(z.any()).optional().default({})
+	});
+
 	try {
 		const requestData = await request.json();
 		
-		// Validate required fields
-		if (!requestData.type || !requestData.content) {
+		// Validate and sanitize input
+		const parsed = aiFeatureSchema.safeParse(requestData);
+		if (!parsed.success) {
 			return json({ 
-				error: 'Missing required fields: type and content' 
+				error: 'Invalid input', 
+				details: parsed.error.flatten() 
 			}, { status: 400 });
 		}
+		const data = parsed.data;
 		
 		// Create AI feature request
 		const aiRequest: AIFeatureRequest = {
-			type: requestData.type,
+			type: data.type.trim(),
 			userId: session.user.id,
-			content: requestData.content,
-			options: requestData.options || {}
+			content: data.content.trim(),
+			options: data.options || {}
 		};
 		
 		// Map incoming feature type to canonical subtype key used by the limits table
@@ -39,7 +50,7 @@ export const POST: RequestHandler = async ({ request, locals: { getSession } }) 
 			tone_analysis: 'tone_analysis'
 		};
 
-		const canonicalSubtype = canonicalMap[requestData.type] || requestData.type;
+		const canonicalSubtype = canonicalMap[data.type] || data.type;
 
 		// First, check if the user is within their usage limits for this specific AI feature.
 		// The new simplified function only needs the user ID and the specific feature subtype.
@@ -48,59 +59,45 @@ export const POST: RequestHandler = async ({ request, locals: { getSession } }) 
 			canonicalSubtype
 		);
 
-		// If usage limit is reached, return the appropriate error response immediately
 		if (!usageCheck.allowed) {
 			return json({
-				success: false,
-				error: usageCheck.message || 'Usage limit reached',
-				upgradeRequired: true,
-				usageData: {
-					type: requestData.type,
-					currentUsage: usageCheck.currentUsage,
-					limit: usageCheck.limit,
-					remainingUsage: usageCheck.limit ? usageCheck.limit - usageCheck.currentUsage : null,
-					planType: usageCheck.planType
-				}
+				error: 'Usage limit exceeded',
+				message: usageCheck.message || 'You have reached your monthly limit for this AI feature.',
+				planType: usageCheck.planType,
+				currentUsage: usageCheck.currentUsage,
+				limit: usageCheck.limit,
+				upgradeRequired: true
 			}, { status: 403 });
 		}
 
-		// If usage is allowed, now we can process the request
-		const response = await handleAIFeatureRequest(aiRequest);
-		
-		if (!response.success) {
-			return json({ 
-				error: response.error || 'AI processing failed' 
+		// Process the AI feature request
+		const result = await handleAIFeatureRequest(aiRequest);
+
+		if (!result.success) {
+			return json({
+				error: 'AI feature processing failed',
+				message: result.error || 'Failed to process AI feature request'
 			}, { status: 500 });
 		}
-		
-		// After successful processing, increment usage for the precise feature subtype
-		const incrementSuccess = await incrementComprehensiveUsage(
-			session.user.id,
-			canonicalSubtype
-		);
 
-		if (!incrementSuccess) {
-			// Log this issue internally, but don't fail the user's request,
-			// as they have already received the AI output.
-			console.error(`CRITICAL: Failed to increment usage for user ${session.user.id} and feature ${canonicalSubtype}, but the AI request was successful.`);
-		}
-		
+		// Increment usage after successful processing
+		await incrementComprehensiveUsage(session.user.id, canonicalSubtype);
+
 		return json({
 			success: true,
-			result: response.result,
-			usageData: {
-				type: requestData.type,
-				currentUsage: usageCheck.currentUsage + 1, // Add 1 to reflect the current usage
+			result: result.data,
+			usage: {
+				current: usageCheck.currentUsage + 1,
 				limit: usageCheck.limit,
-				remainingUsage: usageCheck.limit ? usageCheck.limit - (usageCheck.currentUsage + 1) : null,
 				planType: usageCheck.planType
 			}
 		});
-		
+
 	} catch (error: any) {
-		console.error('AI Feature API Error:', error);
+		console.error('Error in AI features endpoint:', error);
 		return json({ 
-			error: error.message || 'Internal server error' 
+			error: 'Internal server error',
+			message: error.message || 'An unexpected error occurred'
 		}, { status: 500 });
 	}
 }; 

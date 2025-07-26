@@ -1,5 +1,6 @@
 import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import { z } from 'zod';
 import PlagiarismDetector from '$lib/ai/plagiarism-detector';
 import { OPENAI_API_KEY } from '$env/static/private';
 import { checkUsageLimit } from '$lib/comprehensive-usage-limits';
@@ -13,39 +14,33 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
             return json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { text, analysisType } = await request.json();
+        // Define schema for validation
+        const analyzeSopSchema = z.object({
+            text: z.string().min(10).max(50000),
+            analysisType: z.enum(['plagiarism', 'grammar', 'tone', 'readability', 'comprehensive'])
+        });
+
+        const requestData = await request.json();
+
+        // Validate and sanitize input
+        const parsed = analyzeSopSchema.safeParse(requestData);
+        if (!parsed.success) {
+            return json({ error: 'Invalid input', details: parsed.error.flatten() }, { status: 400 });
+        }
+        const data = parsed.data;
         
-        if (!text || typeof text !== 'string') {
+        if (!data.text || typeof data.text !== 'string') {
             throw error(400, 'Text is required');
         }
 
         // Check usage limits before processing
-        const usageType = analysisType === 'plagiarism' ? 'plagiarism_checks' : 'reviews';
+        const usageType = data.analysisType === 'plagiarism' ? 'plagiarism_checks' : 'reviews';
         const usageCheck = await checkUsageLimit(supabase, session.user.id, usageType);
         
         if (!usageCheck.allowed) {
-            console.error(`SOP Analysis limit check failed for user ${session.user.id}:`, {
-                usageType,
-                analysisType,
-                usageCheck
-            });
-            
-            // Special handling for Elite plan users - this should never happen
-            if (usageCheck.planType === 'elite') {
-                return json({
-                    error: 'Elite plan should have unlimited access. Please contact support.',
-                    message: `System error: Elite plan user ${session.user.id} being blocked from ${usageType}`,
-                    planType: usageCheck.planType,
-                    currentUsage: usageCheck.currentUsage,
-                    limit: usageCheck.limit,
-                    upgradeRequired: false,
-                    debug: usageCheck
-                }, { status: 403 });
-            }
-            
             return json({
                 error: 'Usage limit exceeded',
-                message: usageCheck.message || `You've reached your ${usageType} limit.`,
+                message: usageCheck.message || 'You have reached your monthly limit for this analysis type.',
                 planType: usageCheck.planType,
                 currentUsage: usageCheck.currentUsage,
                 limit: usageCheck.limit,
@@ -56,9 +51,9 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
         // Get appropriate AI model based on user's subscription tier
         const aiModel = await getAIModelForUser(supabase, session.user.id);
 
-        let result: any = {};
+        let result: any;
 
-        switch (analysisType) {
+        switch (data.analysisType) {
             case 'plagiarism':
                 // For now, return a basic plagiarism result
                 result = {
@@ -67,7 +62,7 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
                     similar_phrases: [],
                     word_frequency_issues: [],
                     analysis: {
-                        total_sentences: text.split(/[.!?]+/).length,
+                        total_sentences: data.text.split(/[.!?]+/).length,
                         flagged_sentences: 0,
                         common_phrases_found: 0,
                         repetitive_patterns: 0
@@ -76,24 +71,24 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
                 break;
                 
             case 'grammar':
-                result = await checkGrammar(text, aiModel);
+                result = await checkGrammar(data.text, aiModel);
                 break;
                 
             case 'tone':
-                result = await analyzeTone(text, aiModel);
+                result = await analyzeTone(data.text, aiModel);
                 break;
                 
             case 'readability':
-                result = await analyzeReadability(text);
+                result = await analyzeReadability(data.text);
                 break;
                 
             case 'comprehensive':
                 // Run all analyses for premium users
                 const [plagiarism, grammar, tone, readability] = await Promise.all([
                     Promise.resolve(result), // Use the plagiarism result from above
-                    checkGrammar(text, aiModel),
-                    analyzeTone(text, aiModel),
-                    analyzeReadability(text)
+                    checkGrammar(data.text, aiModel),
+                    analyzeTone(data.text, aiModel),
+                    analyzeReadability(data.text)
                 ]);
                 
                 result = {
@@ -110,16 +105,21 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
         }
 
         // Save analysis to database for analytics
-        await saveAnalysisResult(supabase, session.user.id, analysisType, result);
+        await saveAnalysisResult(supabase, session.user.id, data.analysisType, result);
 
-        // Note: Usage is already incremented by checkUsageLimit in comprehensive-usage-limits
-        // No need to manually increment here
+        return json({
+            success: true,
+            result,
+            usage: {
+                current: usageCheck.currentUsage + 1,
+                limit: usageCheck.limit,
+                planType: usageCheck.planType
+            }
+        });
 
-        return json(result);
-
-    } catch (err: any) {
-        console.error('SOP Analysis Error:', err);
-        throw error(500, err.message || 'Failed to analyze SOP');
+    } catch (error: any) {
+        console.error('Error in SOP analysis:', error);
+        return json({ error: 'Failed to analyze SOP' }, { status: 500 });
     }
 };
 

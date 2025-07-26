@@ -1,5 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import { z } from 'zod';
 
 export const POST: RequestHandler = async ({ request, locals: { supabase } }) => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -8,27 +9,49 @@ export const POST: RequestHandler = async ({ request, locals: { supabase } }) =>
         return json({ error: 'Unauthorized' }, { status: 401 });
     }
     
+    // Define schema for validation
+    const coverLetterSchema = z.object({
+        positionType: z.string().min(1).max(100),
+        jobTitle: z.string().min(1).max(200),
+        companyName: z.string().min(1).max(200),
+        applicationDeadline: z.string().optional().nullable(),
+        personalInfo: z.any(),
+        positionDetails: z.any(),
+        customRequests: z.any(),
+        jobDescription: z.any(),
+        requirements: z.any(),
+        generatedContent: z.string().min(1),
+        wordCount: z.number().int().min(0).max(10000).optional()
+    });
+    
     try {
         const coverLetterData = await request.json();
+        
+        // Validate and sanitize input
+        const parsed = coverLetterSchema.safeParse(coverLetterData);
+        if (!parsed.success) {
+            return json({ error: 'Invalid input', details: parsed.error.flatten() }, { status: 400 });
+        }
+        const data = parsed.data;
         
         // Insert cover letter into database
         const { data: coverLetter, error: insertError } = await supabase
             .from('cover_letters')
             .insert({
                 user_id: session.user.id,
-                position_type: coverLetterData.positionType,
-                job_title: coverLetterData.jobTitle,
-                company_name: coverLetterData.companyName,
-                application_deadline: coverLetterData.applicationDeadline || null,
+                position_type: data.positionType.trim(),
+                job_title: data.jobTitle.trim(),
+                company_name: data.companyName.trim(),
+                application_deadline: data.applicationDeadline || null,
                 form_data: {
-                    personalInfo: coverLetterData.personalInfo,
-                    positionDetails: coverLetterData.positionDetails,
-                    customRequests: coverLetterData.customRequests,
-                    jobDescription: coverLetterData.jobDescription,
-                    requirements: coverLetterData.requirements
+                    personalInfo: data.personalInfo,
+                    positionDetails: data.positionDetails,
+                    customRequests: data.customRequests,
+                    jobDescription: data.jobDescription,
+                    requirements: data.requirements
                 },
-                generated_content: coverLetterData.generatedContent,
-                word_count: coverLetterData.wordCount || 0,
+                generated_content: data.generatedContent.trim(),
+                word_count: data.wordCount || 0,
                 status: 'draft',
                 version: 1,
                 created_at: new Date().toISOString(),
@@ -50,8 +73,8 @@ export const POST: RequestHandler = async ({ request, locals: { supabase } }) =>
                 cover_letter_id: coverLetter.id,
                 action_type: 'created',
                 session_data: {
-                    position_type: coverLetterData.positionType,
-                    word_count: coverLetterData.wordCount,
+                    position_type: data.positionType,
+                    word_count: data.wordCount,
                     generation_method: 'ai_generated'
                 },
                 created_at: new Date().toISOString()

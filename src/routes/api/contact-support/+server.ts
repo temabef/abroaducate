@@ -1,5 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import { z } from 'zod';
 import sgMail from '@sendgrid/mail';
 import { SENDGRID_API_KEY, FROM_EMAIL } from '$env/static/private';
 
@@ -30,6 +31,16 @@ function getClientIp(request: Request) {
   );
 }
 
+// Define schema for validation
+const contactSchema = z.object({
+  name: z.string().min(1).max(100),
+  email: z.string().email(),
+  category: z.string().min(1).max(50),
+  subject: z.string().min(1).max(200),
+  message: z.string().min(10).max(2000),
+  priority: z.enum(['low', 'medium', 'high']).optional().default('medium')
+});
+
 export const POST: RequestHandler = async ({ request, locals: { supabase } }) => {
   // Rate limiting logic
   const ip = getClientIp(request);
@@ -53,17 +64,18 @@ export const POST: RequestHandler = async ({ request, locals: { supabase } }) =>
   }
 
   try {
-    const { name, email, category, subject, message, priority } = await request.json();
+    const requestData = await request.json();
 
-    // Validate required fields
-    if (!name || !email || !message || !category) {
-      return json({ error: 'Missing required fields' }, { status: 400 });
+    // Validate and sanitize input
+    const parsed = contactSchema.safeParse(requestData);
+    if (!parsed.success) {
+      return json({ error: 'Invalid input', details: parsed.error.flatten() }, { status: 400 });
     }
+    const data = parsed.data;
 
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return json({ error: 'Invalid email format' }, { status: 400 });
+    // Additional validation
+    if (!data.name || !data.email || !data.message || !data.category) {
+      return json({ error: 'Missing required fields' }, { status: 400 });
     }
 
     // Store the support request in database (optional - for tracking)

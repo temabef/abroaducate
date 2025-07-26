@@ -15,9 +15,9 @@ export async function load({ url }) {
     throw redirect(307, `/blog/${slug}`);
   }
 
-  // Handle old page URLs
+  // Handle old page URLs - only include routes that actually exist
   const pageRedirects = {
-    '/about-us': '/about',
+    '/about-us': '/',
     '/contact-us': '/contact',
     '/privacy-policy': '/privacy',
     '/terms-of-service': '/terms',
@@ -30,6 +30,7 @@ export async function load({ url }) {
     '/tools/gpa-converter': '/gpa-converter',
     '/tools/word-optimization': '/word-optimization'
   };
+  
   if (pageRedirects[path]) {
     throw redirect(307, pageRedirects[path]);
   }

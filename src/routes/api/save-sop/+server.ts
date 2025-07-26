@@ -1,5 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import { z } from 'zod';
 import { createVersionSnapshot, type VersionHistoryConfig } from '$lib/versionHistory';
 
 export const POST: RequestHandler = async ({ request, locals: { supabase, getSession } }) => {
@@ -9,10 +10,25 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
         return json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    try {
-        const { sopId, editedContent, editHistory, isSignificantChange = false } = await request.json();
+    // Define schema for validation
+    const sopSaveSchema = z.object({
+        sopId: z.string().min(1),
+        editedContent: z.string().min(1).max(50000), // Reasonable limit for SOP content
+        editHistory: z.array(z.any()).optional().default([]),
+        isSignificantChange: z.boolean().optional().default(false)
+    });
 
-        if (!sopId || !editedContent) {
+    try {
+        const requestData = await request.json();
+
+        // Validate and sanitize input
+        const parsed = sopSaveSchema.safeParse(requestData);
+        if (!parsed.success) {
+            return json({ error: 'Invalid input', details: parsed.error.flatten() }, { status: 400 });
+        }
+        const data = parsed.data;
+
+        if (!data.sopId || !data.editedContent) {
             return json({ error: 'Missing required fields: sopId and editedContent' }, { status: 400 });
         }
 
@@ -30,13 +46,13 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
         const { data: updatedSop, error: updateError } = await supabase
             .from('sops')
             .update({
-                content: editedContent,
-                generated_sop: editedContent,
-                edit_history: editHistory || [],
-                word_count: editedContent.split(/\s+/).filter((w: string) => w.length > 0).length,
+                content: data.editedContent.trim(),
+                generated_sop: data.editedContent.trim(),
+                edit_history: data.editHistory || [],
+                word_count: data.editedContent.split(/\s+/).filter((w: string) => w.length > 0).length,
                 updated_at: new Date().toISOString()
             })
-            .eq('id', sopId)
+            .eq('id', data.sopId)
             .eq('user_id', session.user.id) // Ensure user can only edit their own SOPs
             .select()
             .single();

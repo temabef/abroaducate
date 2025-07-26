@@ -29,6 +29,20 @@
 
     let data = get(formStore);
 
+    // Real-time validation state
+    let universityError = '';
+    let countryError = '';
+    let programError = '';
+    let aspirationError = '';
+    let qualitiesError = '';
+
+    // Real-time validation logic
+    $: universityError = $formStore.universityData.university.trim().length < 2 ? 'University name is required (min 2 characters).' : '';
+    $: countryError = !$formStore.universityData.country ? 'Country is required.' : '';
+    $: programError = $formStore.universityData.program.trim().length < 2 ? 'Program is required (min 2 characters).' : '';
+    $: aspirationError = (!$formStore.isBestChoiceSelected && $formStore.selectedAspirations.length === 0) ? 'Please select an aspiration option.' : ($formStore.isBestChoiceSelected && !$formStore.customAspiration.trim() ? 'Please provide your custom aspiration.' : '');
+    $: qualitiesError = (!$formStore.isCustomQuality && $formStore.selectedQualities.length === 0) ? 'Please select at least one quality.' : ($formStore.isCustomQuality && !$formStore.customQualityReason.trim() ? 'Please provide a reason for your custom quality.' : '');
+
     function handleChange(event: Event) {
         const target = event.target as HTMLInputElement | HTMLSelectElement;
         formStore.update(s => ({
@@ -99,6 +113,9 @@
             placeholder="e.g., Harvard University, MIT, Oxford University" 
             required
         >
+        {#if universityError}
+            <div class="input-error">{universityError}</div>
+        {/if}
     </div>
 
     <div class="form-group mb-6">
@@ -122,6 +139,9 @@
                 {/if}
             {/each}
         </select>
+        {#if countryError}
+            <div class="input-error">{countryError}</div>
+        {/if}
     </div>
 
     <div class="form-group mb-6">
@@ -138,6 +158,9 @@
             placeholder="e.g., Master of Science in Computer Science, Bachelor of Arts in Psychology" 
             required
         >
+        {#if programError}
+            <div class="input-error">{programError}</div>
+        {/if}
     </div>
 
     <!-- Aspirations Section -->
@@ -201,6 +224,9 @@
                 {/each}
             </div>
         </div>
+        {#if aspirationError}
+            <div class="input-error">{aspirationError}</div>
+        {/if}
     </fieldset>
 
     <!-- University Qualities Section -->
@@ -220,6 +246,9 @@
         </label>
         {#if $formStore.isCustomQuality}
             <textarea class="form-input mt-2" bind:value={$formStore.customQualityReason} placeholder="Please specify what else you look for in a university..."></textarea>
+        {/if}
+        {#if qualitiesError}
+            <div class="input-error">{qualitiesError}</div>
         {/if}
     </fieldset>
 </div>
@@ -389,5 +418,11 @@
     .aspiration-option span {
         font-size: 0.9rem;
         line-height: 1.3;
+    }
+
+    .input-error {
+        color: #DC2626;
+        font-size: 0.85rem;
+        margin-top: 0.25rem;
     }
 </style> 

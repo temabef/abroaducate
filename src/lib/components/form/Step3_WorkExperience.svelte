@@ -2,6 +2,17 @@
 	import { formStore } from '$lib/stores';
     import type { WorkExperience } from '$lib/types';
 
+    // Real-time validation state for work experiences
+    let workExperienceErrors: { company: string; position: string; responsibilities: string[] }[] = [];
+
+    $: if ($formStore.showWorkExperienceForm) {
+        workExperienceErrors = $formStore.workExperiences.map(exp => ({
+            company: exp.company.trim().length < 2 ? 'Company name is required (min 2 characters).' : '',
+            position: exp.position.trim().length < 2 ? 'Position is required (min 2 characters).' : '',
+            responsibilities: exp.responsibilities.map(r => !r.trim() ? 'Responsibility cannot be empty.' : '')
+        }));
+    }
+
     function addWorkExperience() {
         formStore.update(s => ({
             ...s,
@@ -98,6 +109,9 @@
                                 placeholder="e.g., Google, Microsoft"
                                 required
                             >
+                            {#if workExperienceErrors[expIndex]?.company}
+                                <div class="input-error">{workExperienceErrors[expIndex].company}</div>
+                            {/if}
                         </div>
                         <div class="form-group">
                             <label for="position-{expIndex}" class="form-label">
@@ -111,6 +125,9 @@
                                 placeholder="e.g., Software Engineer, Marketing Manager"
                                 required
                             >
+                            {#if workExperienceErrors[expIndex]?.position}
+                                <div class="input-error">{workExperienceErrors[expIndex].position}</div>
+                            {/if}
                         </div>
                     </div>
 
@@ -129,6 +146,9 @@
                                     aria-label="Responsibility {respIndex + 1} for experience {expIndex + 1}"
                                     required
                                 >
+                                {#if workExperienceErrors[expIndex]?.responsibilities[respIndex]}
+                                    <div class="input-error">{workExperienceErrors[expIndex].responsibilities[respIndex]}</div>
+                                {/if}
                                 {#if experience.responsibilities.length > 1}
                                     <button 
                                         type="button"
@@ -437,5 +457,11 @@
     input[type="checkbox"] {
         margin-right: 0.5rem;
         accent-color: #3B82F6;
+    }
+
+    .input-error {
+        color: #DC2626;
+        font-size: 0.85rem;
+        margin-top: 0.25rem;
     }
 </style> 

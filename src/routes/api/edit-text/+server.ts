@@ -1,7 +1,8 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { OPENAI_API_KEY } from '$env/static/private';
+import { z } from 'zod';
 import OpenAI from 'openai';
+import { OPENAI_API_KEY } from '$env/static/private';
 import { checkComprehensiveUsageLimit, incrementComprehensiveUsage } from '$lib/comprehensive-usage-limits';
 
 // Get AI model based on user's plan (matches pricing page)
@@ -30,9 +31,25 @@ export const POST: RequestHandler = async ({ request, locals: { supabase } }) =>
       return json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { text, editType, context, documentType = 'sop', positionType } = await request.json();
+    // Define schema for validation
+    const editTextSchema = z.object({
+      text: z.string().min(1).max(10000),
+      editType: z.enum(['improve', 'shorten', 'expand', 'formalize', 'simplify', 'academic']),
+      context: z.string().max(2000).optional().default(''),
+      documentType: z.enum(['sop', 'cover_letter', 'personal_statement', 'cv']).default('sop'),
+      positionType: z.string().max(100).optional().default('')
+    });
 
-    if (!text || !editType) {
+    const requestData = await request.json();
+
+    // Validate and sanitize input
+    const parsed = editTextSchema.safeParse(requestData);
+    if (!parsed.success) {
+      return json({ error: 'Invalid input', details: parsed.error.flatten() }, { status: 400 });
+    }
+    const data = parsed.data;
+
+    if (!data.text || !data.editType) {
       return json({ error: 'Text and edit type are required' }, { status: 400 });
     }
 
@@ -57,17 +74,17 @@ export const POST: RequestHandler = async ({ request, locals: { supabase } }) =>
     }
 
     // Define prompts based on document type and edit type
-    const prompts = getEditPrompts(documentType, editType, positionType);
+    const prompts = getEditPrompts(data.documentType, data.editType, data.positionType);
     
-    if (!prompts[editType as keyof typeof prompts]) {
+    if (!prompts[data.editType as keyof typeof prompts]) {
       return json({ error: 'Invalid edit type' }, { status: 400 });
     }
 
-    const prompt = `${prompts[editType as keyof typeof prompts]}
+    const prompt = `${prompts[data.editType as keyof typeof prompts]}
 
-Original text: "${text}"
+Original text: "${data.text.trim()}"
 
-Context (surrounding content): "${context.substring(0, 500)}..."
+Context (surrounding content): "${data.context.substring(0, 500)}..."
 
 Please provide only the improved version of the text, maintaining the same general meaning and flow but applying the requested improvement. Keep the response focused and concise.`;
 
@@ -79,7 +96,7 @@ Please provide only the improved version of the text, maintaining the same gener
       messages: [
         {
           role: 'system',
-          content: `You are an expert editor specializing in ${documentType === 'cover_letter' ? 'professional cover letters' : documentType === 'personal_statement' ? 'personal statements' : 'academic statements of purpose'}. Provide clear, improved text that maintains the original meaning while applying the requested style change.`
+          content: `You are an expert editor specializing in ${data.documentType === 'cover_letter' ? 'professional cover letters' : data.documentType === 'personal_statement' ? 'personal statements' : 'academic statements of purpose'}. Provide clear, improved text that maintains the original meaning while applying the requested style change.`
         },
         {
           role: 'user',
@@ -109,8 +126,8 @@ Please provide only the improved version of the text, maintaining the same gener
     return json({
       success: true,
       editedText,
-      originalText: text,
-      editType,
+      originalText: data.text,
+      editType: data.editType,
       modelUsed: model,
       usageData: {
         planType: updatedUsageCheck.planType,

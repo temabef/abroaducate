@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
-import { OPENAI_API_KEY } from '$env/static/private';
 import type { RequestHandler } from './$types';
+import { z } from 'zod';
 import { checkComprehensiveUsageLimit, incrementComprehensiveUsage } from '$lib/comprehensive-usage-limits';
 import { getAIModelForUser } from '$lib/ai-models';
 
@@ -73,57 +73,65 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
         return json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    try {
-        const { 
-            content, 
-            university_name, 
-            program_name, 
-            program_type = 'masters',
-            optimization_type = 'analyze'
-        } = await request.json();
+    // Define schema for validation
+    const optimizeWordCountSchema = z.object({
+        content: z.string().min(10).max(50000),
+        university_name: z.string().min(1).max(200),
+        program_name: z.string().min(1).max(200),
+        program_type: z.enum(['masters', 'phd', 'bachelors']).default('masters'),
+        optimization_type: z.enum(['analyze', 'optimize']).default('analyze')
+    });
 
-        if (!content || !university_name || !program_name) {
+    try {
+        const requestData = await request.json();
+
+        // Validate and sanitize input
+        const parsed = optimizeWordCountSchema.safeParse(requestData);
+        if (!parsed.success) {
+            return json({ error: 'Invalid input', details: parsed.error.flatten() }, { status: 400 });
+        }
+        const data = parsed.data;
+
+        if (!data.content || !data.university_name || !data.program_name) {
             return json({ error: 'Missing required fields' }, { status: 400 });
         }
 
-        const currentWordCount = content.split(/\s+/).filter((w: string) => w.length > 0).length;
+        const currentWordCount = data.content.split(/\s+/).filter((w: string) => w.length > 0).length;
         
         // Get university-specific requirements
-        const requirements = getUniversityRequirements(university_name, program_type);
+        const requirements = getUniversityRequirements(data.university_name, data.program_type);
         
         // Analyze content structure and density
-        const contentAnalysis = analyzeContentStructure(content);
+        const contentAnalysis = analyzeContentStructure(data.content);
         
         // Determine optimization needs
         const optimizationNeeded = determineOptimizationNeeds(currentWordCount, requirements);
         
         // Generate optimization suggestions
-        const suggestions = generateOptimizationSuggestions(content, currentWordCount, requirements, optimizationNeeded);
+        const suggestions = generateOptimizationSuggestions(data.content, currentWordCount, requirements, optimizationNeeded);
 
         let optimizedContent = undefined;
         
         // If user requests actual optimization, generate it
-        if (optimization_type === 'optimize') {
+        if (data.optimization_type === 'optimize') {
             // Get appropriate AI model based on user's subscription tier
             const aiModel = await getAIModelForUser(supabase, session.user.id);
-            optimizedContent = await generateOptimizedContent(content, optimizationNeeded, requirements.optimal, suggestions, aiModel);
+            optimizedContent = await generateOptimizedContent(data.content, optimizationNeeded, requirements.optimal, suggestions, aiModel);
         }
 
-        const result: WordCountOptimization = {
-            current_word_count: currentWordCount,
-            target_word_count: requirements.optimal,
-            university_requirements: requirements,
-            optimization_needed: optimizationNeeded.type,
-            optimization_priority: optimizationNeeded.priority,
-            content_analysis: contentAnalysis,
-            suggested_optimizations: suggestions,
-            optimized_content: optimizedContent
-        };
-
-        return json(result);
+        return json({
+            success: true,
+            currentWordCount,
+            targetWordCount: requirements.optimal,
+            requirements,
+            contentAnalysis,
+            optimizationNeeded,
+            suggestions,
+            optimizedContent
+        });
 
     } catch (error) {
-        console.error('Word count optimization error:', error);
+        console.error('Error in word count optimization:', error);
         return json({ error: 'Failed to optimize word count' }, { status: 500 });
     }
 };

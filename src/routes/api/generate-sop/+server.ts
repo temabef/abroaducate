@@ -4,6 +4,7 @@ import type { RequestHandler } from './$types';
 import type { FormData, WorkExperience, Organization, CommunityService } from '$lib/types';
 import { checkComprehensiveUsageLimit, incrementComprehensiveUsage } from '$lib/comprehensive-usage-limits';
 import { getModelConfig } from '$lib/ai-models';
+import { z } from 'zod';
 
 // Helper function to build the prompt, ensuring no "undefined" values
 function buildPrompt(formData: FormData): string {
@@ -57,53 +58,65 @@ function buildPrompt(formData: FormData): string {
 
 export const POST: RequestHandler = async ({ request, locals: { supabase, getSession } }) => {
     const session = await getSession();
-
+    
     if (!session) {
         return json({ error: 'Unauthorized' }, { status: 401 });
     }
-
-    // Check usage limits before processing using new comprehensive system
-    const usageCheck = await checkComprehensiveUsageLimit(session.user.id, 'sop_generation');
-    if (!usageCheck.allowed) {
-        return json({
-            error: 'Usage limit exceeded',
-            message: usageCheck.message,
-            planType: usageCheck.planType,
-            currentUsage: usageCheck.currentUsage,
-            limit: usageCheck.limit,
-            upgradeRequired: true
-        }, { status: 403 });
-    }
-
+    
+    // Define schema for validation
+    const sopGenerationSchema = z.object({
+        universityData: z.object({
+            university: z.string().min(1).max(200),
+            program: z.string().min(1).max(200),
+            country: z.string().min(1).max(100).optional()
+        }),
+        academicData: z.object({
+            gpa: z.number().min(0).max(4.0).optional(),
+            major: z.string().min(1).max(200),
+            graduationYear: z.number().int().min(2000).max(2030).optional(),
+            relevantCourses: z.array(z.any()).optional().default([]),
+            projects: z.array(z.any()).optional().default([]),
+            achievements: z.array(z.any()).optional().default([])
+        }),
+        selectedQualities: z.array(z.string()).min(1).max(10),
+        selectedAspirations: z.array(z.string()).min(1).max(10),
+        customAspiration: z.string().max(500).optional().default(''),
+        isBestChoiceSelected: z.boolean(),
+        isCustomQuality: z.boolean().optional().default(false),
+        customQualityReason: z.string().max(500).optional().default(''),
+        workExperiences: z.array(z.any()).optional().default([]),
+        organizations: z.array(z.any()).optional().default([]),
+        communityServices: z.array(z.any()).optional().default([]),
+        hobbies: z.string().max(1000).optional().default(''),
+        achievements: z.array(z.any()).optional().default([])
+    });
+    
     try {
-        const formData: FormData = await request.json();
+        const requestData = await request.json();
 
-        const prompt = buildPrompt(formData);
-
-        // Get AI model based on user's subscription
-        const modelConfig = await getModelConfig(supabase, session.user.id, 'sop');
-
-        const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${OPENAI_API_KEY}`
-            },
-            body: JSON.stringify({
-                model: modelConfig.model,
-                messages: [{ role: "user", content: prompt }],
-                temperature: modelConfig.temperature,
-                max_tokens: modelConfig.max_tokens,
-            })
-        });
-
-        if (!openaiResponse.ok) {
-            const errorData = await openaiResponse.json();
-            console.error('OpenAI API error:', errorData);
-            return json({ error: errorData.error.message || 'Failed to generate SOP from AI.' }, { status: openaiResponse.status });
+        // Validate and sanitize input
+        const parsed = sopGenerationSchema.safeParse(requestData);
+        if (!parsed.success) {
+            return json({ error: 'Invalid input', details: parsed.error.flatten() }, { status: 400 });
         }
+        const data = parsed.data;
+        
+        // Check usage limits before processing using new comprehensive system
+        const usageCheck = await checkComprehensiveUsageLimit(session.user.id, 'sop_generation');
+        if (!usageCheck.allowed) {
+            return json({
+                error: 'Usage limit exceeded',
+                message: usageCheck.message,
+                planType: usageCheck.planType,
+                currentUsage: usageCheck.currentUsage,
+                limit: usageCheck.limit,
+                upgradeRequired: true
+            }, { status: 403 });
+        }
+        
+        // Generate SOP using OpenAI
+        const openaiData = await generateSOPWithAI(data, supabase, session.user.id);
 
-        const openaiData = await openaiResponse.json();
         const generatedSopText = openaiData.choices[0].message.content.trim();
 
         // Calculate word count
@@ -113,10 +126,10 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
         // Handle both new schema (content) and old schema (generated_sop) for backward compatibility
         const insertPayload = {
             user_id: session.user.id,
-            university_name: formData.universityData.university || 'Unknown University',
-            program_name: formData.universityData.program || 'Unknown Program',
+            university_name: data.universityData.university.trim(),
+            program_name: data.universityData.program.trim(),
             word_count: wordCount,
-            form_data: formData,
+            form_data: data,
             status: 'draft'
         };
 
@@ -143,10 +156,10 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
                 .from('sops')
                 .insert({
                     user_id: session.user.id,
-                    university: formData.universityData.university || 'Unknown University',
-                    program: formData.universityData.program || 'Unknown Program',
+                    university: data.universityData.university.trim(),
+                    program: data.universityData.program.trim(),
                     generated_sop: generatedSopText,
-                    form_data: formData
+                    form_data: data
                 })
                 .select()
                 .single();
@@ -154,22 +167,24 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
             insertData = oldResult.data;
             insertError = oldResult.error;
         }
-
+        
         if (insertError) {
-            console.error('Database error after AI generation:', insertError);
-            return json({ error: 'Failed to save the generated SOP.' }, { status: 500 });
+            console.error('Database save error:', insertError);
+            throw new Error(`Database save failed: ${insertError.message}`);
         }
-
+        
         // Increment usage counter after successful generation
         await incrementComprehensiveUsage(session.user.id, 'sop_generation');
-
-        return json({ 
-            success: true, 
-            sopId: insertData.id
+        
+        return json({
+            success: true,
+            sop: generatedSopText,
+            sopId: insertData?.id,
+            wordCount: wordCount
         });
-
-    } catch (error: any) {
-        console.error('Error in SOP generation endpoint:', error);
-        return json({ error: error.message || 'Internal server error' }, { status: 500 });
+        
+    } catch (error) {
+        console.error('Error generating SOP:', error);
+        return json({ error: 'Failed to generate SOP' }, { status: 500 });
     }
 };

@@ -1,5 +1,6 @@
 <script lang="ts">
   import SEO from '$lib/components/SEO.svelte';
+  import { derived } from 'svelte/store';
   
   let formData = $state({
     name: '',
@@ -14,11 +15,38 @@
   let submitted = $state(false);
   let error = $state('');
 
+  // Real-time validation state
+  let nameError = '';
+  let emailError = '';
+  let messageError = '';
+  let categoryError = '';
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  function validateName() {
+    nameError = formData.name.trim().length < 2 ? 'Full name is required (min 2 characters).' : '';
+  }
+  function validateEmail() {
+    emailError = !formData.email ? 'Email is required.' : (!emailRegex.test(formData.email) ? 'Invalid email format.' : '');
+  }
+  function validateMessage() {
+    messageError = formData.message.trim().length < 10 ? 'Message is required (min 10 characters).' : '';
+  }
+  function validateCategory() {
+    categoryError = !formData.category ? 'Please select a support category.' : '';
+  }
+
+  function validateAll() {
+    validateName();
+    validateEmail();
+    validateMessage();
+    validateCategory();
+  }
+
   async function handleSubmit(event: Event) {
     event.preventDefault();
-    
-    if (!formData.name || !formData.email || !formData.message || !formData.category) {
-      error = 'Please fill in all required fields';
+    validateAll();
+    if (nameError || emailError || messageError || categoryError) {
+      error = 'Please fix the errors above.';
       return;
     }
 
@@ -156,6 +184,7 @@
                       bind:group={formData.category}
                       value={category.value}
                       class="sr-only"
+                      onchange={validateCategory}
                     />
                     <div class="border-2 rounded-lg p-4 cursor-pointer transition-all {formData.category === category.value ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}">
                       <div class="flex items-start space-x-3">
@@ -169,6 +198,9 @@
                   </label>
                 {/each}
               </div>
+              {#if categoryError}
+                <div class="input-error">{categoryError}</div>
+              {/if}
             </div>
 
             <!-- Name and Email -->
@@ -182,7 +214,11 @@
                   required
                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="Your full name"
+                  oninput={validateName}
                 />
+                {#if nameError}
+                  <div class="input-error">{nameError}</div>
+                {/if}
               </div>
               <div>
                 <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Email Address *</label>
@@ -193,7 +229,11 @@
                   required
                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="your.email@example.com"
+                  oninput={validateEmail}
                 />
+                {#if emailError}
+                  <div class="input-error">{emailError}</div>
+                {/if}
               </div>
             </div>
 
@@ -234,7 +274,11 @@
                 rows="6"
                 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="Please describe your issue or question in detail. Include any error messages, steps you've tried, or specific information that might help us assist you better."
+                oninput={validateMessage}
               ></textarea>
+              {#if messageError}
+                <div class="input-error">{messageError}</div>
+              {/if}
             </div>
 
             <!-- Submit Button -->
@@ -378,3 +422,11 @@
 
   </div>
 </div> 
+
+<style>
+.input-error {
+  color: #DC2626;
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+}
+</style> 

@@ -52,6 +52,9 @@
                 placeholder="e.g., Bachelor of Science, Master of Arts" 
                 required
             >
+            {#if degreeTypeError}
+                <div class="input-error">{degreeTypeError}</div>
+            {/if}
         </div>
         <div class="form-group mb-4">
             <label for="fieldOfStudy" class="form-label">
@@ -67,6 +70,9 @@
                 placeholder="e.g., Computer Science, Psychology, Engineering" 
                 required
             >
+            {#if fieldOfStudyError}
+                <div class="input-error">{fieldOfStudyError}</div>
+            {/if}
         </div>
         <div class="form-group mb-4">
             <label for="universityName" class="form-label">
@@ -82,6 +88,9 @@
                 placeholder="e.g., University of Toronto, Delhi University" 
                 required
             >
+            {#if universityNameError}
+                <div class="input-error">{universityNameError}</div>
+            {/if}
         </div>
         <div class="form-group">
             <label for="gpa" class="form-label">GPA (Optional)</label>
@@ -296,5 +305,11 @@
     .add-button:hover {
         background-color: #DBEAFE;
         border-color: #93C5FD;
+    }
+
+    .input-error {
+        color: #DC2626;
+        font-size: 0.85rem;
+        margin-top: 0.25rem;
     }
 </style> 

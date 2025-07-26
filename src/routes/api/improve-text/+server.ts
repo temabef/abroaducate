@@ -1,83 +1,105 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { OPENAI_API_KEY } from '$env/static/private';
+import { z } from 'zod';
+import { checkComprehensiveUsageLimit, incrementComprehensiveUsage } from '$lib/comprehensive-usage-limits';
 import { getAIModelForUser } from '$lib/ai-models';
 
-const openAIEndpoint = 'https://api.openai.com/v1/chat/completions';
-
-async function getCompletion(prompt: string, model = 'gpt-3.5-turbo') {
-	const response = await fetch(openAIEndpoint, {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json',
-			Authorization: `Bearer ${OPENAI_API_KEY}`
-		},
-		body: JSON.stringify({
-			model,
-			messages: [{ role: 'user', content: prompt }],
-			temperature: 0.7
-		})
-	});
-
-	const data = await response.json();
-	return data.choices[0].message.content;
-}
-
 export const POST: RequestHandler = async ({ request, locals: { getSession, supabase } }) => {
-	const session = await getSession();
-	if (!session) {
-		return new Response('Unauthorized', { status: 401 });
-	}
+    const session = await getSession();
 
-	try {
-		const { originalText, selectedText, improvementType } = await request.json();
+    if (!session) {
+        return json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
-		if (!selectedText || !improvementType) {
-			return json({ error: 'Missing required fields' }, { status: 400 });
-		}
+    // Define schema for validation
+    const improveTextSchema = z.object({
+        text: z.string().min(1).max(10000),
+        improvementType: z.enum(['grammar', 'style', 'clarity', 'academic', 'professional']),
+        context: z.string().max(1000).optional().default(''),
+        documentType: z.enum(['sop', 'cover_letter', 'personal_statement', 'cv', 'general']).default('general')
+    });
 
-		// Get appropriate AI model based on user's subscription tier
-		const aiModel = await getAIModelForUser(supabase, session.user.id);
+    try {
+        const requestData = await request.json();
 
-		// Create improvement prompt based on the type
-		const improvementPrompts = {
-			concise: 'Make this text more concise and to the point while preserving all important meaning.',
-			detailed: 'Expand this text with more specific details and examples while maintaining the same tone.',
-			research: 'Rewrite this text with a stronger research focus, adding more academic depth and scholarly language.',
-			academic: 'Make this text more academic and formal in tone, using sophisticated vocabulary and structure.',
-			technical: 'Enhance this text with more technical terminology and precise language appropriate for the field.'
-		};
+        // Validate and sanitize input
+        const parsed = improveTextSchema.safeParse(requestData);
+        if (!parsed.success) {
+            return json({ error: 'Invalid input', details: parsed.error.flatten() }, { status: 400 });
+        }
+        const data = parsed.data;
 
-		const prompt = `You are helping improve a Statement of Purpose (SOP) for university application. 
+        // Check usage limits
+        const usageCheck = await checkComprehensiveUsageLimit(session.user.id, 'text_improvements');
+        
+        if (!usageCheck.allowed) {
+            return json({
+                error: 'Usage limit exceeded',
+                message: usageCheck.message || 'You have reached your monthly limit for text improvements.',
+                planType: usageCheck.planType,
+                currentUsage: usageCheck.currentUsage,
+                limit: usageCheck.limit,
+                upgradeRequired: true
+            }, { status: 403 });
+        }
 
-TASK: ${improvementPrompts[improvementType as keyof typeof improvementPrompts] || improvementPrompts.concise}
+        // Get appropriate AI model based on user's subscription tier
+        const aiModel = await getAIModelForUser(supabase, session.user.id);
 
-SELECTED TEXT TO IMPROVE:
-"${selectedText}"
+        // Generate improvement prompt based on type
+        const improvementPrompt = generateImprovementPrompt(data.text, data.improvementType, data.context, data.documentType);
 
-CONTEXT (surrounding text for reference):
-"${originalText}"
+        // Call OpenAI API
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+            },
+            body: JSON.stringify({
+                model: aiModel,
+                messages: [
+                    {
+                        role: 'system',
+                        content: `You are an expert editor specializing in ${data.documentType} documents. Provide clear, improved text that maintains the original meaning while applying the requested improvement.`
+                    },
+                    {
+                        role: 'user',
+                        content: improvementPrompt
+                    }
+                ],
+                temperature: 0.7,
+                max_tokens: 2000
+            })
+        });
 
-REQUIREMENTS:
-1. Only return the improved version of the SELECTED TEXT, not the entire document
-2. Maintain the same meaning and intent
-3. Keep the improvement focused and relevant to the SOP context
-4. Ensure the improved text flows naturally with the surrounding content
-5. Do not add quotation marks around your response
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error('OpenAI API error:', errorData);
+            return json({ error: 'Failed to improve text' }, { status: 500 });
+        }
 
-Improved text:`;
+        const result = await response.json();
+        const improvedText = result.choices[0].message.content.trim();
 
-		const improvedText = await getCompletion(prompt, aiModel);
+        // Increment usage after successful improvement
+        await incrementComprehensiveUsage(session.user.id, 'text_improvements');
 
-		return json({ 
-			success: true, 
-			improvedText,
-			originalText: selectedText,
-			improvementType
-		});
+        return json({
+            success: true,
+            improvedText,
+            originalText: data.text,
+            improvementType: data.improvementType,
+            modelUsed: aiModel,
+            usage: {
+                current: usageCheck.currentUsage + 1,
+                limit: usageCheck.limit,
+                planType: usageCheck.planType
+            }
+        });
 
-	} catch (error: any) {
-		console.error('Error in text improvement endpoint:', error);
-		return json({ error: error.message || 'Internal server error' }, { status: 500 });
-	}
+    } catch (error) {
+        console.error('Error improving text:', error);
+        return json({ error: 'Failed to improve text' }, { status: 500 });
+    }
 }; 

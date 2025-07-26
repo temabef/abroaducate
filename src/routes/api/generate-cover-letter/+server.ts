@@ -1,51 +1,58 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { OPENAI_API_KEY } from '$env/static/private';
+import { z } from 'zod';
 import { checkComprehensiveUsageLimit, incrementComprehensiveUsage } from '$lib/comprehensive-usage-limits';
 import { getModelConfig } from '$lib/ai-models';
 
-export const POST: RequestHandler = async ({ request, locals: { supabase } }) => {
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+export const POST: RequestHandler = async ({ request, locals: { supabase, getSession } }) => {
+    const session = await getSession();
     
-    if (!session?.user) {
+    if (!session) {
         return json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    // Check usage limits before processing using new comprehensive system
-    const usageCheck = await checkComprehensiveUsageLimit(session.user.id, 'cover_letter_generation');
-    if (!usageCheck.allowed) {
-        return json({
-            error: 'Usage limit exceeded',
-            message: usageCheck.message,
-            planType: usageCheck.planType,
-            currentUsage: usageCheck.currentUsage,
-            limit: usageCheck.limit,
-            upgradeRequired: true
-        }, { status: 403 });
-    }
+    // Define schema for validation
+    const coverLetterSchema = z.object({
+        positionType: z.string().min(1).max(100),
+        jobTitle: z.string().min(1).max(200),
+        companyName: z.string().min(1).max(200),
+        applicationDeadline: z.string().optional().nullable(),
+        personalInfo: z.any(),
+        positionDetails: z.any(),
+        customRequests: z.any(),
+        jobDescription: z.any(),
+        requirements: z.any()
+    });
     
     try {
-        const coverLetterData = await request.json();
+        const requestData = await request.json();
+
+        // Validate and sanitize input
+        const parsed = coverLetterSchema.safeParse(requestData);
+        if (!parsed.success) {
+            return json({ error: 'Invalid input', details: parsed.error.flatten() }, { status: 400 });
+        }
+        const data = parsed.data;
         
-        if (!coverLetterData.jobTitle || !coverLetterData.companyName) {
+        if (!data.jobTitle || !data.companyName) {
             return json({ error: 'Job title and company name are required' }, { status: 400 });
         }
         
         // Generate cover letter using AI
-        const generatedCoverLetter = await generateCoverLetterWithAI(coverLetterData, supabase, session.user.id);
+        const generatedCoverLetter = await generateCoverLetterWithAI(data, supabase, session.user.id);
         
         // Save to database
         console.log('Attempting to save cover letter to database...');
         console.log('User ID:', session.user.id);
-        console.log('Cover letter data keys:', Object.keys(coverLetterData));
+        console.log('Cover letter data keys:', Object.keys(data));
         
         const insertData = {
             user_id: session.user.id,
-            position_type: coverLetterData.positionType,
-            job_title: coverLetterData.jobTitle,
-            company_name: coverLetterData.companyName,
-            application_deadline: coverLetterData.applicationDeadline || null,
-            form_data: coverLetterData,
+            position_type: data.positionType.trim(),
+            job_title: data.jobTitle.trim(),
+            company_name: data.companyName.trim(),
+            application_deadline: data.applicationDeadline || null,
+            form_data: data,
             generated_content: generatedCoverLetter,
             word_count: generatedCoverLetter.split(/\s+/).length,
             status: 'draft',
@@ -69,53 +76,19 @@ export const POST: RequestHandler = async ({ request, locals: { supabase } }) =>
         }
         
         console.log('Cover letter saved successfully with ID:', savedCoverLetter?.id);
-
+        
         // Increment usage counter after successful generation
         await incrementComprehensiveUsage(session.user.id, 'cover_letter_generation');
-
-        // Log analytics
-        console.log('Attempting to log analytics...');
-        const { error: analyticsError } = await supabase
-            .from('cover_letter_analytics')
-            .insert({
-                user_id: session.user.id,
-                cover_letter_id: savedCoverLetter.id,
-                action_type: 'created',
-                session_data: {
-                    position_type: coverLetterData.positionType,
-                    word_count: generatedCoverLetter.split(/\s+/).length,
-                    generation_method: 'ai_generated'
-                },
-                created_at: new Date().toISOString()
-            });
-            
-        if (analyticsError) {
-            console.error('Analytics logging error:', analyticsError);
-            console.error('Analytics error details:', JSON.stringify(analyticsError, null, 2));
-            // Don't throw here - analytics failure shouldn't break the main flow
-        } else {
-            console.log('Analytics logged successfully');
-        }
         
         return json({
             success: true,
             coverLetter: generatedCoverLetter,
-            coverLetterId: savedCoverLetter.id
+            coverLetterId: savedCoverLetter?.id
         });
         
     } catch (error) {
         console.error('Error generating cover letter:', error);
-        const errorDetails = error instanceof Error ? {
-            message: error.message,
-            stack: error.stack,
-            name: error.name
-        } : { message: JSON.stringify(error) };
-        console.error('Error details:', errorDetails);
-        console.error('Full error object:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
-        return json({ 
-            error: 'Failed to generate cover letter',
-            details: errorDetails.message || 'Unknown error occurred'
-        }, { status: 500 });
+        return json({ error: 'Failed to generate cover letter' }, { status: 500 });
     }
 };
 

@@ -1,38 +1,45 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { OPENAI_API_KEY } from '$env/static/private';
+import { z } from 'zod';
 import { checkComprehensiveUsageLimit, incrementComprehensiveUsage } from '$lib/comprehensive-usage-limits';
 import { getModelConfig } from '$lib/ai-models';
 
-export const POST: RequestHandler = async ({ request, locals: { supabase } }) => {
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+export const POST: RequestHandler = async ({ request, locals: { supabase, getSession } }) => {
+    const session = await getSession();
     
-    if (!session?.user) {
+    if (!session) {
         return json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    // Check usage limits before processing using new comprehensive system
-    const usageCheck = await checkComprehensiveUsageLimit(session.user.id, 'personal_statement_generation');
-    if (!usageCheck.allowed) {
-        return json({
-            error: 'Usage limit exceeded',
-            message: usageCheck.message,
-            planType: usageCheck.planType,
-            currentUsage: usageCheck.currentUsage,
-            limit: usageCheck.limit,
-            upgradeRequired: true
-        }, { status: 403 });
-    }
+    // Define schema for validation
+    const personalStatementSchema = z.object({
+        institutionName: z.string().min(1).max(200),
+        personalDetails: z.object({
+            formativeExperience: z.string().min(10).max(2000),
+            academicInterests: z.string().min(10).max(2000).optional(),
+            careerGoals: z.string().min(10).max(2000).optional(),
+            relevantExperience: z.string().min(10).max(2000).optional()
+        }),
+        customRequests: z.string().max(1000).optional().default(''),
+        wordLimit: z.number().int().min(100).max(5000).optional()
+    });
     
     try {
-        const personalStatementData = await request.json();
+        const requestData = await request.json();
+
+        // Validate and sanitize input
+        const parsed = personalStatementSchema.safeParse(requestData);
+        if (!parsed.success) {
+            return json({ error: 'Invalid input', details: parsed.error.flatten() }, { status: 400 });
+        }
+        const data = parsed.data;
         
-        if (!personalStatementData.institutionName || !personalStatementData.personalDetails.formativeExperience) {
+        if (!data.institutionName || !data.personalDetails.formativeExperience) {
             return json({ error: 'Institution name and formative experience are required' }, { status: 400 });
         }
         
         // Generate personal statement using AI
-        const generatedPersonalStatement = await generatePersonalStatementWithAI(personalStatementData, supabase, session.user.id);
+        const generatedPersonalStatement = await generatePersonalStatementWithAI(data, supabase, session.user.id);
         
         // Increment usage counter after successful generation
         await incrementComprehensiveUsage(session.user.id, 'personal_statement_generation');

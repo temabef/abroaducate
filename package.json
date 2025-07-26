@@ -58,6 +58,7 @@
 		"stripe": "^18.2.1",
 		"svelte-fa": "^4.0.4",
 		"svelte-simples": "^1.0.3",
-		"tesseract.js": "^6.0.1"
+		"tesseract.js": "^6.0.1",
+		"zod": "^3.25.76"
 	}
 }

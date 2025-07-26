@@ -1,20 +1,34 @@
 import { json } from '@sveltejs/kit';
 import { createClient } from '@supabase/supabase-js';
 import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
+import { z } from 'zod';
 
 const supabase = createClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY);
 
+// Define schema for validation
+const createUserCampaignSchema = z.object({
+    campaign_type: z.enum(['feature_updates', 'promotional', 'educational', 'reminder']).default('feature_updates'),
+    target_segment: z.enum(['registered_user', 'premium_user', 'inactive_user', 'all_users']).default('registered_user')
+});
+
 export async function POST({ request, locals }) {
     try {
-        const { campaign_type, target_segment } = await request.json();
+        const requestData = await request.json();
+
+        // Validate and sanitize input
+        const parsed = createUserCampaignSchema.safeParse(requestData);
+        if (!parsed.success) {
+            return json({ success: false, error: 'Invalid input', details: parsed.error.flatten() }, { status: 400 });
+        }
+        const data = parsed.data;
         
-        console.log('Creating user campaign:', { campaign_type, target_segment });
+        console.log('Creating user campaign:', { campaign_type: data.campaign_type, target_segment: data.target_segment });
 
         // Try to call the database function to create user campaign
-        const { data, error } = await supabase
+        const { data: result, error } = await supabase
             .rpc('create_user_campaign', {
-                campaign_type: campaign_type || 'feature_updates',
-                target_segment: target_segment || 'registered_user'
+                campaign_type: data.campaign_type || 'feature_updates',
+                target_segment: data.target_segment || 'registered_user'
             });
 
         if (error) {
@@ -28,8 +42,8 @@ export async function POST({ request, locals }) {
 
         return json({
             success: true,
-            message: data || 'User campaign created successfully',
-            campaign_type: campaign_type
+            message: result || 'User campaign created successfully',
+            campaign_type: data.campaign_type
         });
 
     } catch (error) {

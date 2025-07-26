@@ -1,32 +1,48 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { checkComprehensiveUsageLimit, incrementComprehensiveUsage } from '$lib/comprehensive-usage-limits';
+import { z } from 'zod';
 
 export const POST: RequestHandler = async ({ request, locals: { supabase, getSession } }) => {
     const session = await getSession();
-
+    
     if (!session) {
         return json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Check usage limits before processing using new comprehensive system
-    const usageCheck = await checkComprehensiveUsageLimit(session.user.id, 'academic_cv_generation');
-    if (!usageCheck.allowed) {
-        return json({
-            error: 'Usage limit exceeded',
-            message: usageCheck.message,
-            planType: usageCheck.planType,
-            currentUsage: usageCheck.currentUsage,
-            limit: usageCheck.limit,
-            upgradeRequired: true
-        }, { status: 403 });
-    }
+    // Define schema for validation
+    const academicCvSchema = z.object({
+        cvData: z.object({
+            personalInfo: z.object({
+                fullName: z.string().min(1).max(100),
+                email: z.string().email(),
+                phone: z.string().max(20).optional(),
+                address: z.string().max(200).optional(),
+                linkedin: z.string().url().optional(),
+                website: z.string().url().optional()
+            }),
+            academicField: z.string().min(1).max(100),
+            education: z.array(z.any()).optional().default([]),
+            experience: z.array(z.any()).optional().default([]),
+            publications: z.array(z.any()).optional().default([]),
+            skills: z.array(z.string()).optional().default([]),
+            awards: z.array(z.any()).optional().default([]),
+            languages: z.array(z.string()).optional().default([]),
+            certifications: z.array(z.any()).optional().default([])
+        })
+    });
 
     try {
-        const { cvData } = await request.json();
+        const requestData = await request.json();
+
+        // Validate and sanitize input
+        const parsed = academicCvSchema.safeParse(requestData);
+        if (!parsed.success) {
+            return json({ error: 'Invalid input', details: parsed.error.flatten() }, { status: 400 });
+        }
+        const data = parsed.data;
         
         // Validate required fields
-        if (!cvData.personalInfo?.fullName || !cvData.personalInfo?.email) {
+        if (!data.cvData.personalInfo?.fullName || !data.cvData.personalInfo?.email) {
             return json(
                 { error: 'Name and email are required' },
                 { status: 400 }
@@ -43,7 +59,7 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
         // 3. Return real download URLs
         
         const timestamp = Date.now();
-        const safeName = cvData.personalInfo.fullName
+        const safeName = data.cvData.personalInfo.fullName
             .replace(/[^a-zA-Z0-9\s]/g, '')
             .replace(/\s+/g, '-')
             .toLowerCase();
@@ -53,39 +69,27 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
             pdf_url: `/generated-cvs/${fileName}.pdf`,
             docx_url: `/generated-cvs/${fileName}.docx`,
             generated_at: new Date().toISOString(),
-            field: cvData.academicField,
+            field: data.cvData.academicField,
             sections_included: [
                 'Personal Information',
                 'Education', 
                 'Professional Experience',
-                cvData.publications.length > 0 ? 'Publications' : null,
+                data.cvData.publications.length > 0 ? 'Publications' : null,
                 'Skills & Competencies',
-                cvData.awards.length > 0 ? 'Awards & Honors' : null
+                data.cvData.awards.length > 0 ? 'Awards & Honors' : null
             ].filter(Boolean),
             // Include a text preview for demo purposes
-            preview: generateCVPreview(cvData)
+            preview: generateCVPreview(data.cvData)
         };
         
-        // Log analytics (no personal data)
-        console.log('CV Generated:', {
-            field: cvData.academicField,
-            sections: response.sections_included.length,
-            hasPublications: cvData.publications.length > 0,
-            hasAwards: cvData.awards.length > 0,
-            timestamp: response.generated_at
+        return json({
+            success: true,
+            ...response
         });
         
-        // Increment usage count
-        await incrementComprehensiveUsage(session.user.id, 'academic_cv_generation');
-        
-        return json(response);
-        
     } catch (error) {
-        console.error('CV generation error:', error);
-        return json(
-            { error: 'Failed to generate CV. Please try again.' },
-            { status: 500 }
-        );
+        console.error('Error generating academic CV:', error);
+        return json({ error: 'Failed to generate academic CV' }, { status: 500 });
     }
 };
 

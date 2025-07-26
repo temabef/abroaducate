@@ -1,11 +1,23 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import { z } from 'zod';
 import { SUPABASE_SERVICE_ROLE_KEY } from '$env/static/private';
 import { PUBLIC_SUPABASE_URL } from '$env/static/public';
 import { createClient } from '@supabase/supabase-js';
 
 // Create admin client for server operations
 const supabase = createClient(PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+// Define schema for validation
+const preferencesSchema = z.object({
+    preferences: z.object({
+        email_enabled: z.boolean().optional(),
+        email_deadlines: z.boolean().optional(),
+        scholarship_digest_weekly: z.boolean().optional(),
+        scholarship_digest_daily: z.boolean().optional(),
+        subscription_alerts: z.boolean().optional()
+    })
+});
 
 export const POST: RequestHandler = async ({ request, locals }) => {
   try {
@@ -16,9 +28,16 @@ export const POST: RequestHandler = async ({ request, locals }) => {
       return json({ error: 'Authentication required' }, { status: 401 });
     }
 
-    const { preferences } = await request.json();
+    const requestData = await request.json();
 
-    if (!preferences) {
+    // Validate and sanitize input
+    const parsed = preferencesSchema.safeParse(requestData);
+    if (!parsed.success) {
+      return json({ error: 'Invalid input', details: parsed.error.flatten() }, { status: 400 });
+    }
+    const data = parsed.data;
+
+    if (!data.preferences) {
       return json({ error: 'Preferences data required' }, { status: 400 });
     }
 
@@ -32,8 +51,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     ];
     const filteredPreferences: Record<string, any> = {};
     for (const key of allowedFields) {
-      if (preferences.hasOwnProperty(key)) {
-        filteredPreferences[key] = preferences[key];
+      if (data.preferences.hasOwnProperty(key)) {
+        filteredPreferences[key] = data.preferences[key];
       }
     }
     // Save preferences to database
@@ -50,29 +69,10 @@ export const POST: RequestHandler = async ({ request, locals }) => {
       return json({ error: 'Failed to save preferences' }, { status: 500 });
     }
 
-    // Log activity
-    try {
-      await supabase
-        .from('user_activity')
-        .insert({
-          user_id: session.user.id,
-          activity_type: 'preferences_updated',
-          entity_type: 'settings',
-          description: 'Updated email and notification preferences',
-          metadata: filteredPreferences // Only log allowed fields
-        });
-    } catch (activityError) {
-      // Don't fail the request if activity logging fails
-      console.error('Error logging activity:', activityError);
-    }
+    return json({ success: true, message: 'Preferences saved successfully' });
 
-    return json({ 
-      success: true, 
-      message: 'Preferences saved successfully' 
-    });
-
-  } catch (error) {
-    console.error('Error in save-preferences API:', error);
+  } catch (error: any) {
+    console.error('Error in save preferences:', error);
     return json({ error: 'Internal server error' }, { status: 500 });
   }
 }; 

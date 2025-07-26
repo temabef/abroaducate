@@ -1,5 +1,6 @@
 import { json } from '@sveltejs/kit';
 import { supabase } from '$lib/supabaseClient';
+import { z } from 'zod';
 
 /**
  * POST handler for adding a user as an admin
@@ -16,17 +17,30 @@ export async function POST({ request, locals }) {
     
     console.log('Current user from session:', user);
     
-    // Get request body
-    const { email, role } = await request.json();
+    // Define schema for validation
+    const addAdminSchema = z.object({
+      email: z.string().email(),
+      role: z.enum(['admin', 'super-admin', 'scholarship-admin']).default('admin')
+    });
     
-    if (!email) {
+    // Get request body
+    const requestData = await request.json();
+    
+    // Validate and sanitize input
+    const parsed = addAdminSchema.safeParse(requestData);
+    if (!parsed.success) {
+      return json({ success: false, error: 'Invalid input', details: parsed.error.flatten() }, { status: 400 });
+    }
+    const data = parsed.data;
+    
+    if (!data.email) {
       return json({ success: false, error: 'Email is required' }, { status: 400 });
     }
     
     // First try to find the user by email using direct SQL
     // This bypasses RLS since we're using the admin_bypass_find_user function
     const { data: targetUser, error: targetUserError } = await supabase.rpc('admin_bypass_find_user', { 
-      email_to_find: email 
+      email_to_find: data.email.trim() 
     });
     
     if (targetUserError) {
@@ -35,7 +49,7 @@ export async function POST({ request, locals }) {
     }
     
     if (!targetUser || !targetUser.id) {
-      return json({ success: false, error: `User with email ${email} not found` }, { status: 404 });
+      return json({ success: false, error: `User with email ${data.email} not found` }, { status: 404 });
     }
     
     console.log('Found target user:', targetUser);
@@ -45,7 +59,7 @@ export async function POST({ request, locals }) {
       .from('admin_users')
       .insert({
         user_id: targetUser.id,
-        role: role || 'admin',
+        role: data.role || 'admin',
         created_by: user.id
       });
     

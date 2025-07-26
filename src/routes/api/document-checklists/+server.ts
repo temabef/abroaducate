@@ -1,5 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import { z } from 'zod';
 import { createClient } from '@supabase/supabase-js';
 import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
 
@@ -170,6 +171,14 @@ export const POST: RequestHandler = async ({ request, locals }) => {
             return json({ error: 'Authentication required' }, { status: 401 });
         }
 
+        // Define schema for validation
+        const documentChecklistSchema = z.object({
+            action: z.enum(['start_checklist', 'toggle_item', 'update_notes', 'reset_checklist']),
+            checklistId: z.string().min(1),
+            itemId: z.string().min(1).optional(),
+            notes: z.string().max(1000).optional().default('')
+        });
+
         // Create Supabase client with user's access token
         const supabase = createClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
             global: {
@@ -180,43 +189,46 @@ export const POST: RequestHandler = async ({ request, locals }) => {
         });
 
         const userId = session.user.id;
-        const body = await request.json();
-        const { action, checklistId, itemId, notes } = body;
+        const requestData = await request.json();
 
-        console.log(`Document checklists POST request: action=${action}, checklistId=${checklistId}, itemId=${itemId || 'N/A'}`);
+        // Validate and sanitize input
+        const parsed = documentChecklistSchema.safeParse(requestData);
+        if (!parsed.success) {
+            return json({ error: 'Invalid input', details: parsed.error.flatten() }, { status: 400 });
+        }
+        const data = parsed.data;
 
-        if (!action || !checklistId) {
+        console.log(`Document checklists POST request: action=${data.action}, checklistId=${data.checklistId}, itemId=${data.itemId || 'N/A'}`);
+
+        if (!data.action || !data.checklistId) {
             return json({ error: 'Missing required fields' }, { status: 400 });
         }
 
         // Progress tracking is now free for all users - no checks needed
 
-        switch (action) {
+        switch (data.action) {
             case 'start_checklist':
-                return await startChecklist(supabase, userId, checklistId);
+                return await startChecklist(supabase, userId, data.checklistId);
                 
             case 'toggle_item':
-                if (!itemId) {
+                if (!data.itemId) {
                     return json({ error: 'Item ID required for toggle action' }, { status: 400 });
                 }
-                return await toggleChecklistItem(supabase, userId, checklistId, itemId);
+                return await toggleChecklistItem(supabase, userId, data.checklistId, data.itemId);
                 
             case 'update_notes':
-                return await updateChecklistNotes(supabase, userId, checklistId, notes || '');
+                return await updateChecklistNotes(supabase, userId, data.checklistId, data.notes || '');
                 
             case 'reset_checklist':
-                return await resetChecklist(supabase, userId, checklistId);
+                return await resetChecklist(supabase, userId, data.checklistId);
                 
             default:
                 return json({ error: 'Invalid action' }, { status: 400 });
         }
 
     } catch (error) {
-        console.error('Unexpected error in document-checklists POST:', error);
-        return json({ 
-            error: 'Internal server error', 
-            details: error instanceof Error ? error.message : 'Unknown error'
-        }, { status: 500 });
+        console.error('Error in document checklists:', error);
+        return json({ error: 'Internal server error' }, { status: 500 });
     }
 };
 

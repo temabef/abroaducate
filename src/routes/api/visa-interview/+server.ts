@@ -1,5 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import { z } from 'zod';
 import { OPENAI_API_KEY } from '$env/static/private';
 import { checkComprehensiveUsageLimit, incrementComprehensiveUsage } from '$lib/comprehensive-usage-limits';
 
@@ -11,14 +12,28 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
         return json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    try {
-        const { question, answer, questionId } = await request.json();
+    // Define schema for validation
+    const visaInterviewSchema = z.object({
+        question: z.string().min(1).max(1000),
+        answer: z.string().min(1).max(5000),
+        questionId: z.string().min(1)
+    });
 
-        if (!question || !answer?.trim()) {
+    try {
+        const requestData = await request.json();
+
+        // Validate and sanitize input
+        const parsed = visaInterviewSchema.safeParse(requestData);
+        if (!parsed.success) {
+            return json({ error: 'Invalid input', details: parsed.error.flatten() }, { status: 400 });
+        }
+        const data = parsed.data;
+
+        if (!data.question || !data.answer?.trim()) {
             return json({ error: 'Question and answer are required' }, { status: 400 });
         }
 
-        if (!questionId) {
+        if (!data.questionId) {
             return json({ error: 'Question ID is required' }, { status: 400 });
         }
 
@@ -46,15 +61,15 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
         const subscriptionTier = profile?.subscription_tier || 'free';
 
         // Generate AI feedback using existing OpenAI setup
-        const feedback = await generateVisaInterviewFeedback(question, answer, subscriptionTier);
+        const feedback = await generateVisaInterviewFeedback(data.question, data.answer, subscriptionTier);
 
         // Save practice session to database
         const { data: sessionData, error: dbError } = await supabase
             .from('visa_practice_sessions')
             .insert({
                 user_id: session.user.id,
-                question_id: questionId,
-                user_answer: answer,
+                question_id: data.questionId,
+                user_answer: data.answer,
                 ai_feedback: feedback,
                 score: feedback.score
             })
