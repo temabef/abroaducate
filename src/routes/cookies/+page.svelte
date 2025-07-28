@@ -16,7 +16,7 @@
       required: true,
       examples: [
         'Session authentication cookies',
-        'CSRF protection tokens',
+        'Device fingerprinting',
         'Load balancing cookies',
         'Security preference cookies'
       ]

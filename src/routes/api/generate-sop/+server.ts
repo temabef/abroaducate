@@ -63,6 +63,14 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
         return json({ error: 'Unauthorized' }, { status: 401 });
     }
     
+    // Security headers for API responses
+    const securityHeaders = {
+        'X-Content-Type-Options': 'nosniff',
+        'X-Frame-Options': 'DENY',
+        'X-XSS-Protection': '1; mode=block',
+        'Referrer-Policy': 'strict-origin-when-cross-origin'
+    };
+    
     // Define schema for validation
     const sopGenerationSchema = z.object({
         universityData: z.object({
@@ -97,21 +105,21 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
         // Validate and sanitize input
         const parsed = sopGenerationSchema.safeParse(requestData);
         if (!parsed.success) {
-            return json({ error: 'Invalid input', details: parsed.error.flatten() }, { status: 400 });
+            return json({ error: 'Invalid input', details: parsed.error.flatten() }, { status: 400, headers: securityHeaders });
         }
         const data = parsed.data;
         
         // Check usage limits before processing using new comprehensive system
         const usageCheck = await checkComprehensiveUsageLimit(session.user.id, 'sop_generation');
         if (!usageCheck.allowed) {
-            return json({
-                error: 'Usage limit exceeded',
-                message: usageCheck.message,
-                planType: usageCheck.planType,
-                currentUsage: usageCheck.currentUsage,
-                limit: usageCheck.limit,
-                upgradeRequired: true
-            }, { status: 403 });
+                    return json({
+            error: 'Usage limit exceeded',
+            message: usageCheck.message,
+            planType: usageCheck.planType,
+            currentUsage: usageCheck.currentUsage,
+            limit: usageCheck.limit,
+            upgradeRequired: true
+        }, { status: 403, headers: securityHeaders });
         }
         
         // Generate SOP using OpenAI
@@ -181,10 +189,10 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
             sop: generatedSopText,
             sopId: insertData?.id,
             wordCount: wordCount
-        });
+        }, { headers: securityHeaders });
         
     } catch (error) {
         console.error('Error generating SOP:', error);
-        return json({ error: 'Failed to generate SOP' }, { status: 500 });
+        return json({ error: 'Failed to generate SOP' }, { status: 500, headers: securityHeaders });
     }
 };

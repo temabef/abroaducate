@@ -13,7 +13,8 @@
     canManageScholarships: false,
     canManageAdmins: false,
     canAccessAnalytics: false,
-    canManageContent: false
+    canManageContent: false,
+    canAccessSecurity: false
   });
   
   onMount(async () => {
@@ -27,12 +28,14 @@
           { data: canManage, error: scholarshipError },
           { data: canManageAdmins, error: adminError },
           { data: canAccessAnalytics, error: analyticsError },
-          { data: canManageContent, error: contentError }
+          { data: canManageContent, error: contentError },
+          { data: canAccessSecurity, error: securityError }
         ] = await Promise.all([
           supabase.rpc('can_manage_scholarships'),
           supabase.rpc('can_manage_admins_nuclear'),
           supabase.rpc('can_access_analytics'),
-          supabase.rpc('can_manage_content')
+          supabase.rpc('can_manage_content'),
+          supabase.rpc('can_manage_admins_nuclear') // Security uses same permission as admin management
         ]);
         
         // Set permissions
@@ -40,8 +43,9 @@
           canManageScholarships: !!canManage,
           canManageAdmins: !!canManageAdmins,
           canAccessAnalytics: !!canAccessAnalytics,
-          canManageContent: !!canManageContent
-        };
+          canManageContent: !!canManageContent,
+          canAccessSecurity: !!canAccessSecurity
+        } as any;
         
         // Any permission grants admin access
         isAdmin = Object.values(permissions).some(Boolean);
