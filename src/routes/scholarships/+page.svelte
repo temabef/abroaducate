@@ -466,6 +466,7 @@
       if (result.error) throw result.error;
       allScholarships[scholarshipIndex].saved = true;
       updateScholarships();
+      }
     } catch (err) {
       alert('Failed to save scholarship after login. Please try again.');
     }
