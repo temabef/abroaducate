@@ -15,6 +15,7 @@
     location: string;
     field: string;
     level: string;
+    levels?: string[]; // New multiple levels array
     type: string;
     description: string;
     requirements: string[];
@@ -68,6 +69,7 @@
     location: '',
     field: '',
     level: '',
+    levels: [] as string[], // New multiple levels array
     type: '',
     description: '',
     requirements: '',
@@ -89,6 +91,14 @@
     position_details: '',
     has_automatic_funding: false
   });
+
+  // Available level options for multiple selection
+  const levelOptions = [
+    { value: 'Bachelor', label: "Bachelor's" },
+    { value: "Master's", label: "Master's" },
+    { value: 'PhD', label: 'PhD' },
+    { value: 'Graduate', label: 'Graduate' }
+  ];
 
   let isAdmin = $state(false);
 
@@ -120,8 +130,8 @@
     console.log('🔄 Loading scholarships for admin...');
     
     try {
-      // Use nuclear function to bypass RLS
-      const { data: result, error } = await supabase.rpc('nuclear_load_scholarships', {
+      // Use enhanced nuclear function to bypass RLS and get decoded entities
+      const { data: result, error } = await supabase.rpc('nuclear_load_scholarships_enhanced', {
         page_number: currentPage,
         page_size: pageSize
       });
@@ -134,7 +144,7 @@
         console.error('❌ Nuclear function returned error:', result.error);
         await loadScholarshipsDirect();
       } else {
-        console.log('✅ Scholarships loaded via nuclear function:', result);
+        console.log('✅ Scholarships loaded via enhanced nuclear function:', result);
         scholarships = result.scholarships || [];
         totalScholarships = result.total_count || 0;
         totalPages = Math.ceil(totalScholarships / pageSize);
@@ -203,6 +213,7 @@
       nationality_restrictions: formData.nationality_restrictions 
         ? formData.nationality_restrictions.split(',').map(c => c.trim()).filter(c => c)
         : [],
+      levels: formData.levels.length > 0 ? formData.levels : [formData.level], // Ensure levels array is populated
       min_gpa: formData.min_gpa ? parseFloat(formData.min_gpa) : null,
       min_ielts: formData.min_ielts ? parseFloat(formData.min_ielts) : null,
       min_toefl: formData.min_toefl ? parseInt(formData.min_toefl) : null,
@@ -221,12 +232,12 @@
 
     let result;
     if (editingScholarship) {
-      result = await supabase.rpc('nuclear_update_scholarship', {
+      result = await supabase.rpc('nuclear_update_scholarship_enhanced', {
         scholarship_id: editingScholarship.id,
         scholarship_data: scholarshipData
       });
     } else {
-      result = await supabase.rpc('nuclear_insert_scholarship', {
+      result = await supabase.rpc('nuclear_insert_scholarship_enhanced', {
         scholarship_data: scholarshipData
       });
     }
@@ -300,6 +311,7 @@
       location: scholarship.location,
       field: scholarship.field,
       level: scholarship.level,
+      levels: scholarship.levels || [scholarship.level], // Use levels array or fallback to single level
       type: scholarship.type,
       description: scholarship.description,
       requirements: scholarship.requirements?.join('\n') || '',
@@ -340,6 +352,7 @@
       location: '',
       field: '',
       level: '',
+      levels: [], // Reset levels array
       type: '',
       description: '',
       requirements: '',
@@ -419,6 +432,7 @@
             location: fields[4] || '',
             field: fields[5] || '',
             level: fields[6] || '',
+            levels: fields[6] ? fields[6].split(';').map(l => l.trim()).filter(l => l) : [], // Parse multiple levels
             type: fields[7] || '',
             description: fields[8] || '',
             requirements: fields[9] ? fields[9].split(';').map(r => r.trim()).filter(r => r) : [],
@@ -451,6 +465,7 @@
             location: fields[4] || '',
             field: fields[5] || '',
             level: fields[6] || '',
+            levels: fields[6] ? fields[6].split(';').map(l => l.trim()).filter(l => l) : [], // Parse multiple levels
             type: fields[7] || '',
             description: fields[8] || '',
             requirements: fields[9] ? fields[9].split(';').map(r => r.trim()).filter(r => r) : [],
@@ -483,6 +498,7 @@
             location: fields[4] || '',
             field: fields[5] || '',
             level: fields[6] || '',
+            levels: fields[6] ? fields[6].split(';').map(l => l.trim()).filter(l => l) : [], // Parse multiple levels
             type: fields[7] || '',
             description: fields[8] || '',
             requirements: fields[9] ? fields[9].split(';').map(r => r.trim()).filter(r => r) : [],
@@ -508,7 +524,7 @@
         }
 
         // Use nuclear function for admin insert to bypass RLS
-        const { data, error } = await supabase.rpc('nuclear_insert_scholarship', {
+        const { data, error } = await supabase.rpc('nuclear_insert_scholarship_enhanced', {
           scholarship_data: scholarship
         });
 
@@ -590,15 +606,15 @@
     
     if (selectedImportType === 'Traditional Scholarship') {
       headers = [
-        'Title', 'Provider', 'Amount', 'Deadline', 'Location', 'Field', 'Level', 'Type', 
+        'Title', 'Provider', 'Amount', 'Deadline', 'Location', 'Field', 'Level (semicolon-separated for multiple)', 'Type', 
         'Description', 'Requirements (semicolon-separated)', 'Website'
       ];
-      sampleData = '"Merit Excellence Scholarship","Education Foundation","$25,000","2024-12-31","United States","All Fields","Graduate","Merit-based","Annual scholarship for outstanding students","Bachelor\'s degree;3.0+ GPA;Leadership experience","https://foundation.edu/scholarship"';
+      sampleData = '"Merit Excellence Scholarship","Education Foundation","$25,000","2024-12-31","United States","All Fields","Master\'s;PhD","Merit-based","Annual scholarship for outstanding students","Bachelor\'s degree;3.0+ GPA;Leadership experience","https://foundation.edu/scholarship"';
       filename = 'traditional_scholarship_template.csv';
     } 
     else if (selectedImportType === 'Graduate Program Funding') {
       headers = [
-        'Title', 'Provider', 'Amount', 'Deadline', 'Location', 'Field', 'Level', 'Type', 
+        'Title', 'Provider', 'Amount', 'Deadline', 'Location', 'Field', 'Level (semicolon-separated for multiple)', 'Type', 
         'Description', 'Requirements (semicolon-separated)', 'Website', 'University Name', 
         'Program Name', 'Department', 'Funding Type', 'Application Method', 'Has Automatic Funding'
       ];
@@ -607,7 +623,7 @@
     } 
     else if (selectedImportType === 'Advertised Position') {
       headers = [
-        'Title', 'Provider', 'Amount', 'Deadline', 'Location', 'Field', 'Level', 'Type', 
+        'Title', 'Provider', 'Amount', 'Deadline', 'Location', 'Field', 'Level (semicolon-separated for multiple)', 'Type', 
         'Description', 'Requirements (semicolon-separated)', 'Website', 'University Name', 
         'Program Name', 'Department', 'Funding Type', 'Professor Name', 'Professor Email', 'Position Details'
       ];
@@ -773,21 +789,30 @@
                          <div class="text-sm text-gray-600 bg-gray-50 p-4 rounded">
                {#if selectedImportType === 'Traditional Scholarship'}
                  <p><strong>Traditional Scholarship CSV Format (11 fields):</strong></p>
-                 <p>Title, Provider, Amount, Deadline (YYYY-MM-DD), Location, Field, Level, Type, Description, Requirements (semicolon-separated), Website</p>
+                 <p>Title, Provider, Amount, Deadline (YYYY-MM-DD), Location, Field, Level (semicolon-separated for multiple), Type, Description, Requirements (semicolon-separated), Website</p>
                  <p class="mt-2 text-xs text-gray-500">
                    <strong>Perfect for:</strong> Foundation scholarships, government grants, organization awards
                  </p>
+                 <p class="mt-1 text-xs text-blue-600">
+                   <strong>Multiple Levels:</strong> Use semicolons to separate multiple levels (e.g., "Master's;PhD" for scholarships open to both levels)
+                 </p>
                {:else if selectedImportType === 'Graduate Program Funding'}
                  <p><strong>Graduate Program Funding CSV Format (17 fields):</strong></p>
-                 <p>Title, Provider, Amount, Deadline (YYYY-MM-DD), Location, Field, Level, Type, Description, Requirements (semicolon-separated), Website, University Name, Program Name, Department, Funding Type, Application Method, Has Automatic Funding (true/false)</p>
+                 <p>Title, Provider, Amount, Deadline (YYYY-MM-DD), Location, Field, Level (semicolon-separated for multiple), Type, Description, Requirements (semicolon-separated), Website, University Name, Program Name, Department, Funding Type, Application Method, Has Automatic Funding (true/false)</p>
                  <p class="mt-2 text-xs text-gray-500">
                    <strong>Perfect for:</strong> PhD programs, research assistantships, teaching assistantships
                  </p>
+                 <p class="mt-1 text-xs text-blue-600">
+                   <strong>Multiple Levels:</strong> Use semicolons to separate multiple levels (e.g., "Master's;PhD" for programs accepting both levels)
+                 </p>
                {:else if selectedImportType === 'Advertised Position'}
                  <p><strong>Advertised Position CSV Format (18 fields):</strong></p>
-                 <p>Title, Provider, Amount, Deadline (YYYY-MM-DD), Location, Field, Level, Type, Description, Requirements (semicolon-separated), Website, University Name, Program Name, Department, Funding Type, Professor Name, Professor Email, Position Details</p>
+                 <p>Title, Provider, Amount, Deadline (YYYY-MM-DD), Location, Field, Level (semicolon-separated for multiple), Type, Description, Requirements (semicolon-separated), Website, University Name, Program Name, Department, Funding Type, Professor Name, Professor Email, Position Details</p>
                  <p class="mt-2 text-xs text-gray-500">
                    <strong>Perfect for:</strong> Research positions, professor-led projects, specific PhD openings
+                 </p>
+                 <p class="mt-1 text-xs text-blue-600">
+                   <strong>Multiple Levels:</strong> Use semicolons to separate multiple levels (e.g., "Master's;PhD" for positions open to both levels)
                  </p>
                {/if}
              </div>
@@ -921,19 +946,33 @@
                 />
               </div>
               <div>
-                <label for="level" class="block text-sm font-medium text-gray-700 mb-1">Level *</label>
-                <select
-                  id="level"
-                  bind:value={formData.level}
-                  required
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="">Select Level</option>
-                  <option value="Bachelor">Bachelor's</option>
-                  <option value="Master's">Master's</option>
-                  <option value="PhD">PhD</option>
-                  <option value="Graduate">Graduate</option>
-                </select>
+                <label for="level" class="block text-sm font-medium text-gray-700 mb-1">Level(s) *</label>
+                <div class="space-y-2">
+                  {#each levelOptions as option}
+                    <label class="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        value={option.value}
+                        checked={formData.levels.includes(option.value)}
+                        onchange={(e) => {
+                          const target = e.target as HTMLInputElement;
+                          if (target.checked) {
+                            formData.levels = [...formData.levels, option.value];
+                          } else {
+                            formData.levels = formData.levels.filter(l => l !== option.value);
+                          }
+                          // Update single level field for backward compatibility
+                          formData.level = formData.levels[0] || '';
+                        }}
+                        class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <span class="text-sm text-gray-700">{option.label}</span>
+                    </label>
+                  {/each}
+                </div>
+                {#if formData.levels.length === 0}
+                  <p class="text-red-500 text-xs mt-1">Please select at least one level</p>
+                {/if}
               </div>
               <div>
                 <label for="type" class="block text-sm font-medium text-gray-700 mb-1">Type *</label>
@@ -1260,7 +1299,14 @@
                         <p class="text-sm text-gray-600 mb-1">{scholarship.provider} • {scholarship.amount}</p>
                       {/if}
                       
-                      <p class="text-sm text-gray-500">{scholarship.location} • Deadline: {scholarship.deadline}</p>
+                      <p class="text-sm text-gray-500">
+                        {scholarship.location} • Deadline: {scholarship.deadline}
+                        {#if scholarship.levels && scholarship.levels.length > 1}
+                          • Levels: {scholarship.levels.join(', ')}
+                        {:else}
+                          • Level: {scholarship.level}
+                        {/if}
+                      </p>
                       
                       {#if scholarship.position_details}
                         <p class="text-sm text-gray-600 mt-2 italic">{scholarship.position_details}</p>

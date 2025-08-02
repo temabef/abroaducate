@@ -410,7 +410,13 @@
                   </div>
                   <div>
                     <span class="text-gray-500 block">Degree Level</span>
-                    <span class="font-medium">{scholarship.level}</span>
+                    <span class="font-medium">
+                      {#if scholarship.levels && scholarship.levels.length > 1}
+                        {scholarship.levels.join(', ')}
+                      {:else}
+                        {scholarship.level}
+                      {/if}
+                    </span>
                   </div>
                   <div>
                     <span class="text-gray-500 block">Type</span>

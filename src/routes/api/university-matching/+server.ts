@@ -1936,8 +1936,9 @@ async function generateRelevantScholarships(university: any, userProfile: UserPr
         // Make field matching more permissive - don't filter by field initially
         // Let's get scholarships first, then sort/filter later
         
-        // Level filtering - make more permissive
-        // Don't filter strictly by level, as many scholarships are available for multiple levels
+        // Level filtering - support multiple levels array
+        // Check both the legacy level field and the new levels array
+        query = query.or(`level.eq.${userProfile.degree_level},levels.cs.{${userProfile.degree_level}}`);
 
         // GPA requirements - keep this filter
         const userGPA = parseFloat(userProfile.gpa) || 3.0;

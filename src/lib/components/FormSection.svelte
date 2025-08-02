@@ -261,6 +261,8 @@
         </div>
     </div>
 
+
+
     <!-- Dynamic Step Component -->
     <div class="form-content mb-8 min-h-[300px]">
         <svelte:component this={steps[$formStore.currentStep - 1].component} />

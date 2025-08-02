@@ -29,6 +29,13 @@
 
     // Update currentSection when index changes
     $: currentSection = sections[currentSectionIndex].id;
+    
+    // Initialize error arrays when data changes
+    $: educationErrors = $cvFormStore.education.map(() => []);
+    $: experienceErrors = $cvFormStore.experience.map(() => []);
+    $: publicationErrors = $cvFormStore.publications.map(() => []);
+    $: awardErrors = $cvFormStore.awards.map(() => []);
+    $: languageErrors = $cvFormStore.skills.languages.map(() => []);
 
     // Validation error states
     let fullNameError = '';
@@ -38,12 +45,7 @@
     let websiteError = '';
     let orcidError = '';
     let academicFieldError = '';
-    let educationErrors: string[][] = [];
-    let experienceErrors: string[][] = [];
-    let publicationErrors: string[][] = [];
-    let awardErrors: string[][] = [];
     let skillErrors: { technical: string[], software: string[] } = { technical: [], software: [] };
-    let languageErrors: string[][] = [];
 
     // Validation functions
     function validateFullName() {
@@ -336,11 +338,11 @@
     <!-- Section Navigation -->
     <div class="flex flex-wrap gap-2 mb-8 border-b pb-4">
         {#each sections as section, i}
-            <button
-                onclick={() => goToSection(i)}
-                class="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors {currentSection === section.id ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}"
-                disabled={i > currentSectionIndex}
-            >
+                            <button
+                    onclick={() => goToSection(i)}
+                    class="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors {currentSection === section.id ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}"
+                    disabled={i > currentSectionIndex}
+                >
                 <span>{section.icon}</span>
                 {section.label}
             </button>

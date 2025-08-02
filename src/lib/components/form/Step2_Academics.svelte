@@ -1,6 +1,11 @@
 <script lang="ts">
 	import { formStore } from '$lib/stores';
 
+    // Error state variables
+    let degreeTypeError = '';
+    let fieldOfStudyError = '';
+    let universityNameError = '';
+
     function handleChange(event: Event) {
         const target = event.target as HTMLInputElement;
         formStore.update(s => ({

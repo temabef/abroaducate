@@ -15,6 +15,7 @@
     location: string;
     field: string;
     level: string;
+    levels?: string[]; // New multiple levels array
     type: string;
     description: string;
     requirements: string[];
@@ -202,9 +203,8 @@
       console.log('🔄 Loading scholarships...');
       
       const { data: scholarshipData, error: fetchError } = await supabase
-        .from('scholarships')
+        .from('public_scholarships_decoded')
         .select('*')
-        .eq('is_active', true)
         .order('created_at', { ascending: false });
 
       if (fetchError) {
@@ -217,7 +217,7 @@
 
       // Load user interactions if logged in
       let userInteractions: any[] = [];
-      if (session?.user?.id) {
+      if (session && session.user && session.user.id) {
         const { data: interactions } = await supabase
           .from('user_scholarship_interactions')
           .select('*')
@@ -280,7 +280,7 @@
     }
     // Render the ad after script loads or immediately if already loaded
     const renderAds = () => {
-      if ((window as any).adsbygoogle) {
+      if (typeof window !== 'undefined' && (window as any).adsbygoogle) {
         (window as any).adsbygoogle.push({});
       }
     };
@@ -436,15 +436,16 @@
 
   async function saveScholarshipAfterLogin(scholarshipId: string) {
     try {
-      const scholarshipIndex = allScholarships.findIndex(s => s.id === scholarshipId);
-      if (scholarshipIndex === -1) return;
-      // Check if interaction exists
-      const { data: existing, error: fetchError } = await supabase
-        .from('user_scholarship_interactions')
-        .select('id')
-        .eq('user_id', session.user.id)
-        .eq('scholarship_id', scholarshipId)
-        .single();
+      if (session && session.user && session.user.id) {
+        const scholarshipIndex = allScholarships.findIndex(s => s.id === scholarshipId);
+        if (scholarshipIndex === -1) return;
+        // Check if interaction exists
+        const { data: existing, error: fetchError } = await supabase
+          .from('user_scholarship_interactions')
+          .select('id')
+          .eq('user_id', session!.user!.id)
+          .eq('scholarship_id', scholarshipId)
+          .single();
       if (fetchError && fetchError.code !== 'PGRST116') throw fetchError;
       let result;
       if (existing) {
@@ -456,7 +457,7 @@
         result = await supabase
           .from('user_scholarship_interactions')
           .insert({
-            user_id: session.user.id,
+            user_id: session!.user!.id,
             scholarship_id: scholarshipId,
             is_saved: true,
             is_applied: false
@@ -752,7 +753,13 @@
                   </div>
                   <div>
                     <span class="text-gray-500">Level:</span>
-                    <span class="ml-1 text-gray-900">{scholarship.level}</span>
+                    <span class="ml-1 text-gray-900">
+                      {#if scholarship.levels && scholarship.levels.length > 1}
+                        {scholarship.levels.join(', ')}
+                      {:else}
+                        {scholarship.level}
+                      {/if}
+                    </span>
                   </div>
                   <div>
                     <span class="text-gray-500">Field:</span>
