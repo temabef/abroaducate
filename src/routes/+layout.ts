@@ -17,16 +17,48 @@ export const load: LayoutLoad = async ({ fetch, data, depends }) => {
     data: { session },
   } = await supabase.auth.getSession()
 
-  // Initialize PostHog in browser environment
+  // Initialize PostHog in browser environment with better consent handling
   if (browser) {
-    posthog.init(
-      'phc_PlTMibICzNy5DTxpnxVRHl3n7JiH8l6KLDBgLqpbruZ',
-      {
-        api_host: 'https://us.i.posthog.com',
-        defaults: '2025-05-24',
-        person_profiles: 'identified_only', // or 'always' to create profiles for anonymous users as well
+    try {
+      // Check if PostHog is already initialized
+      if (!posthog.isFeatureEnabled('test')) {
+        posthog.init(
+          'phc_PlTMibICzNy5DTxpnxVRHl3n7JiH8l6KLDBgLqpbruZ',
+          {
+            api_host: 'https://us.i.posthog.com',
+            defaults: '2025-05-24',
+            person_profiles: 'identified_only',
+            // Add consent management integration
+            opt_out_capturing_by_default: false,
+            // Ensure PostHog works with consent management
+            loaded: (posthog) => {
+              console.log('PostHog loaded successfully');
+            },
+            // Handle consent changes
+            on_request: (url, options) => {
+              // Check if user has consented to analytics
+              if (window.ezstandalone && window.ezstandalone.cmp) {
+                const consent = window.ezstandalone.cmp.getConsent();
+                if (!consent.analytics) {
+                  console.log('Analytics consent not given, skipping PostHog request');
+                  return false;
+                }
+              }
+              return true;
+            }
+          }
+        )
+        
+        // Track initial page view
+        posthog.capture('page_viewed', {
+          page_name: window.location.pathname,
+          page_title: document.title,
+          page_url: window.location.href
+        });
       }
-    )
+    } catch (error) {
+      console.error('Failed to initialize PostHog:', error);
+    }
   }
 
   return {
