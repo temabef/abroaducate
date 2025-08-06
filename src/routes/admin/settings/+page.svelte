@@ -147,8 +147,8 @@
     addSuccess = false;
     
     try {
-      // Use the new add_admin_user function
-      const { data: result, error } = await supabase.rpc('add_admin_user', {
+      // Use the nuclear add_admin_user function
+      const { data: result, error } = await supabase.rpc('add_admin_user_nuclear', {
         admin_email: newAdminEmail,
         admin_role: newAdminRole
       });
@@ -192,8 +192,8 @@
     }
     
     try {
-      // Use the new remove_admin_user function
-      const { data: result, error } = await supabase.rpc('remove_admin_user', {
+      // Use the nuclear remove_admin_user function
+      const { data: result, error } = await supabase.rpc('remove_admin_user_nuclear', {
         admin_email: email
       });
       
@@ -234,8 +234,8 @@ Available roles:
     if (!newRole) return; // User cancelled
     
     try {
-      // Use the add_admin_user function to update the role (it handles upserts)
-      const { data: result, error } = await supabase.rpc('add_admin_user', {
+      // Use the nuclear add_admin_user function to update the role (it handles upserts)
+      const { data: result, error } = await supabase.rpc('add_admin_user_nuclear', {
         admin_email: email,
         admin_role: newRole
       });

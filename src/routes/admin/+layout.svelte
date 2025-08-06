@@ -22,6 +22,22 @@
       // Log for debugging
       console.log('SvelteKit session user:', session.user);
       
+      // TEMPORARY SUPER ADMIN BYPASS - Restore your access immediately
+      if (session.user.email === 'solakolawole62@gmail.com' || session.user.email === 'admin@abroaducate.com') {
+        console.log('🚨 SUPER ADMIN BYPASS: Granting full access to', session.user.email);
+        isAdmin = true;
+        adminRole = 'super-admin';
+        permissions = {
+          canManageScholarships: true,
+          canManageAdmins: true,
+          canAccessAnalytics: true,
+          canManageContent: true,
+          canAccessSecurity: true
+        };
+        isLoading = false;
+        return;
+      }
+      
       try {
         // Check all permissions using nuclear functions
         const [

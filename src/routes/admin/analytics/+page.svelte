@@ -20,14 +20,23 @@
     totalPersonalStatements: 0,
     totalDocuments: 0,
     
-    // AI Features Analytics (Global)
+    // AI Features Analytics (Global) - Complete breakdown
     totalAIUsage: 0,
+    reviews: 0,
     grammarChecks: 0,
     toneAnalysis: 0,
     plagiarismChecks: 0,
     textEnhancements: 0,
     wordOptimizations: 0,
-    reviews: 0,
+    universityMatching: 0,
+    visaInterviewQuestions: 0,
+    sopGeneration: 0,
+    coldEmailGeneration: 0,
+    documentChecklists: 0,
+    coverLetterGeneration: 0,
+    academicCvGeneration: 0,
+    personalStatementGeneration: 0,
+    inlineEdits: 0,
     
     // Scholarship Analytics
     totalScholarships: 0,
@@ -74,14 +83,23 @@
           totalPersonalStatements: Number(data.total_personal_statements) || 0,
           totalDocuments: Number(data.total_documents) || 0,
           
-          // AI Features Analytics (Global totals)
+          // AI Features Analytics (Global totals) - Complete breakdown
           totalAIUsage: Number(data.total_ai_usage) || 0,
+          reviews: Number(data.reviews_count) || 0,
           grammarChecks: Number(data.grammar_checks_count) || 0,
           toneAnalysis: Number(data.tone_analysis_count) || 0,
           plagiarismChecks: Number(data.plagiarism_checks_count) || 0,
           textEnhancements: Number(data.text_enhancements_count) || 0,
           wordOptimizations: Number(data.word_optimizations_count) || 0,
-          reviews: Number(data.reviews_count) || 0,
+          universityMatching: Number(data.university_matching_count) || 0,
+          visaInterviewQuestions: Number(data.visa_interview_questions_count) || 0,
+          sopGeneration: Number(data.sop_generation_count) || 0,
+          coldEmailGeneration: Number(data.cold_email_generation_count) || 0,
+          documentChecklists: Number(data.document_checklists_count) || 0,
+          coverLetterGeneration: Number(data.cover_letter_generation_count) || 0,
+          academicCvGeneration: Number(data.academic_cv_generation_count) || 0,
+          personalStatementGeneration: Number(data.personal_statement_generation_count) || 0,
+          inlineEdits: Number(data.inline_edits_count) || 0,
           
           // Scholarship Analytics
           totalScholarships: Number(data.total_scholarships) || 0,
@@ -134,12 +152,21 @@
         totalPersonalStatements: 0, // Simplified for fallback
         totalDocuments: sopsResult.count || 0,
         totalAIUsage: 0, // Simplified for fallback
+        reviews: 0,
         grammarChecks: 0,
         toneAnalysis: 0,
         plagiarismChecks: 0,
         textEnhancements: 0,
         wordOptimizations: 0,
-        reviews: 0,
+        universityMatching: 0,
+        visaInterviewQuestions: 0,
+        sopGeneration: 0,
+        coldEmailGeneration: 0,
+        documentChecklists: 0,
+        coverLetterGeneration: 0,
+        academicCvGeneration: 0,
+        personalStatementGeneration: 0,
+        inlineEdits: 0,
         totalScholarships: scholarshipsResult.count || 0,
         totalApplications: 0, // Simplified for fallback
         adminUsers: 0 // Simplified for fallback
@@ -512,12 +539,81 @@
           </div>
         </div>
         
-        <!-- Reviews -->
+        <!-- University Matching -->
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+          <div class="p-5">
+            <div class="flex items-center">
+              <div class="flex-shrink-0">
+                <div class="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center">
+                  <span class="text-white text-lg">🎓</span>
+                </div>
+              </div>
+              <div class="ml-5 w-0 flex-1">
+                <dl>
+                  <dt class="text-sm font-medium text-gray-500 truncate">
+                    University Matching
+                  </dt>
+                  <dd class="text-3xl font-semibold text-gray-900">
+                    {analytics.universityMatching.toLocaleString()}
+                  </dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Visa Interview Questions -->
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+          <div class="p-5">
+            <div class="flex items-center">
+              <div class="flex-shrink-0">
+                <div class="w-8 h-8 bg-green-500 rounded-md flex items-center justify-center">
+                  <span class="text-white text-lg">🛂</span>
+                </div>
+              </div>
+              <div class="ml-5 w-0 flex-1">
+                <dl>
+                  <dt class="text-sm font-medium text-gray-500 truncate">
+                    Visa Interview Qs
+                  </dt>
+                  <dd class="text-3xl font-semibold text-gray-900">
+                    {analytics.visaInterviewQuestions.toLocaleString()}
+                  </dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- SOP Generation -->
         <div class="bg-white overflow-hidden shadow rounded-lg">
           <div class="p-5">
             <div class="flex items-center">
               <div class="flex-shrink-0">
                 <div class="w-8 h-8 bg-purple-500 rounded-md flex items-center justify-center">
+                  <span class="text-white text-lg">📄</span>
+                </div>
+              </div>
+              <div class="ml-5 w-0 flex-1">
+                <dl>
+                  <dt class="text-sm font-medium text-gray-500 truncate">
+                    SOP Generation
+                  </dt>
+                  <dd class="text-3xl font-semibold text-gray-900">
+                    {analytics.sopGeneration.toLocaleString()}
+                  </dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Reviews -->
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+          <div class="p-5">
+            <div class="flex items-center">
+              <div class="flex-shrink-0">
+                <div class="w-8 h-8 bg-indigo-500 rounded-md flex items-center justify-center">
                   <span class="text-white text-lg">📊</span>
                 </div>
               </div>
@@ -528,6 +624,29 @@
                   </dt>
                   <dd class="text-3xl font-semibold text-gray-900">
                     {analytics.reviews.toLocaleString()}
+                  </dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Plagiarism Checks -->
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+          <div class="p-5">
+            <div class="flex items-center">
+              <div class="flex-shrink-0">
+                <div class="w-8 h-8 bg-red-500 rounded-md flex items-center justify-center">
+                  <span class="text-white text-lg">🔍</span>
+                </div>
+              </div>
+              <div class="ml-5 w-0 flex-1">
+                <dl>
+                  <dt class="text-sm font-medium text-gray-500 truncate">
+                    Plagiarism Checks
+                  </dt>
+                  <dd class="text-3xl font-semibold text-gray-900">
+                    {analytics.plagiarismChecks.toLocaleString()}
                   </dd>
                 </dl>
               </div>
@@ -563,7 +682,7 @@
           <div class="p-5">
             <div class="flex items-center">
               <div class="flex-shrink-0">
-                <div class="w-8 h-8 bg-indigo-500 rounded-md flex items-center justify-center">
+                <div class="w-8 h-8 bg-pink-500 rounded-md flex items-center justify-center">
                   <span class="text-white text-lg">🎭</span>
                 </div>
               </div>
@@ -581,12 +700,58 @@
           </div>
         </div>
         
+        <!-- Cold Email Generation -->
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+          <div class="p-5">
+            <div class="flex items-center">
+              <div class="flex-shrink-0">
+                <div class="w-8 h-8 bg-orange-500 rounded-md flex items-center justify-center">
+                  <span class="text-white text-lg">📧</span>
+                </div>
+              </div>
+              <div class="ml-5 w-0 flex-1">
+                <dl>
+                  <dt class="text-sm font-medium text-gray-500 truncate">
+                    Cold Email Gen
+                  </dt>
+                  <dd class="text-3xl font-semibold text-gray-900">
+                    {analytics.coldEmailGeneration.toLocaleString()}
+                  </dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Document Checklists -->
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+          <div class="p-5">
+            <div class="flex items-center">
+              <div class="flex-shrink-0">
+                <div class="w-8 h-8 bg-yellow-500 rounded-md flex items-center justify-center">
+                  <span class="text-white text-lg">📋</span>
+                </div>
+              </div>
+              <div class="ml-5 w-0 flex-1">
+                <dl>
+                  <dt class="text-sm font-medium text-gray-500 truncate">
+                    Document Checklists
+                  </dt>
+                  <dd class="text-3xl font-semibold text-gray-900">
+                    {analytics.documentChecklists.toLocaleString()}
+                  </dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+        </div>
+        
         <!-- Text Enhancements -->
         <div class="bg-white overflow-hidden shadow rounded-lg">
           <div class="p-5">
             <div class="flex items-center">
               <div class="flex-shrink-0">
-                <div class="w-8 h-8 bg-pink-500 rounded-md flex items-center justify-center">
+                <div class="w-8 h-8 bg-teal-500 rounded-md flex items-center justify-center">
                   <span class="text-white text-lg">✨</span>
                 </div>
               </div>
@@ -609,7 +774,7 @@
           <div class="p-5">
             <div class="flex items-center">
               <div class="flex-shrink-0">
-                <div class="w-8 h-8 bg-orange-500 rounded-md flex items-center justify-center">
+                <div class="w-8 h-8 bg-gray-500 rounded-md flex items-center justify-center">
                   <span class="text-white text-lg">📝</span>
                 </div>
               </div>
@@ -627,22 +792,91 @@
           </div>
         </div>
         
-        <!-- Plagiarism Checks -->
+        <!-- Cover Letter Generation -->
         <div class="bg-white overflow-hidden shadow rounded-lg">
           <div class="p-5">
             <div class="flex items-center">
               <div class="flex-shrink-0">
-                <div class="w-8 h-8 bg-red-500 rounded-md flex items-center justify-center">
-                  <span class="text-white text-lg">🔍</span>
+                <div class="w-8 h-8 bg-blue-600 rounded-md flex items-center justify-center">
+                  <span class="text-white text-lg">💼</span>
                 </div>
               </div>
               <div class="ml-5 w-0 flex-1">
                 <dl>
                   <dt class="text-sm font-medium text-gray-500 truncate">
-                    Plagiarism Checks
+                    Cover Letter Gen
                   </dt>
                   <dd class="text-3xl font-semibold text-gray-900">
-                    {analytics.plagiarismChecks.toLocaleString()}
+                    {analytics.coverLetterGeneration.toLocaleString()}
+                  </dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Academic CV Generation -->
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+          <div class="p-5">
+            <div class="flex items-center">
+              <div class="flex-shrink-0">
+                <div class="w-8 h-8 bg-purple-600 rounded-md flex items-center justify-center">
+                  <span class="text-white text-lg">📄</span>
+                </div>
+              </div>
+              <div class="ml-5 w-0 flex-1">
+                <dl>
+                  <dt class="text-sm font-medium text-gray-500 truncate">
+                    Academic CV Gen
+                  </dt>
+                  <dd class="text-3xl font-semibold text-gray-900">
+                    {analytics.academicCvGeneration.toLocaleString()}
+                  </dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Personal Statement Generation -->
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+          <div class="p-5">
+            <div class="flex items-center">
+              <div class="flex-shrink-0">
+                <div class="w-8 h-8 bg-green-600 rounded-md flex items-center justify-center">
+                  <span class="text-white text-lg">💭</span>
+                </div>
+              </div>
+              <div class="ml-5 w-0 flex-1">
+                <dl>
+                  <dt class="text-sm font-medium text-gray-500 truncate">
+                    Personal Statement Gen
+                  </dt>
+                  <dd class="text-3xl font-semibold text-gray-900">
+                    {analytics.personalStatementGeneration.toLocaleString()}
+                  </dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Inline Edits -->
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+          <div class="p-5">
+            <div class="flex items-center">
+              <div class="flex-shrink-0">
+                <div class="w-8 h-8 bg-red-600 rounded-md flex items-center justify-center">
+                  <span class="text-white text-lg">✏️</span>
+                </div>
+              </div>
+              <div class="ml-5 w-0 flex-1">
+                <dl>
+                  <dt class="text-sm font-medium text-gray-500 truncate">
+                    Inline Edits
+                  </dt>
+                  <dd class="text-3xl font-semibold text-gray-900">
+                    {analytics.inlineEdits.toLocaleString()}
                   </dd>
                 </dl>
               </div>

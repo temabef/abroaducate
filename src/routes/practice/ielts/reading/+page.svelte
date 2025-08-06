@@ -31,8 +31,9 @@
       debugInfo = `Fetching questions for set ID: ${setId}`;
       const { data: questionRows, error: questionError } = await supabase
         .from('practice_questions')
-        .select('id, question_text, explanation')
-        .eq('set_id', setId);
+        .select('id, question_text, explanation, question_type, sort_order')
+        .eq('set_id', setId)
+        .order('sort_order', { ascending: true });
         
       if (questionError) {
         console.error('Error fetching questions:', questionError);
@@ -53,7 +54,7 @@
       
       const { data: choiceRows, error: choiceError } = await supabase
         .from('practice_choices')
-        .select('id, choice_text, is_correct, question_id')
+        .select('id, choice_text, is_correct, question_id, sort_order')
         .in('question_id', questionIds);
         
       if (choiceError) {
@@ -73,7 +74,7 @@
       debugInfo = `Found ${choiceRows.length} choices, assembling questions...`;
       questions = questionRows.map(question => ({
         ...question,
-        choices: choiceRows.filter(c => c.question_id === question.id)
+        choices: choiceRows.filter(c => c.question_id === question.id).sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
       }));
       
       debugInfo = `Successfully loaded ${questions.length} questions with choices`;

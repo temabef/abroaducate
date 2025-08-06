@@ -9,7 +9,7 @@
   let loading = $state(true);
   let searchTerm = $state('');
   let currentPage = $state(1);
-  let itemsPerPage = $state(10);
+  let itemsPerPage = $state(50);
   let filteredUsers = $state<User[]>([]);
 
   // Analytics data
@@ -90,7 +90,7 @@
   // Get user initials
   function getUserInitials(user: User): string {
     if (user.full_name) {
-      return user.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+      return user.full_name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
     }
     return user.email.split('@')[0].slice(0, 2).toUpperCase();
   }
@@ -98,6 +98,47 @@
   // Get user display name
   function getUserDisplayName(user: User): string {
     return user.full_name || user.email.split('@')[0];
+  }
+
+  // Smart pagination - show limited page numbers
+  function getVisiblePages(): (number | string)[] {
+    const pages: (number | string)[] = [];
+    const maxVisiblePages = 7; // Show max 7 page buttons
+    
+    if (totalPages <= maxVisiblePages) {
+      // If total pages is small, show all pages
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // Always show first page
+      pages.push(1);
+      
+      if (currentPage <= 4) {
+        // Near the beginning
+        for (let i = 2; i <= 5; i++) {
+          pages.push(i);
+        }
+        pages.push('...');
+        pages.push(totalPages);
+      } else if (currentPage >= totalPages - 3) {
+        // Near the end
+        pages.push('...');
+        for (let i = totalPages - 4; i <= totalPages; i++) {
+          pages.push(i);
+        }
+      } else {
+        // In the middle
+        pages.push('...');
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+          pages.push(i);
+        }
+        pages.push('...');
+        pages.push(totalPages);
+      }
+    }
+    
+    return pages;
   }
 
   onMount(() => {
@@ -325,13 +366,19 @@
                   </svg>
                 </button>
                 
-                {#each Array.from({length: totalPages}, (_, i) => i + 1) as page}
-                  <button
-                    onclick={() => currentPage = page}
-                    class="relative inline-flex items-center px-4 py-2 border text-sm font-medium {page === currentPage ? 'z-10 bg-blue-50 border-blue-500 text-blue-600' : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'}"
-                  >
-                    {page}
-                  </button>
+                {#each getVisiblePages() as page}
+                  {#if page === '...'}
+                    <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                      ...
+                    </span>
+                  {:else}
+                    <button
+                      onclick={() => currentPage = typeof page === 'number' ? page : currentPage}
+                      class="relative inline-flex items-center px-4 py-2 border text-sm font-medium {page === currentPage ? 'z-10 bg-blue-50 border-blue-500 text-blue-600' : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'}"
+                    >
+                      {page}
+                    </button>
+                  {/if}
                 {/each}
                 
                 <button

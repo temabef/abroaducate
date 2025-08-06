@@ -5,6 +5,18 @@ export interface UniversityData {
     program: string;
 }
 
+// User interface for admin management
+export interface User {
+    id: string;
+    email: string;
+    full_name?: string;
+    created_at: string;
+    updated_at: string;
+    subscription_plan?: string;
+    is_admin?: boolean;
+    last_sign_in_at?: string;
+}
+
 // Academic Data
 export interface AcademicData {
     degreeType: string;

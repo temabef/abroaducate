@@ -362,10 +362,10 @@
     },
     {
       title: 'IELTS Listening Practice',
-      description: 'Academic lectures and everyday conversations',
+      description: 'BBC Learning English content with real conversations and discussions',
       sections: ['Listening'],
-      status: 'Coming Soon',
-      link: '#',
+      status: 'Available',
+      link: '/practice/ielts/listening',
       difficulty: 'Academic Level',
       timeRequired: '30 minutes'
     }
@@ -635,21 +635,15 @@
         <div class="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
           <button
             class="inline-block px-6 py-3 bg-white text-blue-700 font-semibold rounded-md hover:bg-gray-100 transition"
-            onclick={() => handleStartPractice('/practice/ielts/reading')}
+            onclick={() => handleStartPractice('/test-prep/practice')}
           >
-            Start Reading Practice
+            🚀 Start Practice Test
           </button>
           <button
             class="inline-block px-6 py-3 bg-white text-green-700 font-semibold rounded-md hover:bg-gray-100 transition"
-            onclick={() => handleStartPractice('/practice/ielts/writing')}
+            onclick={() => handleStartPractice('/test-prep/dashboard')}
           >
-            Practice Writing
-          </button>
-          <button
-            class="inline-block px-6 py-3 bg-white text-purple-700 font-semibold rounded-md hover:bg-gray-100 transition"
-            onclick={() => handleStartPractice('/practice/ielts/speaking')}
-          >
-            Practice Speaking
+            📊 View Progress
           </button>
         </div>
       </div>
@@ -662,7 +656,7 @@
          <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full">✅ Reading Practice (Available)</span>
          <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full">✅ Writing Practice (Available)</span>
          <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full">✅ Speaking Practice (Available)</span>
-         <span class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full">🎧 Listening Comprehension (Coming Soon)</span>
+         <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full">✅ Listening Comprehension (Available)</span>
          <span class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full">📊 TOEFL Practice</span>
          <span class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full">🎓 GRE Practice</span>
        </div>

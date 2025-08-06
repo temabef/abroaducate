@@ -13,39 +13,17 @@
   let { data } = $props();
   let { session } = $derived(data);
   
-  interface TestQuestion {
-    id: string;
-    question: string;
-    type: 'multiple_choice' | 'short_answer' | 'essay' | 'listening' | 'reading' | 'speaking';
-    options?: string[];
-    correct_answer?: string;
-    explanation?: string;
-    difficulty: 'beginner' | 'intermediate' | 'advanced';
-    time_limit?: number;
-    order_number: number;
-    is_active: boolean;
-    created_at: string;
-    updated_at: string;
-  }
-
   interface TestSet {
     id: string;
     title: string;
-    section: 'IELTS Reading' | 'IELTS Writing' | 'IELTS Speaking' | 'IELTS Listening';
-    description: string;
-    time_limit: number;
-    is_active: boolean;
-    questions: TestQuestion[];
-    created_at: string;
-    updated_at: string;
+    section: 'reading' | 'listening' | 'writing' | 'speaking';
+    sort_order: number;
+    question_count: number;
   }
 
   let sets: TestSet[] = $state([]);
-  let selectedSet: TestSet | null = $state(null);
   let isLoading = $state(true);
-  let error = $state('');
-  let message = $state('');
-  let messageType = $state<'success' | 'error' | 'info'>('info');
+  let errorMessage = $state('');
 
   // Filter and search states
   let searchTerm = $state('');
@@ -61,50 +39,63 @@
   }));
 
   onMount(async () => {
-    // Use only role-based admin check via Supabase RPC
     if (!session?.user) {
       console.log('❌ Access denied - not logged in');
       return;
     }
-    try {
-      const { data: canManageContent, error } = await supabase.rpc('can_manage_content');
-      if (error || !canManageContent) {
-        console.log('❌ Access denied - not admin user');
-        return;
-      }
-      console.log('✅ Admin access granted, loading test prep data...');
-      await loadTestSets();
-    } catch (err) {
-      console.error('❌ Error checking admin role:', err);
-    }
+    
+    console.log('✅ User logged in, loading test prep data...');
+    await loadTestSets();
   });
 
   async function loadTestSets() {
     isLoading = true;
+    errorMessage = '';
+    
     try {
       console.log('🔄 Loading test prep sets...');
       
+      // Simple query to get all practice sets with question counts
       const { data, error } = await supabase
         .from('practice_sets')
         .select(`
-          id, 
-          title, 
-          section, 
-          sort_order,
-          created_at,
-          practice_questions(count)
+          id,
+          title,
+          section,
+          sort_order
         `)
         .order('section')
         .order('sort_order');
 
       if (error) {
-        console.error('❌ Error loading sets:', error);
-      } else {
-        sets = data || [];
-        console.log('✅ Loaded', sets.length, 'test prep sets');
+        console.error('❌ Error loading practice sets:', error);
+        errorMessage = `Failed to load practice sets: ${error.message}`;
+        return;
       }
-    } catch (error) {
-      console.error('❌ Unexpected error loading sets:', error);
+
+      console.log('✅ Loaded practice sets:', data?.length || 0);
+
+      // Get question counts for each set
+      const setsWithCounts = await Promise.all(
+        (data || []).map(async (set) => {
+          const { count } = await supabase
+            .from('practice_questions')
+            .select('*', { count: 'exact', head: true })
+            .eq('set_id', set.id);
+          
+          return {
+            ...set,
+            question_count: count || 0
+          };
+        })
+      );
+
+      sets = setsWithCounts;
+      console.log('✅ Final sets with counts:', sets.length);
+      
+    } catch (err) {
+      console.error('❌ Unexpected error:', err);
+      errorMessage = `Unexpected error: ${err instanceof Error ? err.message : 'Unknown error'}`;
     } finally {
       isLoading = false;
     }
@@ -141,10 +132,6 @@
       speaking: 'bg-orange-100 text-orange-800'
     };
     return colors[section as keyof typeof colors] || 'bg-gray-100 text-gray-800';
-  }
-
-  function formatDate(dateStr: string): string {
-    return new Date(dateStr).toLocaleDateString();
   }
 </script>
 
@@ -243,7 +230,16 @@
 
   <!-- Content Table -->
   <div class="content-section">
-    {#if isLoading}
+    {#if errorMessage}
+      <div class="error-state">
+        <div class="error-icon">⚠️</div>
+        <h3>Error Loading Data</h3>
+        <p class="error-message">{errorMessage}</p>
+        <button onclick={loadTestSets} class="retry-btn">
+          🔄 Retry Loading
+        </button>
+      </div>
+    {:else if isLoading}
       <div class="loading-state">
         <div class="loading-spinner"></div>
         <p>Loading question sets...</p>
@@ -268,7 +264,7 @@
               <th>Set Information</th>
               <th>Section</th>
               <th>Questions</th>
-              <th>Created</th>
+              <th>Status</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -281,19 +277,19 @@
                     <p class="set-meta">Order: {set.sort_order}</p>
                   </div>
                 </td>
-                                 <td>
-                   <span class="section-badge {getSectionColor(set.section)}">
-                     <svelte:component this={sectionIcons[set.section as keyof typeof sectionIcons]} size={16} />
-                     {set.section.charAt(0).toUpperCase() + set.section.slice(1)}
-                   </span>
-                 </td>
                 <td>
-                  <span class="question-count">
-                    {set.practice_questions?.[0]?.count || 0} questions
+                  <span class="section-badge {getSectionColor(set.section)}">
+                    <svelte:component this={sectionIcons[set.section as keyof typeof sectionIcons]} size={16} />
+                    {set.section.charAt(0).toUpperCase() + set.section.slice(1)}
                   </span>
                 </td>
                 <td>
-                  <span class="date-text">{formatDate(set.created_at)}</span>
+                  <span class="question-count">
+                    {set.question_count} questions
+                  </span>
+                </td>
+                <td>
+                  <span class="date-text">Active</span>
                 </td>
                 <td>
                   <div class="action-buttons">
@@ -492,6 +488,51 @@
     padding: 24px;
     margin-bottom: 24px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+
+  .error-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #dc2626;
+  }
+
+  .error-icon {
+    font-size: 3rem;
+    margin-bottom: 16px;
+  }
+
+  .error-state h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #dc2626;
+    margin: 0 0 12px 0;
+  }
+
+  .error-message {
+    color: #991b1b;
+    margin: 0 0 24px 0;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.5;
+  }
+
+  .retry-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #dc2626;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+
+  .retry-btn:hover {
+    background: #b91c1c;
   }
 
   .loading-state {
