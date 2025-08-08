@@ -3,81 +3,60 @@
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
   import AuthenticationFlow from '$lib/components/AuthenticationFlow.svelte';
+  import { formatCurrencyAmount, formatScholarshipText } from '$lib/utils/htmlEntities';
   
   let { data } = $props();
-  let { session, scholarship, savedStatus, relatedScholarships, supabase } = $derived(data);
+  let { session, scholarship, supabase } = $derived(data);
+  // Compute saved status from SSR data when present
+  let isSaved = $state<boolean>(Boolean((data as any).savedStatus));
+  // Related scholarships provided by SSR when available
+  let relatedScholarships = $state<any[]>((data as any).relatedScholarships || []);
   
   let isLoading = $state(false); // Data is loaded on the server
   let error = $state('');
-  let isSaved = $state(savedStatus);
   let isApplied = $state(false);
   
   // Get the scholarship ID from the URL parameter
+  // Data is loaded on the server via +page.server.ts; avoid overriding it here to prevent double-fetch/mismatch
   onMount(() => {
-    const scholarshipId = $page.params.slug;
-    console.log("Loading scholarship with ID:", scholarshipId);
-    loadScholarship(scholarshipId);
+    // no-op; leave SSR-loaded scholarship intact
   });
   
   async function loadScholarship(id: string) {
+    // Keep for potential refresh actions; prefer decoded view when fetching directly
     try {
       isLoading = true;
       error = '';
-      
-      console.log("Loading scholarship data for ID:", id);
-      
-      // First, try to load the scholarship details
       const { data: scholarshipData, error: scholarshipError } = await supabase
-        .from('scholarships')
+        .from('public_scholarships_decoded')
         .select('*')
         .eq('id', id)
-        .single();
-      
-      // Handle database error
+        .maybeSingle();
       if (scholarshipError) {
-        console.error("Error loading scholarship:", scholarshipError);
-        error = `Failed to load scholarship details. Error code: ${scholarshipError.code}`;
+        error = 'Failed to load scholarship details.';
         isLoading = false;
         return;
       }
-      
-      // Handle no data found
       if (!scholarshipData) {
-        console.error("No scholarship found with ID:", id);
-        error = `Scholarship with ID ${id} was not found in the database.`;
+        error = `Scholarship with ID ${id} was not found.`;
         isLoading = false;
         return;
       }
-      
-      // Set the scholarship data and log it
-      scholarship = scholarshipData;
-      console.log("Scholarship loaded successfully:", scholarship);
-      
-      // Load related scholarships
+      scholarship = scholarshipData as any;
       if (scholarship.field && scholarship.level) {
         loadRelatedScholarships(scholarship.field, scholarship.level);
       }
-      
-      // Check if this scholarship is saved by the user
-      if (session?.user?.id) {
-        const { data: interactionData, error: interactionError } = await supabase
+      if (session && session.user && session.user.id) {
+        const { data: interactionData } = await supabase
           .from('user_scholarship_interactions')
           .select('is_saved')
           .eq('user_id', session.user.id)
           .eq('scholarship_id', id)
-          .maybeSingle(); // Use maybeSingle instead of single to prevent errors
-        
-        if (interactionError) {
-          console.error("Error checking saved status:", interactionError);
-        } else {
-          isSaved = interactionData?.is_saved || false;
-          console.log("Saved status:", isSaved);
-        }
+          .maybeSingle();
+        isSaved = interactionData?.is_saved || false;
       }
-      
       isLoading = false;
     } catch (err) {
-      console.error("Error in loadScholarship:", err);
       error = 'An unexpected error occurred while loading the scholarship.';
       isLoading = false;
     }
@@ -269,6 +248,9 @@
     // Save the scholarship for the now-logged-in user
     try {
       // Check if interaction exists
+      if (!session || !session.user || !session.user.id) {
+        throw new Error('Not authenticated');
+      }
       const { data: existing, error: fetchError } = await supabase
         .from('user_scholarship_interactions')
         .select('id')
@@ -375,7 +357,7 @@
           
           <div class="flex flex-wrap gap-2 mt-4">
             <span class="bg-yellow-700 bg-opacity-50 px-3 py-1 rounded-full text-sm">
-              Amount: {scholarship.amount}
+              Amount: {formatCurrencyAmount(scholarship.amount)}
             </span>
             
             {#if scholarship.deadline}
@@ -401,7 +383,7 @@
             <div>
               <section class="mb-6">
                 <h2 class="text-lg font-semibold text-gray-900 mb-3">About This Scholarship</h2>
-                <p class="text-gray-700 mb-4 whitespace-pre-line">{scholarship.description}</p>
+                <p class="text-gray-700 mb-4 whitespace-pre-line">{formatScholarshipText(scholarship.description)}</p>
                 
                 <div class="grid grid-cols-2 gap-4 text-sm mb-4">
                   <div>

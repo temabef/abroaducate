@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import AuthenticationFlow from '$lib/components/AuthenticationFlow.svelte';
+  import { formatCurrencyAmount, formatScholarshipText } from '$lib/utils/htmlEntities';
   import { analytics } from '$lib/utils/posthog';
   
   let { data } = $props();
@@ -736,7 +737,7 @@
 
                 <!-- Amount and Deadline -->
                 <div class="flex items-center justify-between mb-4">
-                  <div class="text-xl font-bold text-yellow-600">{scholarship.amount}</div>
+                  <div class="text-xl font-bold text-yellow-600">{formatCurrencyAmount(scholarship.amount)}</div>
                   {#each [getDeadlineStatus(scholarship.deadline)] as status}
                     <div>
                       <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {status.class}">
@@ -773,7 +774,7 @@
                 </div>
 
                 <!-- Description -->
-                <p class="text-gray-600 text-sm mb-4 line-clamp-2">{scholarship.description}</p>
+                <p class="text-gray-600 text-sm mb-4 line-clamp-2">{formatScholarshipText(scholarship.description)}</p>
 
                 <!-- Requirements -->
                 {#if scholarship.requirements && scholarship.requirements.length > 0}
@@ -898,7 +899,7 @@
     bind:show={showAuthModal}
     {supabase}
     mode={authMode}
-    returnUrl={globalThis.$page?.url?.pathname || '/scholarships'}
+    returnUrl={'/scholarships'}
     on:success={handleAuthSuccess}
   />
 </div> 

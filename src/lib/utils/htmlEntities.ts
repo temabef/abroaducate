@@ -3,7 +3,7 @@
  * Handles special characters like $, #, &, etc. for proper display
  */
 
-// HTML entity mapping for encoding
+// HTML entity mapping for encoding (basic HTML5-safe set + common currency/symbols)
 const htmlEntities: Record<string, string> = {
   '&': '&amp;',
   '<': '&lt;',
@@ -21,10 +21,6 @@ const htmlEntities: Record<string, string> = {
   '–': '&#8211;',
   '—': '&#8212;',
   '…': '&#8230;',
-  '"': '&#8220;',
-  '"': '&#8221;',
-  ''': '&#8216;',
-  ''': '&#8217;'
 };
 
 // Reverse mapping for decoding
@@ -34,38 +30,25 @@ const reverseHtmlEntities: Record<string, string> = Object.fromEntries(
 
 /**
  * Encode special characters to HTML entities
- * @param text - The text to encode
- * @returns Encoded text with HTML entities
  */
 export function encodeHtmlEntities(text: string | null | undefined): string {
-  if (!text) return '';
-  
-  return text.replace(/[&<>"'$#€£¥©®™–—…""'']/g, (match) => {
-    return htmlEntities[match] || match;
-  });
+  if (text == null) return '';
+  return text.replace(/[&<>"'\$#€£¥©®™–—…]/g, (match) => htmlEntities[match] || match);
 }
 
 /**
- * Decode HTML entities back to special characters
- * @param text - The text to decode
- * @returns Decoded text with special characters
+ * Decode a subset of numeric/named HTML entities back to characters
  */
 export function decodeHtmlEntities(text: string | null | undefined): string {
-  if (!text) return '';
-  
-  return text.replace(/&(?:amp|lt|gt|quot|#39|#36|#35|#128|#163|#165|#169|#174|#8482|#8211|#8212|#8230|#8220|#8221|#8216|#8217);/g, (match) => {
-    return reverseHtmlEntities[match] || match;
-  });
+  if (text == null) return '';
+  return text.replace(/&(amp|lt|gt|quot|#39|#36|#35|#128|#163|#165|#169|#174|#8482|#8211|#8212|#8230);/g, (match) => reverseHtmlEntities[match] || match);
 }
 
 /**
  * Safely encode text for display in HTML
- * @param text - The text to safely encode
- * @returns Safely encoded text
  */
 export function safeHtmlEncode(text: string | null | undefined): string {
-  if (!text) return '';
-  
+  if (text == null) return '';
   return text
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -76,16 +59,10 @@ export function safeHtmlEncode(text: string | null | undefined): string {
 
 /**
  * Format currency amounts for display
- * @param amount - The amount string (may contain encoded entities)
- * @returns Formatted amount for display
  */
 export function formatCurrencyAmount(amount: string | null | undefined): string {
-  if (!amount) return '';
-  
-  // First decode any HTML entities
+  if (amount == null) return '';
   const decoded = decodeHtmlEntities(amount);
-  
-  // Format common currency patterns
   return decoded
     .replace(/\$(\d+(?:,\d{3})*(?:\.\d{2})?)/g, '$$$1')
     .replace(/€(\d+(?:,\d{3})*(?:\.\d{2})?)/g, '€$1')
@@ -94,20 +71,12 @@ export function formatCurrencyAmount(amount: string | null | undefined): string 
 
 /**
  * Clean and format scholarship text for display
- * @param text - The text to clean and format
- * @returns Cleaned and formatted text
  */
 export function formatScholarshipText(text: string | null | undefined): string {
-  if (!text) return '';
-  
-  // Decode HTML entities
-  let cleaned = decodeHtmlEntities(text);
-  
-  // Clean up common formatting issues
-  cleaned = cleaned
-    .replace(/\s+/g, ' ') // Normalize whitespace
-    .replace(/\n\s*\n/g, '\n') // Remove extra line breaks
+  if (text == null) return '';
+  const decoded = decodeHtmlEntities(text);
+  return decoded
+    .replace(/\s+/g, ' ')
+    .replace(/\n\s*\n/g, '\n')
     .trim();
-  
-  return cleaned;
-} 
+}

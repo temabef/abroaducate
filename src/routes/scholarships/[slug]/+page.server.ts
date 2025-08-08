@@ -8,9 +8,9 @@ export const load: PageServerLoad = async ({ params, locals: { getSession, supab
   // Get the scholarship ID from the URL parameter
   const scholarshipId = params.slug;
   
-  // Fetch the scholarship data on the server
+  // Fetch the scholarship data using the decoded public view to ensure characters render correctly
   const { data: scholarship, error: scholarshipError } = await supabase
-    .from('scholarships')
+    .from('public_scholarships_decoded')
     .select('*')
     .eq('id', scholarshipId)
     .single();
@@ -38,13 +38,11 @@ export const load: PageServerLoad = async ({ params, locals: { getSession, supab
   let relatedScholarships = [];
   try {
     const { data: relatedData } = await supabase
-      .from('scholarships')
+      .from('public_scholarships_decoded')
       .select('*')
-      .eq('is_active', true)
       .or(`field.eq.${scholarship.field},field.eq.All Fields`)
       .eq('level', scholarship.level)
       .limit(3);
-      
     relatedScholarships = relatedData || [];
   } catch (err) {
     console.error("Error fetching related scholarships:", err);

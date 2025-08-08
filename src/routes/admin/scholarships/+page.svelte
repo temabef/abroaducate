@@ -398,7 +398,7 @@
     }
 
     console.log('🔄 Starting bulk import process...');
-    const lines = bulkCsvData.trim().split('\n');
+    const lines = bulkCsvData.trim().split(/\r?\n/);
     
     // Skip header line if it exists
     let startIndex = 0;
@@ -420,6 +420,33 @@
       try {
         // Parse CSV line (handling quoted fields)
         const fields = parseCSVLine(line);
+        // Normalize and clean fields
+        const normalizeDate = (value: string) => {
+          const v = (value || '').trim();
+          if (!v) return '';
+          // Accept formats like YYYY-MM-DD or M/D/YYYY or M/D/YY and convert to YYYY-MM-DD
+          // If already ISO-like, return as-is
+          if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return v;
+          const mdy = v.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{2,4})$/);
+          if (mdy) {
+            let m = parseInt(mdy[1], 10);
+            let d = parseInt(mdy[2], 10);
+            let y = parseInt(mdy[3], 10);
+            if (y < 100) y += 2000;
+            const mm = String(m).padStart(2, '0');
+            const dd = String(d).padStart(2, '0');
+            return `${y}-${mm}-${dd}`;
+          }
+          // Try Date parse as last resort
+          const dt = new Date(v);
+          if (!isNaN(dt.getTime())) {
+            const yyyy = dt.getFullYear();
+            const mm = String(dt.getMonth() + 1).padStart(2, '0');
+            const dd = String(dt.getDate()).padStart(2, '0');
+            return `${yyyy}-${mm}-${dd}`;
+          }
+          return v; // leave as-is; DB will validate
+        };
         
         let scholarship;
         
@@ -428,7 +455,8 @@
             title: fields[0] || '',
             provider: fields[1] || '',
             amount: fields[2] || '',
-            deadline: fields[3] || '',
+            // if empty/invalid, omit to avoid ""::date cast
+            deadline: (() => { const v = normalizeDate(fields[3] || ''); return v || undefined; })(),
             location: fields[4] || '',
             field: fields[5] || '',
             level: fields[6] || '',
@@ -461,7 +489,7 @@
             title: fields[0] || '',
             provider: fields[1] || '',
             amount: fields[2] || '',
-            deadline: fields[3] || '',
+            deadline: (() => { const v = normalizeDate(fields[3] || ''); return v || undefined; })(),
             location: fields[4] || '',
             field: fields[5] || '',
             level: fields[6] || '',
@@ -494,7 +522,7 @@
             title: fields[0] || '',
             provider: fields[1] || '',
             amount: fields[2] || '',
-            deadline: fields[3] || '',
+            deadline: (() => { const v = normalizeDate(fields[3] || ''); return v || undefined; })(),
             location: fields[4] || '',
             field: fields[5] || '',
             level: fields[6] || '',
@@ -565,38 +593,76 @@
   }
 
   function parseCSVLine(line: string): string[] {
-    const result: string[] = [];
+    // Robust CSV parsing for one line: supports quoted fields, commas inside quotes, and escaped quotes as ""
+    const fields: string[] = [];
     let current = '';
     let inQuotes = false;
-    
     for (let i = 0; i < line.length; i++) {
-      const char = line[i];
-      
-      if (char === '"') {
-        inQuotes = !inQuotes;
-      } else if (char === ',' && !inQuotes) {
-        result.push(current.trim());
-        current = '';
-      } else {
-        current += char;
+      const ch = line[i];
+      if (ch === '"') {
+        if (inQuotes && line[i + 1] === '"') {
+          current += '"';
+          i++;
+        } else {
+          inQuotes = !inQuotes;
+        }
+        continue;
       }
+      if (ch === ',' && !inQuotes) {
+        fields.push(current.trim());
+        current = '';
+        continue;
+      }
+      current += ch;
     }
-    
-    result.push(current.trim());
-    return result;
+    fields.push(current.trim());
+    // Strip surrounding quotes and unescape doubled quotes
+    return fields.map((f) => {
+      if (f.startsWith('"') && f.endsWith('"') && f.length >= 2) {
+        const inner = f.substring(1, f.length - 1);
+        return inner.replace(/""/g, '"');
+      }
+      return f;
+    });
   }
 
   function handleFileUpload(event: Event) {
     const target = event.target as HTMLInputElement;
     const file = target.files?.[0];
-    
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        bulkCsvData = e.target?.result as string;
-      };
-      reader.readAsText(file);
-    }
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const buffer = e.target?.result as ArrayBuffer | null;
+      if (!buffer) return;
+
+      const bytes = new Uint8Array(buffer.slice(0, 4));
+      let decoded = '';
+
+      if (bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf) {
+        decoded = new TextDecoder('utf-8').decode(buffer);
+      } else if (bytes[0] === 0xff && bytes[1] === 0xfe) {
+        decoded = new TextDecoder('utf-16le').decode(buffer);
+      } else if (bytes[0] === 0xfe && bytes[1] === 0xff) {
+        decoded = new TextDecoder('utf-16be').decode(buffer);
+      } else {
+        decoded = new TextDecoder('utf-8', { fatal: false }).decode(buffer);
+        const replacementCount = (decoded.match(/�/g) || []).length;
+        if (replacementCount > 0) {
+          try {
+            // @ts-ignore windows-1252 decoder may not be typed in some TS lib versions
+            const decoder = new TextDecoder('windows-1252');
+            // @ts-ignore
+            decoded = decoder.decode(buffer);
+          } catch {
+            // Keep UTF-8 fallback
+          }
+        }
+      }
+
+      bulkCsvData = decoded;
+    };
+    reader.readAsArrayBuffer(file);
   }
 
   function downloadCSVTemplate() {
