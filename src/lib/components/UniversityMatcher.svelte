@@ -1,7 +1,13 @@
 <script lang="ts">
-    import { createEventDispatcher } from 'svelte';
+    import { createEventDispatcher, onMount } from 'svelte';
+    import QuickProfileModal from '$lib/components/QuickProfileModal.svelte';
+    import AuthenticationFlow from '$lib/components/AuthenticationFlow.svelte';
+    import { gpaMidpoint, type QuickProfile } from '$lib/services/quickProfile';
+    import { handleUpgradeClick } from '$lib/services/upgradeService';
     
     export let userProfile: any = {};
+    export let session: any = null;
+    export let supabase: any = null;
     
     const dispatch = createEventDispatcher();
     
@@ -9,6 +15,60 @@
     let matchResults: any = null;
     let error = '';
     let showAdvancedForm = false;
+    let showQuickProfile = false;
+    let showAuthModal = false;
+    let authMode: 'login' | 'signup' = 'login';
+    let authReturnUrl: string = '/universities';
+
+    const FORM_CACHE_KEY = 'univ_match_pending_form_v1';
+    let resumePending = false;
+    let resumeTries = 0;
+    const MAX_RESUME_TRIES = 8; // ~2.4s total at 300ms steps
+
+    function getCachedForm(): any | null {
+        try { const raw = localStorage.getItem(FORM_CACHE_KEY); return raw ? JSON.parse(raw) : null; } catch { return null; }
+    }
+
+    async function tryResumeFromCache(): Promise<void> {
+        const cached = getCachedForm();
+        if (!cached) return;
+
+        // Restore fields
+        profileForm.gpa = String(cached.gpa || profileForm.gpa);
+        profileForm.field = cached.field || profileForm.field;
+        profileForm.degree_level = cached.degree_level || profileForm.degree_level;
+        profileForm.value_approach = cached.value_approach || profileForm.value_approach;
+        profileForm.scholarship_priority = cached.scholarship_priority || profileForm.scholarship_priority;
+        profileForm.qualities = Array.isArray(cached.qualities) ? cached.qualities : profileForm.qualities;
+        profileForm.preferred_countries = Array.isArray(cached.preferred_countries) ? cached.preferred_countries : profileForm.preferred_countries;
+
+        // Ensure session available; if not, retry a few times
+        let userId = session?.user?.id || null;
+        if (!userId && supabase?.auth) {
+            const { data } = await supabase.auth.getSession();
+            userId = data?.session?.user?.id || null;
+        }
+        if (!userId && resumeTries < MAX_RESUME_TRIES) {
+            resumeTries += 1;
+            setTimeout(() => { void tryResumeFromCache(); }, 300);
+            return;
+        }
+
+        // Run analysis and clear cache
+        matchResults = null;
+        localStorage.removeItem(FORM_CACHE_KEY);
+        await analyzeMatches(1);
+    }
+
+    onMount(() => {
+        try {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('resume') === '1') {
+                resumePending = true;
+                void tryResumeFromCache();
+            }
+        } catch {}
+    });
 
     // Add pagination state
     let currentPage = 1;
@@ -202,6 +262,7 @@
         
         error = '';
         
+        const t0 = performance.now?.() || Date.now();
         try {
             // Create a copy of the profile form to modify
             const formData = {
@@ -249,6 +310,28 @@
             
             console.log('Submitting university matching form with data:', formData);
             
+            // Resolve current user session from prop or Supabase directly
+            let resolvedUserId: string | null = session?.user?.id || null;
+            try {
+                if (!resolvedUserId && supabase?.auth) {
+                    const { data } = await supabase.auth.getSession();
+                    resolvedUserId = data?.session?.user?.id || null;
+                }
+            } catch {}
+
+            // Require login before performing matching to attribute usage and show plan gating
+            if (!resolvedUserId) {
+                // Cache current form so we can resume after auth
+                try { localStorage.setItem(FORM_CACHE_KEY, JSON.stringify(formData)); } catch {}
+                showAuthModal = true;
+                authMode = 'login';
+                authReturnUrl = '/universities?resume=1';
+                analyzing = false;
+                loadingFirstSearch = false;
+                loadingPage = false;
+                return;
+            }
+
             const response = await fetch('/api/university-matching', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -282,9 +365,19 @@
                 planLimit = matchResults.pagination.planLimit;
                 planType = matchResults.pagination.planType;
             }
+            try {
+                const t1 = performance.now?.() || Date.now();
+                window.posthog?.capture && window.posthog.capture('match_generated', {
+                    surface: 'universities',
+                    result_count: Array.isArray(matchResults.matches) ? matchResults.matches.length : 0,
+                    duration_ms: Math.round(t1 - t0),
+                    needs_profile: !!matchResults.needs_profile
+                });
+            } catch {}
             
         } catch (err) {
             console.error('University matching error:', err);
+            try { window.posthog?.capture && window.posthog.capture('match_failed', { surface: 'universities' }); } catch {}
             
             // Implement retry logic for network/server issues
             if (retryCount < maxRetries) {
@@ -486,10 +579,11 @@
     <div class="profile-form mb-6">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
+                <label for="gpaInput" class="block text-sm font-medium text-gray-700 mb-2">
                     GPA/CGPA <span class="text-red-500">*</span>
                 </label>
                 <input 
+                    id="gpaInput"
                     type="number" 
                     step="0.01" 
                     min="0" 
@@ -502,10 +596,11 @@
                 <p class="text-xs text-gray-500 mt-1">On a 4.0 scale</p>
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
+                <label for="fieldInput" class="block text-sm font-medium text-gray-700 mb-2">
                     Field of Study <span class="text-red-500">*</span>
                 </label>
                 <input 
+                    id="fieldInput"
                     type="text"
                     bind:value={profileForm.field}
                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -518,10 +613,11 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
+                <label for="degreeSelect" class="block text-sm font-medium text-gray-700 mb-2">
                     Degree Level
                 </label>
                 <select 
+                    id="degreeSelect"
                     bind:value={profileForm.degree_level}
                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
@@ -531,10 +627,11 @@
                 </select>
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
+                <label for="valueSelect" class="block text-sm font-medium text-gray-700 mb-2">
                     Value Approach
                 </label>
                 <select 
+                    id="valueSelect"
                     bind:value={profileForm.value_approach}
                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
@@ -548,10 +645,11 @@
         {#if showAdvancedForm}
             <div class="advanced-options space-y-4 p-4 bg-gray-50 rounded-lg border">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                    <label for="prioritySelect" class="block text-sm font-medium text-gray-700 mb-2">
                         Scholarship Priority
                     </label>
                     <select 
+                        id="prioritySelect"
                         bind:value={profileForm.scholarship_priority}
                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
@@ -563,9 +661,9 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                    <p class="block text-sm font-medium text-gray-700 mb-2">
                         What do you value in a university? (Select up to 5)
-                    </label>
+                    </p>
                     <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
                         {#each availableQualities as quality}
                             <label class="flex items-center space-x-2 text-sm cursor-pointer hover:bg-white rounded px-2 py-1">
@@ -584,9 +682,9 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                    <p class="block text-sm font-medium text-gray-700 mb-2">
                         Preferred Countries (Optional)
-                    </label>
+                    </p>
                     <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
                         {#each countries as country}
                             <label class="flex items-center space-x-2 text-sm cursor-pointer hover:bg-white rounded px-2 py-1">
@@ -606,10 +704,11 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                    <label for="researchTextarea" class="block text-sm font-medium text-gray-700 mb-2">
                         Research Interests (Optional)
                     </label>
                     <textarea 
+                        id="researchTextarea"
                         bind:value={profileForm.research_interest}
                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="Describe your research interests or career goals..."
@@ -643,7 +742,7 @@
     <!-- Enhanced Results -->
     {#if matchResults}
         <div class="results space-y-6">
-            <!-- Plan Information -->
+            <!-- Plan / Profile Information -->
             {#if matchResults.pagination}
                 <div class="plan-info bg-blue-50 p-4 rounded-lg mb-4 border border-blue-100">
                     <h5 class="text-sm font-medium text-blue-800 mb-2">University Access</h5>
@@ -667,6 +766,14 @@
                                     </a>
                                 {/if}
                             </p>
+                        </div>
+                    {/if}
+                    {#if matchResults.needs_profile}
+                        <div class="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs text-yellow-800">Complete a quick profile to unlock accurate match percentages.</span>
+                                <button class="text-xs px-3 py-1 rounded bg-yellow-600 text-white hover:bg-yellow-700" on:click={() => showQuickProfile = true}>Complete profile</button>
+                            </div>
                         </div>
                     {/if}
                 </div>
@@ -764,9 +871,19 @@
                                             {/if}
                                     </div>
                                     </div>
-                                    <div class={`match-score px-3 py-2 rounded-full text-sm font-medium border ${getMatchColor(match.match_score)}`}>
-                                        {match.match_score}% Match
-                                    </div>
+                                    {#if planType !== 'free' && match.match_score != null}
+                                        <div class={`match-score px-3 py-2 rounded-full text-sm font-medium border ${getMatchColor(match.match_score)}`}>
+                                            {match.match_score}% Match
+                                        </div>
+                                    {:else if match.match_score == null}
+                                        <button class="px-3 py-2 rounded-full text-sm font-medium border text-gray-600 bg-gray-50 hover:bg-gray-100" on:click={() => showQuickProfile = true}>
+                                            Complete profile to see match %
+                                        </button>
+                                    {:else}
+                                        <a href="/pricing" class="px-3 py-2 rounded-full text-sm font-medium border text-blue-700 bg-blue-50 hover:bg-blue-100 underline">
+                                            Upgrade to see match %
+                                        </a>
+                                    {/if}
                                 </div>
 
                                 <!-- Main Info -->
@@ -890,20 +1007,42 @@
                                         <ul class="text-xs text-blue-700 space-y-2">
                                             {#each match.relevant_scholarships as scholarship}
                                                 <li class="p-2 bg-white rounded border border-blue-100">
-                                                    <a href={scholarship.id ? `/scholarships/${scholarship.id}` : '#'} class="block hover:text-blue-600">
+                                                <a href={scholarship.id ? `/scholarships/${scholarship.id}` : '#'} class="block hover:text-blue-600">
                                                         <div class="font-medium">{scholarship.title}</div>
                                                     </a>
                                                     <div class="flex justify-between items-center mt-1">
-                                                        <span>Provider: {scholarship.provider}</span>
-                                                        <span class="font-medium">{scholarship.amount}</span>
+                                                        {#if planType === 'free'}
+                                                            <span class="text-gray-400 select-none">Provider: ••••••</span>
+                                                            <span class="font-medium text-gray-400 select-none">••••••</span>
+                                                        {:else}
+                                                            <span>Provider: {scholarship.provider || '—'}</span>
+                                                            <span class="font-medium">{scholarship.amount || '—'}</span>
+                                                        {/if}
                                             </div>
                                                     <div class="flex justify-between items-center mt-1 text-gray-600">
-                                                        <span>Deadline: {new Date(scholarship.deadline).toLocaleDateString()}</span>
-                                                        <span class="bg-blue-100 px-2 py-0.5 rounded text-blue-800">{scholarship.match_score}% Match</span>
+                                                        <span>
+                                                            {#if scholarship.deadline && !isNaN(new Date(scholarship.deadline).getTime())}
+                                                                Deadline: {new Date(scholarship.deadline).toLocaleDateString()}
+                                                            {:else}
+                                                                Deadline: Not specified
+                                                            {/if}
+                                                        </span>
+                                                        {#if planType !== 'free' && typeof scholarship.match_score === 'number'}
+                                                            <span class="bg-blue-100 px-2 py-0.5 rounded text-blue-800">{scholarship.match_score}% Match</span>
+                                                        {:else}
+                                                            <span class="text-xs text-gray-500">Match after profile</span>
+                                                        {/if}
                                         </div>
-                                                    <div class="mt-1 text-gray-700">
-                                                        <span class="italic">{scholarship.why_relevant}</span>
-                                            </div>
+                                                    {#if planType === 'free'}
+                                                        <div class="mt-2 flex items-center justify-between">
+                                                            <span class="text-xs text-gray-500">Details locked</span>
+                                                            <button class="text-xs px-2 py-1 rounded bg-blue-600 text-white hover:bg-blue-700" on:click={() => handleUpgradeClick('professional')}>Unlock Professional</button>
+                                                        </div>
+                                                    {:else}
+                                                        <div class="mt-1 text-gray-700">
+                                                            <span class="italic">{scholarship.why_relevant}</span>
+                                                        </div>
+                                                    {/if}
                                                 </li>
                                             {/each}
                                         </ul>
@@ -1066,3 +1205,71 @@
         }
     }
 </style> 
+
+<!-- Quick Profile Modal -->
+<QuickProfileModal
+    bind:isOpen={showQuickProfile}
+    {session}
+    supabase={null}
+    on:completed={(e: CustomEvent<{ profile: QuickProfile }>) => {
+        const qp = e.detail.profile;
+        profileForm.degree_level = qp.degree_level === 'graduate' ? 'masters' : qp.degree_level;
+        profileForm.field = qp.field_of_study;
+        profileForm.preferred_countries = qp.preferred_countries || [];
+        profileForm.gpa = String(gpaMidpoint(qp.gpa_range));
+        showQuickProfile = false;
+        matchResults = null;
+        analyzeMatches(1);
+    }}
+    on:cancel={() => { showQuickProfile = false; }}
+/>
+
+<!-- Auth Modal for anonymous users -->
+<AuthenticationFlow bind:show={showAuthModal} {supabase} mode={authMode} returnUrl={authReturnUrl} on:success={() => {
+    showAuthModal = false;
+    // After login, if we have cached form and resume flag, auto-run
+    try {
+        const cached = localStorage.getItem(FORM_CACHE_KEY);
+        if (cached) {
+            const parsed = JSON.parse(cached);
+            // Restore fields
+            profileForm.gpa = String(parsed.gpa || profileForm.gpa);
+            profileForm.field = parsed.field || profileForm.field;
+            profileForm.degree_level = parsed.degree_level || profileForm.degree_level;
+            profileForm.value_approach = parsed.value_approach || profileForm.value_approach;
+            profileForm.scholarship_priority = parsed.scholarship_priority || profileForm.scholarship_priority;
+            profileForm.qualities = Array.isArray(parsed.qualities) ? parsed.qualities : profileForm.qualities;
+            profileForm.preferred_countries = Array.isArray(parsed.preferred_countries) ? parsed.preferred_countries : profileForm.preferred_countries;
+            localStorage.removeItem(FORM_CACHE_KEY);
+            matchResults = null;
+            analyzeMatches(1);
+        }
+    } catch {}
+}}/>
+
+<!-- Auto-resume on load if returned from auth -->
+<svelte:window on:load={() => {
+    try {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('resume') === '1') {
+            resumePending = true;
+        }
+        if (params.get('resume') === '1' && (session?.user?.id || true)) {
+            const cached = localStorage.getItem(FORM_CACHE_KEY);
+            if (cached) {
+                const parsed = JSON.parse(cached);
+                profileForm.gpa = String(parsed.gpa || profileForm.gpa);
+                profileForm.field = parsed.field || profileForm.field;
+                profileForm.degree_level = parsed.degree_level || profileForm.degree_level;
+                profileForm.value_approach = parsed.value_approach || profileForm.value_approach;
+                profileForm.scholarship_priority = parsed.scholarship_priority || profileForm.scholarship_priority;
+                profileForm.qualities = Array.isArray(parsed.qualities) ? parsed.qualities : profileForm.qualities;
+                profileForm.preferred_countries = Array.isArray(parsed.preferred_countries) ? parsed.preferred_countries : profileForm.preferred_countries;
+                localStorage.removeItem(FORM_CACHE_KEY);
+                matchResults = null;
+                // Attempt to resolve session before running
+                setTimeout(() => { analyzeMatches(1); }, 300);
+            }
+        }
+    } catch {}
+}} />

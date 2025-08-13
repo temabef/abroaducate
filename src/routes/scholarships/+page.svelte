@@ -3,6 +3,8 @@
   import AuthenticationFlow from '$lib/components/AuthenticationFlow.svelte';
   import { formatCurrencyAmount, formatScholarshipText } from '$lib/utils/htmlEntities';
   import { analytics } from '$lib/utils/posthog';
+  import QuickProfileModal from '$lib/components/QuickProfileModal.svelte';
+  import { loadQuickProfile, type QuickProfile, gpaMidpoint } from '$lib/services/quickProfile';
   
   let { data } = $props();
   let { supabase, session } = $derived(data);
@@ -72,6 +74,8 @@
   // Pagination state
   let currentPage = $state(1);
   let itemsPerPage = $state(10);
+  let showQuickProfile = $state(false);
+  let authRequiredForProfile = $state(false);
 
   // Functions for pagination
   function updateScholarships() {
@@ -228,13 +232,39 @@
       }
 
       // Merge scholarship data with user interactions
+      // Try to get quick profile for client-side match scoring (anonymous allowed)
+      let quickProfile: QuickProfile | null = null;
+      try {
+        const res = await loadQuickProfile(supabase, session);
+        quickProfile = res.profile;
+      } catch {}
+
       allScholarships = (scholarshipData || []).map(scholarship => {
         const interaction = userInteractions.find(i => i.scholarship_id === scholarship.id);
+        // Simple, honest match if quick profile available
+        let computedMatch: number | null = null;
+        if (quickProfile) {
+          let score = 0;
+          // level
+          if (!scholarship.level || scholarship.level === quickProfile.degree_level || scholarship.level === 'Graduate') score += 25;
+          // field
+          if (!scholarship.field || scholarship.field === 'All Fields' || scholarship.field.toLowerCase().includes(quickProfile.field_of_study.toLowerCase())) score += 25;
+          // location
+          if (!scholarship.location || quickProfile.preferred_countries.some(c => scholarship.location.toLowerCase().includes(c.toLowerCase()))) score += 20;
+          // gpa
+          const userGpa = gpaMidpoint(quickProfile.gpa_range);
+          if (!scholarship.min_gpa || userGpa >= (scholarship.min_gpa || 0)) score += 15;
+          // deadline
+          const deadlineOk = scholarship.deadline && !isNaN(new Date(scholarship.deadline).getTime()) && (new Date(scholarship.deadline).getTime() - Date.now() > 30 * 24 * 60 * 60 * 1000);
+          if (deadlineOk) score += 15;
+          computedMatch = Math.min(100, Math.max(0, Math.round(score)));
+        }
+
         return {
           ...scholarship,
           applied: interaction?.is_applied || false,
           saved: interaction?.is_saved || false,
-          matchScore: interaction?.match_score || Math.floor(Math.random() * 40) + 60
+          matchScore: interaction?.match_score ?? computedMatch
         };
       });
       
@@ -246,6 +276,11 @@
       
       // Initial filtering after loading
       updateScholarships();
+      // Track list viewed after data is loaded
+      analytics.trackEvent('scholarships_list_viewed', {
+        total: allScholarships.length,
+        user_id: session?.user?.id
+      });
     } catch (err) {
       console.error('❌ Error:', err);
       error = 'Failed to load scholarships. Please try again.';
@@ -265,6 +300,8 @@
       view_mode: viewMode
     });
     
+    // Try to load quick profile (for gating UI copy only)
+    try { await loadQuickProfile(supabase, session); } catch {}
     await loadScholarships();
     // Initial filtering is already called in loadScholarships
     // Scroll to top after loading (especially helpful on mobile)
@@ -727,10 +764,22 @@
                     {/if}
                   </div>
                   <div class="flex flex-col items-end">
-                    {#if scholarship.matchScore}
+                    {#if session?.user?.id && typeof scholarship.matchScore === 'number'}
                       <span class="text-sm font-medium {getMatchScoreColor(scholarship.matchScore)}">
                         {scholarship.matchScore}% match
                       </span>
+                    {:else}
+                      <button class="text-xs text-gray-500 underline hover:text-gray-700" onclick={() => {
+                        analytics.trackEvent('quick_profile_prompt_clicked', { surface: 'scholarships', context: 'card', scholarship_id: scholarship.id, user_id: session?.user?.id });
+                        if (!session?.user?.id) {
+                          // Require login to store profile in DB
+                          authMode = 'login';
+                          showAuthModal = true;
+                          authRequiredForProfile = true;
+                        } else {
+                          showQuickProfile = true;
+                        }
+                      }}>Complete quick profile to see match</button>
                     {/if}
                   </div>
                 </div>
@@ -900,6 +949,14 @@
     {supabase}
     mode={authMode}
     returnUrl={'/scholarships'}
-    on:success={handleAuthSuccess}
+    on:success={() => {
+      if (authRequiredForProfile) {
+        authRequiredForProfile = false;
+        showQuickProfile = true;
+      } else {
+        handleAuthSuccess();
+      }
+    }}
   />
+  <QuickProfileModal bind:isOpen={showQuickProfile} {supabase} {session} on:completed={() => { showQuickProfile = false; }}/>
 </div> 

@@ -193,14 +193,14 @@ class PlagiarismDetector {
                 .from('user_subscriptions')
                 .select('plan_type')
                 .eq('user_id', userId)
-                .eq('status', 'active')
+                .in('status', ['active','trialing'])
                 .single();
             
             const planType = limits?.plan_type || 'free';
             const currentUsage = usage?.[0]?.plagiarism_checks || 0;
             
-            // Get plan limits
-            const planLimits = { free: 1, basic: 10, pro: null };
+            // Get plan limits (aligned with current plans)
+            const planLimits = { free: 1, professional: 10, elite: null } as const;
             const limit = planLimits[planType as keyof typeof planLimits];
             
             return limit === null || currentUsage < limit;

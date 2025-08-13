@@ -4,6 +4,15 @@
 
   let { data } = $props();
   let { session, supabase } = $derived(data);
+  let prefersReducedMotion = false;
+  let activityItems: Array<{ message: string; ts: string; type: string }> = $state([]);
+  let activityIdx = $state(0);
+  let activityTimer: any = null;
+  let activityLoading = $state(true);
+  let recentScholarships: Array<{ id: string; title: string; location?: string; deadline?: string; created_at?: string }> = $state([]);
+  let scholarshipIdx = $state(0);
+  let scholarshipTimer: any = null;
+  let scrollProgress = $state(0);
   
   let showAuthModal = $state(false);
   let openFAQ = $state<number | null>(1); // First FAQ open by default
@@ -38,22 +47,184 @@
       goto('/dashboard');
     }
   }
+
+  function animateCounters() {
+    try {
+      const elements = Array.from(document.querySelectorAll<HTMLElement>('[data-counter]'));
+      if (elements.length === 0) return;
+      const start = performance.now();
+      const duration = 1000;
+      const formatter = (num: number, el: HTMLElement) => {
+        const suffix = el.dataset.suffix || '';
+        const prefix = el.dataset.prefix || '';
+        const useComma = el.dataset.comma === '1';
+        const value = useComma ? Math.floor(num).toLocaleString() : Math.floor(num).toString();
+        el.textContent = `${prefix}${value}${suffix}`;
+      };
+      const targets = elements.map((el) => ({ el, target: Number(el.dataset.counter || '0') }));
+      targets.forEach(({ el }) => { el.textContent = '0'; });
+      const tick = (t: number) => {
+        const p = Math.min(1, (t - start) / duration);
+        const eased = 1 - Math.pow(1 - p, 3);
+        targets.forEach(({ el, target }) => { formatter(target * eased, el); });
+        if (p < 1) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    } catch {}
+  }
+
+  // Observer disabled for now to rule out any visibility race
+  function observeAndAnimate() { /* no-op */ }
+
+  function initialRevealAboveFold() {
+    try {
+      const vh = window.innerHeight || 800;
+      document.querySelectorAll<HTMLElement>('.reveal').forEach((el) => {
+        const rect = el.getBoundingClientRect();
+        if (rect.top < vh * 0.95) {
+          el.classList.add('revealed');
+        }
+      });
+    } catch {}
+  }
+
+  async function loadRecentActivity() {
+    try {
+      const res = await fetch('/api/recent-activity');
+      if (!res.ok) return;
+      const json = await res.json();
+      activityItems = json.items || [];
+      if (activityTimer) clearInterval(activityTimer);
+      if (activityItems.length > 0) {
+        activityIdx = 0;
+        activityTimer = setInterval(() => {
+          activityIdx = (activityIdx + 1) % activityItems.length;
+        }, 6000);
+      }
+    } catch {}
+    activityLoading = false;
+  }
+
+  async function loadRecentScholarships() {
+    try {
+      const { data, error } = await supabase
+        .from('public_scholarships_decoded')
+        .select('id, title, location, deadline, created_at, is_active')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false })
+        .limit(10);
+      if (!error && data) {
+        recentScholarships = data as any;
+        if (scholarshipTimer) clearInterval(scholarshipTimer);
+        // No rotation UI (compact pill), so no timer needed
+      }
+    } catch {}
+  }
+
+  function relTime(iso?: string): string {
+    if (!iso) return '';
+    const diff = Math.max(0, Date.now() - new Date(iso).getTime());
+    const s = Math.floor(diff / 1000);
+    if (s < 60) return `${s}s ago`;
+    const m = Math.floor(s / 60);
+    if (m < 60) return `${m}m ago`;
+    const h = Math.floor(m / 60);
+    if (h < 24) return `${h}h ago`;
+    const d = Math.floor(h / 24);
+    return `${d}d ago`;
+  }
+  function recentScholarshipsAdded(hours = 24): number {
+    const cutoff = Date.now() - hours * 60 * 60 * 1000;
+    return recentScholarships.filter(s => s.created_at && new Date(s.created_at).getTime() >= cutoff).length;
+  }
+
+  function startFadeOnView() {
+    try {
+      const observer = new IntersectionObserver((entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) {
+            (e.target as HTMLElement).classList.add('fade-up');
+            (e.target as HTMLElement).classList.add('drawn');
+            observer.unobserve(e.target);
+          }
+        }
+      }, { threshold: 0.08 });
+      document.querySelectorAll('[data-fade], [data-draw]').forEach((el) => observer.observe(el));
+    } catch {}
+  }
+
+  $effect(() => {
+    if (typeof window !== 'undefined') {
+      document.documentElement.classList.add('js');
+      prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      // Immediately reveal hero and anything above the fold
+      initialRevealAboveFold();
+      // Force hero visible regardless of observer timing
+      const hero = document.getElementById('hero');
+      if (hero) hero.classList.add('revealed');
+      // Observer disabled; rely on default visible content
+      loadRecentActivity();
+      loadRecentScholarships();
+      startFadeOnView();
+      if (!prefersReducedMotion) animateCounters();
+
+      const updateProgress = () => {
+        const h = document.documentElement;
+        const max = (h.scrollHeight - h.clientHeight) || 1;
+        scrollProgress = Math.max(0, Math.min(1, window.scrollY / max));
+      };
+      window.addEventListener('scroll', updateProgress, { passive: true });
+      updateProgress();
+    }
+  });
 </script>
 
+<style>
+  /* Default: visible for SSR/no-JS. When JS boots, we add .js to <html> and then animate */
+  .reveal { opacity: 1; transform: none; transition: opacity 300ms ease, transform 300ms ease; }
+  /* Disable hide-on-load to avoid any flicker; we only add subtle transition */
+  :global(html.js) .reveal { opacity: 1; transform: none; }
+  /* Revealed state (new class) */
+  :global(.revealed) { opacity: 1; transform: none; }
+  /* Ensure hero never hides due to reveal class */
+  #hero { opacity: 1 !important; transform: none !important; }
+  /* Non-blocking enhancements */
+  .fade-up { animation: fadeUp 420ms ease forwards; }
+  @keyframes fadeUp { from { transform: translateY(6px); opacity: 0.98; } to { transform: none; opacity: 1; } }
+  .grad-animate { background-size: 200% 200%; animation: gradShift 6s ease infinite; }
+  @keyframes gradShift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+  /* Journey line: base is always visible; animated overlay draws in */
+  .line-base, .line-anim { position: absolute; left: 0; right: 0; height: 6px; border-radius: 9999px; }
+  .line-base { background: linear-gradient(90deg, #93c5fd, #86efac, #c4b5fd); opacity: 0.7; }
+  .line-anim { background: linear-gradient(90deg, #93c5fd, #86efac, #c4b5fd); width: 0%; opacity: 1; transition: width 800ms ease; }
+  :global(.drawn) .line-anim { width: 100%; }
+  @media (prefers-reduced-motion: reduce) {
+    .reveal, :global(html.js) .reveal { opacity: 1; transform: none; transition: none; }
+    .fade-up, .grad-animate { animation: none; }
+  }
+  /* Scroll progress bar */
+  .progress-bar { position: fixed; top: 0; left: 0; height: 3px; background: linear-gradient(90deg,#3b82f6,#a855f7); z-index: 9999; transform-origin: 0 0; }
+  /* Button/Card hovers */
+  .hover-elevate { transition: transform 160ms ease, box-shadow 160ms ease; }
+  .hover-elevate:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(2, 6, 23, 0.12); }
+  /* .link-underline declared when needed */
+</style>
 <svelte:head>
   <title>Abroaducate - Your Complete Academic Application Platform</title>
   <meta name="description" content="Generate SOPs, cover letters, track applications, find scholarships, and optimize your academic journey with AI-powered tools." />
 </svelte:head>
 
 <div class="bg-white">
+  <!-- Scroll progress (purely visual) -->
+  <div class="progress-bar" style={`width:${scrollProgress*100}%;`}></div>
   <!-- Hero Section -->
-  <section class="pt-20 pb-16 bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900">
+  <section id="hero" class="pt-20 pb-16 bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="text-center">
+      <div class="text-center reveal">
         <!-- Journey-Focused Headline -->
         <h1 class="text-5xl md:text-6xl font-bold text-white mb-6 leading-tight">
           Your Complete<br/>
-          <span class="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+          <span class="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent grad-animate">
             Academic Journey
           </span><br/>
           Starts Here
@@ -73,13 +244,13 @@
         <!-- Journey-Oriented CTAs -->
         <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
           {#if session}
-            <a href="/dashboard" class="bg-white text-blue-900 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-blue-50 transition duration-300 shadow-lg">
+            <a href="/dashboard" data-sveltekit-prefetch class="bg-white text-blue-900 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-blue-50 transition duration-300 shadow-lg hover-elevate">
               Continue Your Journey
             </a>
           {:else}
             <button 
               onclick={showSignup}
-              class="bg-white text-blue-900 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-blue-50 transition duration-300 shadow-lg"
+              class="bg-white text-blue-900 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-blue-50 transition duration-300 shadow-lg hover-elevate"
             >
               Start Your Journey - Free
             </button>
@@ -87,29 +258,57 @@
           
           <button 
             onclick={() => scrollToSection('journey-map')}
-            class="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-white hover:text-blue-900 transition duration-300"
+            class="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-white hover:text-blue-900 transition duration-300 hover-elevate"
           >
             See How It Works
           </button>
         </div>
 
         <!-- Enhanced Stats with Value Emphasis -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-          <div>
-            <div class="text-3xl font-bold text-white">50+</div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center mt-6">
+          <div class="reveal fade-up">
+            <div class="text-3xl font-bold text-white" data-counter="50" data-suffix="+">50+</div>
             <div class="text-blue-200">Features Built & Ready</div>
           </div>
-          <div>
-            <div class="text-3xl font-bold text-white">7,000+</div>
+          <div class="reveal fade-up" style="animation-delay:80ms">
+            <div class="text-3xl font-bold text-white" data-counter="7000" data-suffix="+" data-comma="1">7,000+</div>
             <div class="text-blue-200">Universities Worldwide</div>
           </div>
-          <div>
-            <div class="text-3xl font-bold text-white">95%</div>
+          <div class="reveal fade-up" style="animation-delay:160ms">
+            <div class="text-3xl font-bold text-white" data-counter="95" data-suffix="%">95%</div>
             <div class="text-blue-200">Application Success Rate</div>
           </div>
-          <div>
+          <div class="reveal fade-up" style="animation-delay:240ms">
             <div class="text-3xl font-bold text-white">24hrs</div>
             <div class="text-blue-200">From Signup to First Document</div>
+          </div>
+        </div>
+
+        <!-- Real recent activity ticker (genuine) -->
+        <div class="mt-8 mx-auto max-w-2xl bg-white/10 rounded-lg px-4 py-3 text-blue-100 text-sm reveal" aria-live="polite">
+          <div class="flex items-center gap-3 flex-wrap" data-fade>
+            {#if activityLoading}
+              <div class="flex items-center gap-2 w-full">
+                <span class="inline-block w-5 h-5 rounded-full bg-white/20 animate-pulse"></span>
+                <span class="flex-1 h-3 bg-white/20 rounded animate-pulse"></span>
+              </div>
+            {:else if activityItems.length > 0}
+              <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-blue-400 text-white text-[10px]">•</span>
+                <span>{activityItems[activityIdx].message}</span>
+              </div>
+            {:else}
+              <div class="text-blue-200">Exploring universities, generating documents, and starting trials…</div>
+            {/if}
+            {#if recentScholarships.length > 0}
+              <span class="opacity-60">|</span>
+              <div class="flex items-center gap-2 text-[12px] text-blue-100/90">
+                <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-emerald-400 text-white text-[9px]">★</span>
+                <span class="font-medium">{recentScholarshipsAdded(24)}</span>
+                <span>scholarships added in the last 24h</span>
+                <a href="/scholarships" data-sveltekit-prefetch class="underline hover:no-underline text-blue-50">View</a>
+              </div>
+            {/if}
           </div>
         </div>
       </div>
@@ -117,9 +316,9 @@
   </section>
 
   <!-- Journey Map Section -->
-  <section id="journey-map" class="py-20 bg-gradient-to-b from-gray-50 to-white">
+  <section id="journey-map" class="py-20 bg-gradient-to-b from-gray-50 to-white" data-fade>
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="text-center mb-16">
+      <div class="text-center mb-16" data-fade>
         <h2 class="text-4xl font-bold text-gray-900 mb-4">
           Your Academic Journey, Simplified
         </h2>
@@ -129,14 +328,17 @@
       </div>
 
       <!-- Journey Timeline -->
-      <div class="relative">
-        <!-- Connection Line - positioned to connect the circles -->
-        <div class="hidden lg:block absolute h-1 bg-gradient-to-r from-blue-300 via-green-300 to-purple-300 z-0" style="top: 40px; left: 10%; right: 10%;"></div>
+      <div class="relative" data-fade>
+        <!-- Connection Line - static base + animated overlay (always visible, plus subtle draw) -->
+        <div class="hidden lg:block absolute z-0" style="top: 40px; left: 10%; right: 10%;" data-draw>
+          <div class="line-base"></div>
+          <div class="line-anim"></div>
+        </div>
         
         <!-- Journey Stages -->
         <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 relative z-10">
           <!-- Stage 1: Start Journey -->
-          <div class="text-center group">
+          <div class="text-center group" data-fade>
             <div class="mx-auto w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center mb-4 group-hover:bg-blue-700 transition duration-300 shadow-lg">
               <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 4m0 13V4m-6 3l6-3"></path>
@@ -152,7 +354,7 @@
           </div>
 
           <!-- Stage 2: Prepare Docs -->
-          <div class="text-center group">
+          <div class="text-center group" data-fade>
             <div class="mx-auto w-20 h-20 bg-green-600 rounded-full flex items-center justify-center mb-4 group-hover:bg-green-700 transition duration-300 shadow-lg">
               <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
@@ -168,7 +370,7 @@
           </div>
 
           <!-- Stage 3: Find Funding -->
-          <div class="text-center group">
+          <div class="text-center group" data-fade>
             <div class="mx-auto w-20 h-20 bg-yellow-600 rounded-full flex items-center justify-center mb-4 group-hover:bg-yellow-700 transition duration-300 shadow-lg">
               <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
@@ -184,7 +386,7 @@
         </div>
 
           <!-- Stage 4: Submit Apps -->
-          <div class="text-center group">
+          <div class="text-center group" data-fade>
             <div class="mx-auto w-20 h-20 bg-purple-600 rounded-full flex items-center justify-center mb-4 group-hover:bg-purple-700 transition duration-300 shadow-lg">
               <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
@@ -200,7 +402,7 @@
           </div>
 
           <!-- Stage 5: Next Steps -->
-          <div class="text-center group">
+          <div class="text-center group" data-fade>
             <div class="mx-auto w-20 h-20 bg-indigo-600 rounded-full flex items-center justify-center mb-4 group-hover:bg-indigo-700 transition duration-300 shadow-lg">
               <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
@@ -223,20 +425,20 @@
           </p>
           <div class="flex flex-col sm:flex-row gap-4 justify-center">
             {#if session}
-              <a href="/academic-analyzer" class="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition duration-300">
+          <a href="/academic-analyzer" data-sveltekit-prefetch class="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition duration-300 hover-elevate">
                 Start with Profile Analysis
               </a>
             {:else}
               <button 
                 onclick={showSignup}
-                class="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition duration-300"
+                class="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition duration-300 hover-elevate"
               >
                 Begin Your Journey Today
               </button>
             {/if}
             <button 
               onclick={() => scrollToSection('features')}
-              class="border-2 border-blue-600 text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-blue-600 hover:text-white transition duration-300"
+              class="border-2 border-blue-600 text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-blue-600 hover:text-white transition duration-300 hover-elevate"
             >
               Explore All Features
             </button>
@@ -249,7 +451,7 @@
   <!-- Journey-Based Features Section -->
   <section id="features" class="py-20 bg-white">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="text-center mb-16">
+      <div class="text-center mb-16" data-fade>
         <h2 class="text-4xl font-bold text-gray-900 mb-4">
           Complete Tools for Every Journey Stage
         </h2>
@@ -259,9 +461,9 @@
       </div>
 
       <!-- Journey Stage Features -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
         <!-- Stage 1: Start Journey -->
-        <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-8 shadow-lg hover:shadow-xl transition duration-300 border border-blue-200">
+        <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-8 shadow-lg hover:shadow-xl transition duration-300 border border-blue-200" data-fade>
           <div class="flex items-center mb-6">
             <div class="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mr-4">
               <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -300,7 +502,7 @@
         </div>
 
         <!-- Stage 2: Prepare Documents -->
-        <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-8 shadow-lg hover:shadow-xl transition duration-300 border border-green-200">
+        <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-8 shadow-lg hover:shadow-xl transition duration-300 border border-green-200" data-fade>
           <div class="flex items-center mb-6">
             <div class="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center mr-4">
               <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -333,13 +535,13 @@
               <p class="text-sm text-gray-600">Grammar, style, plagiarism & optimization</p>
             </div>
           </div>
-          <a href="/sop" class="bg-green-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-green-700 transition duration-300 inline-block">
+          <a href="/sop" data-sveltekit-prefetch class="bg-green-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-green-700 transition duration-300 inline-block hover-elevate">
             Start Creating →
           </a>
         </div>
 
         <!-- Stage 3: Find Funding -->
-        <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-2xl p-8 shadow-lg hover:shadow-xl transition duration-300 border border-yellow-200">
+        <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-2xl p-8 shadow-lg hover:shadow-xl transition duration-300 border border-yellow-200" data-fade>
           <div class="flex items-center mb-6">
             <div class="w-16 h-16 bg-yellow-600 rounded-full flex items-center justify-center mr-4">
               <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -372,13 +574,13 @@
               <p class="text-sm text-gray-600">Cost analysis & funding strategy</p>
             </div>
           </div>
-          <a href="/scholarships" class="bg-yellow-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-yellow-700 transition duration-300 inline-block">
+          <a href="/scholarships" data-sveltekit-prefetch class="bg-yellow-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-yellow-700 transition duration-300 inline-block hover-elevate">
             Find Scholarships →
           </a>
         </div>
 
         <!-- Stage 4: Submit Applications -->
-        <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl p-8 shadow-lg hover:shadow-xl transition duration-300 border border-purple-200">
+        <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl p-8 shadow-lg hover:shadow-xl transition duration-300 border border-purple-200" data-fade>
           <div class="flex items-center mb-6">
             <div class="w-16 h-16 bg-purple-600 rounded-full flex items-center justify-center mr-4">
               <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -408,7 +610,7 @@
             </div>
           </div>
           <button
-            class="bg-purple-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-purple-700 transition duration-300 inline-block"
+            class="bg-purple-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-purple-700 transition duration-300 inline-block hover-elevate"
             onclick={handleManageApplications}
           >
             Manage Applications →
@@ -416,7 +618,7 @@
         </div>
 
         <!-- Stage 5: Next Steps -->
-        <div class="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-2xl p-8 shadow-lg hover:shadow-xl transition duration-300 border border-indigo-200 lg:col-span-2">
+        <div class="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-2xl p-8 shadow-lg hover:shadow-xl transition duration-300 border border-indigo-200 lg:col-span-2" data-fade>
           <div class="flex items-center mb-6">
             <div class="w-16 h-16 bg-indigo-600 rounded-full flex items-center justify-center mr-4">
               <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -449,7 +651,7 @@
               <p class="text-sm text-gray-600">Pre-departure & next steps guidance</p>
             </div>
           </div>
-          <a href="/visa-interview-practice" class="bg-indigo-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-indigo-700 transition duration-300 inline-block">
+          <a href="/visa-interview-practice" data-sveltekit-prefetch class="bg-indigo-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-indigo-700 transition duration-300 inline-block hover-elevate">
             Prepare for Success →
           </a>
         </div>
@@ -457,53 +659,25 @@
     </div>
   </section>
 
-  <!-- Value Proposition & Benefits -->
+  <!-- Combined Why + Built For Students -->
   <section class="py-20 bg-gray-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="text-center mb-16">
-        <h2 class="text-4xl font-bold text-gray-900 mb-4">
-          Why Choose Abroaducate?
-        </h2>
-        <p class="text-xl text-gray-600 max-w-3xl mx-auto">
-          Professional-grade platform offering comprehensive support at a fraction of traditional consultant costs
-        </p>
+      <div class="text-center mb-12" data-fade>
+        <h2 class="text-4xl font-bold text-gray-900 mb-4">Why Abroaducate</h2>
+        <p class="text-lg text-gray-600 max-w-3xl mx-auto">All-in-one platform for your applications: plan smarter, write better, and stay on track—without paying agency prices.</p>
       </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div class="text-center bg-white p-8 rounded-xl shadow-sm border border-gray-100">
-          <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
-            </svg>
-          </div>
-          <h3 class="text-xl font-semibold text-gray-900 mb-4">AI-Powered Intelligence</h3>
-          <p class="text-gray-600">
-            Advanced AI tools for document generation, review, and optimization - all powered by the latest GPT models
-          </p>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100" data-fade>
+          <h3 class="text-lg font-semibold text-gray-900 mb-2">Comprehensive tools</h3>
+          <p class="text-gray-600 text-sm">University match, GPA conversion, SOP/CV/letters, scholarship search, deadline tracking, visa practice, built to work together.</p>
         </div>
-
-        <div class="text-center bg-white p-8 rounded-xl shadow-sm border border-gray-100">
-          <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
-            </svg>
-          </div>
-          <h3 class="text-xl font-semibold text-gray-900 mb-4">Incredible Value</h3>
-          <p class="text-gray-600">
-            Get comprehensive application support starting at $12/month - save thousands compared to traditional consultants
-          </p>
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100" data-fade>
+          <h3 class="text-lg font-semibold text-gray-900 mb-2">Fair, student‑friendly pricing</h3>
+          <p class="text-gray-600 text-sm">Start free. Professional trial available. Upgrade only when you’re getting value, no lock‑in, cancel anytime.</p>
         </div>
-
-        <div class="text-center bg-white p-8 rounded-xl shadow-sm border border-gray-100">
-          <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-            </svg>
-          </div>
-          <h3 class="text-xl font-semibold text-gray-900 mb-4">Comprehensive & Fast</h3>
-          <p class="text-gray-600">
-            Complete platform covering every application aspect - from university matching to visa prep, all in one place
-          </p>
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100" data-fade>
+          <h3 class="text-lg font-semibold text-gray-900 mb-2">Built for students</h3>
+          <p class="text-gray-600 text-sm">Designed with accessibility and speed in mind. Private by default. Your work stays yours.</p>
         </div>
       </div>
     </div>
@@ -736,7 +910,7 @@
   </section>
 
   <!-- CTA Section -->
-  <section class="py-20 bg-gradient-to-r from-blue-600 to-indigo-700">
+  <section class="py-20 bg-gradient-to-r from-blue-600 to-indigo-700" data-fade>
     <div class="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
       <h2 class="text-4xl font-bold text-white mb-6">
         Ready to Start Your Academic Journey?
@@ -758,7 +932,7 @@
             Create Account - Free
           </button>
           
-          <a href="/pricing" class="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-white hover:text-blue-600 transition duration-300">
+          <a href="/pricing" data-sveltekit-prefetch class="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-white hover:text-blue-600 transition duration-300">
             View Pricing
           </a>
         {/if}

@@ -40,7 +40,7 @@
     }
   };
 
-  async function handleUpgrade(plan: string) {
+  async function handleUpgrade(plan: string, opts?: { trial?: boolean }) {
     // Track pricing page interaction
     analytics.trackEvent('pricing_plan_selected', {
       plan: plan,
@@ -79,6 +79,7 @@
         body: JSON.stringify({
           planType: plan,
           billingCycle: billingCycle,
+          trial: opts?.trial === true,
           metadata: {
             source: 'pricing_page',
             cycle: billingCycle
@@ -467,13 +468,23 @@
           </li>
         </ul>
 
+        <div class="grid grid-cols-1 gap-3">
+        <button 
+          onclick={() => handleUpgrade('professional', { trial: true })}
+          disabled={loading}
+          class="w-full py-3 px-4 bg-green-600 text-white font-medium rounded-md hover:bg-green-700 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {loading ? 'Creating checkout...' : 'Start 3‑day free trial'}
+        </button>
         <button 
           onclick={() => handleUpgrade('professional')}
           disabled={loading}
           class="w-full py-3 px-4 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {loading ? 'Creating checkout...' : 'Upgrade to Professional'}
+          {loading ? 'Creating checkout...' : 'Buy Professional'}
         </button>
+        <p class="text-xs text-gray-500 text-center">No charge today. Cancel anytime before trial ends.</p>
+        </div>
       </div>
 
       <!-- Elite Tier -->

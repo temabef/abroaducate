@@ -4,6 +4,7 @@
     import { page } from '$app/stores';
     import { SUBSCRIPTION_PLANS } from '$lib/stripe';
     import type { PageData } from './$types';
+    import { analytics } from '$lib/utils/posthog';
     
     export let data: PageData;
     let { supabase, session } = data;
@@ -63,6 +64,9 @@
         setTimeout(async () => {
             await fetchSubscription();
             loading = false;
+            try { analytics.trackEvent('checkout_success_confirmed', { plan: subscription?.plan_type || planFromUrl, billing_cycle: billingCycle, session_id: sessionId }); } catch {}
+            // Attempt resume to previous feature or page
+            tryResumePreviousAction();
         }, 3000);
     });
     
@@ -87,7 +91,7 @@
                 .from('user_subscriptions')
                 .select('*')
                 .eq('user_id', session.user.id)
-                .eq('status', 'active')
+                .in('status', ['active','trialing'])
                 .single();
                 
             if (subError) {
@@ -112,6 +116,26 @@
             console.error('Error:', err);
 
         }
+    }
+
+    function tryResumePreviousAction() {
+        try {
+            const raw = localStorage.getItem('abroaducate_pending_resume');
+            if (!raw) return;
+            const payload = JSON.parse(raw);
+            // Basic sanity check: only resume if created within last 7 days
+            if (!payload?.createdAt || Date.now() - payload.createdAt > 7 * 24 * 60 * 60 * 1000) {
+                localStorage.removeItem('abroaducate_pending_resume');
+                return;
+            }
+            // Navigate back to originating surface
+            if (payload.returnTo && typeof payload.returnTo === 'string') {
+                try { analytics.trackEvent('resume_triggered', { feature: payload.featureType, limitType: payload.limitType }); } catch {}
+                window.location.href = payload.returnTo + (payload.returnTo.includes('?') ? '&' : '?') + 'resume=1';
+            }
+            // Clear to avoid loops
+            localStorage.removeItem('abroaducate_pending_resume');
+        } catch {}
     }
     
     function goToCreateSOP() {

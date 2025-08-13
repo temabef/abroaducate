@@ -12,7 +12,7 @@
     // Navigation items with plan restrictions
     const navItems = [
         { label: 'Dashboard', href: '/dashboard', requiresAuth: true, icon: '📊' },
-        { label: 'Analytics', href: '/analytics', requiresAuth: true, minimumPlan: 'basic', icon: '📈', badge: 'Basic+' }
+        { label: 'Analytics', href: '/analytics', requiresAuth: true, minimumPlan: 'professional', icon: '📈', badge: 'Pro+' }
     ];
     
     // Account menu items
@@ -35,7 +35,7 @@
                 .from('user_subscriptions')
                 .select('plan_type')
                 .eq('user_id', userId)
-                .eq('status', 'active')
+                .in('status', ['active','trialing'])
                 .single();
             
             return data?.plan_type || 'free';
@@ -48,8 +48,21 @@
     function hasAccess(item: any): boolean {
         if (!item.minimumPlan) return true;
         
-        const planHierarchy = { 'free': 0, 'basic': 1, 'pro': 2 };
-        return planHierarchy[userPlan] >= planHierarchy[item.minimumPlan];
+        const planHierarchy: Record<'free' | 'professional' | 'elite', number> = {
+            free: 0,
+            professional: 1,
+            elite: 2
+        };
+
+        const validPlans = ['free', 'professional', 'elite'] as const;
+        const currentPlan = (validPlans as readonly string[]).includes(userPlan)
+            ? (userPlan as 'free' | 'professional' | 'elite')
+            : 'free';
+        const requiredPlan = (validPlans as readonly string[]).includes(item.minimumPlan)
+            ? (item.minimumPlan as 'free' | 'professional' | 'elite')
+            : 'free';
+
+        return planHierarchy[currentPlan] >= planHierarchy[requiredPlan];
     }
     
     async function handleLogout() {
@@ -64,7 +77,9 @@
     
     // Close account menu when clicking outside
     function handleClickOutside(event: Event) {
-        if (!event.target?.closest?.('.account-menu-container')) {
+        const target = event.target as HTMLElement | null;
+        if (!target) return;
+        if (!target.closest('.account-menu-container')) {
             showAccountMenu = false;
         }
     }
@@ -118,7 +133,7 @@
             {#if session?.user}
                 <div class="account-menu-container">
                     <!-- Plan Badge -->
-                    <div class="plan-badge" class:free={userPlan === 'free'} class:basic={userPlan === 'basic'} class:pro={userPlan === 'pro'}>
+                    <div class="plan-badge" class:free={userPlan === 'free'} class:professional={userPlan === 'professional'} class:elite={userPlan === 'elite'}>
                         {userPlan.toUpperCase()}
                     </div>
                     
@@ -293,12 +308,12 @@
         color: white;
     }
     
-    .plan-badge.basic {
+    .plan-badge.professional {
         background: rgba(16, 185, 129, 0.8);
         color: white;
     }
     
-    .plan-badge.pro {
+    .plan-badge.elite {
         background: rgba(147, 51, 234, 0.8);
         color: white;
     }

@@ -18,7 +18,7 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
         }
         console.log('✅ Stripe secret key is configured');
 
-        const { planType, billingCycle = 'monthly', quantity, customerId, metadata } = await request.json();
+        const { planType, billingCycle = 'monthly', quantity, customerId, metadata, trial = false } = await request.json();
         console.log('📝 Request data:', { planType, billingCycle });
         
         const session = await getSession();
@@ -57,7 +57,7 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
             .from('user_subscriptions')
             .select('plan_type, status, stripe_subscription_id, admin_override')
             .eq('user_id', session.user.id)
-            .eq('status', 'active')
+            .in('status', ['active','trialing'])
             .maybeSingle();
 
         console.log('📊 Subscription check result:', { existingSubscription, subscriptionError });
@@ -109,6 +109,22 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
             cancelUrl: `${origin}/subscription/cancel`
         });
 
+        // Determine eligibility for trial (one per user; only for Professional)
+        let trialDays: number | undefined = undefined;
+        if (trial && planType === 'professional') {
+            // Has the user ever had a non-free subscription? If yes, disable trial
+            const { data: anySub } = await supabase
+                .from('user_subscriptions')
+                .select('plan_type')
+                .eq('user_id', session.user.id)
+                .neq('plan_type', 'free')
+                .limit(1)
+                .maybeSingle();
+            if (!anySub) {
+                trialDays = 3; // enable 3-day trial
+            }
+        }
+
         const checkoutSession = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
             line_items: [
@@ -125,13 +141,16 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
                 user_id: session.user.id,
                 plan_type: planType,
                 billing_cycle: billingCycle,
+                trial: trialDays ? '1' : '0',
                 ...metadata
             },
             subscription_data: {
+                trial_period_days: trialDays,
                 metadata: {
                     user_id: session.user.id,
                     plan_type: planType,
-                    billing_cycle: billingCycle
+                    billing_cycle: billingCycle,
+                    trial: trialDays ? '1' : '0'
                 }
             },
             // Add billing address collection for tax compliance
@@ -144,6 +163,15 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
             sessionId: checkoutSession.id,
             url: checkoutSession.url
         });
+        try {
+            // Lightweight server-side analytics hook (console for now; can POST to analytics endpoint)
+            console.log('ANALYTICS: checkout_session_created', {
+                user_id: session.user.id,
+                plan: planType,
+                billing_cycle: billingCycle,
+                source: metadata?.source || 'unknown'
+            });
+        } catch {}
 
         return json({
             checkoutUrl: checkoutSession.url,

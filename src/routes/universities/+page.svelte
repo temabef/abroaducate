@@ -3,6 +3,7 @@
   import { page } from '$app/stores';
   import { onMount } from 'svelte';
   let { data } = $props();
+  let { supabase, session } = $derived(data);
   
   // Check if we're coming from a UK university redirect
   const isUkUniversityView = $derived($page.url.searchParams.get('source') === 'uk');
@@ -151,7 +152,7 @@
     {/if}
 
     <!-- Enhanced University Matcher with Global Coverage -->
-    <UniversityMatcher />
+    <UniversityMatcher {supabase} {session} />
 
     <!-- Additional Features Section -->
     <div class="mt-16 max-w-6xl mx-auto">

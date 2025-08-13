@@ -14,7 +14,7 @@ export const GET: RequestHandler = async ({ locals: { supabase, getSession } }) 
             .from('user_subscriptions')
             .select('plan_type, status, created_at, updated_at')
             .eq('user_id', session.user.id)
-            .eq('status', 'active')
+            .in('status', ['active','trialing'])
             .single();
 
         if (subError && subError.code !== 'PGRST116') { // PGRST116 is "no rows returned"

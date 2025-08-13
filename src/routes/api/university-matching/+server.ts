@@ -799,29 +799,41 @@ async function getHybridUniversities(userProfile: UserProfile): Promise<any[]> {
 // New function to enrich university match results based on user's plan
 function enrichMatchResultsBasedOnPlan(match: any, planType: string): any {
     // Base match information available to all users
-    const baseMatch = {
+    const baseMatch: any = {
         university: match.university,
         match_score: match.match_score,
         admission_probability: match.admission_probability,
-        estimated_cost_fit: match.estimated_cost_fit,
-        // Include scholarship information for all users
-        relevant_scholarships: match.relevant_scholarships,
-        funding_analysis: match.funding_analysis,
-        cost_after_aid: match.cost_after_aid
+        estimated_cost_fit: match.estimated_cost_fit
     };
-    
+
+    // Scholarship data gating (soft wall)
+    if (planType === 'free') {
+        // Show scholarship titles only; hide amounts/deadlines/details
+        baseMatch.relevant_scholarships = (match.relevant_scholarships || []).slice(0, 3).map((s: any) => ({
+            title: s.title
+        }));
+        // Hide funding analysis and cost-after-aid on free
+        baseMatch.funding_analysis = null;
+        baseMatch.cost_after_aid = null;
+    } else {
+        // Paid tiers see full scholarship data
+        baseMatch.relevant_scholarships = match.relevant_scholarships;
+        baseMatch.funding_analysis = match.funding_analysis;
+        baseMatch.cost_after_aid = match.cost_after_aid;
+    }
+
     // Professional users get additional match information
     if (planType === 'professional' || planType === 'elite') {
         baseMatch.match_breakdown = match.match_breakdown;
         baseMatch.strengths = match.strengths;
         baseMatch.concerns = match.concerns;
     }
-    
+
     // Elite users get the full analysis
     if (planType === 'elite') {
         baseMatch.improvement_suggestions = match.improvement_suggestions;
     }
-    
+
     return baseMatch;
 }
 
@@ -848,11 +860,16 @@ export const POST: RequestHandler = async ({ request, locals }) => {
         // Get the user's session
         const session = await getSession();
         const userId = session?.user?.id;
-        
-        // Default to free tier if not authenticated
-        let userPlanLimit = 25; // Reduced from 50
+
+        // Block unauthenticated users: require login to attribute usage and apply plan gating
+        if (!userId) {
+            return json({ error: 'Login required' }, { status: 401 });
+        }
+
+        // Defaults (will be adjusted based on plan)
+        let userPlanLimit = 25; // Free base limit
         let userPlanType = 'free';
-        
+
         // Check user's subscription tier if logged in
         if (userId) {
             const usageCheck = await checkComprehensiveUsageLimit(userId, 'university_matching');
@@ -927,6 +944,33 @@ export const POST: RequestHandler = async ({ request, locals }) => {
         console.log(`🔍 DEBUG: Universities for current page: ${universitiesForCurrentPage.length}`);
         console.log(`🔍 DEBUG: First university on page: ${universitiesForCurrentPage.length > 0 ? universitiesForCurrentPage[0].name : 'None'}`);
         
+        // If minimal profile missing, return matches with match_score null and flag needs_profile
+        const minimalProfileMissing = !userProfile.gpa || !userProfile.field || !userProfile.degree_level;
+        if (minimalProfileMissing) {
+            const minimalMatches = (allUniversities.slice(0, Math.min(10, effectiveTotalMatches)) || []).map((university: any) => ({
+                university,
+                match_score: null,
+                admission_probability: 'Moderate',
+                estimated_cost_fit: 'Fair',
+                relevant_scholarships: [],
+                funding_analysis: null,
+                cost_after_aid: null
+            }));
+            return json({
+                matches: minimalMatches,
+                needs_profile: true,
+                pagination: {
+                    currentPage: 1,
+                    totalPages: 1,
+                    totalMatches: minimalMatches.length,
+                    totalAvailable: totalAvailable,
+                    planLimit: userPlanLimit,
+                    planType: userPlanType
+                },
+                recommendations: []
+            });
+        }
+
         // Only calculate detailed matches for the current page universities
         const pageMatches = await Promise.all(universitiesForCurrentPage.map(async (university) => {
             try {
@@ -1903,60 +1947,61 @@ async function generateRelevantScholarships(university: any, userProfile: UserPr
         // Check if supabase client is available
         if (!supabase || !supabase.from) {
             console.warn('Supabase client not available for scholarship queries');
-            return generateFallbackScholarships(university, userProfile);
+            return [];
         }
         
-        // Real database query to your scholarship table
-        let query = supabase
-            .from('scholarships')
-            .select('*')
-            .eq('is_active', true);
-        
-        // Location filtering - this is critical for maintaining integrity
-        // Only match scholarships that are specifically for this university
-        // or are available globally or in the university's country
         const universityCountry = university.country;
         const universityName = university.name;
-        
-        // First try with broader matching - less restrictive
+
+        const userGPA = parseFloat(userProfile.gpa) || 3.0;
+
+        const baseFilters = (q: any) => q
+            .eq('is_active', true)
+            .or(`level.eq.${userProfile.degree_level},levels.cs.{${userProfile.degree_level}}`)
+            .or(`min_gpa.is.null,min_gpa.lte.${userGPA}`);
+
+        let results: any[] = [];
+
+        // 1) Exact university scholarships
         if (universityName) {
-            // Try to find scholarships for this university OR country
-            query = query.or(`location.ilike.%${universityName}%,university_name.eq.${universityName},location.ilike.%${universityCountry}%,location.ilike.%Global%,location.ilike.%International%`);
-        } else {
-            // Fallback to country-based matching if we don't have a university name
-        if (universityCountry === 'United States') {
-            query = query.or(`location.ilike.%United States%,location.ilike.%USA%,location.ilike.%Global%`);
-        } else if (universityCountry === 'United Kingdom') {
-            query = query.or(`location.ilike.%United Kingdom%,location.ilike.%UK%,location.ilike.%Global%`);
-        } else {
-            query = query.or(`location.ilike.%${universityCountry}%,location.ilike.%Global%,location.ilike.%International%`);
+            const { data: uniSpecific } = await baseFilters(
+                supabase.from('scholarships').select('*')
+            ).or(`university_name.eq.${universityName},location.ilike.%${universityName}%`)
+             .order('deadline', { ascending: true })
+             .limit(6);
+            if (uniSpecific) results.push(...uniSpecific);
+        }
+
+        // 2) Country-level scholarships if we still have fewer than 3
+        if (results.length < 3 && universityCountry) {
+            const { data: countrySpecific } = await baseFilters(
+                supabase.from('scholarships').select('*')
+            ).or(`location.ilike.%${universityCountry}%`)
+             .order('deadline', { ascending: true })
+             .limit(6);
+            if (countrySpecific) {
+                // Avoid duplicates
+                const existingIds = new Set(results.map(r => r.id));
+                results.push(...countrySpecific.filter((r: any) => !existingIds.has(r.id)));
             }
         }
-        
-        // Make field matching more permissive - don't filter by field initially
-        // Let's get scholarships first, then sort/filter later
-        
-        // Level filtering - support multiple levels array
-        // Check both the legacy level field and the new levels array
-        query = query.or(`level.eq.${userProfile.degree_level},levels.cs.{${userProfile.degree_level}}`);
 
-        // GPA requirements - keep this filter
-        const userGPA = parseFloat(userProfile.gpa) || 3.0;
-        query = query.or(`min_gpa.is.null,min_gpa.lte.${userGPA}`);
-        
-        const { data: scholarships, error } = await query
-            .order('deadline', { ascending: true })
-            .limit(10); // Get more results to have a better chance of finding matches
-        
-        if (error || !scholarships || scholarships.length === 0) {
-            console.log('No matching scholarships found in database for:', university.name);
-            return generateFallbackScholarships(university, userProfile);
+        // 3) Global if still needed
+        if (results.length < 3) {
+            const { data: global } = await baseFilters(
+                supabase.from('scholarships').select('*')
+            ).or(`location.ilike.%Global%,location.ilike.%International%`)
+             .order('deadline', { ascending: true })
+             .limit(6);
+            if (global) {
+                const existingIds = new Set(results.map(r => r.id));
+                results.push(...global.filter((r: any) => !existingIds.has(r.id)));
+            }
         }
-        
-        console.log(`Found ${scholarships.length} scholarships for ${university.name}`);
-        
-        // Transform to match interface and calculate relevance
-        const mappedScholarships = scholarships.map((scholarship: any) => ({
+
+        if (!results.length) return [];
+
+        const mappedScholarships = results.map((scholarship: any) => ({
             id: scholarship.id,
             title: scholarship.title,
             provider: scholarship.provider,
@@ -1965,12 +2010,14 @@ async function generateRelevantScholarships(university: any, userProfile: UserPr
             deadline: scholarship.deadline,
             type: scholarship.funding_category || scholarship.type,
             why_relevant: generateRelevanceExplanation(userProfile, scholarship, university)
-        })).sort((a: any, b: any) => b.match_score - a.match_score).slice(0, 3);
-        
+        }))
+        .sort((a: any, b: any) => b.match_score - a.match_score)
+        .slice(0, 3);
+
         return mappedScholarships;
     } catch (error) {
         console.error('Error in scholarship query:', error);
-        return generateFallbackScholarships(university, userProfile);
+        return [];
     }
 }
 

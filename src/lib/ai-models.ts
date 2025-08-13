@@ -13,7 +13,7 @@ export async function getAIModelForUser(
             .from('user_subscriptions')
             .select('plan_type')
             .eq('user_id', userId)
-            .eq('status', 'active')
+            .in('status', ['active','trialing'])
             .single();
 
         const planType = subscription?.plan_type || 'free';

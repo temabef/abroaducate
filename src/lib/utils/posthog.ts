@@ -1,16 +1,49 @@
 import posthog from 'posthog-js'
 import { browser } from '$app/environment'
 
-// Initialize PostHog if not already initialized
-if (browser && !posthog.isFeatureEnabled('test')) {
-  posthog.init(
-    'phc_PlTMibICzNy5DTxpnxVRHl3n7JiH8l6KLDBgLqpbruZ',
-    {
+// Initialize PostHog (browser only)
+if (browser) {
+  try {
+    posthog.init('phc_PlTMibICzNy5DTxpnxVRHl3n7JiH8l6KLDBgLqpbruZ', {
       api_host: 'https://us.i.posthog.com',
-      defaults: '2025-05-24',
+      // Keep profiles for identified users only
       person_profiles: 'identified_only',
-    }
-  )
+      // Avoid duplicate automatic pageview if we track manually
+      capture_pageview: false,
+      // Enable session recording with safe defaults
+      session_recording: {
+        maskAllInputs: true,
+        maskTextSelector: 'input, textarea, [data-ph-mask]'
+      }
+    })
+
+    // Start session recording explicitly (in case project defaults are off)
+    try { posthog.startSessionRecording?.() } catch {}
+
+    // Capture unexpected frontend errors for triage
+    window.addEventListener('error', (e) => {
+      try {
+        posthog.capture('frontend_error', {
+          message: e.error?.message || e.message,
+          source: 'window.error',
+          stack: e.error?.stack,
+          filename: (e as any).filename,
+          lineno: (e as any).lineno,
+          colno: (e as any).colno
+        })
+      } catch {}
+    })
+    window.addEventListener('unhandledrejection', (e) => {
+      try {
+        posthog.capture('frontend_error', {
+          message: (e.reason && e.reason.message) || String(e.reason),
+          source: 'unhandledrejection'
+        })
+      } catch {}
+    })
+  } catch (err) {
+    console.error('PostHog init failed', err)
+  }
 }
 
 // Utility functions for common analytics events
@@ -99,5 +132,17 @@ export const analytics = {
     }
   }
 }
+
+// Feature flags wrapper
+export const featureFlags = {
+  isEnabled: (flag: string, props?: Record<string, any>): boolean => {
+    if (!browser) return true;
+    try { return posthog.isFeatureEnabled(flag, props); } catch { return true; }
+  },
+  getVariant: (flag: string): string | boolean | undefined => {
+    if (!browser) return undefined;
+    try { return (posthog as any).getFeatureFlag?.(flag); } catch { return undefined; }
+  }
+};
 
 export default posthog 

@@ -3,6 +3,7 @@
     import type { SupabaseClient } from '@supabase/supabase-js';
     import { browser } from '$app/environment';
     import { deviceFingerprintService } from '$lib/services/deviceFingerprintService';
+    import { analytics } from '$lib/utils/posthog';
     import { emailVerificationService, type EmailAnalysis } from '$lib/services/emailVerificationService';
     import { getBaseUrl, getEmailBaseUrl } from '$lib/config/site';
 
@@ -95,11 +96,13 @@
 
     function close() {
         show = false;
+        try { analytics.trackEvent('auth_modal_closed', { mode }); } catch {}
         dispatch('close');
     }
 
     function switchMode() {
         mode = mode === 'login' ? 'signup' : 'login';
+        try { analytics.trackEvent('auth_mode_switched', { mode }); } catch {}
         clearForm();
     }
 
@@ -145,7 +148,7 @@
         
         loading = true;
         error = '';
-        
+        try { analytics.trackEvent('auth_google_started', { returnUrl }); } catch {}
         try {
             const redirectUrl = `${getBaseUrl()}/auth/callback?next=${encodeURIComponent(returnUrl)}`;
             
@@ -155,6 +158,7 @@
             });
         } catch (err: any) {
             error = err.message || 'Google authentication failed';
+            try { analytics.trackEvent('auth_google_failed', { message: error }); } catch {}
             loading = false;
         }
     }
@@ -229,6 +233,7 @@
         }
 
         try {
+            analytics.trackEvent(mode === 'signup' ? 'auth_email_signup_started' : 'auth_email_login_started');
             if (mode === 'signup') {
                 await handleSignup();
             } else {
@@ -236,6 +241,7 @@
             }
         } catch (err: any) {
             error = err.message || `${mode === 'signup' ? 'Registration' : 'Login'} failed`;
+            try { analytics.trackEvent('auth_email_failed', { mode, message: error }); } catch {}
         } finally {
             loading = false;
         }
@@ -381,8 +387,8 @@
 <svelte:window on:keydown={handleKeydown} />
 
 {#if show}
-    <div class="modal-overlay" on:click={close} role="button" tabindex="0">
-        <div class="modal-content" on:click|stopPropagation role="dialog" aria-labelledby="modal-title" tabindex="-1">
+    <div class="modal-overlay" on:click={close} role="button" tabindex="0" on:keydown={(e)=>{ if(e.key==='Enter' || e.key===' ') { e.preventDefault(); close(); } }}>
+        <div class="modal-content" on:pointerdown|stopPropagation role="dialog" aria-labelledby="modal-title" tabindex="-1">
             <!-- Close Button -->
             <button class="close-button" on:click={close} aria-label="Close modal">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

@@ -1,5 +1,6 @@
 import { writable } from 'svelte/store';
 import { goto } from '$app/navigation';
+import { analytics } from '$lib/utils/posthog';
 import { trackInteraction, shouldShowUpgrade } from '$lib/stores/upgradeStrategy';
 
 // Global upgrade state
@@ -92,6 +93,7 @@ export function handleUpgradeRequired(errorData: {
     
     // Get optimal upgrade strategy
     const strategy = shouldShowUpgrade(featureInfo.limitType, featureInfo.featureType);
+    try { analytics.trackEvent('upgrade_prompt_shown', { feature: featureInfo.featureType, limitType: featureInfo.limitType }); } catch {}
     
     // Only update global state with valid data
     if (errorData.limit > 0 && errorData.currentUsage >= 0) {
@@ -149,7 +151,7 @@ function extractUsageTypeFromMessage(message: string): string {
 /**
  * Handle upgrade button clicks
  */
-export function handleUpgradeClick(planType: string) {
+export async function handleUpgradeClick(planType: string) {
     const currentState = getCurrentState();
     
     // Track the upgrade action
@@ -158,6 +160,7 @@ export function handleUpgradeClick(planType: string) {
         currentState.modalData.featureType, 
         'upgraded'
     );
+    try { analytics.trackEvent('upgrade_modal_clicked', { plan: planType, feature: currentState.modalData.featureType }); } catch {}
     
     // Close modals
     upgradeState.update(state => ({
@@ -166,15 +169,46 @@ export function handleUpgradeClick(planType: string) {
         showToast: false
     }));
     
-    // Navigate to pricing page with optional plan selection
-    if (planType === 'professional') {
-        goto('/pricing?plan=professional');
-    } else if (planType === 'elite') {
-        goto('/pricing?plan=elite');
-    } else {
-        // Default to pricing page (including 'pricing' planType)
-        goto('/pricing');
+    // Schedule resume after successful upgrade
+    try {
+        const resumePayload = {
+            featureType: currentState.modalData.featureType,
+            limitType: currentState.modalData.limitType,
+            returnTo: typeof window !== 'undefined' ? window.location.pathname + window.location.search : '/',
+            createdAt: Date.now()
+        };
+        localStorage.setItem('abroaducate_pending_resume', JSON.stringify(resumePayload));
+        try { analytics.trackEvent('resume_scheduled', resumePayload); } catch {}
+    } catch {}
+
+    // One-click checkout: call server to create Stripe session and redirect
+    try {
+        const response = await fetch('/api/stripe/create-checkout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                planType,
+                metadata: {
+                    source: 'upgrade_modal',
+                    feature: currentState.modalData.featureType,
+                    limitType: currentState.modalData.limitType
+                }
+            })
+        });
+        const result = await response.json();
+        if (result.checkoutUrl) {
+            try { analytics.trackEvent('checkout_session_created', { plan: planType, source: 'upgrade_modal' }); } catch {}
+            try { analytics.trackEvent('checkout_redirected', { plan: planType, source: 'upgrade_modal' }); } catch {}
+            window.location.href = result.checkoutUrl;
+            return;
+        }
+    } catch (err) {
+        console.error('One-click checkout failed, falling back to pricing:', err);
     }
+    // Fallback to pricing if API fails
+    if (planType === 'professional') goto('/pricing?plan=professional');
+    else if (planType === 'elite') goto('/pricing?plan=elite');
+    else goto('/pricing');
 }
 
 /**
@@ -189,6 +223,7 @@ export function handleUpgradeDismiss() {
         currentState.modalData.featureType, 
         'dismissed'
     );
+    try { analytics.trackEvent('upgrade_prompt_dismissed', { feature: currentState.modalData.featureType, limitType: currentState.modalData.limitType }); } catch {}
     
     // Close modals
     upgradeState.update(state => ({
@@ -240,6 +275,7 @@ export function checkEarlyUpgradeWarning(
         }));
         
         trackInteraction(featureInfo.limitType, featureInfo.featureType, 'reminded');
+        try { analytics.trackEvent('limit_warning_80pct', { feature: featureInfo.featureType, limitType: featureInfo.limitType, percentage: Math.round(percentageUsed) }); } catch {}
         return true;
     }
     

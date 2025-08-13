@@ -136,7 +136,7 @@
                 .from('user_subscriptions')
                 .select('*')
                 .eq('user_id', session.user.id)
-                .eq('status', 'active')
+                .in('status', ['active','trialing'])
                 .single();
             
             if (subError && subError.code !== 'PGRST116') {

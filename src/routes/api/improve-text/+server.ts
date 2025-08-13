@@ -30,7 +30,7 @@ export const POST: RequestHandler = async ({ request, locals: { getSession, supa
         const data = parsed.data;
 
         // Check usage limits
-        const usageCheck = await checkComprehensiveUsageLimit(session.user.id, 'text_improvements');
+        const usageCheck = await checkComprehensiveUsageLimit(session.user.id, 'text_enhancements');
         
         if (!usageCheck.allowed) {
             return json({
@@ -83,7 +83,7 @@ export const POST: RequestHandler = async ({ request, locals: { getSession, supa
         const improvedText = result.choices[0].message.content.trim();
 
         // Increment usage after successful improvement
-        await incrementComprehensiveUsage(session.user.id, 'text_improvements');
+        await incrementComprehensiveUsage(session.user.id, 'text_enhancements');
 
         return json({
             success: true,

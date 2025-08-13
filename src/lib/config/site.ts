@@ -11,27 +11,21 @@ export const siteConfig = {
 
 // Get base URL for authentication and email links
 export function getBaseUrl(): string {
-  // For development, use localhost:5173 (Vite default)
+  // Always prefer the current origin in the browser (works for dev, staging, prod)
   if (typeof window !== 'undefined') {
-    const hostname = window.location.hostname;
-    if (hostname === 'localhost' || hostname === '127.0.0.1') {
-      return 'http://localhost:5173';
-    }
+    return window.location.origin;
   }
-  return 'https://abroaducate.com';
+  // Server-side fallback: use environment or default
+  return process.env.PUBLIC_SITE_URL || 'https://abroaducate.com';
 }
 
 // Get base URL for development vs production
 export function getDevelopmentBaseUrl(): string {
-  if (typeof window !== 'undefined') {
-    return window.location.origin;
-  }
-  return process.env.NODE_ENV === 'development' 
-    ? 'http://localhost:5173' 
-    : 'https://abroaducate.com';
+  if (typeof window !== 'undefined') return window.location.origin;
+  return process.env.PUBLIC_SITE_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:5173' : 'https://abroaducate.com');
 }
 
 // Get email base URL (use current environment for email links)
 export function getEmailBaseUrl(): string {
-  return getBaseUrl(); // Use the same logic as getBaseUrl()
-} 
+  return getBaseUrl();
+}

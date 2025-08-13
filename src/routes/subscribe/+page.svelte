@@ -22,7 +22,7 @@
             .from('user_subscriptions')
             .select('plan_type')
             .eq('user_id', session.user.id)
-            .eq('status', 'active')
+        .in('status', ['active','trialing'])
             .single();
         
         currentPlan = subscription?.plan_type || 'free';
@@ -60,7 +60,7 @@
     function getPlanCard(planKey: string, plan: any, price: number) {
         const isCurrentPlan = currentPlan === planKey;
         const isUpgrade = (currentPlan === 'free' && planKey !== 'free') || 
-                          (currentPlan === 'basic' && planKey === 'pro');
+                          (currentPlan === 'professional' && planKey === 'elite');
         
         return {
             plan,

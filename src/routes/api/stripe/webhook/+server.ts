@@ -9,6 +9,7 @@ const stripe = new Stripe(STRIPE_SECRET_KEY, {
 import { createClient } from '@supabase/supabase-js';
 import { PUBLIC_SUPABASE_URL } from '$env/static/public';
 import { SUPABASE_SERVICE_ROLE_KEY } from '$env/static/private';
+import { analytics } from '$lib/utils/posthog';
 
 // For now, we'll use a placeholder - you'll need to add this to your .env file
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || 'whsec_placeholder';
@@ -53,6 +54,9 @@ export const POST: RequestHandler = async ({ request }) => {
             case 'invoice.payment_failed':
                 await handlePaymentFailed(event.data.object);
                 break;
+            case 'checkout.session.async_payment_failed':
+                console.log('Checkout async payment failed');
+                break;
 
             default:
                 console.log(`Unhandled event type: ${event.type}`);
@@ -91,7 +95,7 @@ async function handleCheckoutCompleted(session: any) {
             user_id: userId,
             stripe_subscription_id: subscription.id,
             stripe_customer_id: subscription.customer as string,
-            status: 'active',
+            status: (subscription as any).status || 'active',
             current_period_start: new Date((subscription as any).current_period_start * 1000).toISOString(),
             current_period_end: new Date((subscription as any).current_period_end * 1000).toISOString(),
             created_at: new Date().toISOString()
@@ -117,6 +121,15 @@ async function handleCheckoutCompleted(session: any) {
             if (existingSubscription?.admin_override) {
                 console.log(`Admin override preserved - plan_type remains: ${existingSubscription.plan_type}`);
             }
+            // Track subscription activation (client will capture identify)
+            try {
+                const status = (subscription as any).status;
+                if (status === 'trialing') {
+                    analytics.trackEvent('trial_started', { user_id: userId, plan: planType });
+                } else {
+                    analytics.trackEvent('subscription_activated', { user_id: userId, plan: planType });
+                }
+            } catch {}
         }
 
     } catch (error) {
@@ -190,6 +203,7 @@ async function handlePaymentSucceeded(invoice: any) {
         const subscription = await stripe.subscriptions.retrieve(invoice.subscription as string);
         
         if ((subscription as any).metadata?.user_id) {
+            const userId = (subscription as any).metadata.user_id;
             const { error } = await supabaseAdmin
                 .from('user_subscriptions')
                 .update({
@@ -201,6 +215,8 @@ async function handlePaymentSucceeded(invoice: any) {
 
             if (error) {
                 console.error('Database error on payment succeeded:', error);
+            } else {
+                try { analytics.trackEvent('invoice_payment_succeeded', { user_id: userId }); } catch {}
             }
         }
 
@@ -220,6 +236,8 @@ async function handlePaymentFailed(invoice: any) {
 
         if (error) {
             console.error('Database error on payment failed:', error);
+        } else {
+            try { analytics.trackEvent('invoice_payment_failed', { subscription_id: invoice.subscription }); } catch {}
         }
 
     } catch (error) {

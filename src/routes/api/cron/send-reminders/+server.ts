@@ -76,6 +76,7 @@ export const POST: RequestHandler = async ({ request }) => {
       scholarship_digest: 0,
       application_reminders: 0,
       subscription_alerts: 0,
+      trial_end_alerts: 0,
       instant_alerts: 0,
       newsletter_emails: 0
     };
@@ -238,6 +239,44 @@ export const POST: RequestHandler = async ({ request }) => {
       }
     }
 
+    // ============ TRIAL ENDING REMINDERS (24H BEFORE) ============
+    try {
+      const now = new Date();
+      const cutoff = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+      const { data: trialingSubscriptions } = await supabase
+        .from('user_subscriptions')
+        .select('user_id, plan_type, current_period_end')
+        .eq('status', 'trialing')
+        .gte('current_period_end', now.toISOString())
+        .lte('current_period_end', cutoff.toISOString());
+
+      for (const sub of trialingSubscriptions || []) {
+        try {
+          // Check if user wants subscription alerts
+          const { data: userPref } = await supabase
+            .from('user_preferences')
+            .select('subscription_alerts')
+            .eq('user_id', sub.user_id)
+            .single();
+
+          if (userPref?.subscription_alerts) {
+            const { data: authUser } = await supabase.auth.admin.getUserById(sub.user_id);
+            if (authUser.user?.email) {
+              const ok = await sendTrialEndingReminder(authUser.user.email, sub.user_id, sub.plan_type, sub.current_period_end);
+              if (ok) {
+                emailsProcessed.trial_end_alerts++;
+                totalEmailsSent++;
+              }
+            }
+          }
+        } catch (err) {
+          console.error('Error sending trial ending reminder for user', sub.user_id, err);
+        }
+      }
+    } catch (err) {
+      console.error('Trial ending reminder block error', err);
+    }
+
     // ============ NEWSLETTER SUBSCRIBERS (NON-USERS) ============
     
     // Check if newsletter system is enabled
@@ -356,6 +395,7 @@ export const POST: RequestHandler = async ({ request }) => {
           scholarship_digest_emails: emailsProcessed.scholarship_digest,
           application_reminder_emails: emailsProcessed.application_reminders,
           subscription_alert_emails: emailsProcessed.subscription_alerts,
+          trial_end_alert_emails: emailsProcessed.trial_end_alerts,
           instant_alert_emails: emailsProcessed.instant_alerts,
           newsletter_emails: emailsProcessed.newsletter_emails
         });
@@ -556,6 +596,39 @@ async function sendSubscriptionAlert(email: string, userId: string, planType: st
     return emailSent;
   } catch (error) {
     console.error(`Error sending subscription alert to ${email}:`, error);
+    return false;
+  }
+}
+
+async function sendTrialEndingReminder(email: string, userId: string, planType: string, periodEndIso: string): Promise<boolean> {
+  try {
+    const endDate = new Date(periodEndIso);
+    const subject = `⏳ Your ${planType} trial ends soon`;
+    const htmlContent = `
+      <h2 style="font-family: Inter, Arial; color:#111827;">Your ${planType} trial ends in 24 hours</h2>
+      <p style="color:#374151;">You won't be charged today. If you want to continue after the trial, no action is needed. Otherwise, you can cancel anytime before the trial ends.</p>
+      <p style="color:#374151;">Trial end: <strong>${endDate.toUTCString()}</strong></p>
+      <div style="margin-top:16px;">
+        <a href="https://abroaducate.com/subscription/manage" style="background:#2563EB;color:white;padding:10px 16px;border-radius:6px;text-decoration:none;">Manage subscription</a>
+      </div>
+    `;
+    const textContent = `Your ${planType} trial ends in 24 hours. Trial end: ${endDate.toUTCString()}. Manage at https://abroaducate.com/subscription/manage`;
+
+    const send = await sendEmailViaSendGrid(email, subject, htmlContent, textContent);
+    const ok = send.success;
+    try {
+      await supabase.from('email_logs').insert({
+        user_id: userId,
+        email_type: 'trial_end_alert',
+        recipient: email,
+        subject,
+        status: ok ? 'sent' : 'failed',
+        sent_at: new Date().toISOString()
+      });
+    } catch {}
+    return ok;
+  } catch (err) {
+    console.error('Error sending trial ending reminder:', err);
     return false;
   }
 }
