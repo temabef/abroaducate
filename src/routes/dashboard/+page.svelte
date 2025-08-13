@@ -8,6 +8,7 @@
     import BasicReminders from '$lib/components/BasicReminders.svelte';
     import EmailStatusWidget from '$lib/components/EmailStatusWidget.svelte';
     import { analytics } from '$lib/utils/posthog';
+    import AdSenseAd from '$lib/components/AdSenseAd.svelte';
 
     let { data }: { data: PageData } = $props();
     let { supabase, session } = data;
@@ -240,6 +241,9 @@
                 
                 <!-- Quick Actions -->
                 <QuickActions />
+
+                <!-- Ad after Quick Actions -->
+                <AdSenseAd adSlot="4419564411" className="my-8" />
 
                 <!-- Quick Application Link -->
                 <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">

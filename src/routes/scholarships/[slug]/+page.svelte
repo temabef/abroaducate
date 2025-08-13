@@ -4,6 +4,7 @@
   import { goto } from '$app/navigation';
   import AuthenticationFlow from '$lib/components/AuthenticationFlow.svelte';
   import { formatCurrencyAmount, formatScholarshipText } from '$lib/utils/htmlEntities';
+  import AdSenseAd from '$lib/components/AdSenseAd.svelte';
   
   let { data } = $props();
   let { session, scholarship, supabase } = $derived(data);
@@ -585,6 +586,9 @@
         </div>
       </div>
       
+      <!-- Ad before Related Scholarships -->
+      <AdSenseAd adSlot="6646272505" className="my-8" />
+
       <!-- Related Scholarships -->
       {#if relatedScholarships && relatedScholarships.length > 0}
         <div class="mb-8">

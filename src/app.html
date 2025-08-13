@@ -1,32 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<!-- Ezoic Privacy Scripts (must be first) -->
-		<script src="https://cmp.gatekeeperconsent.com/min.js" data-cfasync="false"></script>
-		<script src="https://the.gatekeeperconsent.com/cmp.min.js" data-cfasync="false"></script>
-
-		<!-- Ezoic Header Script -->
-		<script async src="//www.ezojs.com/ezoic/sa.min.js"></script>
-		<script>
-			window.ezstandalone = window.ezstandalone || {};
-			ezstandalone.cmd = ezstandalone.cmd || [];
-			
-			// Configure Ezoic consent management
-			window.ezstandalone.cmd.push(function() {
-				// Configure consent banner styling
-				if (window.ezstandalone.cmp) {
-					window.ezstandalone.cmp.setConfig({
-						theme: 'light',
-						position: 'bottom',
-						layout: 'compact',
-						showCloseButton: true,
-						showManageSettings: true,
-						privacyPolicyUrl: '/privacy',
-						termsOfServiceUrl: '/terms'
-					});
-				}
-			});
-		</script>
+		<!-- Google AdSense -->
+		<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9343038264406927" crossorigin="anonymous"></script>
 
 		<!-- Google Analytics -->
 		<script async src="https://www.googletagmanager.com/gtag/js?id=G-L0SKBY98GT"></script>
@@ -112,74 +88,22 @@
 				height: auto;
 			}
 
-			/* Ezoic Consent Banner Styling */
-			#ez-cmp-banner {
-				font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
-				font-size: 14px !important;
-				line-height: 1.5 !important;
-				max-width: 90% !important;
-				margin: 0 auto !important;
-				border-radius: 8px !important;
-				box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+			/* AdSense Ad Styling */
+			.adsense-container {
+				margin: 20px 0;
+				text-align: center;
+				clear: both;
 			}
 
-			#ez-cmp-banner .ez-cmp-banner-content {
-				padding: 20px !important;
+			.adsense-container ins {
+				display: block;
+				margin: 0 auto;
 			}
 
-			#ez-cmp-banner .ez-cmp-banner-title {
-				font-size: 18px !important;
-				font-weight: 600 !important;
-				margin-bottom: 12px !important;
-			}
-
-			#ez-cmp-banner .ez-cmp-banner-text {
-				font-size: 14px !important;
-				line-height: 1.6 !important;
-				margin-bottom: 16px !important;
-			}
-
-			#ez-cmp-banner .ez-cmp-banner-buttons {
-				display: flex !important;
-				gap: 12px !important;
-				flex-wrap: wrap !important;
-			}
-
-			#ez-cmp-banner .ez-cmp-banner-button {
-				padding: 10px 20px !important;
-				border-radius: 6px !important;
-				font-size: 14px !important;
-				font-weight: 500 !important;
-				cursor: pointer !important;
-				transition: all 0.2s ease !important;
-			}
-
-			#ez-cmp-banner .ez-cmp-banner-button-primary {
-				background-color: #3b82f6 !important;
-				color: white !important;
-				border: none !important;
-			}
-
-			#ez-cmp-banner .ez-cmp-banner-button-secondary {
-				background-color: transparent !important;
-				color: #374151 !important;
-				border: 1px solid #d1d5db !important;
-			}
-
-			/* Mobile responsiveness */
+			/* Responsive ad containers */
 			@media (max-width: 768px) {
-				#ez-cmp-banner {
-					max-width: 95% !important;
-					margin: 10px !important;
-				}
-
-				#ez-cmp-banner .ez-cmp-banner-buttons {
-					flex-direction: column !important;
-				}
-
-				#ez-cmp-banner .ez-cmp-banner-button {
-					width: 100% !important;
-					text-align: center !important;
+				.adsense-container {
+					margin: 15px 0;
 				}
 			}
 		</style>

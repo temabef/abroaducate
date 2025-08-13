@@ -5,6 +5,7 @@
   import { analytics } from '$lib/utils/posthog';
   import QuickProfileModal from '$lib/components/QuickProfileModal.svelte';
   import { loadQuickProfile, type QuickProfile, gpaMidpoint } from '$lib/services/quickProfile';
+  import AdSenseAd from '$lib/components/AdSenseAd.svelte';
   
   let { data } = $props();
   let { supabase, session } = $derived(data);
@@ -307,26 +308,7 @@
     // Scroll to top after loading (especially helpful on mobile)
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
-    // Google AdSense script injection (only once)
-    let adsScript: HTMLScriptElement | null = null;
-    if (!document.querySelector('script[src*="adsbygoogle.js"]')) {
-      adsScript = document.createElement('script');
-      adsScript.async = true;
-      adsScript.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9343038264406927";
-      adsScript.crossOrigin = "anonymous";
-      document.head.appendChild(adsScript);
-    }
-    // Render the ad after script loads or immediately if already loaded
-    const renderAds = () => {
-      if (typeof window !== 'undefined' && (window as any).adsbygoogle) {
-        (window as any).adsbygoogle.push({});
-      }
-    };
-    if (adsScript) {
-      adsScript.onload = renderAds;
-    } else {
-      renderAds();
-    }
+    // AdSense is now loaded globally via app.html
   });
 
   // Watch for changes in search query - use a more controlled approach
@@ -717,6 +699,9 @@
         {/if}
       </div>
 
+      <!-- Ad after filters -->
+      <AdSenseAd adSlot="6442575607" className="my-8" />
+
     <!-- Scholarship Grid -->
     {:else}
       <div class="space-y-6">
@@ -732,7 +717,14 @@
 
         <!-- Scholarship Cards -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {#each displayScholarships as scholarship (scholarship.id)}
+          {#each displayScholarships as scholarship, index (scholarship.id)}
+            <!-- Insert ad every 6 cards (after cards 5, 11, 17, etc.) -->
+            {#if index > 0 && index % 6 === 5}
+              <div class="bg-white rounded-lg shadow-sm border flex items-center justify-center min-h-[200px] lg:col-span-2">
+                <AdSenseAd adSlot="6442575607" />
+              </div>
+            {/if}
+            
             <div class="bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow duration-200">
               <div class="p-6">
                 <!-- Funding Category Badge -->
@@ -875,16 +867,6 @@
               </div>
             </div>
           {/each}
-
-          <!-- Google AdSense Ad Card -->
-          <div class="bg-white rounded-lg shadow-sm border flex items-center justify-center min-h-[200px]">
-            <ins class="adsbygoogle"
-                 style="display:block"
-                 data-ad-client="ca-pub-9343038264406927"
-                 data-ad-slot="7563850500"
-                 data-ad-format="auto"
-                 data-full-width-responsive="true"></ins>
-          </div>
         </div>
 
         <!-- Pagination -->
