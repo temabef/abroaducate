@@ -247,7 +247,7 @@ ON CONFLICT (setting_key) DO NOTHING;
 -- =============================================
 
 -- View: Active newsletter subscribers summary
-CREATE OR REPLACE VIEW active_newsletter_subscribers AS
+CREATE OR REPLACE VIEW active_newsletter_subscribers WITH (security_invoker = true) AS
 SELECT 
     source,
     COUNT(*) as total_subscribers,
@@ -262,7 +262,7 @@ GROUP BY source
 ORDER BY total_subscribers DESC;
 
 -- View: Newsletter campaign performance
-CREATE OR REPLACE VIEW newsletter_campaign_performance AS
+CREATE OR REPLACE VIEW newsletter_campaign_performance WITH (security_invoker = true) AS
 SELECT 
     c.id,
     c.campaign_name,

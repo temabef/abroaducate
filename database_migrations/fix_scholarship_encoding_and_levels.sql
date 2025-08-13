@@ -434,8 +434,7 @@ UPDATE scholarships
 SET levels = ARRAY[level] 
 WHERE levels IS NULL OR array_length(levels, 1) IS NULL;
 
--- 9. Create a view for public scholarship display with decoded entities
-CREATE OR REPLACE VIEW public_scholarships_decoded AS
+CREATE OR REPLACE VIEW public_scholarships_decoded WITH (security_invoker = true) AS
 SELECT 
   id,
   decode_html_entities(title) as title,

@@ -188,9 +188,7 @@ CREATE INDEX IF NOT EXISTS idx_scholarships_levels ON scholarships USING GIN (le
 -- Verify the index was created
 SELECT indexname FROM pg_indexes WHERE tablename = 'scholarships' AND indexname = 'idx_scholarships_levels';
 
--- STEP 6: Create public view for decoded scholarships
--- Run this sixth
-CREATE OR REPLACE VIEW public_scholarships_decoded AS
+CREATE OR REPLACE VIEW public_scholarships_decoded WITH (security_invoker = true) AS
 SELECT 
   id,
   decode_html_entities(title) as title,

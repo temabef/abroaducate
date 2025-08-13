@@ -67,7 +67,7 @@ CREATE POLICY "Users can update own interactions" ON user_scholarship_interactio
 FOR UPDATE USING (auth.uid() = user_id);
 
 -- Create a view for scholarship deadlines dashboard
-CREATE OR REPLACE VIEW user_scholarship_deadlines AS
+CREATE OR REPLACE VIEW user_scholarship_deadlines WITH (security_invoker = true) AS
 SELECT 
   s.id as scholarship_id,
   s.title,

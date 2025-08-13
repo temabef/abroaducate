@@ -150,7 +150,7 @@ CREATE INDEX IF NOT EXISTS idx_reminders_calendar_event ON reminders(calendar_ev
 -- =============================================
 
 -- View: User deadline reminders with email status
-CREATE OR REPLACE VIEW user_deadline_reminders AS
+CREATE OR REPLACE VIEW user_deadline_reminders WITH (security_invoker = true) AS
 SELECT 
     r.id as reminder_id,
     r.user_id,
@@ -181,7 +181,7 @@ WHERE r.type = 'deadline'
 ORDER BY s.deadline ASC;
 
 -- View: Calendar integration status
-CREATE OR REPLACE VIEW user_calendar_status AS
+CREATE OR REPLACE VIEW user_calendar_status WITH (security_invoker = true) AS
 SELECT 
     u.id as user_id,
     u.email,

@@ -78,7 +78,7 @@ CREATE TRIGGER calculate_deadline_trigger
   EXECUTE FUNCTION calculate_days_until_deadline();
 
 -- Create a view for scholarship deadlines dashboard
-CREATE OR REPLACE VIEW user_scholarship_deadlines AS
+CREATE OR REPLACE VIEW user_scholarship_deadlines WITH (security_invoker = true) AS
 SELECT 
   s.id as scholarship_id,
   s.title,

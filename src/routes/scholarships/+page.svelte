@@ -747,6 +747,18 @@
                       <h3 class="text-lg font-semibold text-gray-900 mb-1">{scholarship.title}</h3>
                     </a>
                     <p class="text-gray-600">{scholarship.provider}</p>
+                    {#if !(session?.user?.id && typeof scholarship.matchScore === 'number')}
+                      <button class="sm:hidden mt-2 text-xs text-gray-600 underline hover:text-gray-800" onclick={() => {
+                        analytics.trackEvent('quick_profile_prompt_clicked', { surface: 'scholarships', context: 'card_mobile', scholarship_id: scholarship.id, user_id: session?.user?.id });
+                        if (!session?.user?.id) {
+                          authMode = 'login';
+                          showAuthModal = true;
+                          authRequiredForProfile = true;
+                        } else {
+                          showQuickProfile = true;
+                        }
+                      }}>Complete quick profile to see match</button>
+                    {/if}
                     
                     <!-- Additional info for graduate programs -->
                     {#if scholarship.funding_category === 'Graduate Program Funding' && scholarship.program_name}
@@ -755,7 +767,7 @@
                       <p class="text-sm text-purple-600 mt-1">Prof. {scholarship.professor_name}</p>
                     {/if}
                   </div>
-                  <div class="flex flex-col items-end">
+                  <div class="hidden sm:flex flex-col items-end">
                     {#if session?.user?.id && typeof scholarship.matchScore === 'number'}
                       <span class="text-sm font-medium {getMatchScoreColor(scholarship.matchScore)}">
                         {scholarship.matchScore}% match
