@@ -20,8 +20,8 @@
   - In progress. Implemented 3‑day Professional trial (one per user), pricing CTAs, webhook `trial_started`, trial treated as unlocked, and 24h trial-ending reminders.
 - [x] Phase 8 — Resume flows
   - Implemented for University Matching: cache form pre-auth, auto-restore and run post-auth (`?resume=1`) with session-resolution retries.
-- [ ] Phase 9 — Reconciliation/support
-  - Reconciliation skipped (no active Stripe subs). Consider adding an admin report later.
+- [x] Phase 9 — Reconciliation/support
+  - Implemented admin audit and fix endpoints (`/api/admin/subscription-reconcile`). Cleaned orphaned `active/trialing` DB rows with no Stripe subscription (kept 3 protected accounts). Audit now reports zero mismatches.
 - [ ] Phase 10 — Experiments/KPIs
   - Not started. Funnels/dashboards to configure after broader analytics events.
 

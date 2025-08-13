@@ -44,7 +44,7 @@ export const GET: RequestHandler = async ({ request }) => {
     // 2) Load DB subscriptions
     const { data: dbSubs, error: dbErr } = await supabaseAdmin
       .from('user_subscriptions')
-      .select('user_id, plan_type, status, stripe_subscription_id, updated_at');
+      .select('user_id, plan_type, status, stripe_subscription_id, updated_at, admin_override');
     if (dbErr) throw dbErr;
 
     // Helpers
@@ -77,6 +77,10 @@ export const GET: RequestHandler = async ({ request }) => {
     // b) DB active/trialing but Stripe not reflecting
     for (const d of dbSubs || []) {
       if (isActiveLike(d.status)) {
+        // Ignore protected accounts explicitly marked by admin_override
+        if ((d as any).admin_override === true) {
+          continue;
+        }
         const s = d.stripe_subscription_id ? stripeBySubId.get(d.stripe_subscription_id) : undefined;
         const sActive = s ? isActiveLike(s.status) : false;
         if (!sActive) {
