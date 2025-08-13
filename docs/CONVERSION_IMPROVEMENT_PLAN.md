@@ -23,7 +23,7 @@
 - [x] Phase 9 — Reconciliation/support
   - Implemented admin audit and fix endpoints (`/api/admin/subscription-reconcile`). Cleaned orphaned `active/trialing` DB rows with no Stripe subscription (kept 3 protected accounts). Audit now reports zero mismatches.
 - [ ] Phase 10 — Experiments/KPIs
-  - Not started. Funnels/dashboards to configure after broader analytics events.
+  - Started. Added experiment flag `upgrade_checkout_flow` with variants `direct_checkout` vs `pricing_redirect`; exposure event `exp_exposure_upgrade_checkout_flow` and route events. Next: configure KPIs and dashboards.
 
 ### Additional Improvements (not originally listed)
 - Quick Profile system
@@ -93,7 +93,7 @@
 - Phase 8 (extend):
   - Consider resume flows for other gated actions (exports, editors) if needed.
 - Phase 10: Experiments/KPIs
-  - Configure A/B tests (modal → checkout vs pricing; soft-wall variants), define KPIs, build PostHog dashboards.
+  - Configure A/B tests (modal → checkout vs pricing; soft-wall variants), define KPIs, build PostHog dashboards. First test live: `upgrade_checkout_flow`.
 
 
 ### Goals

@@ -1,6 +1,6 @@
 import { writable } from 'svelte/store';
 import { goto } from '$app/navigation';
-import { analytics } from '$lib/utils/posthog';
+import { analytics, featureFlags } from '$lib/utils/posthog';
 import { trackInteraction, shouldShowUpgrade } from '$lib/stores/upgradeStrategy';
 
 // Global upgrade state
@@ -181,26 +181,42 @@ export async function handleUpgradeClick(planType: string) {
         try { analytics.trackEvent('resume_scheduled', resumePayload); } catch {}
     } catch {}
 
-    // One-click checkout: call server to create Stripe session and redirect
+    // Phase 10 Experiment: A/B direct checkout vs pricing page
+    const experimentVariant = featureFlags.getVariant('upgrade_checkout_flow');
+    const variant = (experimentVariant === 'pricing_redirect' || experimentVariant === 'direct_checkout')
+        ? String(experimentVariant)
+        : 'direct_checkout';
+    try { analytics.trackEvent('exp_exposure_upgrade_checkout_flow', { variant, plan: planType }); } catch {}
+
+    // One-click checkout (variant: direct_checkout)
     try {
-        const response = await fetch('/api/stripe/create-checkout', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                planType,
-                metadata: {
-                    source: 'upgrade_modal',
-                    feature: currentState.modalData.featureType,
-                    limitType: currentState.modalData.limitType
-                }
-            })
-        });
-        const result = await response.json();
-        if (result.checkoutUrl) {
-            try { analytics.trackEvent('checkout_session_created', { plan: planType, source: 'upgrade_modal' }); } catch {}
-            try { analytics.trackEvent('checkout_redirected', { plan: planType, source: 'upgrade_modal' }); } catch {}
-            window.location.href = result.checkoutUrl;
+        if (variant === 'pricing_redirect') {
+            // Send users to pricing page (variant)
+            try { analytics.trackEvent('exp_routed_pricing_redirect', { plan: planType, source: 'upgrade_modal' }); } catch {}
+            if (planType === 'professional') goto('/pricing?plan=professional');
+            else if (planType === 'elite') goto('/pricing?plan=elite');
+            else goto('/pricing');
             return;
+        } else {
+            const response = await fetch('/api/stripe/create-checkout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    planType,
+                    metadata: {
+                        source: 'upgrade_modal',
+                        feature: currentState.modalData.featureType,
+                        limitType: currentState.modalData.limitType
+                    }
+                })
+            });
+            const result = await response.json();
+            if (result.checkoutUrl) {
+                try { analytics.trackEvent('checkout_session_created', { plan: planType, source: 'upgrade_modal', variant }); } catch {}
+                try { analytics.trackEvent('checkout_redirected', { plan: planType, source: 'upgrade_modal', variant }); } catch {}
+                window.location.href = result.checkoutUrl;
+                return;
+            }
         }
     } catch (err) {
         console.error('One-click checkout failed, falling back to pricing:', err);
