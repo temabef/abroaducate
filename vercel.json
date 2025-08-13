@@ -1,11 +1,6 @@
 {
   "redirects": [
     {
-      "source": "/ads.txt",
-      "destination": "https://srv.adstxtmanager.com/19390/abroaducate.com",
-      "permanent": true
-    },
-    {
       "source": "/50-u-s-universities-with-fully-funded-scholarships-for-fall-2025/",
       "destination": "/scholarships",
       "permanent": true
