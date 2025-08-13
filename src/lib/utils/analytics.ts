@@ -14,44 +14,14 @@ class AnalyticsManager {
     if (!browser || this.isInitialized) return;
 
     try {
-      // Check for Ezoic consent management
-      if (window.ezstandalone && window.ezstandalone.cmp) {
-        // Wait for consent to be available
-        window.ezstandalone.cmd.push(() => {
-          this.checkConsentAndInit();
-        });
-      } else {
-        // If no consent management, initialize immediately
-        this.initializeAnalytics();
-      }
+      // Initialize analytics immediately (no consent management needed)
+      this.initializeAnalytics();
     } catch (error) {
       console.error('Failed to initialize analytics:', error);
     }
   }
 
-  // Check consent and initialize analytics
-  private checkConsentAndInit() {
-    try {
-      if (window.ezstandalone && window.ezstandalone.cmp) {
-        const consent = window.ezstandalone.cmp.getConsent();
-        this.consentGiven = consent.analytics || consent.all;
-        
-        if (this.consentGiven) {
-          this.initializeAnalytics();
-        } else {
-          // Listen for consent changes
-          window.ezstandalone.cmp.on('consentChanged', (consent: any) => {
-            if (consent.analytics || consent.all) {
-              this.consentGiven = true;
-              this.initializeAnalytics();
-            }
-          });
-        }
-      }
-    } catch (error) {
-      console.error('Error checking consent:', error);
-    }
-  }
+  // Removed Ezoic consent management - no longer needed
 
   // Initialize both Google Analytics and PostHog
   private initializeAnalytics() {
@@ -175,12 +145,5 @@ declare global {
   interface Window {
     gtag: (...args: any[]) => void;
     dataLayer: any[];
-    ezstandalone: {
-      cmd: any[];
-      cmp: {
-        getConsent: () => { analytics: boolean; all: boolean };
-        on: (event: string, callback: (consent: any) => void) => void;
-      };
-    };
   }
 } 

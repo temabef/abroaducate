@@ -34,18 +34,7 @@ export const load: LayoutLoad = async ({ fetch, data, depends }) => {
             loaded: (posthog) => {
               console.log('PostHog loaded successfully');
             },
-            // Handle consent changes
-            on_request: (url, options) => {
-              // Check if user has consented to analytics
-              if (window.ezstandalone && window.ezstandalone.cmp) {
-                const consent = window.ezstandalone.cmp.getConsent();
-                if (!consent.analytics) {
-                  console.log('Analytics consent not given, skipping PostHog request');
-                  return false;
-                }
-              }
-              return true;
-            }
+            // Removed Ezoic consent management - analytics now work without consent barriers
           }
         )
         
