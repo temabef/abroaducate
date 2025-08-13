@@ -187,6 +187,7 @@ export async function handleUpgradeClick(planType: string) {
         ? String(experimentVariant)
         : 'direct_checkout';
     try { analytics.trackEvent('exp_exposure_upgrade_checkout_flow', { variant, plan: planType }); } catch {}
+    try { localStorage.setItem('ab_upgrade_checkout_flow_variant', variant); } catch {}
 
     // One-click checkout (variant: direct_checkout)
     try {
