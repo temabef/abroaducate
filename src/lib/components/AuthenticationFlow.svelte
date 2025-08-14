@@ -412,7 +412,15 @@
 
 {#if show}
     <div class="modal-overlay" on:click={close} role="button" tabindex="0" on:keydown={(e)=>{ if(e.key==='Enter' || e.key===' ') { e.preventDefault(); close(); } }}>
-        <div class="modal-content" on:pointerdown|stopPropagation role="dialog" aria-labelledby="modal-title" tabindex="-1">
+        <div class="modal-content" 
+            on:pointerdown|stopPropagation 
+            on:click|stopPropagation 
+            on:mousedown|stopPropagation 
+            on:mouseup|stopPropagation 
+            on:touchstart|stopPropagation 
+            on:touchend|stopPropagation 
+            on:keydown|stopPropagation 
+            role="dialog" aria-labelledby="modal-title" tabindex="-1">
             <!-- Close Button -->
             <button class="close-button" on:click|stopPropagation={close} aria-label="Close modal">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
