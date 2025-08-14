@@ -1,7 +1,10 @@
 <!-- Reusable AdSense Ad Component -->
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
   import { browser } from '$app/environment';
+  import { page } from '$app/stores';
+  import { get } from 'svelte/store';
+  import { supabase as supabaseClient } from '$lib/supabaseClient';
 
   // Props for different ad types and sizes
   export let adSlot: string;
@@ -10,9 +13,15 @@
   export let fullWidthResponsive: boolean = true;
   export let className: string = '';
   
-  // NEW: Props for user subscription checking
+  // Props remain optional for override, but are no longer required.
+  // Component will auto-resolve session and supabase if not provided.
   export let session: any = null;
   export let supabase: any = null;
+
+  // Internally resolved references
+  let effectiveSupabase: any = null;
+  let effectiveSession: any = null;
+  let unsubscribePage: (() => void) | null = null;
   
   let adElement: HTMLElement;
   let adLoaded = false;
@@ -50,7 +59,34 @@
 
   // Check user subscription status
   async function checkUserSubscription() {
-    if (!session || !supabase) {
+    // Resolve supabase and session if not provided via props
+    effectiveSupabase = supabase || supabaseClient;
+
+    // Try to use provided session, else from $page, else from auth.getSession
+    if (!session && browser) {
+      try {
+        // Pull once synchronously
+        const currentPage = get(page);
+        effectiveSession = currentPage?.data?.session || null;
+        // Subscribe to keep in sync while component is mounted
+        unsubscribePage = page.subscribe((p) => {
+          if (!session) {
+            effectiveSession = p?.data?.session || null;
+          }
+        });
+      } catch {}
+    } else {
+      effectiveSession = session;
+    }
+
+    if (!effectiveSession && effectiveSupabase && browser) {
+      try {
+        const { data } = await effectiveSupabase.auth.getSession();
+        effectiveSession = data?.session || null;
+      } catch {}
+    }
+
+    if (!effectiveSession || !effectiveSupabase) {
       // No session or supabase = show ads (free user or not logged in)
       userHasPaidPlan = false;
       checkingSubscription = false;
@@ -58,10 +94,10 @@
     }
 
     try {
-      const { data: subscription, error } = await supabase
+      const { data: subscription, error } = await effectiveSupabase
         .from('user_subscriptions')
         .select('plan_type, status')
-        .eq('user_id', session.user.id)
+        .eq('user_id', effectiveSession.user.id)
         .in('status', ['active', 'trialing'])
         .single();
 
@@ -75,7 +111,7 @@
                        ['active', 'trialing'].includes(subscription.status);
       
       console.log('🎯 Ad Display Check:', {
-        userId: session.user.id,
+        userId: effectiveSession.user.id,
         planType: subscription?.plan_type || 'free',
         status: subscription?.status || 'none',
         showAds: !userHasPaidPlan
@@ -95,6 +131,13 @@
     if (!userHasPaidPlan) {
       // Small delay to ensure DOM is fully rendered
       setTimeout(loadAd, 100);
+    }
+  });
+
+  onDestroy(() => {
+    if (unsubscribePage) {
+      try { unsubscribePage(); } catch {}
+      unsubscribePage = null;
     }
   });
 </script>
