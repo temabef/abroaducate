@@ -2,6 +2,8 @@
   import { page } from '$app/stores';
   import AuthenticationFlow from '$lib/components/AuthenticationFlow.svelte';
   import { analytics } from '$lib/utils/posthog';
+  import { subscriptionState } from '$lib/stores/subscription';
+  import { get } from 'svelte/store';
   
   let { data } = $props();
   let { session, supabase } = $derived(data);
@@ -39,6 +41,8 @@
       annual: 24
     }
   };
+
+  const noAdsLine = 'Ad-free experience on paid plans';
 
   async function handleUpgrade(plan: string, opts?: { trial?: boolean }) {
     // Track pricing page interaction
@@ -413,6 +417,12 @@
             <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
             </svg>
+            <span class="text-gray-700">Ad-free experience on paid plans</span>
+          </li>
+          <li class="flex items-start">
+            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+            </svg>
             <span class="text-gray-700"><strong>Inline Text Editing:</strong> 50 AI-powered edits per month</span>
           </li>
           <li class="flex items-start">
@@ -561,6 +571,12 @@
               <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
             </svg>
             <span class="text-gray-700">Early access to new features</span>
+          </li>
+          <li class="flex items-start">
+            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+            </svg>
+            <span class="text-gray-700">Ad-free experience on paid plans</span>
           </li>
           <li class="flex items-start">
             <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -747,6 +763,12 @@
                 <td class="px-6 py-4 text-sm text-center text-gray-600">12 applications</td>
                 <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>1000 applications</strong></td>
                 <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>Unlimited applications</strong></td>
+              </tr>
+              <tr class="bg-gray-50">
+                <td class="px-6 py-4 text-sm text-gray-900 font-medium">Ads</td>
+                <td class="px-6 py-4 text-sm text-center text-gray-600">Shown</td>
+                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>Not shown (ad-free)</strong></td>
+                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>Not shown (ad-free)</strong></td>
               </tr>
               <tr class="bg-gray-50">
                 <td class="px-6 py-4 text-sm text-gray-900 font-medium">Growth Promise</td>
