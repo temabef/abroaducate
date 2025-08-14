@@ -4,7 +4,8 @@
 	import '../app.css';
 	import Navbar from '$lib/components/Navbar.svelte';
 	import GlobalUpgradeHandler from '$lib/components/GlobalUpgradeHandler.svelte';
-	import { analytics } from '$lib/utils/posthog';
+    import { analytics } from '$lib/utils/posthog';
+    import AdBootstrap from '$lib/components/AdBootstrap.svelte';
 
 	let { data, children } = $props();
     let { supabase, session } = $derived(data);
@@ -52,6 +53,7 @@
 </script>
 
 <Navbar {data} />
+<AdBootstrap />
 
 {@render children()}
 

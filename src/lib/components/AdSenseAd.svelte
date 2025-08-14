@@ -12,6 +12,8 @@
   export let adStyle: string = 'display:block';
   export let fullWidthResponsive: boolean = true;
   export let className: string = '';
+  // Optional variant to improve mobile sizing (in-article responsive)
+  export let variant: 'auto' | 'in-article' = 'auto';
   
   // Props remain optional for override, but are no longer required.
   // Component will auto-resolve session and supabase if not provided.
@@ -21,7 +23,8 @@
   // Internally resolved references
   let effectiveSupabase: any = null;
   let effectiveSession: any = null;
-  let unsubscribePage: (() => void) | null = null;
+  let pageUnsub: (() => void) | null = null;
+  let authUnsub: (() => void) | null = null;
   
   let adElement: HTMLElement;
   let adLoaded = false;
@@ -29,6 +32,7 @@
   const maxRetries = 10;
   let userHasPaidPlan = false;
   let checkingSubscription = true;
+  let lastCheckedUserId: string | null = null;
 
   // Load and render the ad
   function loadAd() {
@@ -69,7 +73,7 @@
         const currentPage = get(page);
         effectiveSession = currentPage?.data?.session || null;
         // Subscribe to keep in sync while component is mounted
-        unsubscribePage = page.subscribe((p) => {
+        pageUnsub = page.subscribe((p) => {
           if (!session) {
             effectiveSession = p?.data?.session || null;
           }
@@ -96,7 +100,7 @@
     try {
       const { data: subscription, error } = await effectiveSupabase
         .from('user_subscriptions')
-        .select('plan_type, status')
+        .select('plan_type, status, admin_override')
         .eq('user_id', effectiveSession.user.id)
         .in('status', ['active', 'trialing'])
         .single();
@@ -106,10 +110,17 @@
       }
 
       // Hide ads for paid users (professional, elite, etc.)
-      userHasPaidPlan = subscription && 
-                       subscription.plan_type !== 'free' && 
-                       ['active', 'trialing'].includes(subscription.status);
+      // Consider admin_override and past_due as premium too
+      userHasPaidPlan = Boolean(
+        subscription &&
+        subscription.plan_type !== 'free' &&
+        (
+          ['active', 'trialing', 'past_due'].includes(subscription.status) ||
+          subscription.admin_override === true
+        )
+      );
       
+      lastCheckedUserId = effectiveSession.user.id;
       console.log('🎯 Ad Display Check:', {
         userId: effectiveSession.user.id,
         planType: subscription?.plan_type || 'free',
@@ -132,13 +143,25 @@
       // Small delay to ensure DOM is fully rendered
       setTimeout(loadAd, 100);
     }
+    
+    // Re-check when auth/session changes
+    try {
+      const { data: authListener } = effectiveSupabase?.auth?.onAuthStateChange?.(async (_event: any, newSession: any) => {
+        const newUserId = newSession?.user?.id || null;
+        if (newUserId && newUserId !== lastCheckedUserId) {
+          checkingSubscription = true;
+          await checkUserSubscription();
+        }
+      }) || { data: null };
+      if (authListener && typeof authListener.subscription?.unsubscribe === 'function') {
+        authUnsub = () => authListener.subscription.unsubscribe();
+      }
+    } catch {}
   });
 
   onDestroy(() => {
-    if (unsubscribePage) {
-      try { unsubscribePage(); } catch {}
-      unsubscribePage = null;
-    }
+    if (pageUnsub) { try { pageUnsub(); } catch {} pageUnsub = null; }
+    if (authUnsub) { try { authUnsub(); } catch {} authUnsub = null; }
   });
 </script>
 
@@ -159,16 +182,17 @@
       <p class="premium-text">Enjoying ad-free browsing as a valued subscriber!</p>
     </div>
   </div>
-{:else}
+  {:else}
   <!-- Free user or not logged in - show ads -->
   <div class="adsense-container {className}">
     <ins 
       bind:this={adElement}
       class="adsbygoogle"
-      style={adStyle}
+      style={variant === 'in-article' ? 'display:block; text-align:center;' : adStyle}
       data-ad-client="ca-pub-9343038264406927"
       data-ad-slot={adSlot}
-      data-ad-format={adFormat}
+      data-ad-format={variant === 'in-article' ? 'fluid' : adFormat}
+      data-ad-layout={variant === 'in-article' ? 'in-article' : undefined}
       data-full-width-responsive={fullWidthResponsive ? "true" : "false"}
     ></ins>
   </div>
