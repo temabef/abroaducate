@@ -4,6 +4,7 @@
 	import type { SupabaseClient, Session } from '@supabase/supabase-js';
 	import { getFeatureLimit, hasFeatureAccess } from '$lib/stripe';
 	import type { PageData } from '../$types';
+	import AdSenseAd from '$lib/components/AdSenseAd.svelte';
 
 	export let data: PageData;
 	let { supabase, session } = data;
@@ -242,6 +243,11 @@
                 </div>
             {/if}
         </div>
+    </div>
+
+    <!-- Ad placement before Footer CTA -->
+    <div class="my-10 max-w-4xl mx-auto">
+        <AdSenseAd adSlot="8877167254" className="bg-gray-50 p-4 rounded-lg border" variant="in-article" />
     </div>
 
     <!-- Footer CTA Card -->

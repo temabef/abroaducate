@@ -3,6 +3,7 @@
   import { africanCountries, africanGradingSystems, getAfricanCountryGradingSystems } from '$lib/data/africanGradingSystems';
   import { goto } from '$app/navigation';
   import { browser } from '$app/environment';
+  import AdSenseAd from '$lib/components/AdSenseAd.svelte';
 
   // State variables
   let studentName = $state('');
@@ -2824,6 +2825,11 @@
         {/if}
 
       </div>
+    </div>
+
+    <!-- Ad placement before Success Stats -->
+    <div class="my-10 max-w-4xl mx-auto">
+      <AdSenseAd adSlot="6442575607" className="bg-gray-50 p-4 rounded-lg border" />
     </div>
 
     <!-- Success Stats Section -->

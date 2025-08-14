@@ -6,6 +6,7 @@
 <script lang="ts">
   import AuthenticationFlow from '$lib/components/AuthenticationFlow.svelte';
   import { goto } from '$app/navigation';
+  import AdSenseAd from '$lib/components/AdSenseAd.svelte';
   let { data } = $props();
   let { session, supabase } = $derived(data);
   let showAuthModal = $state(false);
@@ -540,6 +541,11 @@
       </div>
     </div>
 
+    <!-- Ad placement before Study Tips -->
+    <div class="my-10 max-w-4xl mx-auto">
+      <AdSenseAd adSlot="8877167254" className="bg-gray-50 p-4 rounded-lg border" variant="in-article" />
+    </div>
+    
     <!-- Study Tips and Strategies -->
     <div class="mb-12">
       <h2 class="text-2xl font-bold text-gray-900 mb-6">Essential Study Tips & Strategies</h2>
