@@ -1,37 +1,15 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { browser } from '$app/environment';
-  import { page } from '$app/stores';
+  import { subscriptionState } from '$lib/stores/subscription';
   import { get } from 'svelte/store';
-  import { supabase as supabaseClient } from '$lib/supabaseClient';
 
   let initialized = false;
 
-  async function isUserPremium(): Promise<boolean> {
-    try {
-      const p = get(page) as any;
-      let session = p?.data?.session || null;
-      if (!session) {
-        const { data } = await supabaseClient.auth.getSession();
-        session = data?.session || null;
-      }
-      if (!session) return false;
-      const { data: subscription } = await supabaseClient
-        .from('user_subscriptions')
-        .select('plan_type, status')
-        .eq('user_id', session.user.id)
-        .in('status', ['active', 'trialing'])
-        .single();
-      return Boolean(subscription && subscription.plan_type !== 'free');
-    } catch {
-      return false;
-    }
-  }
-
   onMount(async () => {
     if (!browser || initialized) return;
-    const premium = await isUserPremium();
-    if (!premium) {
+    const sub = get(subscriptionState);
+    if (sub.loaded && !sub.isPremium) {
       const script = document.createElement('script');
       script.async = true;
       script.crossOrigin = 'anonymous';
