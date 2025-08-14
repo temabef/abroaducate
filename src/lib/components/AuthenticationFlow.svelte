@@ -73,12 +73,18 @@
         fullNameError = '';
     }
 
-    // Initialize device fingerprinting
+    // Initialize device fingerprinting - TEMPORARILY DISABLED to fix authentication popup issues
     onMount(async () => {
         if (browser) {
             try {
-                deviceFingerprint = await deviceFingerprintService.getFingerprint();
-                riskAssessment = await deviceFingerprintService.checkDeviceRisk(supabase);
+                // Temporarily disable device fingerprinting to fix CSP issues
+                console.log('Device fingerprinting temporarily disabled for authentication stability');
+                deviceFingerprint = 'temp-disabled';
+                riskAssessment = { shouldBlock: false, riskLevel: 'low' };
+                
+                // Re-enable this after CSP issues are resolved:
+                // deviceFingerprint = await deviceFingerprintService.getFingerprint();
+                // riskAssessment = await deviceFingerprintService.checkDeviceRisk(supabase);
                 
                 if (riskAssessment.shouldBlock) {
                     error = 'Registration temporarily unavailable. Please try again later or contact support.';
@@ -89,9 +95,11 @@
         }
     });
 
-    // Mark user interaction for audio fingerprinting
+    // Mark user interaction for audio fingerprinting - TEMPORARILY DISABLED
     function handleUserInteraction() {
-        deviceFingerprintService.markUserInteraction();
+        // Temporarily disable to avoid CSP issues
+        console.log('Device fingerprinting interaction temporarily disabled');
+        // deviceFingerprintService.markUserInteraction();
     }
 
     function close() {
@@ -248,17 +256,18 @@
     }
 
     async function handleSignup() {
-        // Log registration event for fraud detection
+        // Log registration event for fraud detection - TEMPORARILY SIMPLIFIED
         try {
             await supabase.rpc('log_registration_event', {
                 p_email_domain: emailAnalysis?.domain || email.split('@')[1],
                 p_ip_address: '0.0.0.0', // Would be set server-side
-                p_device_fingerprint: deviceFingerprint,
+                p_device_fingerprint: deviceFingerprint || 'temp-disabled',
                 p_user_agent: navigator.userAgent,
                 p_registration_method: 'email'
             });
         } catch (logError) {
             console.warn('Failed to log registration event:', logError);
+            // Don't block registration if logging fails
         }
 
         // Create account with Supabase's built-in email confirmation
@@ -277,8 +286,14 @@
         if (signupError) throw signupError;
 
         if (data?.user) {
-            // Store device fingerprint
-            await deviceFingerprintService.storeFingerprint(supabase, data.user.id);
+            // Store device fingerprint - TEMPORARILY DISABLED
+            try {
+                // Temporarily skip device fingerprint storage to avoid CSP issues
+                console.log('Device fingerprint storage temporarily disabled');
+                // await deviceFingerprintService.storeFingerprint(supabase, data.user.id);
+            } catch (err) {
+                console.warn('Device fingerprint storage failed:', err);
+            }
 
             // Check if email confirmation is required
             if (data.user.email_confirmed_at) {
@@ -426,7 +441,7 @@
                 <button 
                     class="tab-button" 
                     class:active={activeTab === 'google'}
-                    on:click={() => activeTab = 'google'}
+                    on:click|stopPropagation={() => activeTab = 'google'}
                 >
                     <svg viewBox="0 0 24 24" class="tab-icon">
                         <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -439,7 +454,7 @@
                 <button 
                     class="tab-button" 
                     class:active={activeTab === 'email'}
-                    on:click={() => activeTab = 'email'}
+                    on:click|stopPropagation={() => activeTab = 'email'}
                 >
                     <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" class="tab-icon">
                         <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
