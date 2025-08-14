@@ -158,7 +158,16 @@
         error = '';
         try { analytics.trackEvent('auth_google_started', { returnUrl }); } catch {}
         try {
-            const redirectUrl = `${getBaseUrl()}/auth/callback?next=${encodeURIComponent(returnUrl)}`;
+            const baseUrl = getBaseUrl();
+            const redirectUrl = `${baseUrl}/auth/callback?next=${encodeURIComponent(returnUrl)}`;
+            
+            console.log('🔗 Google OAuth Debug:', {
+                baseUrl,
+                redirectUrl,
+                returnUrl,
+                currentOrigin: window.location.origin,
+                currentHostname: window.location.hostname
+            });
             
             await supabase.auth.signInWithOAuth({
                 provider: 'google',
@@ -520,7 +529,6 @@
                                     type="email"
                                     bind:value={email}
                                     on:blur={analyzeEmailAddress}
-                                    on:input
                                     placeholder="Enter your email"
                                     required
                                 />

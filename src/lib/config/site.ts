@@ -11,17 +11,34 @@ export const siteConfig = {
 
 // Get base URL for authentication and email links
 export function getBaseUrl(): string {
-  // Always prefer the current origin in the browser (works for dev, staging, prod)
   if (typeof window !== 'undefined') {
     const origin = window.location.origin;
-    // Force production URL if we're somehow getting localhost on a production domain
-    if (origin.includes('localhost') && window.location.hostname !== 'localhost') {
+    const hostname = window.location.hostname;
+    
+    console.log('🔍 getBaseUrl debug:', { origin, hostname });
+    
+    // Explicit production check
+    if (hostname === 'abroaducate.com' || hostname === 'www.abroaducate.com') {
+      console.log('✅ Production domain detected, using production URL');
       return 'https://abroaducate.com';
     }
+    
+    // Explicit localhost check
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      console.log('🏠 Localhost detected, using localhost URL');
+      return origin;
+    }
+    
+    // Default to origin but warn about unexpected hostnames
+    console.warn('⚠️ Unexpected hostname:', hostname, 'using origin:', origin);
     return origin;
   }
-  // Server-side fallback: use environment or default
-  return process.env.PUBLIC_SITE_URL || 'https://abroaducate.com';
+  
+  // Server-side fallback
+  const envUrl = process.env.PUBLIC_SITE_URL;
+  const fallbackUrl = envUrl || 'https://abroaducate.com';
+  console.log('🖥️ Server-side getBaseUrl:', fallbackUrl);
+  return fallbackUrl;
 }
 
 // Get base URL for development vs production

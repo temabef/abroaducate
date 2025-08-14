@@ -701,7 +701,12 @@
 
       <!-- Ad after filters -->
       <div class="my-8 max-w-4xl mx-auto">
-        <AdSenseAd adSlot="6442575607" className="bg-gray-50 p-4 rounded-lg" />
+        <AdSenseAd 
+          adSlot="6442575607" 
+          className="bg-gray-50 p-4 rounded-lg"
+          {session}
+          {supabase}
+        />
       </div>
 
     <!-- Scholarship Grid -->
