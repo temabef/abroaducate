@@ -414,7 +414,7 @@
     <div class="modal-overlay" on:click={close} role="button" tabindex="0" on:keydown={(e)=>{ if(e.key==='Enter' || e.key===' ') { e.preventDefault(); close(); } }}>
         <div class="modal-content" on:pointerdown|stopPropagation role="dialog" aria-labelledby="modal-title" tabindex="-1">
             <!-- Close Button -->
-            <button class="close-button" on:click={close} aria-label="Close modal">
+            <button class="close-button" on:click|stopPropagation={close} aria-label="Close modal">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="18" y1="6" x2="6" y2="18"></line>
                     <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -480,7 +480,7 @@
                     <div class="google-auth">
                         <button 
                             class="google-login-button" 
-                            on:click={handleGoogleLogin}
+                            on:click|stopPropagation={handleGoogleLogin}
                             disabled={loading}
                         >
                             {#if loading}
@@ -567,7 +567,7 @@
                                 <button
                                     type="button"
                                     class="password-toggle"
-                                    on:click={() => showPassword = !showPassword}
+                                    on:click|stopPropagation={() => showPassword = !showPassword}
                                 >
                                     {#if showPassword}
                                         <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
@@ -601,7 +601,7 @@
                                     <button
                                         type="button"
                                         class="password-toggle"
-                                        on:click={() => showConfirmPassword = !showConfirmPassword}
+                                        on:click|stopPropagation={() => showConfirmPassword = !showConfirmPassword}
                                     >
                                         {#if showConfirmPassword}
                                             <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
@@ -658,7 +658,7 @@
                         {/if}
 
                         {#if mode === 'login'}
-                            <button type="button" class="forgot-password" on:click={handleForgotPassword}>
+                            <button type="button" class="forgot-password" on:click|stopPropagation={handleForgotPassword}>
                                 Forgot your password?
                             </button>
                         {/if}
@@ -669,9 +669,9 @@
             <!-- Mode Switcher -->
             <div class="mode-switcher">
                 {#if mode === 'login'}
-                    <p>Don't have an account? <button class="link-button" on:click={switchMode}>Sign up here</button></p>
+                    <p>Don't have an account? <button class="link-button" on:click|stopPropagation={switchMode}>Sign up here</button></p>
                 {:else}
-                    <p>Already have an account? <button class="link-button" on:click={switchMode}>Sign in here</button></p>
+                    <p>Already have an account? <button class="link-button" on:click|stopPropagation={switchMode}>Sign in here</button></p>
                 {/if}
             </div>
         </div>
