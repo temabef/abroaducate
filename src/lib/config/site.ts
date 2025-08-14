@@ -13,7 +13,12 @@ export const siteConfig = {
 export function getBaseUrl(): string {
   // Always prefer the current origin in the browser (works for dev, staging, prod)
   if (typeof window !== 'undefined') {
-    return window.location.origin;
+    const origin = window.location.origin;
+    // Force production URL if we're somehow getting localhost on a production domain
+    if (origin.includes('localhost') && window.location.hostname !== 'localhost') {
+      return 'https://abroaducate.com';
+    }
+    return origin;
   }
   // Server-side fallback: use environment or default
   return process.env.PUBLIC_SITE_URL || 'https://abroaducate.com';
