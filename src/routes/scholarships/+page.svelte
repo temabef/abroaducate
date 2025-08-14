@@ -700,7 +700,9 @@
       </div>
 
       <!-- Ad after filters -->
-      <AdSenseAd adSlot="6442575607" className="my-8" />
+      <div class="my-8 max-w-4xl mx-auto">
+        <AdSenseAd adSlot="6442575607" className="bg-gray-50 p-4 rounded-lg" />
+      </div>
 
     <!-- Scholarship Grid -->
     {:else}
@@ -718,11 +720,14 @@
         <!-- Scholarship Cards -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {#each displayScholarships as scholarship, index (scholarship.id)}
-            <!-- Insert ad every 6 cards (after cards 5, 11, 17, etc.) -->
-            {#if index > 0 && index % 6 === 5}
-              <div class="bg-white rounded-lg shadow-sm border flex items-center justify-center min-h-[200px] lg:col-span-2">
-                <AdSenseAd adSlot="6442575607" />
+            <!-- Insert ad every 8 cards (after cards 7, 15, 23, etc.) for better spacing -->
+            {#if index > 0 && index % 8 === 7}
+              <!-- Ad takes full width by breaking grid -->
               </div>
+              <div class="my-6 max-w-4xl mx-auto">
+                <AdSenseAd adSlot="6442575607" className="bg-gray-50 p-4 rounded-lg border" />
+              </div>
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/if}
             
             <div class="bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow duration-200">
