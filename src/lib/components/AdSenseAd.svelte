@@ -2,9 +2,8 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
   import { browser } from '$app/environment';
-  import { page } from '$app/stores';
   import { get } from 'svelte/store';
-  import { supabase as supabaseClient } from '$lib/supabaseClient';
+  import { subscriptionState } from '$lib/stores/subscription';
 
   // Props for different ad types and sizes
   export let adSlot: string;
@@ -15,16 +14,11 @@
   // Optional variant to improve mobile sizing (in-article responsive)
   export let variant: 'auto' | 'in-article' = 'auto';
   
-  // Props remain optional for override, but are no longer required.
-  // Component will auto-resolve session and supabase if not provided.
+  // Props for backward compatibility (no longer required)
   export let session: any = null;
   export let supabase: any = null;
 
-  // Internally resolved references
-  let effectiveSupabase: any = null;
-  let effectiveSession: any = null;
-  let pageUnsub: (() => void) | null = null;
-  let authUnsub: (() => void) | null = null;
+  let storeUnsub: (() => void) | null = null;
   
   let adElement: HTMLElement;
   let adLoaded = false;
@@ -61,76 +55,22 @@
     }
   }
 
-  // Check user subscription status
+  // Read subscription from global store (no client DB calls)
   async function checkUserSubscription() {
-    // Resolve supabase and session if not provided via props
-    effectiveSupabase = supabase || supabaseClient;
-
-    // Try to use provided session, else from $page, else from auth.getSession
-    if (!session && browser) {
-      try {
-        // Pull once synchronously
-        const currentPage = get(page);
-        effectiveSession = currentPage?.data?.session || null;
-        // Subscribe to keep in sync while component is mounted
-        pageUnsub = page.subscribe((p) => {
-          if (!session) {
-            effectiveSession = p?.data?.session || null;
-          }
-        });
-      } catch {}
-    } else {
-      effectiveSession = session;
-    }
-
-    if (!effectiveSession && effectiveSupabase && browser) {
-      try {
-        const { data } = await effectiveSupabase.auth.getSession();
-        effectiveSession = data?.session || null;
-      } catch {}
-    }
-
-    if (!effectiveSession || !effectiveSupabase) {
-      // No session or supabase = show ads (free user or not logged in)
-      userHasPaidPlan = false;
-      checkingSubscription = false;
-      return;
-    }
-
     try {
-      const { data: subscription, error } = await effectiveSupabase
-        .from('user_subscriptions')
-        .select('plan_type, status, admin_override')
-        .eq('user_id', effectiveSession.user.id)
-        .in('status', ['active', 'trialing'])
-        .single();
-
-      if (error && error.code !== 'PGRST116') {
-        console.warn('Subscription check error:', error);
-      }
-
-      // Hide ads for paid users (professional, elite, etc.)
-      // Consider admin_override and past_due as premium too
-      userHasPaidPlan = Boolean(
-        subscription &&
-        subscription.plan_type !== 'free' &&
-        (
-          ['active', 'trialing', 'past_due'].includes(subscription.status) ||
-          subscription.admin_override === true
-        )
-      );
-      
-      lastCheckedUserId = effectiveSession.user.id;
+      const sub = get(subscriptionState);
+      checkingSubscription = !sub.loaded;
+      userHasPaidPlan = sub.isPremium;
+      lastCheckedUserId = sub.userId;
       console.log('🎯 Ad Display Check:', {
-        userId: effectiveSession.user.id,
-        planType: subscription?.plan_type || 'free',
-        status: subscription?.status || 'none',
-        showAds: !userHasPaidPlan
+        userId: sub.userId,
+        planType: sub.planType || 'free',
+        status: sub.status || 'none',
+        showAds: !sub.isPremium
       });
     } catch (err) {
-      console.warn('Failed to check subscription:', err);
-      userHasPaidPlan = false; // Default to showing ads on error
-    } finally {
+      console.warn('Failed to read subscription store:', err);
+      userHasPaidPlan = false;
       checkingSubscription = false;
     }
   }
@@ -144,24 +84,16 @@
       setTimeout(loadAd, 100);
     }
     
-    // Re-check when auth/session changes
+    // React to store updates
     try {
-      const { data: authListener } = effectiveSupabase?.auth?.onAuthStateChange?.(async (_event: any, newSession: any) => {
-        const newUserId = newSession?.user?.id || null;
-        if (newUserId && newUserId !== lastCheckedUserId) {
-          checkingSubscription = true;
-          await checkUserSubscription();
-        }
-      }) || { data: null };
-      if (authListener && typeof authListener.subscription?.unsubscribe === 'function') {
-        authUnsub = () => authListener.subscription.unsubscribe();
-      }
+      storeUnsub = subscriptionState.subscribe((_s) => {
+        checkUserSubscription();
+      });
     } catch {}
   });
 
   onDestroy(() => {
-    if (pageUnsub) { try { pageUnsub(); } catch {} pageUnsub = null; }
-    if (authUnsub) { try { authUnsub(); } catch {} authUnsub = null; }
+    if (storeUnsub) { try { storeUnsub(); } catch {} storeUnsub = null; }
   });
 </script>
 
