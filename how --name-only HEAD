@@ -1,0 +1,3 @@
+[33m514df3d[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m)[m Fix scholarship ads layout - prevent grid disruption and improve spacing
+[33m6f27da8[m Fix remaining AdSense and authentication issues - Add missing Google AdSense CSP domains and prevent double ad loading
+[33m789ef91[m Fix Content Security Policy - resolve authentication popup issues

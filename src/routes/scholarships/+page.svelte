@@ -722,12 +722,12 @@
           {#each displayScholarships as scholarship, index (scholarship.id)}
             <!-- Insert ad every 8 cards (after cards 7, 15, 23, etc.) for better spacing -->
             {#if index > 0 && index % 8 === 7}
-              <!-- Ad takes full width by breaking grid -->
+              <!-- Ad in a single column span -->
+              <div class="lg:col-span-2 my-6">
+                <div class="max-w-2xl mx-auto">
+                  <AdSenseAd adSlot="6442575607" className="bg-gray-50 p-4 rounded-lg border" />
+                </div>
               </div>
-              <div class="my-6 max-w-4xl mx-auto">
-                <AdSenseAd adSlot="6442575607" className="bg-gray-50 p-4 rounded-lg border" />
-              </div>
-              <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/if}
             
             <div class="bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow duration-200">
