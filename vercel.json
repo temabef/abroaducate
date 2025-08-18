@@ -1,6 +1,17 @@
 {
   "redirects": [
     {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.abroaducate.com"
+        }
+      ],
+      "destination": "https://abroaducate.com/$1",
+      "permanent": true
+    },
+    {
       "source": "/50-u-s-universities-with-fully-funded-scholarships-for-fall-2025/",
       "destination": "/scholarships",
       "permanent": true
@@ -106,11 +117,7 @@
       "destination": "/",
       "permanent": true
     },
-    {
-      "source": "/top-uk-universities-that-accept-lower-grade/",
-      "destination": "/universities",
-      "permanent": true
-    },
+
     {
       "source": "/best-countries-in-europe-scholarships/",
       "destination": "/scholarships",
