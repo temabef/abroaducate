@@ -288,18 +288,14 @@
 					<div class="blog-content w-full max-w-none">
 						{@html (() => {
 							try {
-								// TEMPORARY DEBUG: Return raw content without any processing
-								// This will help us identify if the issue is in embedYouTubeVideos or elsewhere
+								// Process content with YouTube embedding restored
 								let cleanContent = post.content || '';
 								
 								// Only remove arrow symbols, no other processing
 								cleanContent = cleanContent.replace(/▲|▼|►|◄/g, '');
 								
-								// Skip YouTube embedding for now to isolate the linking issue
-								return cleanContent;
-								
-								// TODO: Re-enable this after fixing the linking issue
-								// return embedYouTubeVideos(cleanContent);
+								// Re-enable YouTube embedding now that linking issues are fixed
+								return embedYouTubeVideos(cleanContent);
 							} catch (error) {
 								console.error('Error processing blog content:', error);
 								// Fallback to raw content
