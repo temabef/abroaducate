@@ -957,6 +957,7 @@
         <div>
           <h4 class="font-semibold mb-4">Platform</h4>
           <ul class="space-y-2 text-gray-400">
+            <li><a href="/blog" class="hover:text-white transition duration-300">Blog</a></li>
             <li><a href="/sop" class="hover:text-white transition duration-300">SOP Generator</a></li>    
             <li><a href="/universities" class="hover:text-white transition duration-300">University Search</a></li>
             <li><a href="/scholarships" class="hover:text-white transition duration-300">Scholarships</a></li>

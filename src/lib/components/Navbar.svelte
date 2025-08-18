@@ -346,6 +346,13 @@
                 <div class="text-sm text-gray-500">AI-powered F-1 visa prep</div>
               </div>
             </a>
+            <a href="/blog" class="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition duration-200">
+              <span class="text-lg mr-3">📰</span>
+              <div>
+                <div class="font-medium">Blog</div>
+                <div class="text-sm text-gray-500">Guides, tips, news & updates</div>
+              </div>
+            </a>
 
           </div>
         {/if}
@@ -479,6 +486,7 @@
           <div class="pl-4 space-y-1">
             <button onclick={() => navigateTo('/document-checklists')} class="block w-full text-left py-2 text-gray-300 hover:text-white transition duration-300 bg-transparent border-none">Document Checklists</button>
             <button onclick={() => navigateTo('/visa-interview-practice')} class="block w-full text-left py-2 text-gray-300 hover:text-white transition duration-300 bg-transparent border-none">Visa Interview Practice</button>
+            <button onclick={() => navigateTo('/blog')} class="block w-full text-left py-2 text-gray-300 hover:text-white transition duration-300 bg-transparent border-none">Blog</button>
 
           </div>
         </details>

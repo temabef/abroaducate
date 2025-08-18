@@ -4,6 +4,7 @@
 	import '../app.css';
 	import Navbar from '$lib/components/Navbar.svelte';
 	import GlobalUpgradeHandler from '$lib/components/GlobalUpgradeHandler.svelte';
+// Removed light footer per request
     import { analytics } from '$lib/utils/posthog';
     import AdBootstrap from '$lib/components/AdBootstrap.svelte';
     import { subscriptionState } from '$lib/stores/subscription';

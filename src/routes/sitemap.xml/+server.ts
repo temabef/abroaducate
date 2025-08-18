@@ -1,7 +1,8 @@
 import type { RequestHandler } from './$types';
 
-export const GET: RequestHandler = async ({ url }) => {
+export const GET: RequestHandler = async ({ url, locals }) => {
   const baseUrl = url.origin;
+  const supabase = locals.supabase;
   
   // Static pages with their priorities and change frequencies
   const staticPages = [
@@ -26,6 +27,37 @@ export const GET: RequestHandler = async ({ url }) => {
     { url: '/terms', priority: '0.3', changefreq: 'yearly' }
   ];
 
+  // Fetch latest published blog posts (limit to 100 for sitemap)
+  const { data: posts } = await supabase
+    .from('blog_posts')
+    .select('slug, published_at')
+    .eq('status', 'published')
+    .lte('published_at', new Date().toISOString())
+    .order('published_at', { ascending: false })
+    .limit(100);
+
+  const staticEntries = staticPages
+    .map(
+      (page) => `  <url>
+    <loc>${baseUrl}${page.url}</loc>
+    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
+    <changefreq>${page.changefreq}</changefreq>
+    <priority>${page.priority}</priority>
+  </url>`
+    )
+    .join('\n');
+
+  const blogEntries = (posts || [])
+    .map(
+      (p) => `  <url>
+    <loc>${baseUrl}/${p.slug}</loc>
+    <lastmod>${p.published_at ? new Date(p.published_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>`
+    )
+    .join('\n');
+
   // Generate XML sitemap
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
@@ -34,16 +66,8 @@ export const GET: RequestHandler = async ({ url }) => {
         xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0"
         xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
         xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
-${staticPages
-  .map(
-    (page) => `  <url>
-    <loc>${baseUrl}${page.url}</loc>
-    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
-    <changefreq>${page.changefreq}</changefreq>
-    <priority>${page.priority}</priority>
-  </url>`
-  )
-  .join('\n')}
+${staticEntries}
+${blogEntries}
 </urlset>`;
 
   return new Response(sitemap, {

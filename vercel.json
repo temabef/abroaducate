@@ -85,11 +85,7 @@
       "destination": "https://twitter.com/abroaducate",
       "permanent": true
     },
-    {
-      "source": "/blog/:slug*",
-      "destination": "/",
-      "permanent": true
-    },
+    
     {
       "source": "/scholarship/:slug*",
       "destination": "/scholarships",

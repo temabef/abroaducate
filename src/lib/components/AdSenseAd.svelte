@@ -50,7 +50,6 @@
         setTimeout(loadAd, 200);
       }
     } catch (error) {
-      console.warn('AdSense loading error:', error);
       adLoaded = true; // Prevent further retries on error
     }
   }
@@ -62,14 +61,8 @@
       checkingSubscription = !sub.loaded;
       userHasPaidPlan = sub.isPremium;
       lastCheckedUserId = sub.userId;
-      console.log('🎯 Ad Display Check:', {
-        userId: sub.userId,
-        planType: sub.planType || 'free',
-        status: sub.status || 'none',
-        showAds: !sub.isPremium
-      });
+      // User subscription checked
     } catch (err) {
-      console.warn('Failed to read subscription store:', err);
       userHasPaidPlan = false;
       checkingSubscription = false;
     }

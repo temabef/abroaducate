@@ -24,3 +24,7 @@ declare global {
 }
 
 export {};
+
+// Type stubs for libraries without bundled types
+declare module 'markdown-it';
+declare module 'sanitize-html';

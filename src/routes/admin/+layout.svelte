@@ -193,6 +193,10 @@
               <span class="mr-2">📝</span>
               <span>Test Prep CMS</span>
             </a>
+            <a href="/admin/blog" class="flex items-center px-4 py-2 hover:bg-gray-700 {$page.url.pathname.startsWith('/admin/blog') ? 'bg-gray-700' : ''}">
+              <span class="mr-2">📰</span>
+              <span>Blog</span>
+            </a>
           {/if}
           
           {#if permissions.canManageAdmins}
