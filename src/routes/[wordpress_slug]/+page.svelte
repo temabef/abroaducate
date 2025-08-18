@@ -48,15 +48,22 @@
 			''
 		);
 		
-		// Clean up orphaned HTML fragments and broken links
+		// Clean up specific orphaned patterns that don't affect links
+		// Remove orphaned quotes followed by > only when they're clearly not part of HTML attributes
 		processedContent = processedContent.replace(
-			/["']>\s*/g,
+			/\s["']>\s*$/gm,  // Only at end of lines
 			''
 		);
 		
-		// Remove any remaining orphaned > symbols
+		// Remove standalone orphaned > symbols at start of lines
 		processedContent = processedContent.replace(
-			/^\s*>\s*/gm,
+			/^>\s*$/gm,
+			''
+		);
+		
+		// Remove orphaned > symbols at the beginning of lines (but not in HTML tags)
+		processedContent = processedContent.replace(
+			/^>\s+/gm,
 			''
 		);
 		
@@ -178,9 +185,7 @@
 				// Remove any text nodes that contain orphaned > symbols
 				const walker = document.createTreeWalker(
 					blogContent,
-					NodeFilter.SHOW_TEXT,
-					null,
-					false
+					NodeFilter.SHOW_TEXT
 				);
 				
 				const textNodes = [];
@@ -190,8 +195,8 @@
 				}
 				
 				textNodes.forEach(textNode => {
-					if (textNode.textContent.trim() === '>' || textNode.textContent.trim() === '">') {
-						textNode.remove();
+					if (textNode.textContent && (textNode.textContent.trim() === '>' || textNode.textContent.trim() === '">')) {
+						(textNode as Element).remove();
 					}
 				});
 			}
