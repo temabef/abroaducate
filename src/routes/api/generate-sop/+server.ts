@@ -19,7 +19,7 @@ function buildPrompt(formData: FormData): string {
         `- Field of Study: ${formData.academicData.fieldOfStudy || 'Not provided'}`,
         `- University Name (Previous): ${formData.academicData.universityName || 'Not provided'}`,
         `- GPA: ${formData.academicData.gpa || 'N/A'}`,
-        `- Aspirations: ${formData.selectedAspirations || formData.customAspiration || 'Not specified'}`,
+        `- Aspirations: ${formData.customAspiration || formData.selectedAspirations.join(', ') || 'Not specified'}`,
         `- Key Qualities: ${formData.selectedQualities.join(', ') || 'N/A'}`,
 
         ...(formData.showWorkExperienceForm && formData.workExperiences.length > 0 && formData.workExperiences.some((w: WorkExperience) => w.company) ? [
@@ -56,6 +56,94 @@ function buildPrompt(formData: FormData): string {
     return `${instruction}\n\n--- APPLICANT DATA ---\n${sections.join('\n')}`;
 }
 
+async function generateSOPWithAI(formData: FormData, supabase: any, userId: string): Promise<string> {
+    try {
+        console.log('Starting SOP generation with AI...');
+        console.log('Form data keys:', Object.keys(formData));
+        
+        // Get AI model based on user's subscription
+        const modelConfig = await getModelConfig(supabase, userId, 'sop');
+        console.log('AI model config:', modelConfig);
+
+        const prompt = buildPrompt(formData);
+        console.log('Generated prompt length:', prompt.length);
+
+        console.log('Making OpenAI API request...');
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${OPENAI_API_KEY}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                model: modelConfig.model,
+                messages: [
+                    {
+                        role: 'system',
+                        content: 'You are an expert academic writer specializing in Statement of Purpose documents. Create compelling, professional SOPs that showcase the applicant\'s unique qualifications and motivations.'
+                    },
+                    {
+                        role: 'user',
+                        content: prompt
+                    }
+                ],
+                temperature: modelConfig.temperature,
+                max_tokens: modelConfig.max_tokens
+            })
+        });
+
+        console.log('OpenAI response status:', response.status);
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('OpenAI API error details:', {
+                status: response.status,
+                statusText: response.statusText,
+                errorText: errorText
+            });
+            throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
+        }
+
+        const aiResponse = await response.json();
+        console.log('OpenAI response received, choices count:', aiResponse.choices?.length);
+        
+        if (!aiResponse.choices || !aiResponse.choices[0] || !aiResponse.choices[0].message) {
+            console.error('Invalid OpenAI response structure:', aiResponse);
+            throw new Error('Invalid response from OpenAI API');
+        }
+
+        const generatedText = aiResponse.choices[0].message.content.trim();
+        console.log('Generated SOP text length:', generatedText.length);
+        
+        return generatedText;
+
+    } catch (error) {
+        console.error('OpenAI API error:', error);
+        console.log('Falling back to template-based generation...');
+        // Fallback to template-based generation
+        return generateFallbackSOP(formData);
+    }
+}
+
+function generateFallbackSOP(formData: FormData): string {
+    const { universityData, academicData, selectedAspirations, customAspiration, selectedQualities } = formData;
+    
+    const aspirations = customAspiration || selectedAspirations.join(', ') || 'academic and professional growth';
+    const qualities = selectedQualities.join(', ') || 'academic excellence';
+    
+    return `I am writing to express my strong interest in the ${universityData.program} program at ${universityData.university}. With a background in ${academicData.fieldOfStudy} and a passion for ${aspirations}, I am excited about the opportunity to contribute to and grow within your esteemed academic community.
+
+My academic journey has been driven by a deep curiosity and commitment to excellence. I completed my ${academicData.degreeType} in ${academicData.fieldOfStudy} from ${academicData.universityName}, where I developed a strong foundation in my field. Throughout my studies, I have consistently demonstrated ${qualities}, which I believe aligns perfectly with the values and expectations of your program.
+
+The ${universityData.program} program at ${universityData.university} particularly appeals to me because of its reputation for academic rigor and innovative approaches to learning. I am drawn to the program's commitment to fostering critical thinking and practical application of knowledge, which I believe will provide me with the skills and experiences necessary to achieve my career goals.
+
+My long-term aspirations include ${aspirations}, and I am confident that the comprehensive curriculum and research opportunities offered by your program will provide me with the necessary tools to succeed in these endeavors. I am particularly interested in the program's emphasis on practical experience and industry connections, which I believe will be invaluable in preparing me for the challenges and opportunities that lie ahead.
+
+I am excited about the possibility of joining your academic community and contributing to the vibrant intellectual environment at ${universityData.university}. I am confident that my academic background, combined with my passion for learning and commitment to excellence, makes me a strong candidate for this program. I look forward to the opportunity to discuss how my background and goals align with your program's objectives.
+
+Thank you for considering my application. I am eager to contribute to and grow within your academic community.`;
+}
+
 export const POST: RequestHandler = async ({ request, locals: { supabase, getSession } }) => {
     const session = await getSession();
     
@@ -79,12 +167,10 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
             country: z.string().min(1).max(100).optional()
         }),
         academicData: z.object({
-            gpa: z.number().min(0).max(4.0).optional(),
-            major: z.string().min(1).max(200),
-            graduationYear: z.number().int().min(2000).max(2030).optional(),
-            relevantCourses: z.array(z.any()).optional().default([]),
-            projects: z.array(z.any()).optional().default([]),
-            achievements: z.array(z.any()).optional().default([])
+            degreeType: z.string().min(1).max(200),
+            fieldOfStudy: z.string().min(1).max(200),
+            universityName: z.string().min(1).max(200),
+            gpa: z.string().optional()
         }),
         selectedQualities: z.array(z.string()).min(1).max(10),
         selectedAspirations: z.array(z.string()).min(1).max(10),
@@ -92,10 +178,17 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
         isBestChoiceSelected: z.boolean(),
         isCustomQuality: z.boolean().optional().default(false),
         customQualityReason: z.string().max(500).optional().default(''),
+        showWorkExperienceForm: z.boolean().optional().default(false),
         workExperiences: z.array(z.any()).optional().default([]),
+        showOrganizationsForm: z.boolean().optional().default(false),
         organizations: z.array(z.any()).optional().default([]),
+        showCommunityServiceForm: z.boolean().optional().default(false),
         communityServices: z.array(z.any()).optional().default([]),
+        showHobbiesForm: z.boolean().optional().default(false),
         hobbies: z.string().max(1000).optional().default(''),
+        showAchievementsForm: z.boolean().optional().default(false),
+        relevantCourses: z.array(z.any()).optional().default([]),
+        projects: z.array(z.any()).optional().default([]),
         achievements: z.array(z.any()).optional().default([])
     });
     
@@ -123,63 +216,99 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
         }
         
         // Generate SOP using OpenAI
-        const openaiData = await generateSOPWithAI(data, supabase, session.user.id);
-
-        const generatedSopText = openaiData.choices[0].message.content.trim();
+        const generatedSopText = await generateSOPWithAI(data, supabase, session.user.id);
 
         // Calculate word count
         const wordCount = generatedSopText.split(/\s+/).length;
         
+        console.log('SOP generated successfully, attempting database save...');
+        console.log('Generated text length:', generatedSopText.length);
+        console.log('Word count:', wordCount);
+        
         // Insert a new record with the form data and generated SOP
-        // Handle both new schema (content) and old schema (generated_sop) for backward compatibility
-        const insertPayload = {
-            user_id: session.user.id,
-            university_name: data.universityData.university.trim(),
-            program_name: data.universityData.program.trim(),
-            word_count: wordCount,
-            form_data: data,
-            status: 'draft'
-        };
-
-        // Try with new schema first (content column)
+        // Handle multiple schema variations for backward compatibility
         let insertData, insertError;
         
-        const result = await supabase
-            .from('sops')
-            .insert({
-                ...insertPayload,
-                content: generatedSopText,
-                original_content: generatedSopText
-            })
-            .select()
-            .single();
+        // First, let's check what columns exist in the sops table
+        const { data: tableInfo, error: tableError } = await supabase
+            .from('information_schema.columns')
+            .select('column_name')
+            .eq('table_name', 'sops')
+            .eq('table_schema', 'public');
             
-        insertData = result.data;
-        insertError = result.error;
+        if (tableError) {
+            console.error('Error checking table schema:', tableError);
+        } else {
+            console.log('Available columns in sops table:', tableInfo?.map(col => col.column_name));
+        }
         
-        // If new schema fails, try old schema (generated_sop column)
-        if (insertError && insertError.message?.includes('content')) {
-            console.log('Trying old schema format with generated_sop column...');
-            const oldResult = await supabase
-                .from('sops')
-                .insert({
+        // Try multiple insert strategies based on available columns
+        const insertStrategies = [
+            // Strategy 1: New schema with content column
+            {
+                name: 'New schema with content',
+                data: {
+                    user_id: session.user.id,
+                    university_name: data.universityData.university.trim(),
+                    program_name: data.universityData.program.trim(),
+                    word_count: wordCount,
+                    form_data: data,
+                    status: 'draft',
+                    content: generatedSopText,
+                    original_content: generatedSopText
+                }
+            },
+            // Strategy 2: Old schema with generated_sop column
+            {
+                name: 'Old schema with generated_sop',
+                data: {
                     user_id: session.user.id,
                     university: data.universityData.university.trim(),
                     program: data.universityData.program.trim(),
                     generated_sop: generatedSopText,
                     form_data: data
-                })
-                .select()
-                .single();
+                }
+            },
+            // Strategy 3: Minimal schema
+            {
+                name: 'Minimal schema',
+                data: {
+                    user_id: session.user.id,
+                    content: generatedSopText
+                }
+            }
+        ];
+        
+        for (const strategy of insertStrategies) {
+            try {
+                console.log(`Trying insert strategy: ${strategy.name}`);
+                const result = await supabase
+                    .from('sops')
+                    .insert(strategy.data)
+                    .select()
+                    .single();
+                    
+                insertData = result.data;
+                insertError = result.error;
                 
-            insertData = oldResult.data;
-            insertError = oldResult.error;
+                if (!insertError) {
+                    console.log(`✅ Success with strategy: ${strategy.name}`);
+                    break;
+                } else {
+                    console.log(`❌ Failed with strategy: ${strategy.name}`, insertError);
+                }
+            } catch (strategyError) {
+                console.log(`❌ Exception with strategy: ${strategy.name}`, strategyError);
+                insertError = strategyError;
+            }
         }
         
         if (insertError) {
-            console.error('Database save error:', insertError);
-            throw new Error(`Database save failed: ${insertError.message}`);
+            console.error('All database insert strategies failed:', insertError);
+            throw new Error(`Database save failed: ${insertError.message || JSON.stringify(insertError)}`);
         }
+        
+        console.log('✅ SOP saved successfully with ID:', insertData?.id);
         
         // Increment usage counter after successful generation
         await incrementComprehensiveUsage(session.user.id, 'sop_generation');
@@ -193,6 +322,14 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
         
     } catch (error) {
         console.error('Error generating SOP:', error);
-        return json({ error: 'Failed to generate SOP' }, { status: 500, headers: securityHeaders });
+        console.error('Error details:', {
+            message: error.message,
+            stack: error.stack,
+            name: error.name
+        });
+        return json({ 
+            error: 'Failed to generate SOP',
+            details: error.message || 'Unknown error occurred'
+        }, { status: 500, headers: securityHeaders });
     }
 };

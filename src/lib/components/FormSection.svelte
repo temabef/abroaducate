@@ -110,7 +110,7 @@
             if (!state.universityData.country.trim()) errors.push('Country is required.');
             if (!state.universityData.program.trim()) errors.push('Program is required.');
             if (state.selectedAspirations.length === 0 && !state.isBestChoiceSelected) {
-                errors.push('Please select an aspiration option.');
+                errors.push('Please select at least one aspiration option.');
             }
             if (state.isBestChoiceSelected && !state.customAspiration.trim()) {
                 errors.push('Please provide your custom aspiration.');

@@ -40,7 +40,7 @@
     $: universityError = $formStore.universityData.university.trim().length < 2 ? 'University name is required (min 2 characters).' : '';
     $: countryError = !$formStore.universityData.country ? 'Country is required.' : '';
     $: programError = $formStore.universityData.program.trim().length < 2 ? 'Program is required (min 2 characters).' : '';
-    $: aspirationError = (!$formStore.isBestChoiceSelected && $formStore.selectedAspirations.length === 0) ? 'Please select an aspiration option.' : ($formStore.isBestChoiceSelected && !$formStore.customAspiration.trim() ? 'Please provide your custom aspiration.' : '');
+    $: aspirationError = (!$formStore.isBestChoiceSelected && $formStore.selectedAspirations.length === 0) ? 'Please select at least one aspiration option.' : ($formStore.isBestChoiceSelected && !$formStore.customAspiration.trim() ? 'Please provide your custom aspiration.' : '');
     $: qualitiesError = (!$formStore.isCustomQuality && $formStore.selectedQualities.length === 0) ? 'Please select at least one quality.' : ($formStore.isCustomQuality && !$formStore.customQualityReason.trim() ? 'Please provide a reason for your custom quality.' : '');
 
     function handleChange(event: Event) {
@@ -55,12 +55,20 @@
     }
 
     function handleAspirationChange(aspiration: string) {
-        formStore.update(s => ({
-            ...s,
-            selectedAspirations: [aspiration], // Only one selection
-            isBestChoiceSelected: false, // Clear custom when selecting predefined
-            customAspiration: ''
-        }));
+        formStore.update(s => {
+            const aspirations = s.selectedAspirations;
+            if (aspirations.includes(aspiration)) {
+                return { ...s, selectedAspirations: aspirations.filter(a => a !== aspiration) };
+            } else {
+                // When selecting a predefined aspiration, uncheck the custom option
+                return { 
+                    ...s, 
+                    selectedAspirations: [...aspirations, aspiration],
+                    isBestChoiceSelected: false,
+                    customAspiration: ''
+                };
+            }
+        });
     }
 
     function handleCustomAspirationChange(event: Event) {
@@ -194,7 +202,7 @@
 
         <!-- Predefined Options -->
         <div class="predefined-aspirations">
-            <h4 class="predefined-title">Or select from these common aspirations:</h4>
+            <h4 class="predefined-title">Or select from these common aspirations (you can choose multiple):</h4>
             <div class="aspirations-grid">
                 {#each [
                     'Obtain a leadership position in a top company',
@@ -210,9 +218,9 @@
                     'Build a strong professional network globally',
                     'Gain expertise to solve industry challenges'
                 ] as aspiration}
-                    <label class="radio-label aspiration-option">
+                    <label class="checkbox-label aspiration-option">
                         <input 
-                            type="radio" 
+                            type="checkbox" 
                             name="aspiration"
                             value={aspiration}
                             checked={$formStore.selectedAspirations.includes(aspiration)} 
@@ -308,6 +316,19 @@
 
     .radio-label:hover, .checkbox-label:hover {
         color: #1F2937;
+    }
+
+    .checkbox-label.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .checkbox-label.disabled:hover {
+        color: #374151;
+    }
+
+    .predefined-aspirations.disabled {
+        opacity: 0.7;
     }
 
     
