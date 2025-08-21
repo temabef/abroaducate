@@ -1768,7 +1768,7 @@
     </div>
   </div>
 
-  <div class="max-w-6xl mx-auto px-4 py-8">
+  <div class="max-w-5xl md:max-w-6xl mx-auto px-4 py-8">
     <div class="grid lg:grid-cols-2 gap-8">
       <!-- Input Form -->
       <div class="bg-white rounded-xl shadow-lg p-6">
@@ -2468,11 +2468,7 @@
                     📊 Lines analyzed: {processedLines.size} of {smartAssistData.extractedLines.length}
                   </p>
                   <p class="text-xs text-blue-600 mt-1">
-                    {#if activeTab === 'manual'}
-                      🔄 Currently editing a course - return here to continue
-                    {:else}
-                      Click lines below to extract course information
-                    {/if}
+                    Click lines below to extract course information
                   </p>
                   <div class="w-full bg-blue-200 rounded-full h-2 mt-2">
                     <div 
@@ -2529,8 +2525,8 @@
                   <div class="space-y-2">
                     {#each yearCourses as course, index}
                       {@const globalIndex = courses.indexOf(course)}
-                      <div class="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-100">
-                        <div class="flex-1">
+                      <div class="flex items-start justify-between p-3 bg-blue-50 rounded-lg border border-blue-100">
+                        <div class="flex-1 space-y-1">
                           <div class="font-medium text-gray-900">
                             {#if course.code}
                               <span class="text-blue-600 font-semibold">{course.code}</span> - 
@@ -2542,13 +2538,26 @@
                             Credits: <span class="font-medium">{course.credits}</span> | 
                             US GPA: <span class="font-medium text-green-600">{course.usGPA.toFixed(1)}</span>
                           </div>
+                          <!-- Inline edit controls -->
+                          <div class="grid grid-cols-3 gap-2 text-sm">
+                            <input class="px-2 py-1 border rounded" value={course.name} oninput={(e:any)=>{ courses[globalIndex].name=e.target.value; courses=[...courses]; saveData(); }} />
+                            <select class="px-2 py-1 border rounded" bind:value={courses[globalIndex].grade} onchange={()=>{ const gd=currentGradingSystem?.[courses[globalIndex].grade]; courses[globalIndex].usGPA=gd?.usGPA||0; courses=[...courses]; saveData(); }}>
+                              <option value="">Grade</option>
+                              {#each availableGrades as g}
+                                <option value={g}>{g}</option>
+                              {/each}
+                            </select>
+                            <input class="px-2 py-1 border rounded" type="number" min="0" step="0.5" value={course.credits} oninput={(e:any)=>{ courses[globalIndex].credits=parseFloat(e.target.value)||0; courses=[...courses]; saveData(); }} />
+                          </div>
                         </div>
-                        <button
-                          onclick={() => removeCourse(globalIndex)}
-                          class="text-red-600 hover:text-red-800 font-medium text-sm px-2 py-1 rounded"
-                        >
-                          Remove
-                        </button>
+                        <div class="flex flex-col items-end space-y-2 ml-3">
+                          <button
+                            onclick={() => removeCourse(globalIndex)}
+                            class="text-red-600 hover:text-red-800 font-medium text-sm px-2 py-1 rounded"
+                          >
+                            Remove
+                          </button>
+                        </div>
                       </div>
                     {/each}
                   </div>
@@ -2566,8 +2575,8 @@
                 <div class="space-y-2">
                   {#each unassignedCourses as course}
                     {@const globalIndex = courses.indexOf(course)}
-                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div class="flex-1">
+                    <div class="flex items-start justify-between p-3 bg-gray-50 rounded-lg">
+                      <div class="flex-1 space-y-1">
                         <div class="font-medium text-gray-900">
                           {#if course.code}
                             <span class="text-gray-600 font-semibold">{course.code}</span> - 
@@ -2579,13 +2588,25 @@
                           Credits: <span class="font-medium">{course.credits}</span> | 
                           US GPA: <span class="font-medium text-green-600">{course.usGPA.toFixed(1)}</span>
                         </div>
+                        <div class="grid grid-cols-3 gap-2 text-sm">
+                          <input class="px-2 py-1 border rounded" value={course.name} oninput={(e:any)=>{ courses[globalIndex].name=e.target.value; courses=[...courses]; saveData(); }} />
+                          <select class="px-2 py-1 border rounded" bind:value={courses[globalIndex].grade} onchange={()=>{ const gd=currentGradingSystem?.[courses[globalIndex].grade]; courses[globalIndex].usGPA=gd?.usGPA||0; courses=[...courses]; saveData(); }}>
+                            <option value="">Grade</option>
+                            {#each availableGrades as g}
+                              <option value={g}>{g}</option>
+                            {/each}
+                          </select>
+                          <input class="px-2 py-1 border rounded" type="number" min="0" step="0.5" value={course.credits} oninput={(e:any)=>{ courses[globalIndex].credits=parseFloat(e.target.value)||0; courses=[...courses]; saveData(); }} />
+                        </div>
                       </div>
-                      <button
-                        onclick={() => removeCourse(globalIndex)}
-                        class="text-red-600 hover:text-red-800 font-medium text-sm px-2 py-1 rounded"
-                      >
-                        Remove
-                      </button>
+                      <div class="flex flex-col items-end space-y-2 ml-3">
+                        <button
+                          onclick={() => removeCourse(globalIndex)}
+                          class="text-red-600 hover:text-red-800 font-medium text-sm px-2 py-1 rounded"
+                        >
+                          Remove
+                        </button>
+                      </div>
                     </div>
                   {/each}
                 </div>

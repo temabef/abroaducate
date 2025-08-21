@@ -112,7 +112,8 @@ export class GPAConverterService {
    * Extract midpoint from score range string
    */
   private getMidpointFromRange(range: string): number {
-    const match = range.match(/(\d+\.?\d*)-(\d+\.?\d*)/);
+    // Support ranges with optional spaces around hyphen, e.g., "18 - 20"
+    const match = range.match(/(\d+\.?\d*)\s*-\s*(\d+\.?\d*)/);
     if (match) {
       const min = parseFloat(match[1]);
       const max = parseFloat(match[2]);
