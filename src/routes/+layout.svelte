@@ -20,6 +20,20 @@
     }
 
 	onMount(() => {
+        // Dev-only: aggressively unregister any service workers and delete caches
+        try {
+            if (import.meta.env.DEV) {
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.getRegistrations().then((regs) => {
+                        regs.forEach((reg) => reg.unregister().catch(() => {}));
+                    }).catch(() => {});
+                }
+                if ('caches' in window) {
+                    caches.keys().then((keys) => keys.forEach((k) => caches.delete(k))).catch(() => {});
+                }
+            }
+        } catch {}
+
         // Initialize subscription store based on current session
         try {
             if (session?.user?.id) {
@@ -53,10 +67,10 @@
             }
         })();
 
-        // Track SPA navigations and keep session recording alive
+        // Track SPA navigations
         afterNavigate(() => {
             try { analytics.trackPageView(document.title || 'Page', { path: location.pathname }); } catch {}
-            try { (window as any).posthog?.startSessionRecording?.(); } catch {}
+            // Removed posthog session recording call for stability
         });
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {

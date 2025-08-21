@@ -4,6 +4,7 @@
     import AuthenticationFlow from '$lib/components/AuthenticationFlow.svelte';
     import { gpaMidpoint, type QuickProfile } from '$lib/services/quickProfile';
     import { handleUpgradeClick } from '$lib/services/upgradeService';
+    // TEMPORARILY DISABLED: import { analytics } from '$lib/utils/posthog';
     
     export let userProfile: any = {};
     export let session: any = null;
@@ -21,12 +22,40 @@
     let authReturnUrl: string = '/universities';
 
     const FORM_CACHE_KEY = 'univ_match_pending_form_v1';
+    const RESULTS_CACHE_KEY = 'univ_match_results_v1';
+    const FORM_DATA_CACHE_KEY = 'univ_match_form_data_v1';
     let resumePending = false;
     let resumeTries = 0;
     const MAX_RESUME_TRIES = 8; // ~2.4s total at 300ms steps
 
     function getCachedForm(): any | null {
         try { const raw = localStorage.getItem(FORM_CACHE_KEY); return raw ? JSON.parse(raw) : null; } catch { return null; }
+    }
+
+
+
+    function getCachedFormData(): any | null {
+        try { const raw = sessionStorage.getItem(FORM_DATA_CACHE_KEY); return raw ? JSON.parse(raw) : null; } catch { return null; }
+    }
+
+    function getCachedResultsFromStorage(): any | null {
+        try { const raw = sessionStorage.getItem(RESULTS_CACHE_KEY); return raw ? JSON.parse(raw) : null; } catch { return null; }
+    }
+
+    function saveCachedResults(results: any) {
+        try { sessionStorage.setItem(RESULTS_CACHE_KEY, JSON.stringify(results)); } catch {}
+    }
+
+    function saveCachedFormData() {
+        try { sessionStorage.setItem(FORM_DATA_CACHE_KEY, JSON.stringify(profileForm)); } catch {}
+    }
+
+    function clearCachedResults() {
+        try { sessionStorage.removeItem(RESULTS_CACHE_KEY); } catch {}
+    }
+
+    function clearCachedFormData() {
+        try { sessionStorage.removeItem(FORM_DATA_CACHE_KEY); } catch {}
     }
 
     async function tryResumeFromCache(): Promise<void> {
@@ -67,8 +96,82 @@
                 resumePending = true;
                 void tryResumeFromCache();
             }
-        } catch {}
+
+            // Load user profile if logged in
+            if (session?.user?.id) {
+                void loadUserProfile();
+            }
+
+            // Try to restore cached results and form data
+            const cachedResults = getCachedResultsFromStorage();
+            const cachedFormData = getCachedFormData();
+
+            if (cachedResults && cachedFormData) {
+                console.log('✅ Restoring cached results and form data');
+                matchResults = cachedResults;
+
+                // Restore form data
+                profileForm = { ...profileForm, ...cachedFormData };
+
+                // Update pagination information
+                if (matchResults.pagination) {
+                    currentPage = matchResults.pagination.currentPage;
+                    totalPages = matchResults.pagination.totalPages;
+                    totalMatches = matchResults.pagination.totalMatches;
+                    totalAvailable = matchResults.pagination.totalAvailable;
+                    planLimit = matchResults.pagination.planLimit;
+                    planType = matchResults.pagination.planType;
+                }
+            }
+        } catch (error) {
+            console.error('Error in onMount:', error);
+        }
     });
+
+    // Load user profile from database
+    async function loadUserProfile() {
+        try {
+            const response = await fetch('/api/user-profiles');
+            if (!response.ok) return;
+            const data = await response.json();
+            const p = data.profile;
+            if (!p) return;
+            // Populate only known fields from unified quick profile
+            profileForm.gpa = String(gpaMidpoint(p.gpa_range || '3.0-3.5'));
+            profileForm.field = p.field_of_study || '';
+            profileForm.degree_level = p.degree_level || 'masters';
+            profileForm.scholarship_priority = p.scholarship_priority || profileForm.scholarship_priority;
+            profileForm.preferred_countries = Array.isArray(p.preferred_countries) ? p.preferred_countries : [];
+            // Mark profile as complete
+            userProfile = { ...p, isComplete: true };
+            console.log('✅ Loaded user quick profile');
+        } catch (error) {
+            console.error('Error loading user profile:', error);
+        }
+    }
+
+    // Save user profile to database
+    async function saveUserProfile() {
+        if (!session?.user?.id) return;
+        try {
+            const response = await fetch('/api/user-profiles', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    gpa: parseFloat(String(profileForm.gpa)),
+                    field_of_study: profileForm.field,
+                    degree_level: profileForm.degree_level,
+                    preferred_countries: profileForm.preferred_countries,
+                    scholarship_priority: profileForm.scholarship_priority
+                })
+            });
+            if (!response.ok) {
+                console.error('Failed to save user profile');
+            }
+        } catch (error) {
+            console.error('Error saving user profile:', error);
+        }
+    }
 
     // Add pagination state
     let currentPage = 1;
@@ -302,6 +405,10 @@
                     planType = matchResults.pagination.planType;
                 }
                 
+                // NEW: Save results to session storage for persistence
+                saveCachedResults(matchResults);
+                saveCachedFormData();
+                
                 analyzing = false;
                 loadingFirstSearch = false;
                 loadingPage = false;
@@ -332,6 +439,22 @@
                 return;
             }
 
+            // NEW: Check if user has completed profile before showing matches
+            // This ensures accurate matching like the scholarship system
+            if (!userProfile || !userProfile.isComplete) {
+                console.log('User profile not complete, showing profile completion modal');
+                showQuickProfile = true;
+                analyzing = false;
+                loadingFirstSearch = false;
+                loadingPage = false;
+                return;
+            }
+
+            // TEMPORARILY DISABLED: Save user profile to database when they perform a search
+            // if (session?.user?.id) {
+            //     await saveUserProfile();
+            // }
+
             const response = await fetch('/api/university-matching', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -356,6 +479,10 @@
             // Cache the results for future use
             cacheResults(formData, currentPage, data);
             
+            // Save results and form data to session storage for persistence
+            saveCachedResults(matchResults);
+            saveCachedFormData();
+            
             // Update pagination information
             if (matchResults.pagination) {
                 currentPage = matchResults.pagination.currentPage;
@@ -367,17 +494,19 @@
             }
             try {
                 const t1 = performance.now?.() || Date.now();
-                window.posthog?.capture && window.posthog.capture('match_generated', {
-                    surface: 'universities',
-                    result_count: Array.isArray(matchResults.matches) ? matchResults.matches.length : 0,
-                    duration_ms: Math.round(t1 - t0),
-                    needs_profile: !!matchResults.needs_profile
-                });
+                // TEMPORARILY DISABLED: Use the analytics utility for better tracking
+                // analytics.trackEvent('match_generated', {
+                //     surface: 'universities',
+                //     result_count: Array.isArray(matchResults.matches) ? matchResults.matches.length : 0,
+                //     duration_ms: Math.round(t1 - t0),
+                //     needs_profile: !!matchResults.needs_profile
+                // });
             } catch {}
             
         } catch (err) {
             console.error('University matching error:', err);
-            try { window.posthog?.capture && window.posthog.capture('match_failed', { surface: 'universities' }); } catch {}
+            // TEMPORARILY DISABLED: const errorMessage = err instanceof Error ? err.message : String(err);
+            // TEMPORARILY DISABLED: analytics.trackError('university_matching_failed', errorMessage, { surface: 'universities' });
             
             // Implement retry logic for network/server issues
             if (retryCount < maxRetries) {
@@ -722,6 +851,27 @@
 
     <!-- Action Button -->
     <div class="mb-6">
+        <!-- Profile Completion Notice -->
+        {#if !userProfile || !userProfile.isComplete}
+            <div class="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <span class="text-yellow-600 mr-3">⚠️</span>
+                        <div>
+                            <h4 class="text-sm font-medium text-yellow-800">Complete Your Profile First</h4>
+                            <p class="text-xs text-yellow-700 mt-1">For accurate university matching, please complete your profile.</p>
+                        </div>
+                    </div>
+                    <button 
+                        on:click={() => showQuickProfile = true}
+                        class="px-4 py-2 bg-yellow-600 text-white text-sm rounded-lg hover:bg-yellow-700 transition-colors"
+                    >
+                        Complete Profile
+                    </button>
+                </div>
+            </div>
+        {/if}
+        
         <button 
             on:click={analyzeMatches}
             disabled={analyzing || !profileForm.gpa || !profileForm.field}
@@ -1211,12 +1361,28 @@
     bind:isOpen={showQuickProfile}
     {session}
     supabase={null}
-    on:completed={(e: CustomEvent<{ profile: QuickProfile }>) => {
+    on:completed={async (e: CustomEvent<{ profile: QuickProfile }>) => {
         const qp = e.detail.profile;
         profileForm.degree_level = qp.degree_level === 'graduate' ? 'masters' : qp.degree_level;
         profileForm.field = qp.field_of_study;
         profileForm.preferred_countries = qp.preferred_countries || [];
         profileForm.gpa = String(gpaMidpoint(qp.gpa_range));
+        
+        // NEW: Set userProfile to indicate profile completion
+        userProfile = {
+            ...qp,
+            isComplete: true,
+            degree_level: qp.degree_level === 'graduate' ? 'masters' : qp.degree_level,
+            field: qp.field_of_study,
+            gpa: gpaMidpoint(qp.gpa_range),
+            preferred_countries: qp.preferred_countries || []
+        };
+        
+        // Save profile to database
+        if (session?.user?.id) {
+            await saveUserProfile();
+        }
+        
         showQuickProfile = false;
         matchResults = null;
         analyzeMatches(1);

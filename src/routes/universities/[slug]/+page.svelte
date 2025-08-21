@@ -105,6 +105,64 @@
   {#if university}
     <title>{university.name} - University Profile | Abroaducate</title>
     <meta name="description" content="Complete profile for {university.name} including rankings, programs, costs, admission requirements, and application guidance." />
+    <!-- JSON-LD: College/University + Breadcrumb for better SEO snippets -->
+    <script type="application/ld+json">
+      {JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "CollegeOrUniversity",
+        "name": university.name,
+        ...(university.website_url ? { "url": university.website_url } : {}),
+        "address": {
+          "@type": "PostalAddress",
+          ...(university.city ? { "addressLocality": university.city } : {}),
+          ...(university.state ? { "addressRegion": university.state } : {}),
+          "addressCountry": university.country || "United States"
+        },
+        ...(university.acceptance_rate != null ? { "acceptanceRate": university.acceptance_rate / 100 } : {}),
+        ...(university.student_size ? { "numberOfStudents": university.student_size } : {}),
+        ...(university.ownership_type ? { "additionalType": university.ownership_type } : {}),
+        ...(university.programs ? { "knowsAbout": Object.keys(university.programs) } : {}),
+        "offers": [
+          ...(university.in_state_tuition ? [{
+            "@type": "Offer",
+            "name": "In-state Tuition (Undergraduate)",
+            "price": university.in_state_tuition,
+            "priceCurrency": "USD"
+          }] : []),
+          ...(university.out_of_state_tuition ? [{
+            "@type": "Offer",
+            "name": "Out-of-state Tuition (Undergraduate)",
+            "price": university.out_of_state_tuition,
+            "priceCurrency": "USD"
+          }] : []),
+          ...(university.cost ? [{
+            "@type": "Offer",
+            "name": "Estimated Total Cost of Attendance (Undergraduate)",
+            "price": university.cost,
+            "priceCurrency": "USD"
+          }] : [])
+        ]
+      })}
+    </script>
+    <script type="application/ld+json">
+      {JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Universities",
+            "item": "/universities"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": university.name
+          }
+        ]
+      })}
+    </script>
   {:else if data.redirect}
     <title>Redirecting...</title>
   {:else}
@@ -378,6 +436,9 @@
               <div class="flex justify-between text-lg font-bold">
                 <span>Total Annual Cost:</span>
                 <span class="text-blue-600">{formatCurrency(university.cost)}</span>
+              </div>
+              <div class="text-xs text-gray-500 mt-2">
+                Undergraduate data; graduate costs vary by program.
               </div>
               
               {#if university.median_debt}

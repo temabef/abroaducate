@@ -65,7 +65,7 @@
         params.append('state', selectedState);
       }
       
-      const response = await fetch(`/api/universities/fetch?${params}`);
+      const response = await fetch(`/api/universities/fetch_cached?${params}`);
       const data = await response.json();
       
       if (data.success) {
@@ -104,7 +104,7 @@
         params.append('state', selectedState);
       }
       
-      const response = await fetch(`/api/universities/fetch?${params}`);
+      const response = await fetch(`/api/universities/fetch_cached?${params}`);
       const data = await response.json();
       
       if (data.success) {
@@ -609,14 +609,24 @@
                 <div>
                   <span class="font-medium">Acceptance Rate:</span>
                   <div class="text-lg font-semibold text-blue-600">
-                    {university.acceptance_rate ? `${university.acceptance_rate}%` : 'N/A'}
+                    {university.acceptance_rate != null ? `${university.acceptance_rate}%` : 'N/A'}
                   </div>
                 </div>
                 <div>
-                  <span class="font-medium">Annual Cost:</span>
+                  <span class="font-medium">Annual Cost (COA):</span>
                   <div class="text-lg font-semibold text-green-600">
                     {formatCurrency(university.cost)}
                   </div>
+                  {#if university.in_state_tuition || university.out_of_state_tuition}
+                    <div class="mt-1 text-xs text-gray-600 space-y-0.5">
+                      {#if university.in_state_tuition}
+                        <div>In-state tuition: {formatCurrency(university.in_state_tuition)}</div>
+                      {/if}
+                      {#if university.out_of_state_tuition}
+                        <div>Out-of-state tuition: {formatCurrency(university.out_of_state_tuition)}</div>
+                      {/if}
+                    </div>
+                  {/if}
                 </div>
               </div>
               

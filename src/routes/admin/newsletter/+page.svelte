@@ -20,7 +20,7 @@
   let autoBatchSize = $state(20);
   let delayBetweenBatches = $state(2); // minutes
   let autoSending = $state(false);
-  let autoProgress = $state({ sent: 0, total: 0, currentBatch: 0, totalBatches: 0, nextBatchTime: null });
+  let autoProgress = $state({ sent: 0, total: 0, currentBatch: 0, totalBatches: 0, nextBatchTime: null as Date | null });
   let autoCampaignId = $state(null);
 
   // Analytics state
@@ -30,8 +30,10 @@
   let totalOpens = $state(0);
   let totalClicks = $state(0);
   let totalUnsubscribes = $state(0);
-  let recentCampaigns = $state([]);
-  let subscriberList = $state([]);
+  let unsubscribeBreakdown = $state({ all: 0, digest: 0, marketing: 0 });
+  let recentUnsubscribes: any[] = $state([]);
+  let recentCampaigns: any[] = $state([]);
+  let subscriberList: any[] = $state([]);
   let loading = $state(true);
 
   let campaignId = $state(null);
@@ -40,7 +42,7 @@
   let showProgress = $state(false);
   let hasActiveCampaign = $state(false);
 
-  let emailLogs = $state([]);
+  let emailLogs: any[] = $state([]);
   let loadingLogs = $state(false);
 
   // Save campaign progress to localStorage
@@ -116,6 +118,7 @@
 
   async function loadAnalytics() {
     try {
+      // Load main analytics
       const response = await fetch('/api/newsletter/analytics');
       if (response.ok) {
         const data = await response.json();
@@ -125,6 +128,14 @@
         totalOpens = data.total_opens || 0;
         totalClicks = data.total_clicks || 0;
         totalUnsubscribes = data.total_unsubscribes || 0;
+        unsubscribeBreakdown = data.unsubscribe_breakdown || { all: 0, digest: 0, marketing: 0 };
+      }
+
+      // Load detailed unsubscribe analytics
+      const unsubResponse = await fetch('/api/newsletter/unsubscribe-analytics');
+      if (unsubResponse.ok) {
+        const unsubData = await unsubResponse.json();
+        recentUnsubscribes = unsubData.recent_unsubscribes || [];
       }
     } catch (error) {
       console.error('Error loading analytics:', error);
@@ -786,6 +797,49 @@
         <small>Total unsubscribes</small>
       </div>
     </div>
+
+    <!-- Unsubscribe Analytics Section -->
+    <div class="unsubscribe-analytics-section">
+      <h3>📊 Unsubscribe Analytics</h3>
+      <div class="unsubscribe-grid">
+        <div class="unsubscribe-breakdown">
+          <h4>Unsubscribe Types</h4>
+          <div class="breakdown-items">
+            <div class="breakdown-item">
+              <span class="breakdown-label">Complete Unsubscribe:</span>
+              <span class="breakdown-value">{formatNumber(unsubscribeBreakdown.all)}</span>
+            </div>
+            <div class="breakdown-item">
+              <span class="breakdown-label">Digest Only:</span>
+              <span class="breakdown-value">{formatNumber(unsubscribeBreakdown.digest)}</span>
+            </div>
+            <div class="breakdown-item">
+              <span class="breakdown-label">Marketing Only:</span>
+              <span class="breakdown-value">{formatNumber(unsubscribeBreakdown.marketing)}</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="recent-unsubscribes">
+          <h4>Recent Unsubscribes</h4>
+          {#if recentUnsubscribes.length > 0}
+            <div class="unsubscribe-list">
+              {#each recentUnsubscribes.slice(0, 5) as unsub}
+                <div class="unsubscribe-item">
+                  <div class="unsub-email">{unsub.email}</div>
+                  <div class="unsub-type">
+                    <span class="type-badge type-{unsub.type}">{unsub.type}</span>
+                  </div>
+                  <div class="unsub-date">{unsub.formatted_date}</div>
+                </div>
+              {/each}
+            </div>
+          {:else}
+            <p class="no-unsubscribes">No recent unsubscribes</p>
+          {/if}
+        </div>
+      </div>
+    </div>
     
     <!-- SendGrid Test Button -->
     <div class="sendgrid-test-section">
@@ -894,7 +948,7 @@
             <button type="button" onclick={() => insertText('<strong>', '</strong>')} class="toolbar-btn">Bold</button>
             <button type="button" onclick={() => insertText('<em>', '</em>')} class="toolbar-btn">Italic</button>
             <button type="button" onclick={() => insertText('<a href="">', '</a>')} class="toolbar-btn">Link</button>
-            <button type="button" onclick={() => insertText('<img src="" alt="" style="max-width:100%;">')} class="toolbar-btn">Image</button>
+            <button type="button" onclick={() => insertText('<img src="" alt="" style="max-width:100%;">', '')} class="toolbar-btn">Image</button>
             <button type="button" onclick={() => insertText('<div style="background:#f3f4f6;padding:1rem;border-radius:8px;margin:1rem 0;">', '</div>')} class="toolbar-btn">Box</button>
             <button type="button" onclick={() => insertText('<button style="background:#2563eb;color:white;padding:12px 24px;border:none;border-radius:6px;text-decoration:none;display:inline-block;">', '</button>')} class="toolbar-btn">Button</button>
           </div>
@@ -903,7 +957,7 @@
             bind:value={composerHtml} 
             placeholder="Write your email content here... Use the toolbar above for formatting."
             rows="15"
-          />
+          ></textarea>
           <div class="editor-stats">
             <span>Words: {composerHtml.split(/\s+/).filter(word => word.length > 0).length}</span>
             <span>Characters: {composerHtml.length}</span>
@@ -2260,5 +2314,140 @@
   .sendgrid-test-section small {
     color: #6b7280;
     font-size: 0.8rem;
+  }
+
+  /* Unsubscribe Analytics Styles */
+  .unsubscribe-analytics-section {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    border: 1px solid #e2e8f0;
+  }
+
+  .unsubscribe-analytics-section h3 {
+    color: #1f2937;
+    margin: 0 0 1rem 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+
+  .unsubscribe-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+  }
+
+  .unsubscribe-breakdown h4,
+  .recent-unsubscribes h4 {
+    color: #374151;
+    margin: 0 0 1rem 0;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .breakdown-items {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .breakdown-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem;
+    background: #f8fafc;
+    border-radius: 4px;
+  }
+
+  .breakdown-label {
+    color: #6b7280;
+    font-size: 0.875rem;
+  }
+
+  .breakdown-value {
+    color: #1f2937;
+    font-weight: 600;
+  }
+
+  .unsubscribe-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .unsubscribe-item {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 0.5rem;
+    align-items: center;
+    padding: 0.5rem;
+    background: #f8fafc;
+    border-radius: 4px;
+    font-size: 0.875rem;
+  }
+
+  .unsub-email {
+    color: #1f2937;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .type-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-align: center;
+  }
+
+  .type-badge.type-all {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  .type-badge.type-digest {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  .type-badge.type-marketing {
+    background: #dbeafe;
+    color: #1e40af;
+  }
+
+  .unsub-date {
+    color: #6b7280;
+    font-size: 0.75rem;
+    text-align: right;
+  }
+
+  .no-unsubscribes {
+    color: #6b7280;
+    font-style: italic;
+    text-align: center;
+    padding: 1rem;
+  }
+
+  @media (max-width: 768px) {
+    .unsubscribe-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .unsubscribe-item {
+      grid-template-columns: 1fr;
+      gap: 0.25rem;
+    }
+
+    .type-badge {
+      justify-self: start;
+    }
+
+    .unsub-date {
+      text-align: left;
+    }
   }
 </style>

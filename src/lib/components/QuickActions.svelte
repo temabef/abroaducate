@@ -46,6 +46,14 @@
       </div>
     </button>
     
+    <button onclick={() => goto('/budget-calculator')} class="flex flex-col items-center p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-all duration-200 hover:scale-105 cursor-pointer hover:border-gray-300 hover:border-blue-300 hover:bg-blue-50">
+      <span class="text-3xl mb-3">💰</span>
+      <div class="text-center">
+        <span class="text-sm font-semibold text-gray-800 block mb-1">Budget Calculator</span>
+        <span class="text-xs text-gray-500">Plan study costs</span>
+      </div>
+    </button>
+    
     <button onclick={() => goto('/academic-cv')} class="flex flex-col items-center p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-all duration-200 hover:scale-105 cursor-pointer hover:border-gray-300 hover:border-gray-400 hover:bg-gray-50">
       <span class="text-3xl mb-3">📋</span>
       <div class="text-center">
