@@ -24,6 +24,7 @@ export const GET: RequestHandler = async ({ url }) => {
         const limit = parseInt(searchParams.get('limit') || '50');
         const type = searchParams.get('type') || 'all'; // 'all', 'top', 'state', 'comprehensive'
         const forceRefresh = searchParams.get('forceRefresh') === 'true';
+        const searchName = searchParams.get('name'); // NEW: Search by university name
         
         // PHASE 1: Enhanced fetching modes
         const fetchMode = searchParams.get('mode') || 'standard'; // 'standard', 'batch', 'comprehensive'
@@ -185,6 +186,24 @@ export const GET: RequestHandler = async ({ url }) => {
                 return json({ error: 'Invalid source parameter' }, { status: 400 });
         }
         
+        // ENHANCED: Filter by university name if provided
+        if (searchName && searchName.trim() !== '') {
+            const searchTerm = searchName.toLowerCase().trim();
+            const originalCount = universities.length;
+            
+            universities = universities.filter(uni => 
+                uni.name.toLowerCase().includes(searchTerm)
+            );
+            
+            console.log(`🔍 Name search: "${searchName}" filtered ${originalCount} → ${universities.length} universities`);
+            metadata.name_search = {
+                query: searchName,
+                original_count: originalCount,
+                filtered_count: universities.length,
+                filter_efficiency: originalCount > 0 ? ((universities.length / originalCount) * 100).toFixed(1) + '%' : '0%'
+            };
+        }
+        
         // Transform to match our existing university format for compatibility
         const transformedUniversities = universities.map(uni => ({
             id: uni.id,
@@ -239,6 +258,14 @@ export const GET: RequestHandler = async ({ url }) => {
                         min: Math.min(...transformedUniversities.map(u => u.cost)),
                         max: Math.max(...transformedUniversities.map(u => u.cost)),
                         average: Math.round(transformedUniversities.reduce((sum, u) => sum + u.cost, 0) / transformedUniversities.length)
+                    }
+                },
+                search_enhancements: {
+                    name_search_enabled: true,
+                    active_filters: {
+                        name: searchName || null,
+                        state: state || null,
+                        type: type !== 'all' ? type : null
                     }
                 },
                 ...metadata

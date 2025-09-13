@@ -15,6 +15,7 @@
   let selectedState = '';
   let selectedType = 'top';
   let limit = 50;
+  let searchName = ''; // NEW: University name search
   let metadata: any = null;
   
   // Enhanced pagination and loading system
@@ -65,6 +66,11 @@
         params.append('state', selectedState);
       }
       
+      // Add name search parameter if provided
+      if (searchName && searchName.trim() !== '') {
+        params.append('name', searchName.trim());
+      }
+      
       const response = await fetch(`/api/universities/fetch_cached?${params}`);
       const data = await response.json();
       
@@ -104,6 +110,11 @@
         params.append('state', selectedState);
       }
       
+      // Add name search parameter if provided
+      if (searchName && searchName.trim() !== '') {
+        params.append('name', searchName.trim());
+      }
+      
       const response = await fetch(`/api/universities/fetch_cached?${params}`);
       const data = await response.json();
       
@@ -126,6 +137,7 @@
   // Reset state when source changes
   $: if (selectedSource) {
     selectedState = ''; // Clear state filter when switching countries
+    searchName = ''; // Clear name search when switching countries
     universities = []; // Clear previous results
     error = ''; // Clear previous errors
     metadata = null; // Clear previous metadata
@@ -263,6 +275,43 @@
             </p>
           </div>
           <input type="checkbox" bind:checked={enhancedMode} class="toggle toggle-primary toggle-lg" />
+        </div>
+      </div>
+      
+      <!-- University Name Search -->
+      <div class="mb-6 p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border">
+        <div class="form-control w-full">
+          <label for="university-name-search" class="label">
+            <span class="label-text font-medium flex items-center gap-2">
+              🔍 Search by University Name
+            </span>
+          </label>
+          <div class="flex gap-2">
+            <input 
+              id="university-name-search"
+              type="text" 
+              bind:value={searchName} 
+              placeholder="Type university name (e.g., Harvard, MIT, Stanford...)"
+              class="input input-bordered flex-1" 
+            />
+            {#if searchName}
+              <button 
+                on:click={() => searchName = ''}
+                class="btn btn-outline btn-sm"
+                title="Clear search"
+              >
+                ✕
+              </button>
+            {/if}
+          </div>
+          <div class="label">
+            <span class="label-text-alt text-gray-500">
+              Search across 7,500+ universities by name - works with all countries
+              {#if searchName}
+                <span class="text-blue-600 font-medium">• Searching for: "{searchName}"</span>
+              {/if}
+            </span>
+          </div>
         </div>
       </div>
       
@@ -478,7 +527,12 @@
     <!-- Enhanced Metadata Display -->
     {#if metadata}
       <div class="bg-green-50 border border-green-200 rounded-lg p-6 mb-8">
-        <h3 class="text-lg font-semibold text-green-800 mb-4">📊 Database Expansion Results</h3>
+        <h3 class="text-lg font-semibold text-green-800 mb-4">
+          📊 Database Results
+          {#if searchName}
+            <span class="ml-2 badge badge-primary badge-lg">Name Search: "{searchName}"</span>
+          {/if}
+        </h3>
         <div class="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm mb-4">
           <div>
             <span class="font-medium">Universities:</span> {universities.length.toLocaleString()}
@@ -506,6 +560,20 @@
             <p class="text-blue-800 text-sm mt-1">
               Expanded from standard 100 to {universities.length.toLocaleString()} universities 
               ({Math.round((universities.length / 100 - 1) * 100)}% increase)
+            </p>
+          </div>
+        {/if}
+        
+        {#if metadata.name_search}
+          <div class="bg-purple-50 border border-purple-200 rounded-lg p-3 mt-2">
+            <div class="flex items-center gap-2">
+              <span class="text-purple-600">🔍</span>
+              <span class="font-semibold text-purple-900">Name Search Results</span>
+            </div>
+            <p class="text-purple-800 text-sm mt-1">
+              Found {metadata.name_search.filtered_count.toLocaleString()} universities matching "{metadata.name_search.query}" 
+              out of {metadata.name_search.original_count.toLocaleString()} total 
+              (Match rate: {metadata.name_search.filter_efficiency})
             </p>
           </div>
         {/if}

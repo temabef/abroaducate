@@ -12,6 +12,7 @@ export const GET: RequestHandler = async ({ url, locals }) => {
     const type = url.searchParams.get('type') || 'all'; // 'all' | 'top'
     const force = url.searchParams.get('force') === 'true' || url.searchParams.get('forceRefresh') === 'true';
     const ttlHours = Math.max(1, Math.min(168, parseInt(url.searchParams.get('ttl') || '24'))); // 1..168h
+    const searchName = url.searchParams.get('name'); // NEW: Search by university name
 
     // Attempt cache first (if not forced)
     if (!force && supabase) {
@@ -57,6 +58,15 @@ export const GET: RequestHandler = async ({ url, locals }) => {
           requirements: r.requirements || {},
           last_updated: r.last_updated
         }));
+        
+        // Apply name filter if provided
+        if (searchName && searchName.trim() !== '') {
+          const searchTerm = searchName.toLowerCase().trim();
+          universities = universities.filter(uni => 
+            uni.name.toLowerCase().includes(searchTerm)
+          );
+        }
+        
         return json({ success: true, cached: true, count: universities.length, universities });
       }
     }
@@ -105,7 +115,16 @@ export const GET: RequestHandler = async ({ url, locals }) => {
       console.warn('Cache upsert failed (non-fatal):', e);
     }
 
-    return json({ success: true, cached: false, count: universities.length, universities });
+    // Apply name filter if provided
+    let filteredUniversities = universities;
+    if (searchName && searchName.trim() !== '') {
+      const searchTerm = searchName.toLowerCase().trim();
+      filteredUniversities = universities.filter(uni => 
+        uni.name.toLowerCase().includes(searchTerm)
+      );
+    }
+
+    return json({ success: true, cached: false, count: filteredUniversities.length, universities: filteredUniversities });
   } catch (e) {
     console.error('fetch_cached error:', e);
     return json({ success: false, error: 'Failed to fetch universities' }, { status: 500 });
