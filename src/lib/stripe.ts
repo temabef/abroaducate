@@ -176,13 +176,13 @@ export const FREE_PLAN = {
     name: 'Academic Starter',
     price: 0,
     
-    // Document Generation - MATCHES SQL EXACTLY
+    // Document Generation - MATCHES PRICING PAGE EXACTLY
     documents: {
-        sops_per_month: 2,
-        cover_letters_per_month: 2,
+        sops_per_month: 1,
+        cover_letters_per_month: 1,
         personal_statements_per_month: 1,
         academic_cvs_per_month: 1,
-        total_documents: 6, // 2+2+1+1
+        total_documents: 4, // 1+1+1+1
         export_formats: ['pdf', 'rtf'],
         templates: 'basic'
     },
@@ -230,7 +230,7 @@ export const FREE_PLAN = {
     },
     
     features: [
-        '6 Documents/Month: 2 SOPs, 2 Cover Letters, 1 Personal Statement, 1 Academic CV',
+        '4 Documents/Month: 1 SOP, 1 Cover Letter, 1 Personal Statement, 1 Academic CV',
         'AI Features: 1 Review, 1 Text Enhancement, 1 Word Optimization per month',
         'University Matching: 50+ universities with basic matching',
         'Academic Analysis: Quick profile assessment only',

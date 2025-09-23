@@ -535,6 +535,6 @@
   bind:show={showAuthModal} 
   {supabase} 
   mode={authMode} 
-  returnUrl={pendingApplicationsRedirect ? '/applications' : $page.url.pathname}
+  returnUrl={pendingApplicationsRedirect ? '/applications' : '/dashboard'}
   on:success={handleAuthSuccess}
 /> 

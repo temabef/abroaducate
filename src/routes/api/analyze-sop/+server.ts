@@ -3,7 +3,7 @@ import type { RequestHandler } from './$types';
 import { z } from 'zod';
 import PlagiarismDetector from '$lib/ai/plagiarism-detector';
 import { OPENAI_API_KEY } from '$env/static/private';
-import { checkUsageLimit } from '$lib/comprehensive-usage-limits';
+import { checkUsageLimit } from '$lib/comprehensive-usage-limits.server';
 import { getAIModelForUser } from '$lib/ai-models';
 
 export const POST: RequestHandler = async ({ request, locals: { supabase, getSession } }) => {

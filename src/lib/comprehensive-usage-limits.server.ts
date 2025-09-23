@@ -17,12 +17,12 @@ export interface ComprehensiveUsageCheck {
 // FINAL PRODUCTION LIMITS - MATCHES PRICING PAGE EXACTLY
 const AI_FEATURE_LIMITS: Record<string, Record<string, number | null>> = {
 	free: {
-			// Document Generation - MATCHES PRICING PAGE EXACTLY
-			sop_generation: 2,
-			cover_letter_generation: 2,
-			personal_statement_generation: 1,
-			academic_cv_generation: 1,
-			total_documents: 6, // 2+2+1+1
+		// Document Generation - MATCHES PRICING PAGE EXACTLY  
+		sop_generation: 1, // 1 SOP per month for free users
+		cover_letter_generation: 1, // 1 Cover Letter per month for free users
+		personal_statement_generation: 1, // 1 Personal Statement per month for free users
+		academic_cv_generation: 1, // 1 Academic CV per month for free users
+		total_documents: 4, // 1+1+1+1 = 4 total documents
 		
 		// AI Enhancement Features - MATCHES PRICING PAGE EXACTLY
 		reviews: 1, // CORRECTED: Was 3, now 1 to match pricing
@@ -337,3 +337,4 @@ export async function checkUsageLimit(
     
     return usageCheck;
 }
+

@@ -2,13 +2,13 @@
     import { onMount } from 'svelte';
     import { goto } from '$app/navigation';
     import type { PageData } from './$types';
-    import QuickActions from '$lib/components/QuickActions.svelte';
     import DocumentCard from '$lib/components/DocumentCard.svelte';
     import ActivityFeed from '$lib/components/ActivityFeed.svelte';
     import BasicReminders from '$lib/components/BasicReminders.svelte';
     import EmailStatusWidget from '$lib/components/EmailStatusWidget.svelte';
     import { analytics } from '$lib/utils/posthog';
     import AdSenseAd from '$lib/components/AdSenseAd.svelte';
+    import EnhancedDashboardWidgets from '$lib/components/dashboard/EnhancedDashboardWidgets.svelte';
 
     let { data }: { data: PageData } = $props();
     let { supabase, session } = data;
@@ -239,62 +239,11 @@
                     </div>
                 </div>
                 
-                <!-- Quick Actions -->
-                <QuickActions />
+                <!-- Enhanced Dashboard Widgets -->
+                <EnhancedDashboardWidgets {supabase} {session} />
 
-                <!-- Ad after Quick Actions -->
+                <!-- Ad after Enhanced Widgets -->
                 <AdSenseAd adSlot="4419564411" className="my-8" />
-
-                <!-- Quick Application Link -->
-                <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <h3 class="text-lg font-semibold text-blue-900 mb-1">Application Tracking</h3>
-                            <p class="text-blue-700">Manage your university applications and deadlines</p>
-                        </div>
-                        <a 
-                            href="/applications"
-                            class="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center gap-2"
-                        >
-                            📋 My Applications
-                        </a>
-                    </div>
-                </div>
-
-                <!-- University Matcher Widget -->
-                <div class="bg-white border border-gray-200 rounded-lg shadow-sm mb-8">
-                    <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-                        <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2">
-                            🏫 University Matcher
-                        </h2>
-                        <a href="/universities" class="text-blue-600 hover:text-blue-800 text-sm font-medium">View Full Matcher →</a>
-                    </div>
-                    <div class="p-6">
-                        <p class="text-gray-600 mb-4">Find universities that match your academic profile and preferences</p>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div class="text-center p-4 bg-blue-50 rounded-lg border border-blue-200">
-                                <div class="text-2xl mb-2">🎯</div>
-                                <h3 class="font-semibold text-blue-900">AI-Powered</h3>
-                                <p class="text-sm text-blue-700">Intelligent matching algorithm</p>
-                            </div>
-                            <div class="text-center p-4 bg-green-50 rounded-lg border border-green-200">
-                                <div class="text-2xl mb-2">📊</div>
-                                <h3 class="font-semibold text-green-900">Profile-Based</h3>
-                                <p class="text-sm text-green-700">Uses your academic data</p>
-                            </div>
-                            <div class="text-center p-4 bg-purple-50 rounded-lg border border-purple-200">
-                                <div class="text-2xl mb-2">🌍</div>
-                                <h3 class="font-semibold text-purple-900">Global Reach</h3>
-                                <p class="text-sm text-purple-700">Universities worldwide</p>
-                            </div>
-                        </div>
-                        <div class="mt-6 text-center">
-                            <a href="/universities" class="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                                🚀 Start University Matching
-                            </a>
-                        </div>
-                    </div>
-                </div>
 
                 <!-- Main Content Grid -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">

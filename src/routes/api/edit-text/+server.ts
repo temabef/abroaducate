@@ -3,7 +3,7 @@ import type { RequestHandler } from './$types';
 import { z } from 'zod';
 import OpenAI from 'openai';
 import { OPENAI_API_KEY } from '$env/static/private';
-import { checkComprehensiveUsageLimit, incrementComprehensiveUsage } from '$lib/comprehensive-usage-limits';
+import { checkComprehensiveUsageLimit, incrementComprehensiveUsage } from '$lib/comprehensive-usage-limits.server';
 
 // Get AI model based on user's plan (matches pricing page)
 function getModelByPlan(planType: string): string {

@@ -2,7 +2,7 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { z } from 'zod';
 import { handleAIFeatureRequest, type AIFeatureRequest } from '$lib/services/aiFeatureService';
-import { checkComprehensiveUsageLimit, incrementComprehensiveUsage } from '$lib/comprehensive-usage-limits';
+import { checkComprehensiveUsageLimit, incrementComprehensiveUsage } from '$lib/comprehensive-usage-limits.server';
 
 export const POST: RequestHandler = async ({ request, locals: { getSession } }) => {
 	const session = await getSession();

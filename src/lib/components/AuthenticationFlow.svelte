@@ -6,6 +6,7 @@
     import { analytics } from '$lib/utils/posthog';
     import { emailVerificationService, type EmailAnalysis } from '$lib/services/emailVerificationService';
     import { getBaseUrl, getEmailBaseUrl } from '$lib/config/site';
+    import { getPostAuthRedirect, performRedirect } from '$lib/services/authRedirectService';
 
     const dispatch = createEventDispatcher();
 
@@ -308,9 +309,11 @@
             if (data.user.email_confirmed_at) {
                 // User is already confirmed, auto-login
                 success = 'Account created successfully! Redirecting...';
-                setTimeout(() => {
+                setTimeout(async () => {
                     close();
-                    window.location.href = returnUrl;
+                    // Check if user needs onboarding
+                    const redirectUrl = await getPostAuthRedirect(supabase, data.session, returnUrl);
+                    performRedirect(redirectUrl);
                 }, 1000);
             } else {
                 // Email confirmation required
@@ -345,9 +348,11 @@
             success = 'Login successful! Redirecting...';
             
             // Close modal and redirect
-            setTimeout(() => {
+            setTimeout(async () => {
                 close();
-                window.location.href = returnUrl;
+                // Check if user needs onboarding
+                const redirectUrl = await getPostAuthRedirect(supabase, data.session, returnUrl);
+                performRedirect(redirectUrl);
             }, 1000);
         }
     }

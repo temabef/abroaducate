@@ -1,5 +1,5 @@
 import { json } from '@sveltejs/kit';
-import { checkComprehensiveUsageLimit } from '$lib/comprehensive-usage-limits';
+import { checkComprehensiveUsageLimit } from '$lib/comprehensive-usage-limits.server';
 import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async ({ url, locals: { supabase, getSession } }) => {
@@ -10,10 +10,10 @@ export const GET: RequestHandler = async ({ url, locals: { supabase, getSession 
             return json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const usageType = url.searchParams.get('type');
+        const usageType = url.searchParams.get('feature') || url.searchParams.get('type');
         
         if (!usageType) {
-            return json({ error: 'Usage type parameter is required' }, { status: 400 });
+            return json({ error: 'Feature/type parameter is required' }, { status: 400 });
         }
 
         // Use new comprehensive usage limits system

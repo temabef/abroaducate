@@ -335,5 +335,5 @@ I am writing to express my strong interest in the Software Engineer position at 
     bind:show={showAuthModal} 
     {supabase} 
     mode={authMode} 
-    returnUrl={$page.url.pathname}
+    returnUrl={'/dashboard'}
 /> 

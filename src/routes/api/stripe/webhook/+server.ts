@@ -1,7 +1,7 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import Stripe from 'stripe';
-import { STRIPE_SECRET_KEY } from '$env/static/private';
+import { STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET } from '$env/static/private';
 
 const stripe = new Stripe(STRIPE_SECRET_KEY, {
     apiVersion: '2024-06-20'
@@ -11,74 +11,125 @@ import { PUBLIC_SUPABASE_URL } from '$env/static/public';
 import { SUPABASE_SERVICE_ROLE_KEY } from '$env/static/private';
 import { analytics } from '$lib/utils/posthog';
 
-// For now, we'll use a placeholder - you'll need to add this to your .env file
-const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || 'whsec_placeholder';
-
 const supabaseAdmin = createClient(PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
 export const POST: RequestHandler = async ({ request }) => {
+    let webhookEventId = '';
+    
     try {
         const body = await request.text();
         const signature = request.headers.get('stripe-signature');
 
+        console.log('[WEBHOOK] Received Stripe webhook request');
+
+        // Check if webhook secret is configured
+        if (!STRIPE_WEBHOOK_SECRET || STRIPE_WEBHOOK_SECRET === 'whsec_placeholder') {
+            console.error('[WEBHOOK] ❌ STRIPE_WEBHOOK_SECRET not configured! Set this in your environment variables.');
+            // Still return 200 to avoid webhook failures, but log the issue
+            return json({ 
+                received: true, 
+                warning: 'Webhook secret not configured - signature verification skipped' 
+            }, { status: 200 });
+        }
+
         if (!signature) {
-            return json({ error: 'No signature provided' }, { status: 400 });
+            console.error('[WEBHOOK] ❌ Missing stripe-signature header');
+            return json({ error: 'Missing signature' }, { status: 400 });
         }
 
         // Verify webhook signature
-        const event = stripe.webhooks.constructEvent(
-            body,
-            signature,
-            STRIPE_WEBHOOK_SECRET
-        );
-
-        console.log('Stripe webhook event:', event.type);
-
-        switch (event.type) {
-            case 'checkout.session.completed':
-                await handleCheckoutCompleted(event.data.object);
-                break;
-
-            case 'customer.subscription.updated':
-                await handleSubscriptionUpdated(event.data.object);
-                break;
-
-            case 'customer.subscription.deleted':
-                await handleSubscriptionDeleted(event.data.object);
-                break;
-
-            case 'invoice.payment_succeeded':
-                await handlePaymentSucceeded(event.data.object);
-                break;
-
-            case 'invoice.payment_failed':
-                await handlePaymentFailed(event.data.object);
-                break;
-            case 'checkout.session.async_payment_failed':
-                console.log('Checkout async payment failed');
-                break;
-
-            default:
-                console.log(`Unhandled event type: ${event.type}`);
+        let event;
+        try {
+            event = stripe.webhooks.constructEvent(body, signature, STRIPE_WEBHOOK_SECRET);
+            webhookEventId = event.id;
+            console.log(`[WEBHOOK] ✅ Signature verified for event: ${event.type} (${event.id})`);
+        } catch (signatureError) {
+            console.error('[WEBHOOK] ❌ Signature verification failed:', signatureError);
+            return json({ error: 'Invalid signature' }, { status: 400 });
         }
 
-        return json({ received: true });
+        // Process the event
+        console.log(`[WEBHOOK] Processing event: ${event.type}`);
+        
+        try {
+            switch (event.type) {
+                case 'checkout.session.completed':
+                    await handleCheckoutCompleted(event.data.object);
+                    console.log(`[WEBHOOK] ✅ Successfully processed checkout.session.completed`);
+                    break;
+
+                case 'customer.subscription.updated':
+                    await handleSubscriptionUpdated(event.data.object);
+                    console.log(`[WEBHOOK] ✅ Successfully processed customer.subscription.updated`);
+                    break;
+
+                case 'customer.subscription.deleted':
+                    await handleSubscriptionDeleted(event.data.object);
+                    console.log(`[WEBHOOK] ✅ Successfully processed customer.subscription.deleted`);
+                    break;
+
+                case 'invoice.payment_succeeded':
+                    await handlePaymentSucceeded(event.data.object);
+                    console.log(`[WEBHOOK] ✅ Successfully processed invoice.payment_succeeded`);
+                    break;
+
+                case 'invoice.payment_failed':
+                    await handlePaymentFailed(event.data.object);
+                    console.log(`[WEBHOOK] ✅ Successfully processed invoice.payment_failed`);
+                    break;
+                    
+                case 'checkout.session.async_payment_failed':
+                    console.log(`[WEBHOOK] ℹ️  Async payment failed for session`);
+                    break;
+
+                default:
+                    console.log(`[WEBHOOK] ℹ️  Unhandled event type: ${event.type}`);
+            }
+
+            // ALWAYS return 200 for successful webhook processing
+            return json({ 
+                received: true, 
+                event_type: event.type,
+                event_id: event.id 
+            }, { status: 200 });
+
+        } catch (processingError) {
+            // Log the error but still return 200 to prevent webhook retries
+            console.error(`[WEBHOOK] ⚠️  Error processing ${event.type}:`, processingError);
+            
+            return json({ 
+                received: true, 
+                event_type: event.type,
+                event_id: event.id,
+                processing_error: 'Event received but processing failed - check server logs'
+            }, { status: 200 });
+        }
 
     } catch (error: any) {
-        console.error('Webhook error:', error);
-        return json({ error: 'Webhook handling failed' }, { status: 400 });
+        console.error(`[WEBHOOK] ❌ Critical webhook error (Event: ${webhookEventId}):`, error);
+        
+        // For critical errors (like malformed request), return 400
+        // This will cause Stripe to retry the webhook
+        return json({ 
+            error: 'Webhook processing failed', 
+            event_id: webhookEventId 
+        }, { status: 400 });
     }
 };
 
 async function handleCheckoutCompleted(session: any) {
     try {
+        console.log(`[CHECKOUT] Processing checkout completion for session: ${session.id}`);
+        
         const userId = session.metadata?.user_id;
         const planType = session.metadata?.plan_type;
 
         if (!userId || !planType) {
-            console.error('Missing metadata in checkout session');
-            return;
+            console.error(`[CHECKOUT] ❌ Missing metadata - userId: ${userId}, planType: ${planType}`);
+            throw new Error('Missing required metadata in checkout session');
         }
+
+        console.log(`[CHECKOUT] Processing for user: ${userId}, plan: ${planType}`);
 
         // Get subscription details from Stripe
         const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
@@ -115,11 +166,12 @@ async function handleCheckoutCompleted(session: any) {
             });
 
         if (error) {
-            console.error('Database error:', error);
+            console.error(`[CHECKOUT] ❌ Database error:`, error);
+            throw error;
         } else {
-            console.log(`Subscription created/updated for user ${userId}`);
+            console.log(`[CHECKOUT] ✅ Subscription created/updated for user ${userId}`);
             if (existingSubscription?.admin_override) {
-                console.log(`Admin override preserved - plan_type remains: ${existingSubscription.plan_type}`);
+                console.log(`[CHECKOUT] ℹ️  Admin override preserved - plan_type remains: ${existingSubscription.plan_type}`);
             }
             // Track subscription activation (client will capture identify)
             try {
@@ -129,11 +181,14 @@ async function handleCheckoutCompleted(session: any) {
                 } else {
                     analytics.trackEvent('subscription_activated', { user_id: userId, plan: planType });
                 }
-            } catch {}
+            } catch (analyticsError) {
+                console.warn(`[CHECKOUT] ⚠️  Analytics tracking failed:`, analyticsError);
+            }
         }
 
     } catch (error) {
-        console.error('Error handling checkout completed:', error);
+        console.error(`[CHECKOUT] ❌ Error handling checkout completed:`, error);
+        throw error; // Re-throw to be handled by main webhook handler
     }
 }
 

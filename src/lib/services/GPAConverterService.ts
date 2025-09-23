@@ -1,7 +1,7 @@
 import type { Course, ConversionResult, GradingSystem } from '../data/gradingSystems';
 import { getGradingSystem } from '../data/gradingSystems';
 import { supabase } from '../supabase';
-import { checkComprehensiveUsageLimit, incrementComprehensiveUsage } from '../comprehensive-usage-limits';
+import { checkUsageLimit } from './usageLimitsClient';
 
 export interface GPAConversionData {
   userId: string;
@@ -145,7 +145,7 @@ export class GPAConverterService {
 
     // Check usage limits for Professional tier using new comprehensive system
     if (userTier === 'professional') {
-      const usageCheck = await checkComprehensiveUsageLimit(userId, 'text_enhancements'); // Use text_enhancements for GPA conversion saves
+      const usageCheck = await checkUsageLimit('text_enhancements', userId); // Use text_enhancements for GPA conversion saves
       if (!usageCheck.allowed) {
         throw new Error('Monthly GPA conversion save limit reached. Upgrade to Elite for unlimited saves.');
       }
@@ -170,10 +170,8 @@ export class GPAConverterService {
 
       if (error) throw error;
 
-      // Increment usage for Professional tier
-      if (userTier === 'professional') {
-        await incrementComprehensiveUsage(userId, 'text_enhancements');
-      }
+      // Increment usage for Professional tier (handled by the API call)
+      // Note: Usage increment is now handled by the checkUsageLimit API
 
       return data.id;
     } catch (error) {

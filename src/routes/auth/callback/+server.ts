@@ -1,5 +1,6 @@
 import { redirect } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import { getPostAuthRedirect } from '$lib/services/authRedirectService';
 
 export const GET: RequestHandler = async (event) => {
     const {
@@ -24,19 +25,14 @@ export const GET: RequestHandler = async (event) => {
     }
 
     if (code) {
-        const { error } = await supabase.auth.exchangeCodeForSession(code);
+        const { data, error } = await supabase.auth.exchangeCodeForSession(code);
         if (!error) {
-            // If a 'next' URL is provided (e.g., from the login modal), redirect there.
-            // This is crucial for returning the user to the submit-sop page.
-            if (next) {
-                console.log('Redirecting to next URL:', next);
-                try { console.log('ANALYTICS: auth_success', { next }); } catch {}
-                throw redirect(303, next);
-            }
-            // For any other successful login, redirect to the dashboard.
-            console.log('No next URL, redirecting to dashboard');
-            try { console.log('ANALYTICS: auth_success'); } catch {}
-            throw redirect(303, '/dashboard');
+            // Check if user needs onboarding first
+            const redirectUrl = await getPostAuthRedirect(supabase, data.session, next || '/dashboard');
+            
+            console.log('Auth successful, redirecting to:', redirectUrl);
+            try { console.log('ANALYTICS: auth_success', { next: redirectUrl }); } catch {}
+            throw redirect(303, redirectUrl);
         } else {
             console.log('Auth error:', error);
             try { console.log('ANALYTICS: auth_exchange_failed', { message: error.message }); } catch {}

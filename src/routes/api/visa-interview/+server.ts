@@ -2,7 +2,7 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { z } from 'zod';
 import { OPENAI_API_KEY } from '$env/static/private';
-import { checkComprehensiveUsageLimit, incrementComprehensiveUsage } from '$lib/comprehensive-usage-limits';
+import { checkComprehensiveUsageLimit, incrementComprehensiveUsage } from '$lib/comprehensive-usage-limits.server';
 
 // POST endpoint - Submit answer and get AI feedback
 export const POST: RequestHandler = async ({ request, locals: { supabase, getSession } }) => {

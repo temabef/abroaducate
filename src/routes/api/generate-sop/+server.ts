@@ -2,7 +2,7 @@ import { json } from '@sveltejs/kit';
 import { OPENAI_API_KEY } from '$env/static/private';
 import type { RequestHandler } from './$types';
 import type { FormData, WorkExperience, Organization, CommunityService } from '$lib/types';
-import { checkComprehensiveUsageLimit, incrementComprehensiveUsage } from '$lib/comprehensive-usage-limits';
+import { checkComprehensiveUsageLimit, incrementComprehensiveUsage } from '$lib/comprehensive-usage-limits.server';
 import { getModelConfig } from '$lib/ai-models';
 import { z } from 'zod';
 

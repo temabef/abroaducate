@@ -2,7 +2,7 @@ import { json } from '@sveltejs/kit';
 import { OPENAI_API_KEY } from '$env/static/private';
 import type { RequestHandler } from './$types';
 import { z } from 'zod';
-import { checkComprehensiveUsageLimit, incrementComprehensiveUsage } from '$lib/comprehensive-usage-limits';
+import { checkComprehensiveUsageLimit, incrementComprehensiveUsage } from '$lib/comprehensive-usage-limits.server';
 
 export const POST: RequestHandler = async ({ request, locals: { supabase, getSession } }) => {
     const session = await getSession();

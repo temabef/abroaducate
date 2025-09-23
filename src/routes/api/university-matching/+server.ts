@@ -5,7 +5,7 @@ import { universityDataManager } from '$lib/database/university-integration';
 import { ukUniversityDataManager } from '$lib/database/uk-university-integration';
 import { canadianUniversityManager } from '$lib/database/canada-university-integration';
 import { australianUniversityManager } from '$lib/database/australia-university-integration';
-import { checkComprehensiveUsageLimit, incrementComprehensiveUsage } from '$lib/comprehensive-usage-limits';
+import { checkComprehensiveUsageLimit, incrementComprehensiveUsage } from '$lib/comprehensive-usage-limits.server';
 
 // Enhanced University database with detailed information + scholarship connections
 // Now integrated with Phase II hybrid system for 1000+ universities
