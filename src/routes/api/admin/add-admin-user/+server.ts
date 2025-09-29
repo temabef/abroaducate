@@ -37,38 +37,25 @@ export async function POST({ request, locals }) {
       return json({ success: false, error: 'Email is required' }, { status: 400 });
     }
     
-    // First try to find the user by email using direct SQL
-    // This bypasses RLS since we're using the admin_bypass_find_user function
-    const { data: targetUser, error: targetUserError } = await supabase.rpc('admin_bypass_find_user', { 
-      email_to_find: data.email.trim() 
+    // Use the add_admin_user function which handles all the logic
+    const { data: addResult, error: addError } = await supabase.rpc('add_admin_user', {
+      admin_email: data.email.trim(),
+      admin_role: data.role || 'admin'
     });
     
-    if (targetUserError) {
-      console.error('Error finding user:', targetUserError);
-      return json({ success: false, error: `Error finding user: ${targetUserError.message}` }, { status: 500 });
+    if (addError) {
+      console.error('Error adding admin:', addError);
+      return json({ success: false, error: `Error adding admin: ${addError.message}` }, { status: 500 });
     }
     
-    if (!targetUser || !targetUser.id) {
-      return json({ success: false, error: `User with email ${data.email} not found` }, { status: 404 });
+    // Parse the result from the function
+    const result = typeof addResult === 'string' ? JSON.parse(addResult) : addResult;
+    
+    if (!result.success) {
+      return json({ success: false, error: result.message }, { status: 400 });
     }
     
-    console.log('Found target user:', targetUser);
-    
-    // Add the user as admin directly
-    const { error: insertError } = await supabase
-      .from('admin_users')
-      .insert({
-        user_id: targetUser.id,
-        role: data.role || 'admin',
-        created_by: user.id
-      });
-    
-    if (insertError) {
-      console.error('Error adding admin:', insertError);
-      return json({ success: false, error: `Error adding admin: ${insertError.message}` }, { status: 500 });
-    }
-    
-    return json({ success: true });
+    return json({ success: true, message: result.message });
   } catch (e) {
     console.error('Exception adding admin:', e);
     return json({ success: false, error: e.message }, { status: 500 });

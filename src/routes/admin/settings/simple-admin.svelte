@@ -23,9 +23,8 @@
   // Role options
   const roleOptions = [
     { value: 'admin', label: 'Standard Admin' },
-    { value: 'super_admin', label: 'Super Admin' },
-    { value: 'content_admin', label: 'Content Admin' },
-    { value: 'scholarship_admin', label: 'Scholarship Admin' }
+    { value: 'super-admin', label: 'Super Admin' },
+    { value: 'scholarship-admin', label: 'Scholarship Admin' }
   ];
   
   // Load admin users directly using simple queries
@@ -34,7 +33,7 @@
     error = null;
     
     try {
-      // Use the get_admin_users function instead of direct table access
+      // Use the working get_admin_users RPC function
       const { data: admins, error: adminsError } = await supabase.rpc('get_admin_users');
       
       if (adminsError) {
@@ -42,10 +41,10 @@
         return;
       }
       
-      // Convert to the expected format
+      // Convert JSONB array to expected format
       adminUsers = (admins || []).map((admin: any) => ({
         user_id: admin.user_id,
-        email: admin.email_cache || 'Unknown',
+        email: admin.email_cache || admin.email || 'Unknown',
         role: admin.role,
         created_at: admin.created_at
       }));
@@ -287,7 +286,7 @@ Available roles:
                   <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     <div class="flex items-center space-x-2">
                       <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                        {admin.role === 'super_admin' ? 'bg-purple-100 text-purple-800' : 
+                        {admin.role === 'super_admin' || admin.role === 'super-admin' ? 'bg-purple-100 text-purple-800' : 
                         admin.role === 'admin' ? 'bg-blue-100 text-blue-800' : 
                         'bg-green-100 text-green-800'}">
                         {admin.role}

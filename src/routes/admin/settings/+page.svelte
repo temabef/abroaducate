@@ -61,8 +61,8 @@
         return true;
       }
       
-      // Check if user can manage admins (using nuclear function temporarily)
-      const { data: canManage, error: permError } = await supabase.rpc('can_manage_admins_nuclear');
+      // Check if user can manage admins
+      const { data: canManage, error: permError } = await supabase.rpc('can_manage_admins');
       
       if (permError) {
         console.error('Error checking admin permissions:', permError);
@@ -73,11 +73,15 @@
       canManageAdmins = !!canManage;
       debugInfo += ` | Can Manage Admins: ${canManageAdmins}`;
       
-      // Get current user's role using the new function
-      const { data: roleData, error: roleError } = await supabase.rpc('get_current_user_admin_role');
+      // Get current user's role from admin_users table
+      const { data: roleData, error: roleError } = await supabase
+        .from('admin_users')
+        .select('role')
+        .eq('user_id', $page.data.session?.user?.id)
+        .single();
       
       if (!roleError && roleData) {
-        currentUserRole = roleData;
+        currentUserRole = roleData.role;
         debugInfo += ` | Role: ${currentUserRole}`;
       } else {
         debugInfo += ` | Role Error: ${roleError?.message || 'Not found'}`;
@@ -112,8 +116,8 @@
         return;
       }
       
-      // Use the nuclear get_admin_users function
-      const { data: adminData, error: adminError } = await supabase.rpc('get_admin_users_nuclear');
+      // Use the working get_admin_users RPC function
+      const { data: adminData, error: adminError } = await supabase.rpc('get_admin_users');
       
       if (adminError) {
         error = `Error loading admin users: ${adminError.message}`;
@@ -122,7 +126,17 @@
         return;
       }
       
-      adminUsers = adminData || [];
+      // Convert JSONB array to expected format
+      adminUsers = (adminData || []).map((admin: any) => ({
+        user_id: admin.user_id,
+        role: admin.role,
+        email_cache: admin.email_cache,
+        email: admin.email_cache || admin.email || 'Unknown',
+        created_at: admin.created_at,
+        created_by: admin.created_by,
+        updated_at: admin.updated_at,
+        updated_by: admin.updated_by
+      }));
     } catch (e) {
       const errorMessage = e instanceof Error ? e.message : String(e);
       error = `Exception: ${errorMessage}`;
@@ -147,8 +161,8 @@
     addSuccess = false;
     
     try {
-      // Use the nuclear add_admin_user function
-      const { data: result, error } = await supabase.rpc('add_admin_user_nuclear', {
+      // Use the add_admin_user function
+      const { data: result, error } = await supabase.rpc('add_admin_user', {
         admin_email: newAdminEmail,
         admin_role: newAdminRole
       });
@@ -192,8 +206,8 @@
     }
     
     try {
-      // Use the nuclear remove_admin_user function
-      const { data: result, error } = await supabase.rpc('remove_admin_user_nuclear', {
+      // Use the remove_admin_user function
+      const { data: result, error } = await supabase.rpc('remove_admin_user', {
         admin_email: email
       });
       
@@ -234,8 +248,8 @@ Available roles:
     if (!newRole) return; // User cancelled
     
     try {
-      // Use the nuclear add_admin_user function to update the role (it handles upserts)
-      const { data: result, error } = await supabase.rpc('add_admin_user_nuclear', {
+      // Use the add_admin_user function to update the role (it handles upserts)
+      const { data: result, error } = await supabase.rpc('add_admin_user', {
         admin_email: email,
         admin_role: newRole
       });

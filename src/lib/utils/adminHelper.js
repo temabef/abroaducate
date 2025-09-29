@@ -64,7 +64,7 @@ export async function addAdminUser(email, role = 'admin') {
 export async function removeAdminUser(email) {
   try {
     const { data, error } = await supabase.rpc('remove_admin_user', { 
-      email_to_remove: email 
+      admin_email: email 
     });
     
     if (error) {
