@@ -1,9 +1,14 @@
 import vision from "@google-cloud/vision";
 import { resolve } from "path";
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 export async function googleVisionOCR(file: File): Promise<string> {
   const client = new vision.ImageAnnotatorClient({
-    keyFilename: resolve("google-vision-credentials.json")
+    keyFilename: resolve(__dirname, '../../../google-vision-credentials.json')
   });
   
    console.log("got to the googleVision.ts")
