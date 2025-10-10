@@ -21,11 +21,23 @@ export async function POST({ request }: RequestEvent) {
     //Google Vision
     try {
       console.log('got to the +server.ts google vision');
+      console.log('Environment check:', {
+        hasGoogleCredentials: !!process.env.GOOGLE_APPLICATION_CREDENTIALS,
+        nodeEnv: process.env.NODE_ENV,
+        cwd: process.cwd()
+      });
+      
       const text = await googleVisionOCR(file);
       if (text && text.trim().length > 50) {
         return json({ text, provider: 'google-vision' });
       }
     } catch (error) {
+      console.error('Google Vision failed with detailed error:', {
+        message: error.message,
+        stack: error.stack,
+        hasGoogleCredentials: !!process.env.GOOGLE_APPLICATION_CREDENTIALS,
+        nodeEnv: process.env.NODE_ENV
+      });
       console.warn('Google Vision failed, falling back to Tesseract:', error);
     }
 
