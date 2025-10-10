@@ -60,6 +60,7 @@
     <div 
       class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 transform transition-all"
       on:click|stopPropagation
+      role="document"
     >
       <!-- Header -->
       <div class="px-6 py-4 border-b border-gray-200">

@@ -5,7 +5,7 @@
     export let sopContent: string = '';
     export let universityName: string = '';
     export let programName: string = '';
-    export let programType: string = 'masters';
+export const programType: string = 'masters';
     export let currentWordCount: number = 0;
     
     const dispatch = createEventDispatcher();

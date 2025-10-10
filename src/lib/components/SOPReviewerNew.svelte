@@ -302,8 +302,8 @@ Session: ${reviewMode} review mode
             <!-- Input Section -->
             <div class="p-6 border-b">
                 <!-- Input Method Selection -->
-                <div class="mb-6">
-                    <label class="block text-sm font-medium text-gray-700 mb-3">How would you like to provide your SOP?</label>
+                <fieldset class="mb-6">
+                    <legend class="block text-sm font-medium text-gray-700 mb-3">How would you like to provide your SOP?</legend>
                     <div class="flex gap-4 flex-wrap">
                         <label class="flex items-center">
                             <input type="radio" bind:group={inputMethod} value="paste" class="mr-2">
@@ -320,13 +320,14 @@ Session: ${reviewMode} review mode
                             </label>
                         {/if}
                     </div>
-                </div>
+                </fieldset>
                 
                 <!-- File Upload -->
                 {#if inputMethod === 'upload'}
                     <div class="mb-6">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Upload SOP File</label>
+                        <label for="sop-file" class="block text-sm font-medium text-gray-700 mb-2">Upload SOP File</label>
                         <input 
+                            id="sop-file"
                             type="file" 
                             accept=".txt,.pdf,.doc,.docx"
                             onchange={handleFileUpload}
@@ -339,7 +340,7 @@ Session: ${reviewMode} review mode
                 <!-- Text Input -->
                 {#if inputMethod === 'paste' || inputMethod === 'existing'}
                     <div class="mb-6">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <label for="sop-text" class="block text-sm font-medium text-gray-700 mb-2">
                             SOP Text ({wordCount} words, {paragraphs.length} paragraphs)
                         </label>
                         
@@ -356,6 +357,7 @@ Session: ${reviewMode} review mode
                         
                         <div class="relative">
                         <textarea
+                            id="sop-text"
                             bind:value={sopText}
                             placeholder="Paste your Statement of Purpose here...
 
@@ -437,8 +439,8 @@ This is paragraph 3 covering my professional experience and achievements..."
                 {/if}
                 
                 <!-- Review Mode Selection -->
-                <div class="mb-6">
-                    <label class="block text-sm font-medium text-gray-700 mb-3">Review Type</label>
+                <fieldset class="mb-6">
+                    <legend class="block text-sm font-medium text-gray-700 mb-3">Review Type</legend>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <label class={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${
                             reviewMode === 'quick' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
@@ -464,7 +466,7 @@ This is paragraph 3 covering my professional experience and achievements..."
                             <div class="text-sm text-gray-600">Tailored to target university</div>
                         </label>
                     </div>
-                </div>
+                </fieldset>
 
                 <!-- Analyze Button (now truly below review type) -->
                 <div class="mt-6 text-center">
