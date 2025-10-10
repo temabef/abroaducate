@@ -5,10 +5,21 @@ export async function googleVisionOCR(file: File): Promise<string> {
   let clientConfig: any = {};
   
   if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
-    // Production: use environment variable
-    clientConfig = {
-      keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS
-    };
+    // Production: use environment variable (could be file path or JSON string)
+    try {
+      // Try to parse as JSON first (if it's a JSON string)
+      const credentials = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS);
+      clientConfig = {
+        credentials: credentials
+      };
+      console.log('Using JSON credentials from environment variable');
+    } catch (error) {
+      // If parsing fails, treat it as a file path
+      clientConfig = {
+        keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS
+      };
+      console.log('Using file path from environment variable:', process.env.GOOGLE_APPLICATION_CREDENTIALS);
+    }
   } else {
     // Local development: use credentials file
     try {
@@ -22,6 +33,7 @@ export async function googleVisionOCR(file: File): Promise<string> {
       clientConfig = {
         keyFilename: resolve(__dirname, '../../../google-vision-credentials.json')
       };
+      console.log('Using local credentials file');
     } catch (error) {
       console.warn('Could not load local credentials file:', error);
       // If file loading fails, try without credentials (will use default auth)
