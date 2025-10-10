@@ -1,13 +1,9 @@
 import vision from "@google-cloud/vision";
-import { GOOGLE_APPLICATION_CREDENTIALS } from '$env/static/private';
-
-if (!GOOGLE_APPLICATION_CREDENTIALS) {
-  throw new Error("Missing GOOGLE_APPLICATION_CREDENTIALS in .env");
-}
+import { resolve } from "path";
 
 export async function googleVisionOCR(file: File): Promise<string> {
   const client = new vision.ImageAnnotatorClient({
-    keyFilename: GOOGLE_APPLICATION_CREDENTIALS
+    keyFilename: resolve("google-vision-credentials.json")
   });
   
    console.log("got to the googleVision.ts")
