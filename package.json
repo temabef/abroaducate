@@ -41,6 +41,7 @@
 	"dependencies": {
 		"@fortawesome/free-brands-svg-icons": "^6.7.2",
 		"@fortawesome/free-solid-svg-icons": "^6.7.2",
+		"@google-cloud/vision": "^5.3.3",
 		"@sendgrid/mail": "^8.1.5",
 		"@stripe/stripe-js": "^7.3.1",
 		"@supabase/auth-helpers-sveltekit": "^0.13.0",
