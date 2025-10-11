@@ -19,15 +19,30 @@ export async function POST({ request }: RequestEvent) {
     console.log('File received:', file.name, file.type, file.size);
 
     //Google Vision
-    // try {
-    //   console.log('got to the +server.ts google vision');
-    //   const text = await googleVisionOCR(file);
-    //   if (text && text.trim().length > 50) {
-    //     return json({ text, provider: 'google-vision' });
-    //   }
-    // } catch (error) {
-    //   console.warn('Google Vision failed, falling back to Tesseract:', error);
-    // }
+    try {
+      console.log('got to the +server.ts google vision');
+      console.log('Environment check:', {
+        hasGoogleCredentials: !!process.env.GOOGLE_APPLICATION_CREDENTIALS,
+        hasProjectId: !!process.env.GOOGLE_PROJECT_ID,
+        hasPrivateKey: !!process.env.GOOGLE_PRIVATE_KEY,
+        hasClientEmail: !!process.env.GOOGLE_CLIENT_EMAIL,
+        nodeEnv: process.env.NODE_ENV,
+        cwd: process.cwd()
+      });
+      
+      const text = await googleVisionOCR(file);
+      if (text && text.trim().length > 50) {
+        return json({ text, provider: 'google-vision' });
+      }
+    } catch (error: any) {
+      console.error('Google Vision failed with detailed error:', {
+        message: error.message,
+        stack: error.stack,
+        hasGoogleCredentials: !!process.env.GOOGLE_APPLICATION_CREDENTIALS,
+        nodeEnv: process.env.NODE_ENV
+      });
+      console.warn('Google Vision failed, falling back to Tesseract:', error);
+    }
 
     // Use Tesseract directly
     try {
