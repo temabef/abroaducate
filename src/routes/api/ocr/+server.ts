@@ -19,15 +19,15 @@ export async function POST({ request }: RequestEvent) {
     console.log('File received:', file.name, file.type, file.size);
 
     //Google Vision
-    try {
-      console.log('got to the +server.ts google vision');
-      const text = await googleVisionOCR(file);
-      if (text && text.trim().length > 50) {
-        return json({ text, provider: 'google-vision' });
-      }
-    } catch (error) {
-      console.warn('Google Vision failed, falling back to Tesseract:', error);
-    }
+    // try {
+    //   console.log('got to the +server.ts google vision');
+    //   const text = await googleVisionOCR(file);
+    //   if (text && text.trim().length > 50) {
+    //     return json({ text, provider: 'google-vision' });
+    //   }
+    // } catch (error) {
+    //   console.warn('Google Vision failed, falling back to Tesseract:', error);
+    // }
 
     // Use Tesseract directly
     try {
