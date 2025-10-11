@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
     import { createEventDispatcher } from 'svelte';
     import { fade, fly } from 'svelte/transition';
     
@@ -7,7 +7,7 @@
     export let featureType = '';
     export let currentUsage = 0;
     export let limit = 0;
-    export let planType = 'free';
+    export const planType = 'free';
     
     const dispatch = createEventDispatcher();
     
@@ -17,9 +17,14 @@
     $: isAtLimit = currentUsage >= limit;
     
     // Toast messages based on usage
-    $: toastConfig = getToastConfig(limitType, featureType, percentageUsed, isAtLimit);
+    $: toastConfig = getToastConfig(limitType as 'documents' | 'ai_features', featureType, percentageUsed, isAtLimit);
     
-    function getToastConfig(limitType, featureType, percentageUsed, isAtLimit) {
+    function getToastConfig(
+        limitType: 'documents' | 'ai_features',
+        featureType: string,
+        percentageUsed: number,
+        isAtLimit: boolean
+    ) {
         const baseConfig = {
             documents: {
                 sop: {
@@ -48,7 +53,7 @@
             }
         };
         
-        const config = baseConfig[limitType]?.[featureType] || {
+        const config = (baseConfig as any)[limitType]?.[featureType] || {
             icon: '⚡',
             feature: 'Features',
             near: `${percentageUsed}% of monthly limit used.`,
@@ -64,7 +69,7 @@
     }
     
     // Auto-hide toast after delay
-    let autoHideTimer;
+    let autoHideTimer: ReturnType<typeof setTimeout> | undefined;
     $: if (isVisible && !isAtLimit) {
         clearTimeout(autoHideTimer);
         autoHideTimer = setTimeout(() => {
@@ -72,14 +77,14 @@
         }, 8000); // Hide after 8 seconds for soft warnings
     }
     
-    function handleUpgrade(planType) {
+    function handleUpgrade(planType: 'professional' | 'elite') {
         dispatch('upgrade', { planType });
         isVisible = false;
     }
     
     function dismiss() {
         isVisible = false;
-        clearTimeout(autoHideTimer);
+        if (autoHideTimer) clearTimeout(autoHideTimer);
     }
 </script>
 
@@ -92,6 +97,7 @@
             <!-- Close button -->
             <button 
                 on:click={dismiss}
+                aria-label="Dismiss upgrade notice"
                 class="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
             >
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

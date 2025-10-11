@@ -1,14 +1,46 @@
 import vision from "@google-cloud/vision";
-import { GOOGLE_APPLICATION_CREDENTIALS } from '$env/static/private';
-
-if (!GOOGLE_APPLICATION_CREDENTIALS) {
-  throw new Error("Missing GOOGLE_APPLICATION_CREDENTIALS in .env");
-}
 
 export async function googleVisionOCR(file: File): Promise<string> {
-  const client = new vision.ImageAnnotatorClient({
-    keyFilename: GOOGLE_APPLICATION_CREDENTIALS
-  });
+  // Try environment variable first (production), then fall back to file (local)
+  let clientConfig: any = {};
+  
+  if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+    // Production: use environment variable (could be file path or JSON string)
+    try {
+      // Try to parse as JSON first (if it's a JSON string)
+      const credentials = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS);
+      clientConfig = {
+        credentials: credentials
+      };
+      console.log('Using JSON credentials from environment variable');
+    } catch (error) {
+      // If parsing fails, treat it as a file path
+      clientConfig = {
+        keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS
+      };
+      console.log('Using file path from environment variable:', process.env.GOOGLE_APPLICATION_CREDENTIALS);
+    }
+  } else {
+    // Local development: use credentials file
+    try {
+      const { resolve } = await import("path");
+      const { fileURLToPath } = await import('url');
+      const { dirname } = await import('path');
+      
+      const __filename = fileURLToPath(import.meta.url);
+      const __dirname = dirname(__filename);
+      
+      clientConfig = {
+        keyFilename: resolve(__dirname, '../../../google-vision-credentials.json')
+      };
+      console.log('Using local credentials file');
+    } catch (error) {
+      console.warn('Could not load local credentials file:', error);
+      // If file loading fails, try without credentials (will use default auth)
+    }
+  }
+  
+  const client = new vision.ImageAnnotatorClient(clientConfig);
   
    console.log("got to the googleVision.ts")
   const buffer = Buffer.from(await file.arrayBuffer());

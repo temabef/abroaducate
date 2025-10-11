@@ -318,18 +318,7 @@
         color: #1F2937;
     }
 
-    .checkbox-label.disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
-
-    .checkbox-label.disabled:hover {
-        color: #374151;
-    }
-
-    .predefined-aspirations.disabled {
-        opacity: 0.7;
-    }
+    /* removed unused .disabled variants flagged by linter */
 
     
     /* Remove any potential underlines */
