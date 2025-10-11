@@ -18,9 +18,21 @@ export async function POST({ request }: RequestEvent) {
     
     console.log('File received:', file.name, file.type, file.size);
 
-    //Google Vision
+    // Try Tesseract first (better at extracting course codes and structured data)
     try {
-      console.log('got to the +server.ts google vision');
+      console.log('got to the +server.ts tesseract (primary)');
+      const text = await tesseractOCR(file);
+      
+      if (text && text.trim().length >= 50) {
+        return json({ text, provider: 'tesseract' });
+      }
+    } catch (error: any) {
+      console.warn('Tesseract failed, falling back to Google Vision:', error);
+    }
+
+    // Fallback to Google Vision if Tesseract fails
+    try {
+      console.log('got to the +server.ts google vision (fallback)');
       console.log('Environment check:', {
         hasGoogleCredentials: !!process.env.GOOGLE_APPLICATION_CREDENTIALS,
         hasProjectId: !!process.env.GOOGLE_PROJECT_ID,
@@ -31,34 +43,21 @@ export async function POST({ request }: RequestEvent) {
       });
       
       const text = await googleVisionOCR(file);
-      if (text && text.trim().length > 50) {
+      if (text && text.trim().length >= 50) {
         return json({ text, provider: 'google-vision' });
       }
+      
+      // If Google Vision also didn't get enough text
+      return json({ 
+        error: 'Insufficient text extracted. Please try a clearer image.' 
+      }, { status: 422 });
+      
     } catch (error: any) {
-      console.error('Google Vision failed with detailed error:', {
+      console.error('Google Vision also failed:', {
         message: error.message,
-        stack: error.stack,
-        hasGoogleCredentials: !!process.env.GOOGLE_APPLICATION_CREDENTIALS,
-        nodeEnv: process.env.NODE_ENV
+        stack: error.stack
       });
-      console.warn('Google Vision failed, falling back to Tesseract:', error);
-    }
-
-    // Use Tesseract directly
-    try {
-      console.log('got to the +server.ts tesseract');
-      const text = await tesseractOCR(file);
       
-      if (!text || text.trim().length < 50) {
-        return json({ 
-          error: 'Insufficient text extracted. Please try a clearer image.' 
-        }, { status: 422 });
-      }
-      
-      return json({ text, provider: 'tesseract' });
-      
-    } catch (error: any) {
-      console.error('Tesseract failed:', error);
       return json({ 
         error: `OCR processing failed: ${error.message}` 
       }, { status: 500 });
