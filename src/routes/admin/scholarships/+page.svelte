@@ -59,6 +59,7 @@
   let pageSize = $state(10);
   let totalScholarships = $state(0);
   let totalPages = $state(1);
+  let goToPageInput = $state('');
 
   // Form data
   let formData = $state({
@@ -200,7 +201,67 @@
     if (page >= 1 && page <= totalPages) {
       currentPage = page;
       loadScholarships();
+      goToPageInput = ''; // Clear the input after navigating
     }
+  }
+
+  function handleGoToPageInput(event: Event) {
+    event.preventDefault();
+    const page = parseInt(goToPageInput);
+    if (!isNaN(page) && page >= 1 && page <= totalPages) {
+      goToPage(page);
+    }
+  }
+
+  // Smart pagination: compute which page numbers to show
+  function getPageNumbers(): (number | string)[] {
+    const pages: (number | string)[] = [];
+    const maxPagesToShow = 7; // Max number of page buttons to show
+    const sidePages = 1; // Pages to show on each side of current page
+    
+    if (totalPages <= maxPagesToShow) {
+      // Show all pages if total is small
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // Always show first page
+      pages.push(1);
+      
+      // Calculate start and end of middle section
+      let startPage = Math.max(2, currentPage - sidePages);
+      let endPage = Math.min(totalPages - 1, currentPage + sidePages);
+      
+      // Adjust if we're near the beginning
+      if (currentPage <= 3) {
+        endPage = 5;
+      }
+      
+      // Adjust if we're near the end
+      if (currentPage >= totalPages - 2) {
+        startPage = totalPages - 4;
+      }
+      
+      // Add ellipsis after first page if needed
+      if (startPage > 2) {
+        pages.push('...');
+      }
+      
+      // Add middle pages
+      for (let i = startPage; i <= endPage; i++) {
+        pages.push(i);
+      }
+      
+      // Add ellipsis before last page if needed
+      if (endPage < totalPages - 1) {
+        pages.push('...');
+      }
+      
+      // Always show last page
+      pages.push(totalPages);
+    }
+    
+    return pages;
   }
 
   async function saveScholarship(event: Event) {
@@ -1398,35 +1459,111 @@
               {/each}
             </div>
             
-            <!-- Pagination -->
+            <!-- Smart Pagination -->
             {#if totalPages > 1}
-              <div class="flex justify-center mt-6">
-                <nav class="flex space-x-2">
-                  <button
-                    onclick={() => goToPage(currentPage - 1)}
-                    disabled={currentPage === 1}
-                    class="px-3 py-2 text-sm border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-                  >
-                    Previous
-                  </button>
+              <div class="mt-8 border-t pt-6">
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <!-- Page Info -->
+                  <div class="text-sm text-gray-600">
+                    Showing page <strong>{currentPage}</strong> of <strong>{totalPages}</strong> 
+                    (<strong>{totalScholarships}</strong> total scholarships)
+                  </div>
                   
-                  {#each Array(totalPages) as _, i}
+                  <!-- Pagination Controls -->
+                  <nav class="flex items-center space-x-2">
+                    <!-- First Page -->
                     <button
-                      onclick={() => goToPage(i + 1)}
-                      class="px-3 py-2 text-sm border rounded-lg {currentPage === i + 1 ? 'bg-blue-600 text-white' : 'hover:bg-gray-50'}"
+                      onclick={() => goToPage(1)}
+                      disabled={currentPage === 1}
+                      class="px-3 py-2 text-sm border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition"
+                      title="First page"
                     >
-                      {i + 1}
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/>
+                      </svg>
                     </button>
-                  {/each}
+                    
+                    <!-- Previous Page -->
+                    <button
+                      onclick={() => goToPage(currentPage - 1)}
+                      disabled={currentPage === 1}
+                      class="px-3 py-2 text-sm border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition"
+                    >
+                      Previous
+                    </button>
+                    
+                    <!-- Page Numbers -->
+                    {#each getPageNumbers() as pageNum}
+                      {#if pageNum === '...'}
+                        <span class="px-3 py-2 text-gray-400">...</span>
+                      {:else}
+                        <button
+                          onclick={() => goToPage(pageNum as number)}
+                          class="px-3 py-2 text-sm border rounded-lg transition {currentPage === pageNum ? 'bg-blue-600 text-white border-blue-600 font-semibold' : 'hover:bg-gray-50'}"
+                        >
+                          {pageNum}
+                        </button>
+                      {/if}
+                    {/each}
+                    
+                    <!-- Next Page -->
+                    <button
+                      onclick={() => goToPage(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                      class="px-3 py-2 text-sm border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition"
+                    >
+                      Next
+                    </button>
+                    
+                    <!-- Last Page -->
+                    <button
+                      onclick={() => goToPage(totalPages)}
+                      disabled={currentPage === totalPages}
+                      class="px-3 py-2 text-sm border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition"
+                      title="Last page"
+                    >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/>
+                      </svg>
+                    </button>
+                  </nav>
                   
-                  <button
-                    onclick={() => goToPage(currentPage + 1)}
-                    disabled={currentPage === totalPages}
-                    class="px-3 py-2 text-sm border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                  <!-- Go to Page Input -->
+                  <form onsubmit={handleGoToPageInput} class="flex items-center gap-2">
+                    <label for="goToPage" class="text-sm text-gray-600 whitespace-nowrap">Go to:</label>
+                    <input
+                      id="goToPage"
+                      type="number"
+                      bind:value={goToPageInput}
+                      min="1"
+                      max={totalPages}
+                      placeholder="Page"
+                      class="w-20 px-2 py-1 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                    <button
+                      type="submit"
+                      class="px-3 py-1 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                    >
+                      Go
+                    </button>
+                  </form>
+                </div>
+                
+                <!-- Page Size Selector -->
+                <div class="flex items-center justify-center gap-2 mt-4 text-sm text-gray-600">
+                  <span>Items per page:</span>
+                  <select
+                    bind:value={pageSize}
+                    onchange={() => { currentPage = 1; loadScholarships(); }}
+                    class="px-2 py-1 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
-                    Next
-                  </button>
-                </nav>
+                    <option value="5">5</option>
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                  </select>
+                </div>
               </div>
             {/if}
           </div>
