@@ -78,6 +78,11 @@ export const POST: RequestHandler = async ({ request }) => {
                     console.log(`[WEBHOOK] ✅ Successfully processed invoice.payment_failed`);
                     break;
                     
+                case 'customer.subscription.updated':
+                    await handleSubscriptionUpdated(event.data.object);
+                    console.log(`[WEBHOOK] ✅ Successfully processed customer.subscription.updated`);
+                    break;
+                    
                 case 'checkout.session.async_payment_failed':
                     console.log(`[WEBHOOK] ℹ️  Async payment failed for session`);
                     break;
@@ -282,20 +287,62 @@ async function handlePaymentSucceeded(invoice: any) {
 
 async function handlePaymentFailed(invoice: any) {
     try {
+        console.log(`[PAYMENT_FAILED] Processing failed payment for subscription: ${invoice.subscription}`);
+        
+        // Get subscription details
+        const subscription = await stripe.subscriptions.retrieve(invoice.subscription as string);
+        const customerId = subscription.customer as string;
+        
+        // Update subscription status to past_due
         const { error } = await supabaseAdmin
             .from('user_subscriptions')
             .update({
-                status: 'past_due'
+                status: 'past_due',
+                last_payment_failed_at: new Date().toISOString()
             })
             .eq('stripe_subscription_id', invoice.subscription);
 
         if (error) {
             console.error('Database error on payment failed:', error);
         } else {
-            try { analytics.trackEvent('invoice_payment_failed', { subscription_id: invoice.subscription }); } catch {}
+            console.log(`[PAYMENT_FAILED] ✅ Updated subscription status to past_due`);
+            
+            // Track analytics
+            try { 
+                analytics.trackEvent('invoice_payment_failed', { 
+                    subscription_id: invoice.subscription,
+                    customer_id: customerId,
+                    failure_reason: invoice.last_payment_error?.code || 'unknown'
+                }); 
+            } catch {}
+            
+            // Send notification email to user about failed payment
+            await sendPaymentFailedNotification(customerId, invoice);
         }
 
     } catch (error) {
         console.error('Error handling payment failed:', error);
+    }
+}
+
+// New function to send payment failed notification
+async function sendPaymentFailedNotification(customerId: string, invoice: any) {
+    try {
+        // Get customer details
+        const customer = await stripe.customers.retrieve(customerId);
+        const email = (customer as any).email;
+        
+        if (email) {
+            console.log(`[NOTIFICATION] Sending payment failed email to: ${email}`);
+            
+            // Here you would integrate with your email service (SendGrid, etc.)
+            // For now, we'll just log it
+            console.log(`[EMAIL] Payment failed notification for ${email}:`);
+            console.log(`- Amount: $${(invoice.amount_due / 100).toFixed(2)}`);
+            console.log(`- Failure reason: ${invoice.last_payment_error?.message || 'Payment method declined'}`);
+            console.log(`- Next retry: ${invoice.next_payment_attempt ? new Date(invoice.next_payment_attempt * 1000).toISOString() : 'No retry scheduled'}`);
+        }
+    } catch (error) {
+        console.error('Error sending payment failed notification:', error);
     }
 } 

@@ -156,7 +156,13 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
             // Add billing address collection for tax compliance
             billing_address_collection: 'required',
             // Allow promotional codes
-            allow_promotion_codes: true
+            allow_promotion_codes: true,
+            // Add payment method validation
+            payment_method_options: {
+                card: {
+                    request_three_d_secure: 'automatic'
+                }
+            }
         });
 
         console.log('✅ Stripe checkout session created successfully:', {
