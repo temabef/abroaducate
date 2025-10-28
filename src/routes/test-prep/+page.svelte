@@ -1,4 +1,91 @@
 <svelte:head>
+  <title>Test Prep Hub | Abroaducate</title>
+  <meta
+    name="description"
+    content="Your central hub for IELTS, TOEFL, and GRE preparation. Access practice tests, study plans, and more."
+  />
+</svelte:head>
+
+<script lang="ts">
+  import AuthenticationFlow from '$lib/components/AuthenticationFlow.svelte';
+  import { goto } from '$app/navigation';
+  import IeltsContent from './test-pages/ielts-content.svelte';
+  import ComingSoon from './test-pages/coming-soon.svelte';
+
+  let { data } = $props();
+  let { session, supabase } = $derived(data);
+  let showAuthModal = $state(false);
+  let pendingPracticeRedirect = $state<string | null>(null);
+
+  // State for new tabbed navigation
+  let activeTab = $state('IELTS');
+  const tabs = ['IELTS', 'TOEFL', 'GRE', 'GMAT'];
+
+  function handleTabClick(tab: string) {
+    activeTab = tab;
+  }
+
+  function handleStartPractice(link: string) {
+    if (session) {
+      goto(link);
+    } else {
+      pendingPracticeRedirect = link;
+      showAuthModal = true;
+    }
+  }
+
+  function handleAuthSuccess() {
+    if (pendingPracticeRedirect) {
+      goto(pendingPracticeRedirect);
+      pendingPracticeRedirect = null;
+    }
+  }
+</script>
+
+<section class="pt-28 pb-16 bg-gray-50 min-h-screen">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div
+      class="mb-12 overflow-x-auto"
+      style="scrollbar-width: none; -ms-overflow-style: none;"
+    >
+      <div class="flex items-center space-x-2 pb-2">
+        {#each tabs as tab (tab)}
+          <button
+            onclick={() => handleTabClick(tab)}
+            class="whitespace-nowrap rounded-full px-5 py-2.5 text-sm font-semibold transition-all duration-200
+              {activeTab === tab ?
+                'bg-[#2C3580] hover:bg-[#3c4d9c] text-white shadow-md' :
+                'bg-gray-100 text-gray-700 hover:bg-gray-200'}"
+          >
+            {tab}
+          </button>
+        {/each}
+      </div>
+    </div>
+
+    <div>
+      {#if activeTab === 'IELTS'}
+        <IeltsContent {handleStartPractice} />
+      {:else if activeTab === 'TOEFL'}
+        <ComingSoon testName="TOEFL" />
+      {:else if activeTab === 'GRE'}
+        <ComingSoon testName="GRE" />
+      {:else if activeTab === 'GMAT'}
+        <ComingSoon testName="GMAT" />
+      {/if}
+    </div>
+  </div>
+</section>
+
+<AuthenticationFlow
+  bind:show={showAuthModal}
+  {supabase}
+  mode="login"
+  returnUrl={pendingPracticeRedirect || '/test-prep'}
+  on:success={handleAuthSuccess}
+/>
+
+<!-- <svelte:head>
   <title>IELTS Test Prep - 1-Month Study Plan | Abroaducate</title>
   <meta name="description" content="Comprehensive 1-month IELTS study plan with detailed weekly tasks, practice tests, and study strategies for all four sections." />
 </svelte:head>
@@ -374,9 +461,9 @@
 </script>
 
 <section class="pt-28 pb-16 bg-gray-50 min-h-screen">
-  <div class="max-w-6xl mx-auto px-4">
+  <div class="max-w-6xl mx-auto px-4"> -->
     <!-- Header Section -->
-    <div class="text-center mb-12">
+    <!-- <div class="text-center mb-12">
       <h1 class="text-4xl font-extrabold text-gray-900 mb-4">IELTS Test Prep Centre</h1>
       <p class="text-lg text-gray-600 mb-6 max-w-3xl mx-auto">
         Master the IELTS Academic test with our comprehensive 1-month study plan. This intensive program 
@@ -408,10 +495,10 @@
           <span>Test Day Preparation</span>
         </div>
       </div>
-    </div>
+    </div> -->
 
     <!-- Available Practice Tests Section -->
-    <div class="mb-12">
+    <!-- <div class="mb-12">
       <h2 class="text-2xl font-bold text-gray-900 mb-6">Available Practice Tests</h2>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         {#each availablePracticeTests as test}
@@ -450,10 +537,10 @@
           </div>
         {/each}
       </div>
-    </div>
+    </div> -->
 
     <!-- Comprehensive Study Plan -->
-    <div class="mb-12">
+    <!-- <div class="mb-12">
       <h2 class="text-2xl font-bold text-gray-900 mb-6">Comprehensive 1-Month Study Plan</h2>
       <p class="text-gray-600 mb-8">
         This detailed study plan provides daily tasks and strategies to maximize your IELTS preparation. 
@@ -472,10 +559,10 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
               </svg>
             </summary>
-            
-            <div class="px-6 pb-6 border-t border-gray-100">
+             -->
+            <!-- <div class="px-6 pb-6 border-t border-gray-100"> -->
               <!-- Week Goals -->
-              <div class="mt-4">
+              <!-- <div class="mt-4">
                 <h4 class="font-semibold text-gray-900 mb-3">Week Goals</h4>
                 <ul class="space-y-2">
                   {#each week.goals as goal}
@@ -487,10 +574,10 @@
                     </li>
                   {/each}
                 </ul>
-              </div>
+              </div> -->
 
               <!-- Daily Tasks -->
-              <div class="mt-6">
+              <!-- <div class="mt-6">
                 <h4 class="font-semibold text-gray-900 mb-3">Daily Study Schedule</h4>
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   {#each week.dailyTasks as dayTask}
@@ -513,10 +600,10 @@
                     </div>
                   {/each}
                 </div>
-              </div>
+              </div> -->
 
               <!-- Required Materials -->
-              <div class="mt-6">
+              <!-- <div class="mt-6">
                 <h4 class="font-semibold text-gray-900 mb-3">Required Materials</h4>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
                   {#each week.materials as material}
@@ -528,10 +615,10 @@
                     </div>
                   {/each}
                 </div>
-              </div>
+              </div> -->
 
               <!-- Week Assessment -->
-              <div class="mt-6 bg-blue-50 rounded-lg p-4">
+              <!-- <div class="mt-6 bg-blue-50 rounded-lg p-4">
                 <h4 class="font-semibold text-blue-900 mb-2">Week Assessment</h4>
                 <p class="text-blue-800">{week.assessment}</p>
               </div>
@@ -539,19 +626,19 @@
           </details>
         {/each}
       </div>
-    </div>
+    </div> -->
 
     <!-- Ad placement before Study Tips -->
-    <div class="my-10 max-w-4xl mx-auto">
+    <!-- <div class="my-10 max-w-4xl mx-auto">
       <AdSenseAd adSlot="8877167254" className="bg-gray-50 p-4 rounded-lg border" variant="in-article" />
-    </div>
+    </div> -->
     
     <!-- Study Tips and Strategies -->
-    <div class="mb-12">
+    <!-- <div class="mb-12">
       <h2 class="text-2xl font-bold text-gray-900 mb-6">Essential Study Tips & Strategies</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6"> -->
         <!-- Time Management -->
-        <div class="bg-white rounded-lg shadow-md p-6">
+        <!-- <div class="bg-white rounded-lg shadow-md p-6">
           <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
             <svg class="w-5 h-5 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
@@ -568,10 +655,10 @@
               </li>
             {/each}
           </ul>
-        </div>
+        </div> -->
 
         <!-- Vocabulary Building -->
-        <div class="bg-white rounded-lg shadow-md p-6">
+        <!-- <div class="bg-white rounded-lg shadow-md p-6">
           <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
             <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
               <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -588,10 +675,10 @@
               </li>
             {/each}
           </ul>
-        </div>
+        </div> -->
 
         <!-- Practice Strategies -->
-        <div class="bg-white rounded-lg shadow-md p-6">
+        <!-- <div class="bg-white rounded-lg shadow-md p-6">
           <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
             <svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
               <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
@@ -608,10 +695,10 @@
               </li>
             {/each}
           </ul>
-        </div>
+        </div> -->
 
         <!-- Test Day Preparation -->
-        <div class="bg-white rounded-lg shadow-md p-6">
+        <!-- <div class="bg-white rounded-lg shadow-md p-6">
           <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
             <svg class="w-5 h-5 text-purple-500" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
@@ -630,10 +717,10 @@
           </ul>
         </div>
       </div>
-    </div>
+    </div> -->
 
     <!-- CTA Section -->
-    <div class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg p-8 flex flex-col lg:flex-row items-center lg:items-start gap-6 shadow-lg">
+    <!-- <div class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg p-8 flex flex-col lg:flex-row items-center lg:items-start gap-6 shadow-lg">
       <div class="text-3xl">🚀</div>
       <div class="flex-1 text-center lg:text-left">
         <h2 class="text-2xl font-bold mb-2">Ready to Start Your IELTS Journey?</h2>
@@ -653,10 +740,10 @@
           </button>
         </div>
       </div>
-    </div>
+    </div> -->
 
     <!-- Additional Tests Coming Soon -->
-    <div class="mt-12 text-center">
+    <!-- <div class="mt-12 text-center">
       <h3 class="text-xl font-semibold text-gray-900 mb-4">More Practice Tests Coming Soon</h3>
              <div class="flex flex-wrap justify-center gap-4 text-sm text-gray-600">
          <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full">✅ Reading Practice (Available)</span>
@@ -675,4 +762,4 @@
   mode="login"
   returnUrl={pendingPracticeRedirect || '/test-prep'}
   on:success={handleAuthSuccess}
-/> 
+/>  -->

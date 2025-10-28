@@ -1075,25 +1075,50 @@
 		const formData = new FormData();
 		formData.append('file', file);
 
-    console.log('Sending request to /api/ocr...');
-		const response = await fetch('/api/ocr', {
-			method: 'POST',
-			body: formData
-		});
+		console.log('Sending request to /api/ocr...');
 
-		if (!response.ok) {
-			const error = await response.json();
-			throw new Error(error.error || 'OCR processing failed');
+		try {
+			const response = await fetch('/api/ocr', {
+				method: 'POST',
+				body: formData,
+				signal: AbortSignal.timeout(55000) // 55 second timeout (less than server's 60)
+			});
+
+			console.log('Response status:', response.status);
+
+			if (!response.ok) {
+				let errorMessage = 'OCR processing failed';
+
+				try {
+					const error = await response.json();
+					errorMessage = error.error || errorMessage;
+				} catch (e) {
+					// Response wasn't JSON, might be HTML error page
+					const text = await response.text();
+					console.error('Non-JSON response:', text.substring(0, 200));
+
+					if (response.status === 504) {
+						errorMessage = 'Processing timeout. Please try a smaller or clearer image.';
+					}
+				}
+
+				throw new Error(errorMessage);
+			}
+
+			const data = await response.json();
+			console.log('OCR provider used:', data.provider);
+
+			if (!data.text || data.text.trim().length < 50) {
+				throw new Error('Insufficient text extracted');
+			}
+
+			return data.text;
+		} catch (error: any) {
+			if (error.name === 'TimeoutError') {
+				throw new Error('OCR took too long. Please try a smaller image.');
+			}
+			throw error;
 		}
-
-		const data = await response.json();
-		console.log('OCR provider used:', data.provider);
-
-		if (!data.text || data.text.trim().length < 50) {
-			throw new Error('Insufficient text extracted');
-		}
-
-		return data.text;
 	}
 	// async function extractTextOnly(file: File): Promise<string> {
 	//   const Tesseract = await import('tesseract.js');

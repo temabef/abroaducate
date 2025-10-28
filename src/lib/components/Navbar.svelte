@@ -2,6 +2,7 @@
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import AuthenticationFlow from './AuthenticationFlow.svelte';
+	import heroImage from '$lib/images/background-image.png';
 
 	let { data } = $props<{ data: { session: any; supabase: any } }>();
 	let { session, supabase } = $derived(data);
@@ -73,11 +74,11 @@
 
 <svelte:window onclick={closeAllDropdowns} />
 
-<header class="bg-blue-800 backdrop-blur-md fixed top-0 left-0 right-0 z-50 shadow-md">
-	<nav class="flex items-center justify-between p-4 mx-auto max-w-7xl">
+<header class="fixed top-0 left-0 right-0 z-50" style="background-image: url('{heroImage}'); background-size: cover; background-position:bottom;">
+	<nav class="flex items-center justify-between p-4 mx-auto max-w-8xl">
 		<a href="/" class="flex items-center space-x-3 hover:opacity-80 transition duration-300">
 			<img src="/logo-icon.svg" alt="Abroaducate" class="w-8 h-8" />
-			<span class="text-2xl font-medium text-white">Abroaducate</span>
+			<span class="text-2xl font-light text-white">Abroaducate</span>
 		</a>
 
 		<div
@@ -94,7 +95,7 @@
 						submitAppsDropdownOpen = false;
 						nextStepsDropdownOpen = false;
 					}}
-					class="flex items-center space-x-1 text-gray-700 font-medium hover:text-blue-900 transition duration-300"
+					class="flex items-center space-x-1 text-gray-700 font-light hover:text-blue-900 transition duration-300"
 				>
 					<span>Start Journey</span>
 					<svg
@@ -122,11 +123,11 @@
 						>
 							<span class="text-lg mr-3">🎯</span>
 							<div>
-								<div class="font-medium">Academic Profile Analyzer</div>
+								<div class="font-light">Academic Profile Analyzer</div>
 								<div class="text-sm text-gray-500">Assess your academic strengths</div>
 							</div>
 							<span
-								class="ml-auto px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full"
+								class="ml-auto px-2 py-1 text-xs font-light bg-green-100 text-green-800 rounded-full"
 								>NEW</span
 							>
 						</a>
@@ -137,11 +138,11 @@
 						>
 							<span class="text-lg mr-3">🧮</span>
 							<div>
-								<div class="font-medium">GPA Converter</div>
+								<div class="font-light">GPA Converter</div>
 								<div class="text-sm text-gray-500">40+ international grading systems</div>
 							</div>
 							<span
-								class="ml-auto px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full"
+								class="ml-auto px-2 py-1 text-xs font-light bg-green-100 text-green-800 rounded-full"
 								>FREE</span
 							>
 						</a>
@@ -151,7 +152,7 @@
 						>
 							<span class="text-lg mr-3">🏫</span>
 							<div>
-								<div class="font-medium">University Matching</div>
+								<div class="font-light">University Matching</div>
 								<div class="text-sm text-gray-500">Find your perfect academic fit</div>
 							</div>
 						</a>
@@ -161,7 +162,7 @@
 						>
 							<span class="text-lg mr-3">🚀</span>
 							<div>
-								<div class="font-medium">University Database</div>
+								<div class="font-light">University Database</div>
 								<div class="text-sm text-gray-500">7,000+ universities worldwide</div>
 							</div>
 						</a>
@@ -171,11 +172,11 @@
 						>
 							<span class="text-lg mr-3">📝</span>
 							<div>
-								<div class="font-medium">Test Prep</div>
+								<div class="font-light">Test Prep</div>
 								<div class="text-sm text-gray-500">IELTS & other exams (study plans)</div>
 							</div>
 							<span
-								class="ml-auto px-2 py-1 text-xs font-medium bg-purple-100 text-purple-800 rounded-full"
+								class="ml-auto px-2 py-1 text-xs font-light bg-purple-100 text-purple-800 rounded-full"
 								>NEW</span
 							>
 						</a>
@@ -194,7 +195,7 @@
 						submitAppsDropdownOpen = false;
 						nextStepsDropdownOpen = false;
 					}}
-					class="flex items-center space-x-1 text-gray-700 font-medium hover:text-blue-900 transition duration-300"
+					class="flex items-center space-x-1 text-gray-700 font-light hover:text-blue-900 transition duration-300"
 				>
 					<span>Prepare Docs</span>
 					<svg
@@ -222,7 +223,7 @@
 						>
 							<span class="text-lg mr-3">📄</span>
 							<div>
-								<div class="font-medium">Statement of Purpose</div>
+								<div class="font-light">Statement of Purpose</div>
 								<div class="text-sm text-gray-500">4 types with AI assistance</div>
 							</div>
 						</a>
@@ -232,7 +233,7 @@
 						>
 							<span class="text-lg mr-3">💼</span>
 							<div>
-								<div class="font-medium">Cover Letters</div>
+								<div class="font-light">Cover Letters</div>
 								<div class="text-sm text-gray-500">Professional & academic templates</div>
 							</div>
 						</a>
@@ -242,7 +243,7 @@
 						>
 							<span class="text-lg mr-3">💭</span>
 							<div>
-								<div class="font-medium">Personal Statements</div>
+								<div class="font-light">Personal Statements</div>
 								<div class="text-sm text-gray-500">6 application types supported</div>
 							</div>
 						</a>
@@ -252,7 +253,7 @@
 						>
 							<span class="text-lg mr-3">📋</span>
 							<div>
-								<div class="font-medium">Academic CV</div>
+								<div class="font-light">Academic CV</div>
 								<div class="text-sm text-gray-500">6 subject-specific templates</div>
 							</div>
 						</a>
@@ -267,11 +268,11 @@
 							>
 								<span class="text-lg mr-3">🤖</span>
 								<div>
-									<div class="font-medium">AI Tools Hub</div>
+									<div class="font-light">AI Tools Hub</div>
 									<div class="text-sm text-gray-500">Grammar, style, plagiarism & more</div>
 								</div>
 								<span
-									class="ml-auto px-2 py-1 text-xs font-medium bg-purple-100 text-purple-800 rounded-full"
+									class="ml-auto px-2 py-1 text-xs font-light bg-purple-100 text-purple-800 rounded-full"
 									>6+ Tools</span
 								>
 							</a>
@@ -291,7 +292,7 @@
 						submitAppsDropdownOpen = false;
 						nextStepsDropdownOpen = false;
 					}}
-					class="flex items-center space-x-1 text-gray-700 font-medium hover:text-blue-900 transition duration-300"
+					class="flex items-center space-x-1 text-gray-700 font-light hover:text-blue-900 transition duration-300"
 				>
 					<span>Find Funding</span>
 					<svg
@@ -319,7 +320,7 @@
 						>
 							<span class="text-lg mr-3">🔍</span>
 							<div>
-								<div class="font-medium">Browse Scholarships</div>
+								<div class="font-light">Browse Scholarships</div>
 								<div class="text-sm text-gray-500">AI-powered scholarship matching</div>
 							</div>
 						</a>
@@ -329,7 +330,7 @@
 						>
 							<span class="text-lg mr-3">🎯</span>
 							<div>
-								<div class="font-medium">University + Scholarship Pairing</div>
+								<div class="font-light">University + Scholarship Pairing</div>
 								<div class="text-sm text-gray-500">Integrated funding opportunities</div>
 							</div>
 						</a>
@@ -339,7 +340,7 @@
 						>
 							<span class="text-lg mr-3">📊</span>
 							<div>
-								<div class="font-medium">Saved Scholarships</div>
+								<div class="font-light">Saved Scholarships</div>
 								<div class="text-sm text-gray-500">Track funding applications</div>
 							</div>
 						</button>
@@ -358,7 +359,7 @@
 						findFundingDropdownOpen = false;
 						nextStepsDropdownOpen = false;
 					}}
-					class="flex items-center space-x-1 text-gray-700 font-medium hover:text-blue-900 transition duration-300"
+					class="flex items-center space-x-1 text-gray-700 font-light hover:text-blue-900 transition duration-300"
 				>
 					<span>Submit Apps</span>
 					<svg
@@ -386,7 +387,7 @@
 						>
 							<span class="text-lg mr-3">📊</span>
 							<div>
-								<div class="font-medium">Application Dashboard</div>
+								<div class="font-light">Application Dashboard</div>
 								<div class="text-sm text-gray-500">Overview of all applications</div>
 							</div>
 						</a>
@@ -396,7 +397,7 @@
 						>
 							<span class="text-lg mr-3">📋</span>
 							<div>
-								<div class="font-medium">Application Tracker</div>
+								<div class="font-light">Application Tracker</div>
 								<div class="text-sm text-gray-500">Track status & deadlines</div>
 							</div>
 						</button>
@@ -407,7 +408,7 @@
 						>
 							<span class="text-lg mr-3">🔍</span>
 							<div>
-								<div class="font-medium">Document Review</div>
+								<div class="font-light">Document Review</div>
 								<div class="text-sm text-gray-500">Final application reviews</div>
 							</div>
 						</a>
@@ -417,7 +418,7 @@
 						>
 							<span class="text-lg mr-3">📧</span>
 							<div>
-								<div class="font-medium">Cold Email Generator</div>
+								<div class="font-light">Cold Email Generator</div>
 								<div class="text-sm text-gray-500">Connect with professors</div>
 							</div>
 						</a>
@@ -436,7 +437,7 @@
 						findFundingDropdownOpen = false;
 						submitAppsDropdownOpen = false;
 					}}
-					class="flex items-center space-x-1 text-gray-700 font-medium hover:text-blue-900 transition duration-300"
+					class="flex items-center space-x-1 text-gray-700 font-light hover:text-blue-900 transition duration-300"
 				>
 					<span>Next Steps</span>
 					<svg
@@ -464,7 +465,7 @@
 						>
 							<span class="text-lg mr-3">📋</span>
 							<div>
-								<div class="font-medium">Document Checklists</div>
+								<div class="font-light">Document Checklists</div>
 								<div class="text-sm text-gray-500">Never miss a document again</div>
 							</div>
 						</a>
@@ -474,7 +475,7 @@
 						>
 							<span class="text-lg mr-3">🎯</span>
 							<div>
-								<div class="font-medium">Visa Interview Practice</div>
+								<div class="font-light">Visa Interview Practice</div>
 								<div class="text-sm text-gray-500">AI-powered F-1 visa prep</div>
 							</div>
 						</a>
@@ -484,7 +485,7 @@
 						>
 							<span class="text-lg mr-3">💰</span>
 							<div>
-								<div class="font-medium">Budget Calculator</div>
+								<div class="font-light">Budget Calculator</div>
 								<div class="text-sm text-gray-500">Plan your US study costs</div>
 							</div>
 						</a>
@@ -494,7 +495,7 @@
 						>
 							<span class="text-lg mr-3">📰</span>
 							<div>
-								<div class="font-medium">Blog</div>
+								<div class="font-light">Blog</div>
 								<div class="text-sm text-gray-500">Guides, tips, news & updates</div>
 							</div>
 						</a>
@@ -511,13 +512,13 @@
 				<div class="hidden lg:flex items-center space-x-2">
 					<a
 						href="/dashboard"
-						class="px-5 py-2 text-sm font-medium text-gray-800 bg-white rounded-full hover:bg-gray-100 transition duration-300"
+						class="px-5 py-2 text-sm font-light text-gray-800 bg-white rounded-full hover:bg-gray-100 transition duration-300"
 					>
 						Dashboard
 					</a>
 					<a
 						href="/account"
-						class="px-5 py-2 text-sm font-medium text-white bg-blue-900 rounded-full hover:bg-[#394aa5] transition duration-300 shadow-sm"
+						class="px-5 py-2 text-sm font-light text-white bg-[#2C3580] rounded-full hover:bg-[#394aa5] transition duration-300 shadow-sm"
 					>
 						Account
 					</a>
@@ -526,13 +527,13 @@
 				<div class="hidden lg:flex items-center space-x-2">
 					<button
 						onclick={showLogin}
-						class="px-5 py-2 text-sm font-medium text-gray-800 bg-white rounded-full hover:bg-gray-100 transition duration-300"
+						class="px-5 py-2 text-sm font-light text-gray-800 bg-white rounded-full hover:bg-gray-100 transition duration-300"
 					>
 						Login
 					</button>
 					<button
 						onclick={showSignup}
-						class="px-5 py-2 text-sm font-medium text-white bg-blue-900 rounded-full hover:bg-[#394aa5] transition duration-300 shadow-sm"
+						class="px-5 py-2 text-sm font-light text-white bg-[#2C3580] rounded-full hover:bg-[#394aa5] transition duration-300 shadow-sm"
 					>
 						Create Account
 					</button>
@@ -802,13 +803,13 @@
 					<div class="pt-2 border-t border-gray-700 space-y-2">
 						<button
 							onclick={() => navigateTo('/dashboard')}
-							class="block w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition duration-300 text-center"
+							class="block w-full px-4 py-2 text-sm font-light text-white bg-blue-600 rounded-md hover:bg-blue-700 transition duration-300 text-center"
 						>
 							Dashboard
 						</button>
 						<button
 							onclick={() => navigateTo('/account')}
-							class="block w-full px-4 py-2 text-sm font-medium text-white bg-transparent border border-white rounded-md hover:bg-white hover:text-[#0A192F] transition duration-300 text-center"
+							class="block w-full px-4 py-2 text-sm font-light text-white bg-transparent border border-white rounded-md hover:bg-white hover:text-[#0A192F] transition duration-300 text-center"
 						>
 							Account
 						</button>
@@ -820,7 +821,7 @@
 								closeMobileMenu();
 								showLogin();
 							}}
-							class="block w-full px-4 py-2 text-sm font-medium text-white bg-transparent border border-white rounded-md hover:bg-white hover:text-[#0A192F] transition duration-300 text-center"
+							class="block w-full px-4 py-2 text-sm font-light text-white bg-transparent border border-white rounded-md hover:bg-white hover:text-[#0A192F] transition duration-300 text-center"
 						>
 							Login
 						</button>
@@ -829,7 +830,7 @@
 								closeMobileMenu();
 								showSignup();
 							}}
-							class="block w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition duration-300 text-center"
+							class="block w-full px-4 py-2 text-sm font-light text-white bg-blue-600 rounded-md hover:bg-blue-700 transition duration-300 text-center"
 						>
 							Create Account
 						</button>

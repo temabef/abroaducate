@@ -1,921 +1,952 @@
 <script lang="ts">
-  import { page } from '$app/stores';
-  import AuthenticationFlow from '$lib/components/AuthenticationFlow.svelte';
-  import { analytics } from '$lib/utils/posthog';
-  import { subscriptionState } from '$lib/stores/subscription';
-  import { get } from 'svelte/store';
-  
-  let { data } = $props();
-  let { session, supabase } = $derived(data);
+	import { page } from '$app/stores';
+	import AuthenticationFlow from '$lib/components/AuthenticationFlow.svelte';
+	import { analytics } from '$lib/utils/posthog';
+	import { subscriptionState } from '$lib/stores/subscription';
+	import { get } from 'svelte/store';
 
-  let billingCycle = $state<'monthly' | 'annual'>('monthly');
-  let showAuthModal = $state(false);
-  let authMode = $state<'login' | 'signup'>('signup');
-  let loading = $state(false);
+	import heroImage from '$lib/images/background-image.png';
 
-  let monthlyBtnEl: HTMLButtonElement;
-  let annualBtnEl: HTMLButtonElement;
-  let sliderStyle = $state('');
+	let { data } = $props();
+	let { session, supabase } = $derived(data);
 
-  $effect(() => {
-    if (billingCycle === 'monthly' && monthlyBtnEl) {
-      const rect = monthlyBtnEl.getBoundingClientRect();
-      const parentRect = monthlyBtnEl.parentElement!.getBoundingClientRect();
-      const relativeLeft = monthlyBtnEl.offsetLeft;
-      sliderStyle = `width: ${monthlyBtnEl.offsetWidth}px; transform: translateX(${relativeLeft}px);`;
-    } else if (billingCycle === 'annual' && annualBtnEl) {
-      const rect = annualBtnEl.getBoundingClientRect();
-      const parentRect = annualBtnEl.parentElement!.getBoundingClientRect();
-      const relativeLeft = annualBtnEl.offsetLeft;
-      sliderStyle = `width: ${annualBtnEl.offsetWidth}px; transform: translateX(${relativeLeft}px);`;
-    }
-  });
+	let billingCycle = $state<'monthly' | 'annual'>('monthly');
+	let showAuthModal = $state(false);
+	let authMode = $state<'login' | 'signup'>('signup');
+	let loading = $state(false);
 
-  const prices = {
-    professional: {
-      monthly: 12,
-      annual: 10
-    },
-    elite: {
-      monthly: 29,
-      annual: 24
-    }
-  };
+	let monthlyBtnEl: HTMLButtonElement;
+	let annualBtnEl: HTMLButtonElement;
+	let sliderStyle = $state('');
 
-  const noAdsLine = 'Ad-free experience on paid plans';
+	const prices = {
+		professional: {
+			monthly: 12,
+			annual: 10
+		},
+		elite: {
+			monthly: 29,
+			annual: 24
+		}
+	};
 
-  async function handleUpgrade(plan: string, opts?: { trial?: boolean }) {
-    // Track pricing page interaction
-    analytics.trackEvent('pricing_plan_selected', {
-      plan: plan,
-      billing_cycle: billingCycle,
-      user_id: session?.user?.id
-    });
-    
-    if (plan === 'free') {
-      // Handle free plan - show signup modal
-      if (!session) {
-        authMode = 'signup';
-        showAuthModal = true;
-      } else {
-        // User is already logged in, redirect to dashboard
-        window.location.href = '/dashboard';
-      }
-      return;
-    }
-    
-    if (!session) {
-      // For paid plans, user needs to login first
-      authMode = 'login';
-      showAuthModal = true;
-      return;
-    }
-    
-    // Handle paid plans - redirect to Stripe checkout
-    try {
-      loading = true;
-      
-      const response = await fetch('/api/stripe/create-checkout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          planType: plan,
-          billingCycle: billingCycle,
-          trial: opts?.trial === true,
-          metadata: {
-            source: 'pricing_page',
-            cycle: billingCycle
-          }
-        })
-      });
+	const noAdsLine = 'Ad-free experience on paid plans';
 
-      const data = await response.json();
+	async function handleUpgrade(plan: string, opts?: { trial?: boolean }) {
+		// Track pricing page interaction
+		analytics.trackEvent('pricing_plan_selected', {
+			plan: plan,
+			billing_cycle: billingCycle,
+			user_id: session?.user?.id
+		});
 
-      if (data.error) {
-        alert(`Error: ${data.error}`);
-        return;
-      }
+		if (plan === 'free') {
+			// Handle free plan - show signup modal
+			if (!session) {
+				authMode = 'signup';
+				showAuthModal = true;
+			} else {
+				// User is already logged in, redirect to dashboard
+				window.location.href = '/dashboard';
+			}
+			return;
+		}
 
-      if (data.checkoutUrl) {
-        // Track checkout redirect
-        analytics.trackEvent('checkout_redirected', {
-          plan: plan,
-          billing_cycle: billingCycle,
-          user_id: session?.user?.id
-        });
-        
-        // Redirect to Stripe checkout
-        window.location.href = data.checkoutUrl;
-      }
-    } catch (error) {
-      console.error('Error creating checkout session:', error);
-      alert('Failed to create checkout session. Please try again or contact support.');
-    } finally {
-      loading = false;
-    }
-  }
+		if (!session) {
+			// For paid plans, user needs to login first
+			authMode = 'login';
+			showAuthModal = true;
+			return;
+		}
+
+		// Handle paid plans - redirect to Stripe checkout
+		try {
+			loading = true;
+
+			const response = await fetch('/api/stripe/create-checkout', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					planType: plan,
+					billingCycle: billingCycle,
+					trial: opts?.trial === true,
+					metadata: {
+						source: 'pricing_page',
+						cycle: billingCycle
+					}
+				})
+			});
+
+			const data = await response.json();
+
+			if (data.error) {
+				alert(`Error: ${data.error}`);
+				return;
+			}
+
+			if (data.checkoutUrl) {
+				// Track checkout redirect
+				analytics.trackEvent('checkout_redirected', {
+					plan: plan,
+					billing_cycle: billingCycle,
+					user_id: session?.user?.id
+				});
+
+				// Redirect to Stripe checkout
+				window.location.href = data.checkoutUrl;
+			}
+		} catch (error) {
+			console.error('Error creating checkout session:', error);
+			alert('Failed to create checkout session. Please try again or contact support.');
+		} finally {
+			loading = false;
+		}
+	}
+
+	const pricingPlans = [
+		{
+			name: 'Starter Plan',
+			description: 'Discover scholarships, explore universities, and apply with confidence.',
+			price: '$0',
+			color: 'white',
+			textColor: 'text-gray-900',
+			bgColor: 'bg-white',
+			button: {
+				bg: 'bg-[#2C3580]',
+				text: 'text-white',
+				hover: 'hover:bg-[#3c4d9c]'
+			},
+			features: [
+				'4 Documents/Month: 1 SOPs, 1 Cover Letters, 1 Personal Statement, 1 Academic CV',
+				'AI Features: 1 Review, 1 Text Enhancement, 1 Word Optimization, 1 Grammar Check, 1 Plagiarism Check, 1 Tone Analysis',
+				'University Matching: 50+ universities with basic matching',
+				'Academic Analysis: Quick profile assessment only',
+				'Application Tracking: 12 applications with basic reminders',
+				'Inline Text Editing: 5 AI-powered edits per month',
+				'Version History: 3 versions (cover letters only, 30-day retention)',
+				'Visa Interview Simulator: 6 questions/session',
+				'Community support',
+				'GPT-3.5 AI Engine - Reliable and efficient AI',
+				'Cold Email Generator: 5 professional emails per month',
+				'Scholarship Access: Free access to all scholarship listings',
+				'Email Notifications: Weekly scholarship digest - delivered every week with new opportunities!',
+				'IELTS Test Prep: FREE - Full access to all practice tests (Reading, Listening, Writing, Speaking)',
+				'Document Checklists: FREE - Complete application tracking and deadline management'
+			]
+		},
+		{
+			name: 'Professional Plan',
+			description: 'Track applications, enhance documents, and prep for visas.',
+			price: '$12',
+			subText: '(monthly)',
+			color: '#2C3580',
+			textColor: 'text-white',
+			bgColor: 'bg-[#2C3580]',
+			button: {
+				bg: 'bg-white',
+				text: 'text-[#2C3580]',
+				hover: 'hover:bg-gray-200'
+			},
+			features: [
+				'50 Documents/Month: Flexible allocation across all document types',
+				'Enhanced AI: 15 Reviews, 25 Text Enhancements, 15 Word Optimizations, 25 Grammar Checks, 10 Plagiarism Checks, 25 Tone Analyses',
+				'University Matching: 500+ university recommendations (US + international)',
+				'Academic Analysis: Comprehensive transcript analysis + Quick assessment',
+				'Application Tracking: 1000 applications with advanced analytics',
+				'Email support (48h response)',
+				'Premium Email System: Application deadline reminders, daily/weekly scholarship digest, subscription alerts & personalized notifications',
+				'Ad-free experience on paid plans',
+				'Inline Text Editing: 50 AI-powered edits per month',
+				'Version History: 50 versions (all document types, 90-day retention)',
+				'GPT-4o-mini AI Engine - Advanced AI with superior quality',
+				'Cold Email Generator: 50 professional emails per month',
+				'Scholarship Access: Free access to all scholarship listings with personalized recommendations',
+				'Visa Interview Simulator: 50 questions/session',
+				'IELTS Test Prep: FREE - Full access + Future: AI feedback & analytics',
+				'Document Checklists: FREE - Full access + Future: AI-powered insights & custom automations',
+				'Buy Professional',
+				'No charge today. Cancel anytime before trial ends.',
+				'New features automatically included as we grow!'
+			]
+		},
+		{
+			name: 'Elite Plan',
+			description: 'Premium AI tools and priority access to power your global operations.',
+			price: '$29',
+			subText: '(monthly)',
+			color: 'white',
+			textColor: 'text-gray-900',
+			bgColor: 'bg-white',
+			button: {
+				bg: 'bg-[#2C3580]',
+				text: 'text-white',
+				hover: 'hover:bg-[#3c4d9c]'
+			},
+			features: [
+				'UNLIMITED Documents: Generate as many documents as you need',
+				'Unlimited AI: Unlimited reviews, enhancements, optimizations, grammar checks, plagiarism checks, and tone analyses',
+				'University Database: 1500+ universities worldwide + priority access + new universities first',
+				'Academic Analysis: Comprehensive transcript analysis + Quick assessment',
+				'Priority email support (24h response)',
+				'Elite Email System: All Premium features + instant deadline alerts (≤3 days), immediate notifications for critical deadlines, priority email delivery',
+				'Application Tracking: Unlimited applications with premium insights dashboard',
+				'Inline Text Editing: UNLIMITED AI-powered edits',
+				'Version History: 100 versions (all document types, 1-year retention)',
+				'Early access to new features',
+				'Ad-free experience on paid plans',
+				'GPT-4o AI Engine - Most advanced AI model available',
+				'Cold Email Generator: 500 professional emails per month',
+				'Scholarship Access: Priority access to all scholarship listings with custom alerts and personalized recommendations',
+				'Visa Interview Simulator: 80+ questions/session',
+				'IELTS Test Prep: FREE - Full access + Future: Premium AI feedback & detailed analytics',
+				'Document Checklists: FREE - Full access + Future: AI-powered insights & custom automations',
+				'New features automatically included as we grow!'
+			]
+		}
+	];
 </script>
 
 <svelte:head>
-  <title>Pricing - Abroaducate</title>
-  <meta name="description" content="Choose the perfect plan for your academic application journey. From free to professional tiers." />
+	<title>Pricing - Abroaducate</title>
+	<meta
+		name="description"
+		content="Choose the perfect plan for your academic application journey. From free to professional tiers."
+	/>
 </svelte:head>
 
-<div class="min-h-screen bg-gray-50 py-20">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <!-- Header -->
-    <div class="text-center mb-16">
-      <h1 class="text-4xl font-bold text-gray-900 mb-4">
-        Choose Your Perfect Plan
-      </h1>
-      <p class="text-xl text-gray-600 max-w-3xl mx-auto">
-        From high school to PhD, we've got the right tools for your academic journey. 
-        Start with our free tier and upgrade as your applications grow.
-      </p>
-    </div>
+<div class="min-h-screen bg-gray-50 py-30">
+	<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+		<section id="pricing" class="bg-gray-50">
+			<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+				<div class="text-center">
+					<span
+						class="inline-flex items-center px-4 py-1 text-xs bg-indigo-100 text-[#2C3580] rounded-full mb-4"
+					>
+						Pricing plan for students
+					</span>
+					<h2 class="text-4xl md:text-5xl text-gray-900 font-semibold">
+						Flexible Plans for Every Student
+					</h2>
+					<p class="mt-4 text-lg text-gray-600 max-w-3xl mx-auto">
+						We're starting conservative to keep prices student-friendly, but as we grow,
+						<strong>your limits automatically increase at no extra cost!</strong>
+					</p>
+				</div>
+				<!-- Enhanced Billing Cycle Toggle -->
+				<div class="flex justify-center my-6 px-4">
+					<div
+						class="bg-white/90 backdrop-blur-md rounded-2xl shadow-lg border border-[#2C3580]/20 p-2 flex flex-wrap sm:flex-nowrap items-center justify-center max-w-full sm:max-w-fit w-full sm:w-auto"
+					>
+						<button
+							onclick={() => (billingCycle = 'monthly')}
+							class="px-5 sm:px-8 py-3 sm:py-4 font-semibold text-base sm:text-lg transition-all duration-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-[#2C3580]/30 flex-1 min-w-[140px]"
+							class:bg-[#2C3580]={billingCycle === 'monthly'}
+							class:text-white={billingCycle === 'monthly'}
+							class:bg-transparent={billingCycle !== 'monthly'}
+							class:text-[#2C3580]={billingCycle !== 'monthly'}
+							class:hover:bg-gray-100={billingCycle !== 'monthly'}
+						>
+							<div class="flex flex-col items-center text-center">
+								<span class="mb-1 flex items-center gap-1 justify-center">
+									💳 <span>Monthly</span>
+								</span>
+								<span class="text-[11px] sm:text-xs opacity-80 font-normal">Pay as you go</span>
+							</div>
+						</button>
 
-    <!-- Pay-as-you-grow Banner -->
-    <div class="max-w-4xl mx-auto mb-12 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
-      <div class="text-center">
-        <h2 class="text-2xl font-bold text-blue-900 mb-3">🚀 Pay-As-You-Grow Promise</h2>
-        <p class="text-blue-700 text-lg mb-4">
-                     We're starting conservative to keep prices student-friendly, but as we grow, 
-           <strong>your limits automatically increase at no extra cost!</strong>
-        </p>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-          <div class="bg-white rounded-lg p-4 border border-blue-100">
-            <div class="font-semibold text-blue-900">Current Launch Limits</div>
-            <div class="text-blue-700">Conservative & sustainable</div>
-          </div>
-          <div class="bg-white rounded-lg p-4 border border-blue-100">
-            <div class="font-semibold text-blue-900">As We Grow</div>
-            <div class="text-blue-700">Limits increase automatically</div>
-          </div>
-          <div class="bg-white rounded-lg p-4 border border-blue-100">
-            <div class="font-semibold text-blue-900">Your Benefits</div>
-            <div class="text-blue-700">More value, same price</div>
-          </div>
-        </div>
-      </div>
-    </div>
+						<div class="hidden sm:block mx-3 h-12 w-px bg-[#2C3580]/10"></div>
 
-    <!-- Enhanced Billing Cycle Toggle -->
-    <div class="flex justify-center mb-12">
-      <div class="bg-white rounded-2xl shadow-lg border border-gray-200 p-2 inline-flex items-center relative overflow-hidden pricing-toggle">
-        <!-- Background gradient animation -->
-        <div class="absolute inset-0 bg-gradient-to-r from-blue-50 via-purple-50 to-blue-50 opacity-50 animated-gradient"></div>
-        
-        <!-- Animated sliding background -->
-        <div
-          class="absolute bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg rounded-xl h-[calc(100%-16px)] top-[8px] transition-all duration-500 ease-out transform animated-gradient"
-          style={sliderStyle}
-        ></div>
-        
-        <!-- Monthly Button -->
-        <button
-          bind:this={monthlyBtnEl}
-          onclick={() => (billingCycle = 'monthly')}
-          class="relative z-10 px-8 py-4 font-semibold text-lg transition-all duration-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-200 group toggle-button"
-          class:text-white={billingCycle === 'monthly'}
-          class:text-gray-700={billingCycle !== 'monthly'}
-        >
-          <div class="flex flex-col items-center">
-            <span class="mb-1">💳 Monthly</span>
-            <span class="text-xs opacity-75 font-normal">
-              Pay as you go
-            </span>
-          </div>
-        </button>
+						<button
+							onclick={() => (billingCycle = 'annual')}
+							class="px-5 sm:px-8 py-3 sm:py-4 font-semibold text-base sm:text-lg transition-all duration-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-[#2C3580]/30 flex-1 min-w-[140px]"
+							class:bg-[#2C3580]={billingCycle === 'annual'}
+							class:text-white={billingCycle === 'annual'}
+							class:bg-transparent={billingCycle !== 'annual'}
+							class:text-[#2C3580]={billingCycle !== 'annual'}
+							class:hover:bg-gray-100={billingCycle !== 'annual'}
+						>
+							<div class="flex flex-col items-center text-center">
+								<div class="flex items-center justify-center gap-2 mb-1 flex-wrap">
+									🎯 <span>Annual</span>
+									<span
+										class="bg-gradient-to-r from-green-400 to-emerald-500 text-white text-[10px] sm:text-[11px] font-semibold px-2 py-[2px] rounded-full shadow-md whitespace-nowrap"
+									>
+										Save 20%
+									</span>
+								</div>
+								<span class="text-[11px] sm:text-xs opacity-80 font-normal">Best value</span>
+							</div>
+						</button>
+					</div>
+				</div>
 
-        <!-- Divider -->
-        <div class="relative z-10 mx-2 h-12 w-px bg-gray-200"></div>
-        
-        <!-- Annual Button -->
-        <button
-          bind:this={annualBtnEl}
-          onclick={() => (billingCycle = 'annual')}
-          class="relative z-10 px-8 py-4 font-semibold text-lg transition-all duration-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-200 group toggle-button"
-          class:text-white={billingCycle === 'annual'}
-          class:text-gray-700={billingCycle !== 'annual'}
-        >
-          <div class="flex flex-col items-center">
-            <div class="flex items-center gap-2 mb-1">
-              <span>🎯 Annual</span>
-              <span class="bg-gradient-to-r from-green-400 to-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md transform rotate-3 pulse-glow">
-                Save 20%!
-              </span>
-            </div>
-            <span class="text-xs opacity-75 font-normal">
-              Best value
-            </span>
-          </div>
-        </button>
-      </div>
-    </div>
+				<!-- Pricing Comparison Hint -->
+				<div class="text-center mb-8">
+					<div
+						class="inline-flex items-center gap-4 bg-gradient-to-r from-indigo-100 to-indigo-100 border border-indigo-100 rounded-full px-6 py-3"
+					>
+						<span class="text-[#2C3580] font-medium">
+							{#if billingCycle === 'annual'}
+								🎉 You're saving $48/year with annual billing!
+							{:else}
+								💡 Switch to annual and save $48/year
+							{/if}
+						</span>
+						{#if billingCycle === 'monthly'}
+							<button
+								onclick={() => (billingCycle = 'annual')}
+								class="text-[#2C3580] hover:text-[#3c4d9c] font-semibold underline underline-offset-2 transition-colors"
+							>
+								See annual pricing →
+							</button>
+						{/if}
+					</div>
+				</div>
 
-    <!-- Pricing Comparison Hint -->
-    <div class="text-center mb-8">
-      <div class="inline-flex items-center gap-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-full px-6 py-3">
-        <span class="text-green-800 font-medium">
-          {#if billingCycle === 'annual'}
-            🎉 You're saving $48/year with annual billing!
-          {:else}
-            💡 Switch to annual and save $48/year
-          {/if}
-        </span>
-        {#if billingCycle === 'monthly'}
-          <button 
-            onclick={() => (billingCycle = 'annual')}
-            class="text-green-700 hover:text-green-800 font-semibold underline underline-offset-2 transition-colors"
-          >
-            See annual pricing →
-          </button>
-        {/if}
-      </div>
-    </div>
+				<div class="mt-16 grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+					{#each pricingPlans as plan, i}
+						<div
+							class={`rounded-2xl p-8 shadow-lg border border-gray-200 flex flex-col h-full ${plan.bgColor} ${
+								plan.name === 'Professional Plan' ? 'lg:scale-105 shadow-3xl' : ''
+							}`}
+						>
+							<h3 class={`text-xl font-semibold ${plan.textColor}`}>
+								{plan.name}
+							</h3>
 
-    <!-- Pricing Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-      
-      <!-- Free Tier -->
-      <div class="bg-white rounded-lg shadow-lg border-2 border-gray-200 p-8 relative">
-        <div class="text-center mb-6">
-          <h3 class="text-2xl font-bold text-gray-900 mb-2">Academic Starter</h3>
-          <div class="text-4xl font-bold text-blue-600 mb-2">$0</div>
-          <p class="text-gray-500">Get started for free</p>
-        </div>
+							<p class={`mt-2 text-sm ${plan.textColor}`}>{plan.description}</p>
 
-        <ul class="space-y-4 mb-8">
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-700"><strong>4 Documents/Month:</strong> 1 SOPs, 1 Cover Letters, 1 Personal Statement, 1 Academic CV</span>
-          </li>
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-700"><strong>AI Features:</strong> 1 Review, 1 Text Enhancement, 1 Word Optimization, 1 Grammar Check, 1 Plagiarism Check, 1 Tone Analysis</span>
-          </li>
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-700"><strong>University Matching:</strong> 50+ universities with basic matching</span>
-          </li>
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-700"><strong>Academic Analysis:</strong> Quick profile assessment only</span>
-          </li>
+							<div class="mt-6">
+								{#if plan.name.toLowerCase() === 'elite plan'}
+									<div class={`text-4xl font-bold ${plan.textColor} mb-2`}>
+										${prices.elite[billingCycle]}
+									</div>
+								{:else if plan.name.toLowerCase() === 'professional plan'}
+									<div class={`text-4xl font-bold ${plan.textColor} mb-2`}>
+										${prices.professional[billingCycle]}
+									</div>
+								{:else}
+									<span class={`text-4xl font-bold ${plan.textColor}`}>
+										{plan.price}
+									</span>
+								{/if}
 
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-700"><strong>Application Tracking:</strong> 12 applications with basic reminders</span>
-          </li>
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-700"><strong>Inline Text Editing:</strong> 5 AI-powered edits per month</span>
-          </li>
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-700"><strong>Version History:</strong> 3 versions (cover letters only, 30-day retention)</span>
-          </li>
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-700"><strong>Visa Interview Simulator:</strong> 6 questions/session</span>
-          </li>
+								<p class={`ml-1 ${plan.textColor}`}>
+									per month{#if billingCycle === 'annual'}, billed annually{/if}
+								</p>
+							</div>
 
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-700">Community support</span>
-          </li>
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-700"><strong>GPT-3.5 AI Engine</strong> - Reliable and efficient AI</span>
-          </li>
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-700"><strong>Cold Email Generator:</strong> 5 professional emails per month</span>
-          </li>
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-700"><strong>Scholarship Access:</strong> Free access to all scholarship listings</span>
-          </li>
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-700"><strong>Email Notifications:</strong> Weekly scholarship digest - delivered every week with new opportunities!</span>
-          </li>
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-700"><strong>IELTS Test Prep:</strong> FREE - Full access to all practice tests (Reading, Listening, Writing, Speaking)</span>
-          </li>
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-700"><strong>Document Checklists:</strong> FREE - Complete application tracking and deadline management</span>
-          </li>
-        </ul>
+							<!-- <span class={`ml-1 ${plan.textColor}`}>{plan.subText}</span> -->
 
-        <button 
-          onclick={() => handleUpgrade('free')}
-          class="w-full py-3 px-4 bg-gray-600 text-white font-medium rounded-md hover:bg-gray-700 transition duration-300"
-        >
-          Get Started Free
-        </button>
-      </div>
+							<ul class="mt-6 space-y-4 text-sm flex-1">
+								{#each plan.features as feature}
+									<li class={`flex items-start ${plan.textColor}`}>
+										<svg
+											xmlns="http://www.w3.org/2000/svg"
+											class="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5"
+											fill="none"
+											viewBox="0 0 24 24"
+											stroke="currentColor"
+											stroke-width="2"
+										>
+											<path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+										</svg>
+										{feature}
+									</li>
+								{/each}
+							</ul>
+							<!-- Dynamic Button Section -->
+							<div class="mt-8">
+								<!-- proffesional plan btns -->
+								{#if plan.name.toLowerCase() === 'professional plan'}
+									<div class="grid grid-cols-1 gap-3">
+										<button
+											onclick={() => handleUpgrade('professional', { trial: true })}
+											disabled={loading}
+											class="w-full py-3 px-4 bg-green-600 text-white font-medium rounded-md hover:bg-green-700 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+										>
+											{loading ? 'Creating checkout...' : 'Start 3-day free trial'}
+										</button>
 
-      <!-- Professional Tier -->
-      <div class="bg-white rounded-lg shadow-lg border-2 border-blue-500 p-8 relative transform scale-105">
-        <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-          <span class="bg-blue-500 text-white px-4 py-1 rounded-full text-sm font-medium">
-            Most Popular
-          </span>
-        </div>
-        
-        <div class="text-center mb-6">
-          <h3 class="text-2xl font-bold text-gray-900 mb-2">Academic Professional</h3>
-          <div class="text-4xl font-bold text-blue-600 mb-2">
-            ${prices.professional[billingCycle]}
-          </div>
-          <p class="text-gray-500">
-            per month{#if billingCycle === 'annual'}, billed annually{/if}
-          </p>
-        </div>
+										<button
+											onclick={() => handleUpgrade('professional')}
+											disabled={loading}
+											class={`w-full py-3 px-4 rounded-lg font-medium ${plan.button.bg} ${plan.button.text} ${plan.button.hover} transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed`}
+										>
+											{loading ? 'Creating checkout...' : 'Buy Professional'}
+										</button>
 
-        <ul class="space-y-4 mb-8">
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-700"><strong>50 Documents/Month:</strong> Flexible allocation across all document types</span>
-          </li>
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-700"><strong>Enhanced AI:</strong> 15 Reviews, 25 Text Enhancements, 15 Word Optimizations, 25 Grammar Checks, 10 Plagiarism Checks, 25 Tone Analyses</span>
-          </li>
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-700"><strong>University Matching:</strong> 500+ university recommendations (US + international)</span>
-          </li>
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-700"><strong>Academic Analysis:</strong> Comprehensive transcript analysis + Quick assessment</span>
-          </li>
+										<p class="text-xs text-white text-center">
+											No charge today. Cancel anytime before trial ends.
+										</p>
+									</div>
 
-          
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-700"><strong>Application Tracking:</strong> 1000 applications with advanced analytics</span>
-          </li>
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-700">Email support (48h response)</span>
-          </li>
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-700"><strong>Premium Email System:</strong> Application deadline reminders, daily/weekly scholarship digest, subscription alerts & personalized notifications</span>
-          </li>
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-700">Ad-free experience on paid plans</span>
-          </li>
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-700"><strong>Inline Text Editing:</strong> 50 AI-powered edits per month</span>
-          </li>
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-700"><strong>Version History:</strong> 50 versions (all document types, 90-day retention)</span>
-          </li>
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-700"><strong>GPT-4o-mini AI Engine</strong> - Advanced AI with superior quality</span>
-          </li>
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-700"><strong>Cold Email Generator:</strong> 50 professional emails per month</span>
-          </li>
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-700"><strong>Scholarship Access:</strong> Free access to all scholarship listings with personalized recommendations</span>
-          </li>
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-700"><strong>Visa Interview Simulator:</strong> 50 questions/session</span>
-          </li>
+									<!-- elite plan btns -->
+								{:else if plan.name.toLowerCase() === 'elite plan'}
+									<button
+										onclick={() => handleUpgrade('elite')}
+										disabled={loading}
+										class={`w-full py-3 px-4 rounded-lg font-medium ${plan.button.bg} ${plan.button.text} ${plan.button.hover} transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed`}
+									>
+										{loading ? 'Creating checkout...' : 'Upgrade to Elite'}
+									</button>
 
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-700"><strong>IELTS Test Prep:</strong> FREE - Full access + Future: AI feedback & analytics</span>
-          </li>
+									<!-- frre plan btn -->
+								{:else}
+									<button
+										onclick={() => handleUpgrade('free plan')}
+										class={`w-full py-3 px-4 rounded-lg font-medium ${plan.button.bg} ${plan.button.text} ${plan.button.hover} transition duration-300`}
+									>
+										Get Started Free
+									</button>
+								{/if}
+							</div>
+						</div>
+					{/each}
+				</div>
+			</div>
+		</section>
+		<!-- <button class={mt-8 px-4 py-2 rounded-lg font-medium ${plan.button.bg} ${plan.button.text} ${plan.button.hover} transition} > Get Started </button>. -->
 
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-700"><strong>Document Checklists:</strong> FREE - Full access + Future: AI-powered insights & custom automations</span>
-          </li>
+		<!-- Pricing Cards -->
+		<!-- <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto"> -->
+		<!-- Professional Tier -->
+		<!-- <div
+				class="bg-white rounded-lg shadow-lg border-2 border-blue-500 p-8 relative transform scale-105"
+			> -->
+		<!-- <div class="text-center mb-6">
+					<h3 class="text-2xl font-bold text-gray-900 mb-2">Academic Professional</h3>
+					<div class="text-4xl font-bold text-blue-600 mb-2">
+						${prices.professional[billingCycle]}
+					</div>
+					<p class="text-gray-500">
+						per month{#if billingCycle === 'annual'}, billed annually{/if}
+					</p>
+				</div>
 
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-700"><em>New features automatically included as we grow!</em></span>
-          </li>
-        </ul>
+				<div class="grid grid-cols-1 gap-3">
+					<button
+						onclick={() => handleUpgrade('professional', { trial: true })}
+						disabled={loading}
+						class="w-full py-3 px-4 bg-green-600 text-white font-medium rounded-md hover:bg-green-700 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+					>
+						{loading ? 'Creating checkout...' : 'Start 3‑day free trial'}
+					</button>
+					<button
+						onclick={() => handleUpgrade('professional')}
+						disabled={loading}
+						class="w-full py-3 px-4 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+					>
+						{loading ? 'Creating checkout...' : 'Buy Professional'}
+					</button>
+					<p class="text-xs text-gray-500 text-center">
+						No charge today. Cancel anytime before trial ends.
+					</p>
+				</div>
+			</div>Elite Tier -->
+		<!-- <div class="bg-white rounded-lg shadow-lg border-2 border-gray-200 p-8 relative">
+				<div class="text-center mb-6">
+					<h3 class="text-2xl font-bold text-gray-900 mb-2">Academic Elite</h3>
+					<div class="text-4xl font-bold text-blue-600 mb-2">
+						${prices.elite[billingCycle]}
+					</div>
+					<p class="text-gray-500">
+						per month{#if billingCycle === 'annual'}, billed annually{/if}
+					</p>
+				</div>
 
-        <div class="grid grid-cols-1 gap-3">
-        <button 
-          onclick={() => handleUpgrade('professional', { trial: true })}
-          disabled={loading}
-          class="w-full py-3 px-4 bg-green-600 text-white font-medium rounded-md hover:bg-green-700 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {loading ? 'Creating checkout...' : 'Start 3‑day free trial'}
-        </button>
-        <button 
-          onclick={() => handleUpgrade('professional')}
-          disabled={loading}
-          class="w-full py-3 px-4 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {loading ? 'Creating checkout...' : 'Buy Professional'}
-        </button>
-        <p class="text-xs text-gray-500 text-center">No charge today. Cancel anytime before trial ends.</p>
-        </div>
-      </div>
+				<button
+					onclick={() => handleUpgrade('elite')}
+					disabled={loading}
+					class="w-full py-3 px-4font-medium ${plan.button.bg} ${plan.button.text} ${plan.button.hover} transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+				>
+					{loading ? 'Creating checkout...' : 'Upgrade to Elite'}
+				</button>
+			</div>
+		</div>  -->
 
-      <!-- Elite Tier -->
-      <div class="bg-white rounded-lg shadow-lg border-2 border-gray-200 p-8 relative">
-        <div class="text-center mb-6">
-          <h3 class="text-2xl font-bold text-gray-900 mb-2">Academic Elite</h3>
-          <div class="text-4xl font-bold text-blue-600 mb-2">
-            ${prices.elite[billingCycle]}
-          </div>
-          <p class="text-gray-500">
-            per month{#if billingCycle === 'annual'}, billed annually{/if}
-          </p>
-        </div>
+		<!-- Email System Highlight -->
+		<div
+			class="mt-30 max-w-5xl mx-auto bg-white/90 backdrop-blur-md rounded-2xl shadow-lg border border-[#2C3580]/20 p-6 sm:p-8"
+		>
+			<div class="text-center">
+				<h2 class="text-3xl font-bold text-black mb-4">Smart Email Notification System</h2>
+				<p class="text-black text-lg mb-6">
+					Never miss a deadline again! Our intelligent email system keeps you on track with
+					personalized reminders and opportunities.
+				</p>
 
-        <ul class="space-y-4 mb-8">
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-700"><strong>UNLIMITED Documents:</strong> Generate as many documents as you need</span>
-          </li>
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-700"><strong>Unlimited AI:</strong> Unlimited reviews, enhancements, optimizations, grammar checks, plagiarism checks, and tone analyses</span>
-          </li>
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-700"><strong>University Database:</strong> 1500+ universities worldwide + priority access + new universities first</span>
-          </li>
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-700"><strong>Academic Analysis:</strong> Comprehensive transcript analysis + Quick assessment</span>
-          </li>
+				<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+					<div class="bg-white rounded-lg p-6 border border-black/20 text-left">
+						<h3 class="font-semibold text-black mb-3 text-center">Academic Starter</h3>
+						<ul class="text-sm text-black space-y-2">
+							<li class="flex items-center gap-2">
+								<span class="text-green-500 font-bold">✓</span>
+								<span>Weekly scholarship digest</span>
+							</li>
+							<li class="flex items-center gap-2">
+								<span class="text-green-500 font-bold">✓</span>
+								<span>New opportunities delivered weekly</span>
+							</li>
+							<li class="flex items-center gap-2">
+								<span class="text-green-500 font-bold">✓</span>
+								<span>Curated for your profile</span>
+							</li>
+						</ul>
+					</div>
 
-          
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-700">Priority email support (24h response)</span>
-          </li>
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-700"><strong>Elite Email System:</strong> All Premium features + instant deadline alerts (≤3 days), immediate notifications for critical deadlines, priority email delivery</span>
-          </li>
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-700"><strong>Application Tracking:</strong> Unlimited applications with premium insights dashboard</span>
-          </li>
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-700"><strong>Inline Text Editing:</strong> UNLIMITED AI-powered edits</span>
-          </li>
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-700"><strong>Version History:</strong> 100 versions (all document types, 1-year retention)</span>
-          </li>
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-700">Early access to new features</span>
-          </li>
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-700">Ad-free experience on paid plans</span>
-          </li>
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-700"><strong>GPT-4o AI Engine</strong> - Most advanced AI model available</span>
-          </li>
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-700"><strong>Cold Email Generator:</strong> 500 professional emails per month</span>
-          </li>
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-700"><strong>Scholarship Access:</strong> Priority access to all scholarship listings with custom alerts and personalized recommendations</span>
-          </li>
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-700"><strong>Visa Interview Simulator:</strong> 80+ questions/session</span>
-          </li>
+					<div
+						class="bg-white rounded-lg p-6 border border-black/20  text-left"
+					>
+						<h3 class="font-semibold text-black mb-3 text-center">Academic Professional</h3>
+						<ul class="text-sm text-black space-y-2">
+							<li class="flex items-center gap-2">
+								<span class="text-green-500 font-bold">✓</span>
+								<span>All Starter features</span>
+							</li>
+							<li class="flex items-center gap-2">
+								<span class="text-green-500 font-bold">✓</span>
+								<span>Application deadline reminders</span>
+							</li>
+							<li class="flex items-center gap-2">
+								<span class="text-green-500 font-bold">✓</span>
+								<span>Daily scholarship option</span>
+							</li>
+							<li class="flex items-center gap-2">
+								<span class="text-green-500 font-bold">✓</span>
+								<span>Account & subscription alerts</span>
+							</li>
+							<li class="flex items-center gap-2">
+								<span class="text-green-500 font-bold">✓</span>
+								<span>Personalized notifications</span>
+							</li>
+						</ul>
+					</div>
 
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-700"><strong>IELTS Test Prep:</strong> FREE - Full access + Future: Premium AI feedback & detailed analytics</span>
-          </li>
+					<div class="bg-white rounded-lg p-6 border border-black/20 text-left">
+						<h3 class="font-semibold text-black mb-3 text-center">Academic Elite</h3>
+						<ul class="text-sm text-black space-y-2">
+							<li class="flex items-center gap-2">
+								<span class="text-green-500 font-bold">✓</span>
+								<span>All Professional features</span>
+							</li>
+							<li class="flex items-center gap-2">
+								<span class="text-green-500 font-bold">✓</span>
+								<span>Instant alerts for critical deadlines</span>
+							</li>
+							<li class="flex items-center gap-2">
+								<span class="text-green-500 font-bold">✓</span>
+								<span>Priority email delivery</span>
+							</li>
+							<li class="flex items-center gap-2">
+								<span class="text-green-500 font-bold">✓</span>
+								<span>Immediate notifications (≤3 days)</span>
+							</li>
+							<li class="flex items-center gap-2">
+								<span class="text-green-500 font-bold">✓</span>
+								<span>Custom urgency levels</span>
+							</li>
+						</ul>
+					</div>
+				</div>
+			</div>
+		</div>
 
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-700"><strong>Document Checklists:</strong> FREE - Full access + Future: AI-powered insights & custom automations</span>
-          </li>
+		<!-- Feature Comparison -->
+		<div class="mt-20 max-w-6xl mx-auto">
+			<h2 class="text-3xl font-bold text-center text-gray-900 mb-12">
+				Complete Feature Comparison
+			</h2>
 
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-700"><em>New features automatically included as we grow!</em></span>
-          </li>
-        </ul>
+			<div class="bg-white rounded-lg shadow-lg overflow-hidden">
+				<div class="overflow-x-auto">
+					<table class="w-full">
+						<thead class="bg-gray-50">
+							<tr>
+								<th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Features</th>
+								<th class="px-6 py-4 text-center text-sm font-semibold text-gray-900"
+									>Academic Starter</th
+								>
+								<th class="px-6 py-4 text-center text-sm font-semibold text-gray-900"
+									>Academic Professional</th
+								>
+								<th class="px-6 py-4 text-center text-sm font-semibold text-gray-900"
+									>Academic Elite</th
+								>
+							</tr>
+						</thead>
+						<tbody class="divide-y divide-gray-200">
+							<tr>
+								<td class="px-6 py-4 text-sm text-gray-900 font-medium">Documents per Month</td>
+								<td class="px-6 py-4 text-sm text-center text-gray-600">4 documents</td>
+								<td class="px-6 py-4 text-sm text-center text-gray-600"
+									><strong>50 documents</strong></td
+								>
+								<td class="px-6 py-4 text-sm text-center text-gray-600"
+									><strong>UNLIMITED</strong></td
+								>
+							</tr>
+							<tr class="bg-gray-50">
+								<td class="px-6 py-4 text-sm text-gray-900 font-medium">AI Features per Month</td>
+								<td class="px-6 py-4 text-sm text-center text-gray-600">6 features</td>
+								<td class="px-6 py-4 text-sm text-center text-gray-600"
+									><strong>115 features</strong></td
+								>
+								<td class="px-6 py-4 text-sm text-center text-gray-600"
+									><strong>UNLIMITED</strong></td
+								>
+							</tr>
+							<tr>
+								<td class="px-6 py-4 text-sm text-gray-900 font-medium"
+									>University Recommendations</td
+								>
+								<td class="px-6 py-4 text-sm text-center text-gray-600">50+ universities</td>
+								<td class="px-6 py-4 text-sm text-center text-gray-600"
+									><strong>500+ universities</strong></td
+								>
+								<td class="px-6 py-4 text-sm text-center text-gray-600"
+									><strong>1500+ universities + priority access</strong></td
+								>
+							</tr>
+							<tr>
+								<td class="px-6 py-4 text-sm text-gray-900 font-medium">AI Model</td>
+								<td class="px-6 py-4 text-sm text-center text-gray-600">GPT-3.5</td>
+								<td class="px-6 py-4 text-sm text-center text-gray-600"
+									><strong>GPT-4o-mini</strong></td
+								>
+								<td class="px-6 py-4 text-sm text-center text-gray-600"><strong>GPT-4o</strong></td>
+							</tr>
+							<tr class="bg-gray-50">
+								<td class="px-6 py-4 text-sm text-gray-900 font-medium">Inline Text Editing</td>
+								<td class="px-6 py-4 text-sm text-center text-gray-600">5 edits/month</td>
+								<td class="px-6 py-4 text-sm text-center text-gray-600"
+									><strong>50 edits/month</strong></td
+								>
+								<td class="px-6 py-4 text-sm text-center text-gray-600"
+									><strong>UNLIMITED</strong></td
+								>
+							</tr>
+							<tr>
+								<td class="px-6 py-4 text-sm text-gray-900 font-medium">Version History</td>
+								<td class="px-6 py-4 text-sm text-center text-gray-600"
+									>3 versions (cover letters only)</td
+								>
+								<td class="px-6 py-4 text-sm text-center text-gray-600"
+									><strong>50 versions (all documents)</strong></td
+								>
+								<td class="px-6 py-4 text-sm text-center text-gray-600"
+									><strong>100 versions (all documents)</strong></td
+								>
+							</tr>
+							<tr class="bg-gray-50">
+								<td class="px-6 py-4 text-sm text-gray-900 font-medium">Cold Email Generator</td>
+								<td class="px-6 py-4 text-sm text-center text-gray-600"
+									><strong>5 emails/month</strong></td
+								>
+								<td class="px-6 py-4 text-sm text-center text-gray-600"
+									><strong>50 emails/month</strong></td
+								>
+								<td class="px-6 py-4 text-sm text-center text-gray-600"
+									><strong>500 emails/month</strong></td
+								>
+							</tr>
+							<tr>
+								<td class="px-6 py-4 text-sm text-gray-900 font-medium"
+									>Academic Profile Analysis</td
+								>
+								<td class="px-6 py-4 text-sm text-center text-gray-600">Quick Assessment Only</td>
+								<td class="px-6 py-4 text-sm text-center text-gray-600"
+									><strong>Comprehensive + Quick</strong></td
+								>
+								<td class="px-6 py-4 text-sm text-center text-gray-600"
+									><strong>Comprehensive + Quick</strong></td
+								>
+							</tr>
 
-        <button 
-          onclick={() => handleUpgrade('elite')}
-          disabled={loading}
-          class="w-full py-3 px-4 bg-gray-600 text-white font-medium rounded-md hover:bg-gray-700 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {loading ? 'Creating checkout...' : 'Upgrade to Elite'}
-        </button>
-      </div>
-    </div>
+							<tr class="bg-gray-50">
+								<td class="px-6 py-4 text-sm text-gray-900 font-medium">Support Level</td>
+								<td class="px-6 py-4 text-sm text-center text-gray-600">Community</td>
+								<td class="px-6 py-4 text-sm text-center text-gray-600">Email (48h)</td>
+								<td class="px-6 py-4 text-sm text-center text-gray-600">Priority Email (24h)</td>
+							</tr>
 
-    <!-- Email System Highlight -->
-    <div class="mt-16 max-w-5xl mx-auto bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-8">
-      <div class="text-center">
-        <h2 class="text-3xl font-bold text-blue-900 mb-4">📧 Smart Email Notification System</h2>
-        <p class="text-blue-800 text-lg mb-6">
-          Never miss a deadline again! Our intelligent email system keeps you on track with personalized reminders and opportunities.
-        </p>
-        
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-          <!-- Free Tier Email -->
-          <div class="bg-white rounded-lg p-6 border border-blue-100">
-            <div class="text-2xl mb-3">📊</div>
-            <h3 class="font-semibold text-blue-900 mb-2">Academic Starter</h3>
-            <div class="text-sm text-blue-700 space-y-2">
-              <div>✅ Weekly scholarship digest</div>
-              <div>📅 New opportunities delivered weekly</div>
-              <div>🎯 Curated for your profile</div>
-            </div>
-          </div>
+							<tr>
+								<td class="px-6 py-4 text-sm text-gray-900 font-medium">Application Tracking</td>
+								<td class="px-6 py-4 text-sm text-center text-gray-600">12 applications</td>
+								<td class="px-6 py-4 text-sm text-center text-gray-600"
+									><strong>1000 applications</strong></td
+								>
+								<td class="px-6 py-4 text-sm text-center text-gray-600"
+									><strong>Unlimited applications</strong></td
+								>
+							</tr>
+							<tr class="bg-gray-50">
+								<td class="px-6 py-4 text-sm text-gray-900 font-medium">Ads</td>
+								<td class="px-6 py-4 text-sm text-center text-gray-600">Shown</td>
+								<td class="px-6 py-4 text-sm text-center text-gray-600"
+									><strong>Not shown (ad-free)</strong></td
+								>
+								<td class="px-6 py-4 text-sm text-center text-gray-600"
+									><strong>Not shown (ad-free)</strong></td
+								>
+							</tr>
+							<tr class="bg-gray-50">
+								<td class="px-6 py-4 text-sm text-gray-900 font-medium">Growth Promise</td>
+								<td class="px-6 py-4 text-sm text-center text-gray-600">-</td>
+								<td class="px-6 py-4 text-sm text-center text-gray-600"
+									><strong>🚀 New features included</strong></td
+								>
+								<td class="px-6 py-4 text-sm text-center text-gray-600"
+									><strong>🚀 Auto-expanding limits</strong></td
+								>
+							</tr>
+							<tr>
+								<td class="px-6 py-4 text-sm text-gray-900 font-medium">Visa Interview Simulator</td
+								>
+								<td class="px-6 py-4 text-sm text-center text-gray-600">6 questions/session</td>
+								<td class="px-6 py-4 text-sm text-center text-gray-600"
+									><strong>50 questions/session</strong></td
+								>
+								<td class="px-6 py-4 text-sm text-center text-gray-600"
+									><strong>80+ questions/session</strong></td
+								>
+							</tr>
+							<tr class="bg-gray-50">
+								<td class="px-6 py-4 text-sm text-gray-900 font-medium">Scholarship Access</td>
+								<td class="px-6 py-4 text-sm text-center text-gray-600"> Free Access</td>
+								<td class="px-6 py-4 text-sm text-center text-gray-600"
+									><strong> Free Access + Personalized</strong></td
+								>
+								<td class="px-6 py-4 text-sm text-center text-gray-600"
+									><strong> Priority Access + Custom Alerts</strong></td
+								>
+							</tr>
+							<tr>
+								<td class="px-6 py-4 text-sm text-gray-900 font-medium">Email Notifications</td>
+								<td class="px-6 py-4 text-sm text-center text-gray-600"
+									>Weekly scholarship digest only</td
+								>
+								<td class="px-6 py-4 text-sm text-center text-gray-600"
+									><strong
+										>Application deadline reminders + Daily/Weekly scholarships + Account alerts</strong
+									></td
+								>
+								<td class="px-6 py-4 text-sm text-center text-gray-600"
+									><strong
+										>All Premium + Instant deadline alerts (≤3 days) + Priority delivery</strong
+									></td
+								>
+							</tr>
+							<tr class="bg-gray-50">
+								<td class="px-6 py-4 text-sm text-gray-900 font-medium">IELTS Test Prep</td>
+								<td class="px-6 py-4 text-sm text-center text-gray-600"
+									><strong>FREE - Full access to practice tests</strong></td
+								>
+								<td class="px-6 py-4 text-sm text-center text-gray-600"
+									><strong>FREE - Full access + Future: AI feedback & analytics</strong></td
+								>
+								<td class="px-6 py-4 text-sm text-center text-gray-600"
+									><strong
+										>FREE - Full access + Future: Premium AI feedback & detailed analytics</strong
+									></td
+								>
+							</tr>
+							<tr>
+								<td class="px-6 py-4 text-sm text-gray-900 font-medium">Document Checklists</td>
+								<td class="px-6 py-4 text-sm text-center text-gray-600"
+									><strong>FREE - Complete application tracking</strong></td
+								>
+								<td class="px-6 py-4 text-sm text-center text-gray-600"
+									><strong
+										>FREE - Full access + Future: Smart notifications & progress tracking</strong
+									></td
+								>
+								<td class="px-6 py-4 text-sm text-center text-gray-600"
+									><strong
+										>FREE - Full access + Future: AI-powered insights & custom automations</strong
+									></td
+								>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
 
-          <!-- Professional Tier Email -->
-          <div class="bg-white rounded-lg p-6 border border-blue-100 ring-2 ring-blue-400">
-            <div class="text-2xl mb-3">⚡</div>
-            <h3 class="font-semibold text-blue-900 mb-2">Academic Professional</h3>
-            <div class="text-sm text-blue-700 space-y-2">
-              <div>✅ All Starter features</div>
-              <div>⏰ Application deadline reminders</div>
-              <div>📧 Daily scholarship option</div>
-              <div>🔔 Account & subscription alerts</div>
-              <div>📋 Personalized notifications</div>
-            </div>
-          </div>
+		<!-- Free GPA Converter Highlight -->
+		<div
+			class="mt-20 max-w-4xl mx-auto mb-8 bg-white/90 backdrop-blur-md rounded-2xl shadow-lg border border-black/20 p-6 sm:p-8"
+		>
+			<div class="text-center">
+				<h2 class="text-2xl font-bold text-black mb-3">
+					GPA Converter - 100% FREE for Everyone!
+				</h2>
+				<p class="text-black text-lg mb-4">
+					Convert your African university grades to US 4.0 scale completely free. No signup
+					required, unlimited conversions.
+				</p>
+				<div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+					<div class="bg-white rounded-lg p-4 border border-gray-200">
+						<div class="font-semibold text-black">50+ Countries</div>
+						<div class="text-black">All African grading systems</div>
+					</div>
+					<div class="bg-white rounded-lg p-4 border border-gray-200">
+						<div class="font-semibold text-black">Smart Assist</div>
+						<div class="text-black">OCR transcript processing</div>
+					</div>
+					<div class="bg-white rounded-lg p-4 border border-gray-200">
+						<div class="font-semibold text-black">Professional PDF</div>
+						<div class="text-black">Download official transcripts</div>
+					</div>
+				</div>
+				<a
+					href="/gpa-converter"
+					class="inline-block mt-4 bg-[#2C3580] text-white px-6 py-3 rounded-lg hover:bg-[#3c4d9c] transition duration-300 font-semibold"
+				>
+					Try GPA Converter Free →
+				</a>
+			</div>
+		</div>
 
-          <!-- Elite Tier Email -->
-          <div class="bg-white rounded-lg p-6 border border-blue-100">
-            <div class="text-2xl mb-3">🚀</div>
-            <h3 class="font-semibold text-blue-900 mb-2">Academic Elite</h3>
-            <div class="text-sm text-blue-700 space-y-2">
-              <div>✅ All Professional features</div>
-              <div>⚡ Instant alerts for critical deadlines</div>
-              <div>🎯 Priority email delivery</div>
-              <div>🔥 Immediate notifications (≤3 days)</div>
-              <div>⭐ Custom urgency levels</div>
-            </div>
-          </div>
-        </div>
+		<!-- Scholarship Highlight -->
+		<div
+			class="mt-8 max-w-4xl mx-auto mb-20 bg-white/90 backdrop-blur-md rounded-2xl shadow-lg border border-black/20 p-6 sm:p-8"
+		>
+			<div class="text-center">
+				<h2 class="text-2xl font-bold text-black mb-3">
+					Scholarship Access - 100% FREE for Everyone!
+				</h2>
+				<p class="text-black text-lg mb-4">
+					Access our growing database of scholarships completely free with any plan. Find and apply
+					for financial aid opportunities worldwide.
+				</p>
+				<div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+					<div class="bg-white rounded-lg p-4 border border-gray-200">
+						<div class="font-semibold text-black">All Plans Include</div>
+						<div class="text-black">Unlimited scholarship browsing</div>
+					</div>
+					<div class="bg-white rounded-lg p-4 border border-gray-200">
+						<div class="font-semibold text-black">Save & Track</div>
+						<div class="text-black">Mark favorites and track applications</div>
+					</div>
+					<div class="bg-white rounded-lg p-4 border border-gray-200">
+						<div class="font-semibold text-black">Apply Directly</div>
+						<div class="text-black">Easy application process</div>
+					</div>
+				</div>
+				<a
+					href="/scholarships"
+					class="inline-block mt-4 bg-[#2C3580] text-white px-6 py-3 rounded-lg hover:bg-[#3c4d9c] transition duration-300 font-semibold"
+				>
+					Browse Scholarships →
+				</a>
+			</div>
+		</div>
+		<!-- FAQ Section -->
+		<div class="mt-20 max-w-4xl mx-auto">
+			<h2 class="text-3xl font-bold text-center text-gray-900 mb-12">Frequently Asked Questions</h2>
 
+			<div class="space-y-8">
+				<div class="bg-white rounded-lg p-6 shadow-sm">
+					<h3 class="text-lg font-medium text-gray-900 mb-3">Can I change my plan anytime?</h3>
+					<p class="text-gray-600">
+						Yes! You can upgrade or downgrade your plan at any time. Changes take effect
+						immediately, and we'll prorate any billing adjustments.
+					</p>
+				</div>
 
-      </div>
-    </div>
+				<div class="bg-white rounded-lg p-6 shadow-sm">
+					<h3 class="text-lg font-medium text-gray-900 mb-3">
+						What happens if I exceed my document limit?
+					</h3>
+					<p class="text-gray-600">
+						You'll receive a notification when approaching your limit. You can either wait for the
+						next billing cycle or upgrade to a higher plan for immediate access.
+					</p>
+				</div>
 
-    <!-- Feature Comparison -->
-    <div class="mt-20 max-w-6xl mx-auto">
-      <h2 class="text-3xl font-bold text-center text-gray-900 mb-12">Complete Feature Comparison</h2>
-      
-      <div class="bg-white rounded-lg shadow-lg overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="w-full">
-            <thead class="bg-gray-50">
-              <tr>
-                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Features</th>
-                <th class="px-6 py-4 text-center text-sm font-semibold text-gray-900">Academic Starter</th>
-                <th class="px-6 py-4 text-center text-sm font-semibold text-gray-900">Academic Professional</th>
-                <th class="px-6 py-4 text-center text-sm font-semibold text-gray-900">Academic Elite</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-200">
-              <tr>
-                <td class="px-6 py-4 text-sm text-gray-900 font-medium">Documents per Month</td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600">4 documents</td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>50 documents</strong></td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>UNLIMITED</strong></td>
-              </tr>
-              <tr class="bg-gray-50">
-                <td class="px-6 py-4 text-sm text-gray-900 font-medium">AI Features per Month</td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600">6 features</td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>115 features</strong></td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>UNLIMITED</strong></td>
-              </tr>
-              <tr>
-                <td class="px-6 py-4 text-sm text-gray-900 font-medium">University Recommendations</td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600">50+ universities</td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>500+ universities</strong></td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>1500+ universities + priority access</strong></td>
-              </tr>
-              <tr>
-                <td class="px-6 py-4 text-sm text-gray-900 font-medium">AI Model</td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600">GPT-3.5</td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>GPT-4o-mini</strong></td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>GPT-4o</strong></td>
-              </tr>
-              <tr class="bg-gray-50">
-                <td class="px-6 py-4 text-sm text-gray-900 font-medium">Inline Text Editing</td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600">5 edits/month</td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>50 edits/month</strong></td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>UNLIMITED</strong></td>
-              </tr>
-              <tr>
-                <td class="px-6 py-4 text-sm text-gray-900 font-medium">Version History</td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600">3 versions (cover letters only)</td>
-                            <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>50 versions (all documents)</strong></td>
-            <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>100 versions (all documents)</strong></td>
-              </tr>
-              <tr class="bg-gray-50">
-                <td class="px-6 py-4 text-sm text-gray-900 font-medium">Cold Email Generator</td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>5 emails/month</strong></td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>50 emails/month</strong></td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>500 emails/month</strong></td>
-              </tr>
-              <tr>
-                <td class="px-6 py-4 text-sm text-gray-900 font-medium">Academic Profile Analysis</td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600">Quick Assessment Only</td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>Comprehensive + Quick</strong></td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>Comprehensive + Quick</strong></td>
-              </tr>
+				<div class="bg-white rounded-lg p-6 shadow-sm">
+					<h3 class="text-lg font-medium text-gray-900 mb-3">What document types are included?</h3>
+					<p class="text-gray-600">
+						All plans include Statement of Purpose, Cover Letters, Personal Statements, and Academic
+						CV generators. Each plan has different monthly limits for document generation.
+					</p>
+				</div>
 
-              <tr class="bg-gray-50">
-                <td class="px-6 py-4 text-sm text-gray-900 font-medium">Support Level</td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600">Community</td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600">Email (48h)</td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600">Priority Email (24h)</td>
-              </tr>
+				<div class="bg-white rounded-lg p-6 shadow-sm">
+					<h3 class="text-lg font-medium text-gray-900 mb-3">Do you offer student discounts?</h3>
+					<p class="text-gray-600">
+						Our pricing is already student-friendly! We designed our plans specifically for
+						students' budgets while providing professional-quality tools.
+					</p>
+				</div>
 
-              <tr>
-                <td class="px-6 py-4 text-sm text-gray-900 font-medium">Application Tracking</td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600">12 applications</td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>1000 applications</strong></td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>Unlimited applications</strong></td>
-              </tr>
-              <tr class="bg-gray-50">
-                <td class="px-6 py-4 text-sm text-gray-900 font-medium">Ads</td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600">Shown</td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>Not shown (ad-free)</strong></td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>Not shown (ad-free)</strong></td>
-              </tr>
-              <tr class="bg-gray-50">
-                <td class="px-6 py-4 text-sm text-gray-900 font-medium">Growth Promise</td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600">-</td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>🚀 New features included</strong></td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>🚀 Auto-expanding limits</strong></td>
-              </tr>
-              <tr>
-                <td class="px-6 py-4 text-sm text-gray-900 font-medium">Visa Interview Simulator</td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600">6 questions/session</td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>50 questions/session</strong></td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>80+ questions/session</strong></td>
-              </tr>
-              <tr class="bg-gray-50">
-                <td class="px-6 py-4 text-sm text-gray-900 font-medium">Scholarship Access</td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600"> Free Access</td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong> Free Access + Personalized</strong></td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong> Priority Access + Custom Alerts</strong></td>
-              </tr>
-              <tr>
-                <td class="px-6 py-4 text-sm text-gray-900 font-medium">Email Notifications</td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600">Weekly scholarship digest only</td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>Application deadline reminders + Daily/Weekly scholarships + Account alerts</strong></td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>All Premium + Instant deadline alerts (≤3 days) + Priority delivery</strong></td>
-              </tr>
-              <tr class="bg-gray-50">
-                <td class="px-6 py-4 text-sm text-gray-900 font-medium">IELTS Test Prep</td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>FREE - Full access to practice tests</strong></td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>FREE - Full access + Future: AI feedback & analytics</strong></td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>FREE - Full access + Future: Premium AI feedback & detailed analytics</strong></td>
-              </tr>
-              <tr>
-                <td class="px-6 py-4 text-sm text-gray-900 font-medium">Document Checklists</td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>FREE - Complete application tracking</strong></td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>FREE - Full access + Future: Smart notifications & progress tracking</strong></td>
-                <td class="px-6 py-4 text-sm text-center text-gray-600"><strong>FREE - Full access + Future: AI-powered insights & custom automations</strong></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
+				<div class="bg-white rounded-lg p-6 shadow-sm">
+					<h3 class="text-lg font-medium text-gray-900 mb-3">Is my data secure?</h3>
+					<p class="text-gray-600">
+						Absolutely. We use industry-standard encryption and never share your personal
+						information or documents. Your privacy is our top priority.
+					</p>
+				</div>
+			</div>
+		</div>
 
-    <!-- Free GPA Converter Highlight -->
-    <div class="mt-20 max-w-4xl mx-auto mb-8 bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-6">
-      <div class="text-center">
-        <h2 class="text-2xl font-bold text-green-900 mb-3">🌍 GPA Converter - 100% FREE for Everyone!</h2>
-        <p class="text-green-700 text-lg mb-4">
-          Convert your African university grades to US 4.0 scale completely free. No signup required, unlimited conversions.
-        </p>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-          <div class="bg-white rounded-lg p-4 border border-green-100">
-            <div class="font-semibold text-green-900">50+ Countries</div>
-            <div class="text-green-700">All African grading systems</div>
-          </div>
-          <div class="bg-white rounded-lg p-4 border border-green-100">
-            <div class="font-semibold text-green-900">Smart Assist</div>
-            <div class="text-green-700">OCR transcript processing</div>
-          </div>
-          <div class="bg-white rounded-lg p-4 border border-green-100">
-            <div class="font-semibold text-green-900">Professional PDF</div>
-            <div class="text-green-700">Download official transcripts</div>
-          </div>
-        </div>
-        <a href="/gpa-converter" class="inline-block mt-4 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition duration-300 font-semibold">
-          Try GPA Converter Free →
-        </a>
-      </div>
-    </div>
+		<!-- CTA Section -->
+		<!-- <div class="mt-20 text-center">
+			<h2 class="text-3xl font-bold text-gray-900 mb-4">Ready to Start Your Academic Journey?</h2>
+			<p class="text-xl text-gray-600 mb-8">
+				Join thousands of students who've successfully used Abroaducate for their applications.
+			</p>
+			<button
+				onclick={() => handleUpgrade('free')}
+				class="inline-block bg-blue-600 text-white px-8 py-4 rounded-lg font-medium text-lg hover:bg-[#2C3580] transition duration-300"
+			>
+				Get Started Now
+			</button>
+		</div> -->
 
-    <!-- Scholarship Highlight -->
-    <div class="mt-8 max-w-4xl mx-auto mb-20 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg p-6">
-      <div class="text-center">
-        <h2 class="text-2xl font-bold text-yellow-900 mb-3">🏆 Scholarship Access - 100% FREE for Everyone!</h2>
-        <p class="text-yellow-700 text-lg mb-4">
-          Access our growing database of scholarships completely free with any plan. Find and apply for financial aid opportunities worldwide.
-        </p>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-          <div class="bg-white rounded-lg p-4 border border-yellow-100">
-            <div class="font-semibold text-yellow-900">All Plans Include</div>
-            <div class="text-yellow-700">Unlimited scholarship browsing</div>
-          </div>
-          <div class="bg-white rounded-lg p-4 border border-yellow-100">
-            <div class="font-semibold text-yellow-900">Save & Track</div>
-            <div class="text-yellow-700">Mark favorites and track applications</div>
-          </div>
-          <div class="bg-white rounded-lg p-4 border border-yellow-100">
-            <div class="font-semibold text-yellow-900">Apply Directly</div>
-            <div class="text-yellow-700">Easy application process</div>
-          </div>
-        </div>
-        <a href="/scholarships" class="inline-block mt-4 bg-yellow-600 text-white px-6 py-3 rounded-lg hover:bg-yellow-700 transition duration-300 font-semibold">
-          Browse Scholarships →
-        </a>
-      </div>
-    </div>
+		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-20">
+			<section
+				class="relative rounded-3xl overflow-hidden text-center"
+				style="background-image: url('{heroImage}'); background-size: cover; background-position: center;"
+			>
+				<div class="relative max-w-4xl mx-auto py-20 px-4 sm:px-6 lg:px-8">
+					<h2 class="text-4xl md:text-5xl font-semibold text-white tracking-tight">
+						Ready to Start Your Academic Journey?
+					</h2>
+					<p class="mt-4 text-lg text-indigo-100 max-w-2xl mx-auto">
+						Join thousands of students who've successfully used Abroaducate for their applications.
+					</p>
 
-    <!-- FAQ Section -->
-    <div class="mt-20 max-w-4xl mx-auto">
-      <h2 class="text-3xl font-bold text-center text-gray-900 mb-12">Frequently Asked Questions</h2>
-      
-      <div class="space-y-8">
-        <div class="bg-white rounded-lg p-6 shadow-sm">
-          <h3 class="text-lg font-medium text-gray-900 mb-3">Can I change my plan anytime?</h3>
-          <p class="text-gray-600">Yes! You can upgrade or downgrade your plan at any time. Changes take effect immediately, and we'll prorate any billing adjustments.</p>
-        </div>
-
-        <div class="bg-white rounded-lg p-6 shadow-sm">
-          <h3 class="text-lg font-medium text-gray-900 mb-3">What happens if I exceed my document limit?</h3>
-          <p class="text-gray-600">You'll receive a notification when approaching your limit. You can either wait for the next billing cycle or upgrade to a higher plan for immediate access.</p>
-        </div>
-
-        <div class="bg-white rounded-lg p-6 shadow-sm">
-          <h3 class="text-lg font-medium text-gray-900 mb-3">What document types are included?</h3>
-          <p class="text-gray-600">All plans include Statement of Purpose, Cover Letters, Personal Statements, and Academic CV generators. Each plan has different monthly limits for document generation.</p>
-        </div>
-
-        <div class="bg-white rounded-lg p-6 shadow-sm">
-          <h3 class="text-lg font-medium text-gray-900 mb-3">Do you offer student discounts?</h3>
-          <p class="text-gray-600">Our pricing is already student-friendly! We designed our plans specifically for students' budgets while providing professional-quality tools.</p>
-        </div>
-
-        <div class="bg-white rounded-lg p-6 shadow-sm">
-          <h3 class="text-lg font-medium text-gray-900 mb-3">Is my data secure?</h3>
-          <p class="text-gray-600">Absolutely. We use industry-standard encryption and never share your personal information or documents. Your privacy is our top priority.</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- CTA Section -->
-    <div class="mt-20 text-center">
-      <h2 class="text-3xl font-bold text-gray-900 mb-4">Ready to Start Your Academic Journey?</h2>
-      <p class="text-xl text-gray-600 mb-8">Join thousands of students who've successfully used Abroaducate for their applications.</p>
-      <button 
-        onclick={() => handleUpgrade('free')}
-        class="inline-block bg-blue-600 text-white px-8 py-4 rounded-lg font-medium text-lg hover:bg-blue-700 transition duration-300"
-      >
-        Get Started Now
-      </button>
-    </div>
-  </div>
+					<div class="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+						<button
+							onclick={() => handleUpgrade('free')}
+							class="inline-flex items-center gap-3 bg-white text-blue-700 font-semibold px-6 py-3 rounded-full shadow-lg transition-transform duration-300 hover:scale-105"
+						>
+							Get Started Now
+							<span class="bg-indigo-100 text-blue-700 p-1.5 rounded-full">
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									class="h-5 w-5"
+									viewBox="0 0 20 20"
+									fill="currentColor"
+								>
+									<path
+										fill-rule="evenodd"
+										d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8.006v3.989a1 1 0 001.555.832l3.197-1.995a1 1 0 000-1.664l-3.197-1.995z"
+										clip-rule="evenodd"
+									/>
+								</svg>
+							</span>
+						</button>
+					</div>
+				</div>
+			</section>
+		</div>
+	</div>
 </div>
 
 <!-- Authentication Modal -->
-<AuthenticationFlow 
-  bind:show={showAuthModal} 
-  {supabase} 
-  mode={authMode} 
-  returnUrl="/dashboard"
-/> 
+<AuthenticationFlow bind:show={showAuthModal} {supabase} mode={authMode} returnUrl="/dashboard" />
