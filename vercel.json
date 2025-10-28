@@ -1,4 +1,9 @@
 {
+  "functions": {
+    "build/server/**/*.js": {
+      "maxDuration": 60
+    }
+  },
   "redirects": [
     {
       "source": "/50-u-s-universities-with-fully-funded-scholarships-for-fall-2025/",
@@ -85,7 +90,6 @@
       "destination": "https://twitter.com/abroaducate",
       "permanent": true
     },
-    
     {
       "source": "/scholarship/:slug*",
       "destination": "/scholarships",
@@ -106,7 +110,6 @@
       "destination": "/",
       "permanent": true
     },
-
     {
       "source": "/best-countries-in-europe-scholarships/",
       "destination": "/scholarships",
@@ -190,4 +193,4 @@
       ]
     }
   ]
-} 
+}

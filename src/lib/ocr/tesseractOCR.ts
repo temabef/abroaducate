@@ -1,23 +1,37 @@
-import Tesseract from 'tesseract.js';
+// $lib/ocr/tesseractOCR.ts
+import { createWorker } from 'tesseract.js';
 
 export async function tesseractOCR(file: File): Promise<string> {
-  console.log('got to the tesseract.ts');
+  console.log('Starting Tesseract OCR...');
+  
+  const startTime = Date.now();
   
   try {
-    // Convert File to Buffer properly
+    // Create worker with optimized settings
+    const worker = await createWorker('eng', 1, {
+      langPath: 'https://tessdata.projectnaptha.com/4.0.0',
+      logger: (m) => {
+        if (m.status === 'recognizing text') {
+          console.log(`Tesseract progress: ${Math.round(m.progress * 100)}%`);
+        }
+      }
+    });
+    
+    console.log('Worker created in', Date.now() - startTime, 'ms');
+    
+    // Convert File to Buffer
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
     
-    console.log('Buffer created, length:', buffer.length);
+    console.log('Buffer created, size:', buffer.length);
     
-    const worker = await Tesseract.createWorker('eng');
+    // Recognize with optimizations
+    const result = await worker.recognize(buffer, {
+      rotateAuto: true,
+    });
     
-    console.log('Tesseract worker created');
-    
-    // Use the buffer directly
-    const result = await worker.recognize(buffer);
-    
-    console.log('Recognition complete, text length:', result.data.text.length);
+    console.log('Recognition complete in', Date.now() - startTime, 'ms');
+    console.log('Text length:', result.data.text.length);
     
     await worker.terminate();
     
@@ -28,7 +42,7 @@ export async function tesseractOCR(file: File): Promise<string> {
     return result.data.text;
     
   } catch (error: any) {
-    console.error('Tesseract error:', error);
+    console.error('Tesseract error after', Date.now() - startTime, 'ms:', error);
     throw new Error(`Tesseract OCR failed: ${error.message}`);
   }
 }
