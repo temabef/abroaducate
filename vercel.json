@@ -1,9 +1,4 @@
 {
-  "functions": {
-    "build/server/**/*.js": {
-      "maxDuration": 60
-    }
-  },
   "redirects": [
     {
       "source": "/50-u-s-universities-with-fully-funded-scholarships-for-fall-2025/",
