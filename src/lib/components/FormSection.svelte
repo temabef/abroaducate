@@ -192,7 +192,7 @@
     <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
         <div class="flex items-start gap-3">
             <span class="text-xl">🤖</span>
-            <div class="text-sm text-blue-800">
+            <div class="text-sm text-[#2C3580]">
                 <div class="font-semibold mb-1">AI-Powered Guidance Tool</div>
                 <p class="leading-relaxed">
                     This form helps generate an SOP draft to <strong>guide your writing process</strong>. 
@@ -307,11 +307,11 @@
     cursor: not-allowed;
 }
 .btn-primary {
-    background-color: #3B82F6;
+    background-color: #2C3580;
     color: white;
 }
 .btn-primary:hover:not(:disabled) {
-    background-color: #2563EB;
+    background-color: #3c4d9c;
 }
 .btn-secondary {
     background-color: #E5E7EB;
@@ -334,9 +334,9 @@
     justify-content: center;
 }
 .step-button.active {
-    background-color: #3B82F6;
+    background-color: #2C3580;
     color: white;
-    border-color: #3B82F6;
+    border-color: #2C3580;
 }
 .step-button.completed {
     background-color: #16A34A;
@@ -349,7 +349,7 @@
     color: #6B7280;
 }
 .step-label.active-label {
-    color: #3B82F6;
+    color: #2C3580;
     font-weight: 600;
 }
 .step-connector {
@@ -359,7 +359,7 @@
     margin: 0 0.5rem;
 }
 .step-connector.active-connector {
-    background-color: #3B82F6;
+    background-color: #2C3580;
 }
 
 /* Mobile Stepper Styles */
@@ -378,9 +378,9 @@
     font-size: 0.875rem;
 }
 .step-button-mobile.active {
-    background-color: #3B82F6;
+    background-color: #2C3580;
     color: white;
-    border-color: #3B82F6;
+    border-color: #2C3580;
 }
 .step-button-mobile.completed {
     background-color: #16A34A;
@@ -394,6 +394,6 @@
     margin: 0 0.25rem;
 }
 .step-connector-mobile.active-connector {
-    background-color: #3B82F6;
+    background-color: #2C3580;
 }
 </style>

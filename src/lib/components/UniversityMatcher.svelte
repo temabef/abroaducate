@@ -566,7 +566,7 @@
 
     function getMatchColor(score: number): string {
         if (score >= 85) return 'text-green-600 bg-green-50 border-green-200';
-        if (score >= 70) return 'text-blue-600 bg-blue-50 border-blue-200';
+        if (score >= 70) return 'text-[#2C3580] bg-blue-50 border-blue-200';
         if (score >= 55) return 'text-yellow-600 bg-yellow-50 border-yellow-200';
         if (score >= 40) return 'text-orange-600 bg-orange-50 border-orange-200';
         return 'text-red-600 bg-red-50 border-red-200';
@@ -575,7 +575,7 @@
     function getProbabilityColor(probability: string): string {
         switch (probability) {
             case 'High': return 'text-green-600 bg-green-100';
-            case 'Moderate': return 'text-blue-600 bg-blue-100';
+            case 'Moderate': return 'text-[#2C3580] bg-blue-100';
             case 'Low': return 'text-yellow-600 bg-yellow-100';
             case 'Very Low': return 'text-red-600 bg-red-100';
             default: return 'text-gray-600 bg-gray-100';
@@ -585,7 +585,7 @@
     function getCostFitColor(costFit: string): string {
         switch (costFit) {
             case 'Excellent': return 'text-green-600 bg-green-100';
-            case 'Good': return 'text-blue-600 bg-blue-100';
+            case 'Good': return 'text-[#2C3580] bg-blue-100';
             case 'Fair (with aid)': return 'text-yellow-600 bg-yellow-100';
             case 'Challenging': return 'text-orange-600 bg-orange-100';
             case 'Poor fit': return 'text-red-600 bg-red-100';
@@ -603,7 +603,7 @@
 
     function getBreakdownColor(score: number): string {
         if (score >= 90) return 'text-green-600';
-        if (score >= 75) return 'text-blue-600';
+        if (score >= 75) return 'text-[#2C3580]';
         if (score >= 60) return 'text-yellow-600';
         if (score >= 40) return 'text-orange-600';
         return 'text-red-600';
@@ -621,7 +621,7 @@
     function getAffordabilityColor(rating: string): string {
         switch (rating) {
             case 'Excellent': return 'text-green-600';
-            case 'Good': return 'text-blue-600';
+            case 'Good': return 'text-[#2C3580]';
             case 'Fair': return 'text-yellow-600';
             case 'Challenging': return 'text-red-600';
             default: return 'text-gray-600';
@@ -631,7 +631,7 @@
     function getAffordabilityBadgeColor(rating: string): string {
         switch (rating) {
             case 'Excellent': return 'text-green-700 bg-green-100';
-            case 'Good': return 'text-blue-700 bg-blue-100';
+            case 'Good': return 'text-[#3c4d9c]  bg-blue-100';
             case 'Fair': return 'text-yellow-700 bg-yellow-100';
             case 'Challenging': return 'text-red-700 bg-red-100';
             default: return 'text-gray-700 bg-gray-100';
@@ -640,7 +640,7 @@
 
     function getScholarshipMatchColor(score: number): string {
         if (score >= 85) return 'text-green-700 bg-green-100';
-        if (score >= 70) return 'text-blue-700 bg-blue-100';
+        if (score >= 70) return 'text-[#3c4d9c]  bg-blue-100';
         if (score >= 55) return 'text-yellow-700 bg-yellow-100';
         return 'text-gray-700 bg-gray-100';
     }
@@ -693,7 +693,7 @@
         <div class="flex items-center justify-between mb-4">
             <h3 class="text-xl font-bold text-gray-900">🎯 AI University Matching System</h3>
             <button 
-                class="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                class="text-sm text-[#2C3580] hover:text-[#3c4d9c]  font-medium"
                 on:click={() => showAdvancedForm = !showAdvancedForm}
             >
                 {showAdvancedForm ? '▼ Hide' : '▶ Show'} Advanced Options
@@ -875,7 +875,7 @@
         <button 
             on:click={analyzeMatches}
             disabled={analyzing || !profileForm.gpa || !profileForm.field}
-            class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg"
+            class="w-full  bg-[#2C3580]  text-white px-6 py-3 rounded-lg font-medium hover:bg-[#3c4d9c]  disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg"
         >
             {analyzing ? '🔍 Analyzing Universities...' : '🎯 Find Perfect University Matches'}
         </button>
@@ -898,7 +898,7 @@
                     <h5 class="text-sm font-medium text-blue-800 mb-2">University Access</h5>
                     <div class="flex items-center mb-2">
                         <div class="w-full bg-gray-200 rounded-full h-2.5 mr-4">
-                            <div class="bg-blue-600 h-2.5 rounded-full" style="width: {calculatePercentage(planLimit, totalAvailable)}%"></div>
+                            <div class="bg-[#2C3580] h-2.5 rounded-full" style="width: {calculatePercentage(planLimit, totalAvailable)}%"></div>
                         </div>
                         <span class="text-xs whitespace-nowrap">
                             <span class="font-medium">{planLimit}</span>/{totalAvailable} universities
@@ -906,7 +906,7 @@
                     </div>
                     
                     {#if planLimit < totalAvailable}
-                        <div class="mt-2 text-xs text-blue-700">
+                        <div class="mt-2 text-xs text-[#3c4d9c] ">
                             <p>
                                 Your current plan gives you access to {planLimit} universities.
                                 {#if planType !== 'elite'}
@@ -936,7 +936,7 @@
                 </h4>
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-4">
                     <div class="text-center">
-                        <div class="text-2xl font-bold text-blue-600">{totalMatches}</div>
+                        <div class="text-2xl font-bold text-[#2C3580]">{totalMatches}</div>
                         <div class="text-gray-600">Matching Universities</div>
                     </div>
                     <div class="text-center">
@@ -993,9 +993,9 @@
                 {#if loadingPage}
                     <div class="flex justify-center items-center py-8">
                         <div class="animate-pulse flex space-x-2">
-                            <div class="w-2 h-2 bg-blue-600 rounded-full"></div>
-                            <div class="w-2 h-2 bg-blue-600 rounded-full delay-100"></div>
-                            <div class="w-2 h-2 bg-blue-600 rounded-full delay-200"></div>
+                            <div class="w-2 h-2 bg-[#2C3580] rounded-full"></div>
+                            <div class="w-2 h-2 bg-[#2C3580] rounded-full delay-100"></div>
+                            <div class="w-2 h-2 bg-[#2C3580] rounded-full delay-200"></div>
                         </div>
                         <span class="ml-3 text-gray-600">Loading page {currentPage}...</span>
                     </div>
@@ -1030,7 +1030,7 @@
                                             Complete profile to see match %
                                         </button>
                                     {:else}
-                                        <a href="/pricing" class="px-3 py-2 rounded-full text-sm font-medium border text-blue-700 bg-blue-50 hover:bg-blue-100 underline">
+                                        <a href="/pricing" class="px-3 py-2 rounded-full text-sm font-medium border text-[#3c4d9c]  bg-blue-50 hover:bg-blue-100 underline">
                                             Upgrade to see match %
                                         </a>
                                     {/if}
@@ -1103,7 +1103,7 @@
                                                     <div class="text-xs">
                                                         <div class="font-medium mb-1">{key.replace(/_/g, ' ')}:</div>
                                                         <div class="w-full bg-gray-200 rounded-full h-1.5">
-                                                            <div class="bg-blue-600 h-1.5 rounded-full" style="width: {value}%"></div>
+                                                            <div class="bg-[#2C3580] h-1.5 rounded-full" style="width: {value}%"></div>
                                                         </div>
                                                         <div class="text-right mt-0.5 text-gray-600">{value}%</div>
                                                     </div>
@@ -1137,11 +1137,11 @@
                                     <div class="mb-4 p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-100">
                                         <div class="flex justify-between items-center">
                                             <h5 class="text-sm font-medium text-blue-800">Advanced Analysis</h5>
-                                            <a href="/pricing" class="text-xs font-medium text-blue-700 hover:text-blue-800 underline">
+                                            <a href="/pricing" class="text-xs font-medium text-[#3c4d9c]  hover:text-blue-800 underline">
                                                 Upgrade for More Details →
                                             </a>
                                             </div>
-                                        <p class="text-xs text-blue-600 mt-1">
+                                        <p class="text-xs text-[#2C3580] mt-1">
                                             Upgrade to Professional for strengths, concerns, and match breakdown. 
                                             Elite users get access to personalized application strategies.
                                         </p>
@@ -1154,10 +1154,10 @@
                                         <h5 class="text-sm font-medium text-blue-800 mb-2 flex items-center">
                                             <span class="mr-2">🎓</span> Available Scholarships
                                         </h5>
-                                        <ul class="text-xs text-blue-700 space-y-2">
+                                        <ul class="text-xs text-[#3c4d9c]  space-y-2">
                                             {#each match.relevant_scholarships as scholarship}
                                                 <li class="p-2 bg-white rounded border border-blue-100">
-                                                <a href={scholarship.id ? `/scholarships/${scholarship.id}` : '#'} class="block hover:text-blue-600">
+                                                <a href={scholarship.id ? `/scholarships/${scholarship.id}` : '#'} class="block hover:text-[#2C3580]">
                                                         <div class="font-medium">{scholarship.title}</div>
                                                     </a>
                                                     <div class="flex justify-between items-center mt-1">
@@ -1186,7 +1186,7 @@
                                                     {#if planType === 'free'}
                                                         <div class="mt-2 flex items-center justify-between">
                                                             <span class="text-xs text-gray-500">Details locked</span>
-                                                            <button class="text-xs px-2 py-1 rounded bg-blue-600 text-white hover:bg-blue-700" on:click={() => handleUpgradeClick('professional')}>Unlock Professional</button>
+                                                            <button class="text-xs px-2 py-1 rounded bg-[#2C3580] text-white hover:bg-[#3c4d9c] " on:click={() => handleUpgradeClick('professional')}>Unlock Professional</button>
                                                         </div>
                                                     {:else}
                                                         <div class="mt-1 text-gray-700">
@@ -1216,7 +1216,7 @@
 
                                 <!-- University Profile Link -->
                                 <div class="text-right mt-4 pt-3 border-t border-gray-200">
-                                    <a href="/universities/{match.university.id}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                                    <a href="/universities/{match.university.id}" class="text-[#2C3580] hover:text-blue-800 text-sm font-medium">
                                         🏫 View University Profile →
                                     </a>
                                                 </div>
@@ -1230,7 +1230,7 @@
                     <div class="pagination flex justify-center mt-8 space-x-2">
                         <!-- Previous button -->
                         <button 
-                            class="px-3 py-1 rounded border {currentPage === 1 || loadingPage ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-blue-600 hover:bg-blue-50'}"
+                            class="px-3 py-1 rounded border {currentPage === 1 || loadingPage ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-[#2C3580] hover:bg-blue-50'}"
                             disabled={currentPage === 1 || loadingPage}
                             on:click={handlePrevPage}
                             aria-label="Previous page"
@@ -1249,7 +1249,7 @@
                                 return i + start <= end ? i + start : null;
                             }).filter(p => p !== null) as page}
                                 <button
-                                    class="w-8 h-8 rounded-full {page === currentPage ? 'bg-blue-600 text-white' : 'bg-white text-blue-600 hover:bg-blue-50'} {loadingPage ? 'cursor-not-allowed opacity-50' : ''}"
+                                    class="w-8 h-8 rounded-full {page === currentPage ? 'bg-[#2C3580] text-white' : 'bg-white text-[#2C3580] hover:bg-blue-50'} {loadingPage ? 'cursor-not-allowed opacity-50' : ''}"
                                     on:click={() => handlePageClick(page)}
                                     disabled={loadingPage}
                                 >
@@ -1260,7 +1260,7 @@
                         
                         <!-- Next button -->
                         <button
-                            class="px-3 py-1 rounded border {currentPage === totalPages || loadingPage ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-blue-600 hover:bg-blue-50'}"
+                            class="px-3 py-1 rounded border {currentPage === totalPages || loadingPage ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-[#2C3580] hover:bg-blue-50'}"
                             disabled={currentPage === totalPages || loadingPage}
                             on:click={handleNextPage}
                             aria-label="Next page"
@@ -1296,7 +1296,7 @@
                             
                             <a 
                                 href="/pricing" 
-                                class="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition duration-300"
+                                class="inline-block bg-[#2C3580] text-white px-6 py-2 rounded-lg font-medium hover:bg-[#3c4d9c]  transition duration-300"
                             >
                                 {upgrade.cta}
                             </a>

@@ -51,7 +51,7 @@
     <div class="bg-white border-b border-gray-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center space-x-2 py-4 text-sm">
-                <a href="/dashboard" class="text-blue-600 hover:text-blue-800 transition-colors">Dashboard</a>
+                <a href="/dashboard" class="text-[#2C3580] hover:text-[#3c4d9c] transition-colors">Dashboard</a>
                 <span class="text-gray-400">›</span>
                 <span class="text-gray-600 font-medium">SOP Review</span>
             </div>
@@ -116,19 +116,19 @@
                 <h3 class="text-xl font-bold text-gray-900 mb-4">🚀 How It Works</h3>
                 <div class="space-y-3">
                     <div class="flex items-start gap-3">
-                        <div class="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mt-0.5">1</div>
+                        <div class="bg-[#2C3580] text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mt-0.5">1</div>
                         <p class="text-gray-700"><strong>Upload or Paste:</strong> Provide your SOP text through multiple input methods</p>
                     </div>
                     <div class="flex items-start gap-3">
-                        <div class="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mt-0.5">2</div>
+                        <div class="bg-[#2C3580] text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mt-0.5">2</div>
                         <p class="text-gray-700"><strong>AI Analysis:</strong> Advanced algorithms analyze content, structure, and relevance</p>
                     </div>
                     <div class="flex items-start gap-3">
-                        <div class="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mt-0.5">3</div>
+                        <div class="bg-[#2C3580] text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mt-0.5">3</div>
                         <p class="text-gray-700"><strong>Detailed Feedback:</strong> Receive comprehensive analysis with actionable suggestions</p>
                     </div>
                     <div class="flex items-start gap-3">
-                        <div class="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mt-0.5">4</div>
+                        <div class="bg-[#2C3580] text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mt-0.5">4</div>
                         <p class="text-gray-700"><strong>Improve & Iterate:</strong> Use insights to enhance your SOP and reanalyze</p>
                     </div>
                 </div>
@@ -171,7 +171,7 @@
             <div class="flex flex-col sm:inline-flex gap-4 w-full items-center">
                 <a 
                     href="/sop-generator" 
-                    class="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all font-medium w-full sm:w-auto"
+                    class="px-6 py-3 bg-gradient-to-r from-[#2C3580] to-[#3c4d9c] text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all font-medium w-full sm:w-auto"
                 >
                     📝 Generate New SOP
                 </a>

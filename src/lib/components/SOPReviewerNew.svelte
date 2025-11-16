@@ -286,7 +286,7 @@ Session: ${reviewMode} review mode
 
 <div class="sop-reviewer">
     <!-- Header -->
-    <div class="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-6 rounded-t-lg">
+    <div class="bg-gradient-to-r from-[#2C3580] to-[#3c4d9c] text-white p-6 rounded-t-lg">
         <h2 class="text-2xl font-bold mb-2">🔍 SOP Review & Enhancement</h2>
         <p class="opacity-90">Get comprehensive AI-powered analysis with our unified review system</p>
         {#if universityName && programName}

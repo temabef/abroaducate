@@ -609,11 +609,11 @@
                         <div class="mt-4 flex flex-col sm:flex-row gap-3 justify-center">
                             <button 
                                 on:click={showSignup}
-                                class="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors shadow-lg"
+                                class="bg-[#2C3580] text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors shadow-lg"
                             >
                                 Start Tracking My Progress →
                             </button>
-                            <a href="/pricing" class="border-2 border-blue-600 text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors">
+                            <a href="/pricing" class="border-2 border-[#2C3580] text-[#2C3580] px-6 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors">
                                 Explore All Features
                             </a>
                         </div>
@@ -646,22 +646,22 @@
         
         <!-- Preview Mode Banner -->
         {#if isPreview}
-            <div class="bg-gradient-to-r from-green-500 to-blue-600 rounded-lg shadow-sm border p-6 mb-6 text-white">
+            <div class="bg-gradient-to-r from-[#2C3580] to-[#2C3580] rounded-lg shadow-sm border p-6 mb-6 text-white">
                 <div class="flex items-center justify-between">
                     <div class="flex-1">
                         <div class="flex items-center space-x-3 mb-2">
                             <div class="text-2xl">👁️</div>
                             <h3 class="text-lg font-semibold">You're Previewing Our FREE Document Checklists!</h3>
                         </div>
-                        <p class="text-green-100 mb-4">Create a free account to unlock progress tracking, save your work, and access all our study abroad tools.</p>
+                        <p class="text-white mb-4">Create a free account to unlock progress tracking, save your work, and access all our study abroad tools.</p>
                         <div class="flex flex-wrap gap-3">
                             <button 
                                 on:click={showSignup}
-                                class="bg-white text-green-600 px-6 py-3 rounded-lg hover:bg-green-50 transition-colors font-semibold shadow-lg"
+                                class="bg-white text-[#2C3580] px-6 py-3 rounded-lg transition-colors font-semibold shadow-lg"
                             >
                                 Create Free Account
                             </button>
-                            <a href="/sop" class="bg-green-400 bg-opacity-30 border border-white text-white px-4 py-2 rounded-lg hover:bg-opacity-40 transition-colors font-medium">
+                            <a href="/sop" class="bg-[#2C3580] bg-opacity-30 border border-white text-white px-4 py-2 rounded-lg hover:bg-opacity-40 transition-colors font-medium">
                                 Try Our AI Tools
                             </a>
                         </div>
@@ -738,7 +738,7 @@
         <!-- Loading State -->
         {#if loading}
             <div class="flex justify-center items-center py-12">
-                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2C3580]"></div>
                 <span class="ml-3 text-gray-600">Loading checklists...</span>
             </div>
         {/if}
@@ -785,13 +785,13 @@
                                      class:border-blue-200={expandedChecklistId === checklist.id}>
                                         
                                     <div class="flex items-start space-x-3 flex-1">
-                                        <div class="flex-shrink-0 mt-1" class:text-blue-600={expandedChecklistId === checklist.id}>
+                                        <div class="flex-shrink-0 mt-1" class:text-[#2C3580]={expandedChecklistId === checklist.id}>
                                                 {#if checklist.user_progress && checklist.user_progress.progress_percentage > 0}
                                                     <div class="relative">
-                                                    <div class="h-7 w-7 border-2 border-blue-600 rounded-lg flex items-center justify-center bg-white">
-                                                        <div class="h-4 w-4 bg-blue-600 rounded-sm"></div>
+                                                    <div class="h-7 w-7 border-2 border-[#2C3580] rounded-lg flex items-center justify-center bg-white">
+                                                        <div class="h-4 w-4 bg-[#2C3580] rounded-sm"></div>
                                                         </div>
-                                                    <div class="absolute -bottom-1 -right-1 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
+                                                    <div class="absolute -bottom-1 -right-1 bg-[#2C3580] text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
                                                             {checklist.user_progress.progress_percentage}%
                                                         </div>
                                                     </div>
@@ -818,7 +818,7 @@
                                         
                                     <div class="flex items-center ml-3">
                                             {#if expandedChecklistId === checklist.id}
-                                                <span class="text-blue-600">
+                                                <span class="text-[#2C3580]">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
                                                     </svg>
@@ -848,7 +848,7 @@
                                                 <p class="text-sm text-gray-600 mb-3">Ready to get started?</p>
                                                     <button 
                                                         on:click={() => startChecklist(checklist.id)}
-                                                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                                                        class="bg-[#2C3580] hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
                                                     >
                                                         Start Checklist
                                                     </button>
@@ -859,7 +859,7 @@
                                         <div class="px-4 py-3 border-b border-gray-100">
                                             <div class="flex justify-between items-center mb-2">
                                                 <span class="text-sm font-medium text-gray-700">Progress</span>
-                                                <span class="text-sm font-medium text-blue-600">{checklist.user_progress.progress_percentage}%</span>
+                                                <span class="text-sm font-medium text-[#2C3580]">{checklist.user_progress.progress_percentage}%</span>
                                                 </div>
                                             <div class="w-full bg-gray-200 rounded-full h-2">
                                                 <div class="{getProgressColor(checklist.user_progress.progress_percentage)} h-2 rounded-full transition-all" style="width: {checklist.user_progress.progress_percentage}%"></div>
@@ -893,7 +893,7 @@
                                                                 </div>
                                                                 <p class="text-sm text-gray-600 mt-1">{item.description}</p>
                                                                 {#if item.tips}
-                                                                    <p class="text-xs text-blue-600 mt-1">💡 {item.tips}</p>
+                                                                    <p class="text-xs text-[#2C3580] mt-1">💡 {item.tips}</p>
                                                                 {/if}
                                                             </div>
                                                         </div>
@@ -910,13 +910,13 @@
                                                     <div class="space-x-2">
                                                         <button 
                                                             on:click={showSignup}
-                                                            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                                                            class="bg-[#2C3580] hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
                                                         >
                                                     Sign Up
                                                         </button>
                                                         <button 
                                                             on:click={showLogin}
-                                                            class="border border-blue-600 text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                                                            class="border border-[#2C3580] text-[#2C3580] hover:bg-blue-50 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
                                                         >
                                                             Log In
                                                         </button>
@@ -966,13 +966,13 @@
                                      class:border-blue-200={expandedChecklistId === checklist.id}>
                                     
                                     <div class="flex items-start space-x-3 flex-1">
-                                        <div class="flex-shrink-0 mt-1" class:text-blue-600={expandedChecklistId === checklist.id}>
+                                        <div class="flex-shrink-0 mt-1" class:text-[#2C3580]={expandedChecklistId === checklist.id}>
                                             {#if checklist.user_progress && checklist.user_progress.progress_percentage > 0}
                                                 <div class="relative">
-                                                    <div class="h-7 w-7 border-2 border-blue-600 rounded-lg flex items-center justify-center bg-white">
-                                                        <div class="h-4 w-4 bg-blue-600 rounded-sm"></div>
+                                                    <div class="h-7 w-7 border-2 border-[#2C3580] rounded-lg flex items-center justify-center bg-white">
+                                                        <div class="h-4 w-4 bg-[#2C3580] rounded-sm"></div>
                                                     </div>
-                                                    <div class="absolute -bottom-1 -right-1 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
+                                                    <div class="absolute -bottom-1 -right-1 bg-[#2C3580] text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
                                                         {checklist.user_progress.progress_percentage}%
                                                     </div>
                                                 </div>
@@ -999,7 +999,7 @@
                                     
                                     <div class="flex items-center ml-3">
                                         {#if expandedChecklistId === checklist.id}
-                                            <span class="text-blue-600">
+                                            <span class="text-[#2C3580]">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
                                                 </svg>
@@ -1029,7 +1029,7 @@
                                                 <p class="text-sm text-gray-600 mb-3">Ready to get started?</p>
                                                 <button 
                                                     on:click={() => startChecklist(checklist.id)}
-                                                    class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                                                    class="bg-[#2C3580] hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
                                                 >
                                                     Start Checklist
                                                 </button>
@@ -1040,7 +1040,7 @@
                                         <div class="px-4 py-3 border-b border-gray-100">
                                             <div class="flex justify-between items-center mb-2">
                                                 <span class="text-sm font-medium text-gray-700">Progress</span>
-                                                                                                 <span class="text-sm font-medium text-blue-600">{checklist.user_progress.progress_percentage}%</span>
+                                                                                                 <span class="text-sm font-medium text-[#2C3580]">{checklist.user_progress.progress_percentage}%</span>
                                             </div>
                                             <div class="w-full bg-gray-200 rounded-full h-2">
                                                 <div class="{getProgressColor(checklist.user_progress.progress_percentage)} h-2 rounded-full transition-all" style="width: {checklist.user_progress.progress_percentage}%"></div>
@@ -1074,7 +1074,7 @@
                                     </div>
                                                                 <p class="text-sm text-gray-600 mt-1">{item.description}</p>
                                                                 {#if item.tips}
-                                                                    <p class="text-xs text-blue-600 mt-1">💡 {item.tips}</p>
+                                                                    <p class="text-xs text-[#2C3580] mt-1">💡 {item.tips}</p>
                                 {/if}
                                                             </div>
                                                         </div>
@@ -1091,13 +1091,13 @@
                                             <div class="space-x-2">
                                                 <button 
                                                     on:click={showSignup}
-                                                    class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                                                    class="bg-[#2C3580] hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
                                                 >
                                                     Sign Up
                                                 </button>
                                                 <button 
                                                     on:click={showLogin}
-                                                    class="border border-blue-600 text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                                                    class="border border-[#2C3580] text-[#2C3580] hover:bg-blue-50 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
                                                 >
                                                     Log In
                                                 </button>
@@ -1135,7 +1135,7 @@
                             We don't have checklists in the "{getCategoryName(selectedCategory)}" category for {selectedCountry} yet.
                             <button 
                                 on:click={() => { selectedCategory = null; loadChecklists(); }}
-                                class="text-blue-600 hover:underline"
+                                class="text-[#2C3580] hover:underline"
                             >
                                 Clear filter
                             </button>
@@ -1148,22 +1148,22 @@
         </div>
         
         <!-- Call to Action Section -->
-        <div class="mt-12 bg-gradient-to-r from-green-600 to-teal-600 rounded-lg p-8 text-center text-white">
+        <div class="mt-12 bg-gradient-to-r from-[#2C3580] to-[#3c4d9c] rounded-lg p-8 text-center text-white">
             <h3 class="text-2xl font-bold mb-4">Complete Your Study Abroad Journey</h3>
-            <p class="text-green-100 mb-6">
+            <p class="text-white mb-6">
                 Use our comprehensive AI-powered platform to create perfect applications and find funding opportunities.
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <a href="/sop" class="bg-white text-green-600 px-6 py-3 rounded-lg font-medium hover:bg-gray-100 transition duration-200">
+                <a href="/sop" class="bg-white text-[#2C3580] px-6 py-3 rounded-lg font-medium hover:bg-gray-100 transition duration-200">
                     📝 Generate Statement of Purpose
                 </a>
-                <a href="/scholarships" class="border-2 border-white text-white px-6 py-3 rounded-lg font-medium hover:bg-white hover:text-green-600 transition duration-200">
+                <a href="/scholarships" class="border-2 border-white text-white px-6 py-3 rounded-lg font-medium hover:bg-white hover:text-[#2C3580] transition duration-200">
                     🎓 Find Scholarships
                 </a>
-                <a href="/universities" class="border-2 border-white text-white px-6 py-3 rounded-lg font-medium hover:bg-white hover:text-green-600 transition duration-200">
+                <a href="/universities" class="border-2 border-white text-white px-6 py-3 rounded-lg font-medium hover:bg-white hover:text-[#2C3580] transition duration-200">
                     🏫 University Matching
                 </a>
-                <a href="/gpa-converter" class="border-2 border-white text-white px-6 py-3 rounded-lg font-medium hover:bg-white hover:text-green-600 transition duration-200">
+                <a href="/gpa-converter" class="border-2 border-white text-white px-6 py-3 rounded-lg font-medium hover:bg-white hover:text-[#2C3580] transition duration-200">
                     📊 GPA Converter
                 </a>
             </div>

@@ -88,7 +88,7 @@
                             </a>
                         {/if}
                         {#if generatedCV?.docx_url}
-                            <a href={generatedCV.docx_url} download class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors inline-flex items-center gap-2">
+                            <a href={generatedCV.docx_url} download class="bg-[#2C3580] hover:bg-[#3c4d9c] text-white px-6 py-3 rounded-lg font-medium transition-colors inline-flex items-center gap-2">
                                 📝 Download DOCX
                             </a>
                         {/if}
@@ -104,7 +104,7 @@
             </div>
             
             <!-- CTA Section -->
-            <div class="bg-gradient-to-r from-indigo-600 to-purple-700 rounded-lg text-white p-8 mb-8">
+            <div class="bg-gradient-to-r from-[#2C3580] to-[#3c4d9c] rounded-lg text-white p-8 mb-8">
                 <div class="text-center">
                     <h3 class="text-2xl font-bold mb-4">Need More Documents? 🚀</h3>
                     <p class="text-indigo-200 mb-6">
@@ -235,8 +235,8 @@
             </div>
 
             <!-- Success Stories -->
-            <div class="bg-gradient-to-r from-indigo-600 to-purple-700 rounded-lg text-white p-8">
-                <h2 class="text-2xl font-bold mb-6">🏆 Academic CV Success</h2>
+            <div class="bg-gradient-to-r from-[#2C3580] to-[#3c4d9c] rounded-lg text-white p-8">
+                <h2 class="text-2xl font-bold mb-6">Academic CV Success</h2>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div class="text-center">
                         <div class="text-3xl font-bold mb-2">10k+</div>

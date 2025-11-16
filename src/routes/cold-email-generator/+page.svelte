@@ -106,7 +106,7 @@
 
 <div class="min-h-screen bg-gray-50">
     <!-- Hero/Header Section -->
-    <section class="pt-24 pb-12 bg-gradient-to-r from-blue-600 to-cyan-600">
+    <section class="pt-30 pb-12 bg-gradient-to-r from-[#2C3580] to-[#3c4d9c]">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h1 class="text-4xl md:text-5xl font-bold text-white mb-4 flex items-center justify-center gap-3">
                 <span class="text-5xl">✉️</span>
@@ -275,7 +275,7 @@
 
 <style>
 .bg-gradient-to-r {
-    background: linear-gradient(to right, #2563eb, #06b6d4);
+    background: linear-gradient(to right, #2C3580, #3c4d9c);
 }
 .animate-fade-in {
     animation: fadeIn 0.5s ease;
