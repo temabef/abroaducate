@@ -150,7 +150,7 @@
   function getSourceColor(source: string) {
     switch (source) {
       case 'hardcoded': return 'bg-purple-100 text-purple-800';
-      case 'college_scorecard': return 'bg-blue-100 text-blue-800';
+      case 'college_scorecard': return 'bg-blue-100 text-[#2C3580]';
       default: return 'bg-gray-100 text-gray-800';
     }
   }
@@ -207,7 +207,7 @@
   <meta name="description" content="Explore our comprehensive database of 1000+ universities across USA, UK, Canada, Australia and more. Find detailed information on admissions, programs, and costs." />
 </svelte:head>
 
-<div class="min-h-screen bg-gray-50 py-20">
+<div class="min-h-screen bg-gray-50 py-30">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     
     <!-- Header -->
@@ -220,7 +220,7 @@
       </p>
       
       <!-- Global Coverage Banner -->
-      <div class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg shadow-lg mb-6">
+      <div class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-[#2C3580] to-[#2C3580] text-white rounded-lg shadow-lg mb-6">
         <span class="text-lg font-semibold">
           📊 7,000+ USA Universities Available
         </span>
@@ -230,7 +230,7 @@
       <div class="mb-6">
         <button 
           on:click={() => enhancedMode = !enhancedMode}
-          class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200"
+          class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-[#2C3580] to-[#2C3580] text-white rounded-lg hover:from-[#3c4d9c]  hover:to-[#3c4d9c]  transition-all duration-200"
         >
           <span class="text-lg mr-2">🚀</span>
           <span class="font-semibold">
@@ -250,9 +250,9 @@
         <div class="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200 rounded-lg p-4 mb-6">
           <div class="flex items-center gap-2 mb-2">
             <span class="text-2xl">⚡</span>
-            <h3 class="text-lg font-semibold text-blue-900">Enhanced Database Mode</h3>
+            <h3 class="text-lg font-semibold text-[#2C3580]">Enhanced Database Mode</h3>
           </div>
-          <p class="text-blue-800 text-sm">
+          <p class="text-[#2C3580] text-sm">
             Access up to 1,000 universities with smart pagination. Results load in batches for optimal performance.
           </p>
         </div>
@@ -267,10 +267,10 @@
       <div class="mb-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border">
         <div class="flex items-center justify-between">
           <div>
-            <h3 class="font-semibold text-blue-900 flex items-center gap-2">
+            <h3 class="font-semibold text-[#2C3580] flex items-center gap-2">
               <span>🚀</span> Enhanced Mode
             </h3>
-            <p class="text-sm text-blue-700 mt-1">
+            <p class="text-sm text-[#2C3580] mt-1">
               Access up to 1000 universities with smart pagination
             </p>
           </div>
@@ -308,7 +308,7 @@
             <span class="label-text-alt text-gray-500">
               Search across 7,500+ universities by name - works with all countries
               {#if searchName}
-                <span class="text-blue-600 font-medium">• Searching for: "{searchName}"</span>
+                <span class="text-[#2C3580] font-medium">• Searching for: "{searchName}"</span>
               {/if}
             </span>
           </div>
@@ -554,10 +554,10 @@
         {#if enhancedMode && universities.length > 100}
           <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
             <div class="flex items-center gap-2">
-              <span class="text-blue-600">🚀</span>
-              <span class="font-semibold text-blue-900">Database Expansion Success!</span>
+              <span class="text-[#2C3580]">🚀</span>
+              <span class="font-semibold text-[#2C3580]">Database Expansion Success!</span>
             </div>
-            <p class="text-blue-800 text-sm mt-1">
+            <p class="text-[#2C3580] text-sm mt-1">
               Expanded from standard 100 to {universities.length.toLocaleString()} universities 
               ({Math.round((universities.length / 100 - 1) * 100)}% increase)
             </p>
@@ -567,7 +567,7 @@
         {#if metadata.name_search}
           <div class="bg-purple-50 border border-purple-200 rounded-lg p-3 mt-2">
             <div class="flex items-center gap-2">
-              <span class="text-purple-600">🔍</span>
+              <span class="text-[#2C3580]">🔍</span>
               <span class="font-semibold text-purple-900">Name Search Results</span>
             </div>
             <p class="text-purple-800 text-sm mt-1">
@@ -592,9 +592,9 @@
     {#if loading}
       <div class="flex justify-center items-center py-12">
         <div class="loading-dots mr-4">
-          <div class="w-2 h-2 bg-blue-600 rounded-full mr-2 dot"></div>
-          <div class="w-2 h-2 bg-blue-600 rounded-full mr-2 dot"></div>
-          <div class="w-2 h-2 bg-blue-600 rounded-full dot"></div>
+          <div class="w-2 h-2 bg-[#2C3580] rounded-full mr-2 dot"></div>
+          <div class="w-2 h-2 bg-[#2C3580] rounded-full mr-2 dot"></div>
+          <div class="w-2 h-2 bg-[#2C3580] rounded-full dot"></div>
         </div>
         <span class="text-lg text-gray-600">Fetching universities from API...</span>
       </div>
@@ -676,7 +676,7 @@
               <div class="grid grid-cols-2 gap-3 text-sm mb-4">
                 <div>
                   <span class="font-medium">Acceptance Rate:</span>
-                  <div class="text-lg font-semibold text-blue-600">
+                  <div class="text-lg font-semibold text-[#2C3580]">
                     {university.acceptance_rate != null ? `${university.acceptance_rate}%` : 'N/A'}
                   </div>
                 </div>
@@ -704,7 +704,7 @@
                   <span class="font-medium text-sm">Top Programs:</span>
                   <div class="flex flex-wrap gap-1 mt-1">
                     {#each Object.entries(university.programs).slice(0, 3) as [program, score]}
-                      <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                      <span class="text-xs bg-blue-100 text-[#2C3580] px-2 py-1 rounded">
                         {program.replace(/-/g, ' ')} ({score})
                       </span>
                     {/each}
@@ -727,7 +727,7 @@
               <!-- University Profile Link -->
               <div class="mt-4 pt-3 border-t border-gray-200">
                 <a href={getUniversityProfileUrl(university)} 
-                   class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                   class="text-[#2C3580] hover:text-[#2C3580] text-sm font-medium">
                   🏫 View University Profile →
                 </a>
               </div>
@@ -777,17 +777,17 @@
     {/if}
     
     <!-- Call to Action Section -->
-    <div class="mt-16 bg-gradient-to-r from-blue-600 to-indigo-700 rounded-lg p-8 text-center text-white">
+    <div class="mt-16 bg-gradient-to-r from-[#2C3580] to-[#2C3580] rounded-lg p-8 text-center text-white">
       <h3 class="text-2xl font-bold mb-4">Ready to Start Your Application Journey?</h3>
       <p class="text-blue-100 mb-6">
         Use our AI-powered tools to craft perfect application documents for your target universities
       </p>
       
       <div class="flex flex-col sm:flex-row gap-4 justify-center">
-        <a href="/sop" class="bg-white text-blue-600 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-blue-50 transition duration-300 shadow-lg">
+        <a href="/sop" class="bg-white text-[#2C3580] px-8 py-4 rounded-lg font-semibold text-lg hover:bg-blue-50 transition duration-300 shadow-lg">
           Create Your Statement of Purpose
         </a>
-        <a href="/scholarships" class="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-white hover:text-blue-600 transition duration-300">
+        <a href="/scholarships" class="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-white hover:text-[#2C3580] transition duration-300">
           Find Scholarships
         </a>
       </div>
@@ -806,7 +806,7 @@
           <div class="text-3xl mb-4">📝</div>
           <h3 class="text-xl font-bold text-gray-900 mb-3">Statement of Purpose</h3>
           <p class="text-gray-600 mb-4">Create a compelling SOP tailored to your target universities and programs.</p>
-          <a href="/sop" class="text-blue-600 hover:text-blue-800 font-medium">Create Your SOP →</a>
+          <a href="/sop" class="text-[#2C3580] hover:text-[#2C3580] font-medium">Create Your SOP →</a>
         </div>
 
         <!-- Resource 2 -->
@@ -814,7 +814,7 @@
           <div class="text-3xl mb-4">💰</div>
           <h3 class="text-xl font-bold text-gray-900 mb-3">Scholarship Finder</h3>
           <p class="text-gray-600 mb-4">Discover scholarships and funding opportunities for your education abroad.</p>
-          <a href="/scholarships" class="text-blue-600 hover:text-blue-800 font-medium">Find Scholarships →</a>
+          <a href="/scholarships" class="text-[#2C3580] hover:text-[#2C3580] font-medium">Find Scholarships →</a>
         </div>
 
         <!-- Resource 3 -->
@@ -822,7 +822,7 @@
           <div class="text-3xl mb-4">📊</div>
           <h3 class="text-xl font-bold text-gray-900 mb-3">GPA Converter</h3>
           <p class="text-gray-600 mb-4">Convert your local grades to the GPA scale used by international universities.</p>
-          <a href="/gpa-converter" class="text-blue-600 hover:text-blue-800 font-medium">Convert Your GPA →</a>
+          <a href="/gpa-converter" class="text-[#2C3580] hover:text-[#2C3580] font-medium">Convert Your GPA →</a>
         </div>
       </div>
     </div>

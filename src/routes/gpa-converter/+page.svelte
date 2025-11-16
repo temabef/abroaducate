@@ -1120,42 +1120,6 @@
 			throw error;
 		}
 	}
-	// async function extractTextOnly(file: File): Promise<string> {
-	//   const Tesseract = await import('tesseract.js');
-
-	//   const worker = await Tesseract.createWorker('eng', 1, {
-	//     logger: (m: any) => {
-	//       if (m.status === 'recognizing text') {
-	//         processingProgress = 30 + (m.progress * 40);
-	//         statusMessage = `📖 Extracting text: ${Math.round(m.progress * 100)}%`;
-	//       }
-	//     }
-	//   });
-
-	//   try {
-	//     const result = await worker.recognize(file);
-	//     await worker.terminate();
-
-	//     // If we got some text but it seems problematic, provide helpful feedback
-	//     if (result.data.text.length < 50) {
-	//       throw new Error('Text too short - image may need better quality');
-	//     }
-
-	//     return result.data.text;
-	//   } catch (error: any) {
-	//     await worker.terminate();
-
-	//     // Provide specific guidance based on error type
-	//     if (error.message?.includes('too short')) {
-	//       statusMessage = '⚠️ Low quality image detected. Please try a clearer image.';
-	//       throw new Error('Image quality too low for reliable extraction');
-	//     }
-
-	//     statusMessage = '❌ Text extraction failed. Please try manual entry.';
-	//     throw error;
-	//   }
-	// }
-
 	async function analyzeTranscriptStructure(text: string): Promise<{
 		sessions: Array<{
 			name: string;
@@ -1887,9 +1851,9 @@
 	/>
 </svelte:head>
 
-<div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 pt-20">
+<div class="min-h-screen pt-24">
 	<!-- Header -->
-	<div class="bg-white shadow-lg border-b mt-16">
+	<div class="bg-white shadow-lg ">
 		<div class="max-w-7xl mx-auto px-4 py-6">
 			<div class="text-center">
 				<h1 class="text-4xl font-bold text-gray-900 mb-2">🎓 GPA Converter</h1>
@@ -1898,15 +1862,15 @@
 				</p>
 				<div class="flex items-center justify-center space-x-6 text-sm text-gray-500">
 					<div class="flex items-center">
-						<span class="inline-block w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+						<span class="inline-block w-2 h-2 bg-[#2C3580] rounded-full mr-2"></span>
 						50+ African Countries
 					</div>
 					<div class="flex items-center">
-						<span class="inline-block w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+						<span class="inline-block w-2 h-2 bg-[#2C3580] rounded-full mr-2"></span>
 						3,200+ Conversions
 					</div>
 					<div class="flex items-center">
-						<span class="inline-block w-2 h-2 bg-purple-500 rounded-full mr-2"></span>
+						<span class="inline-block w-2 h-2 bg-[#2C3580] rounded-full mr-2"></span>
 						100% Free
 					</div>
 				</div>
@@ -1914,6 +1878,7 @@
 		</div>
 	</div>
 
+	<!-- Student Information Form -->
 	<div class="max-w-5xl md:max-w-6xl mx-auto px-4 py-8">
 		<div class="grid lg:grid-cols-2 gap-8">
 			<!-- Input Form -->
@@ -1931,7 +1896,7 @@
 							type="text"
 							bind:value={studentName}
 							oninput={saveData}
-							class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+							class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2C3580] focus:border-transparent"
 							placeholder="Enter your full name"
 						/>
 					</div>
@@ -1945,7 +1910,7 @@
 							type="text"
 							bind:value={universityName}
 							oninput={saveData}
-							class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+							class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2C3580] focus:border-transparent"
 							placeholder="Enter your university name"
 						/>
 					</div>
@@ -1959,7 +1924,7 @@
 							type="text"
 							bind:value={programOfStudy}
 							oninput={saveData}
-							class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+							class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2C3580] focus:border-transparent"
 							placeholder="e.g., Computer Science, Medicine"
 						/>
 					</div>
@@ -1974,7 +1939,7 @@
 							id="country"
 							bind:value={selectedCountry}
 							onchange={updateGradingSystems}
-							class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+							class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2C3580] focus:border-transparent"
 						>
 							<option value="">Select Country</option>
 							{#each africanCountries as country}
@@ -1992,7 +1957,7 @@
 							bind:value={selectedGradingSystem}
 							onchange={updateGrades}
 							disabled={!selectedCountry}
-							class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
+							class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2C3580] focus:border-transparent disabled:bg-gray-100"
 						>
 							<option value="">Select Grading System</option>
 							{#each availableGradingSystems as system}
@@ -2008,7 +1973,7 @@
 						<button
 							class="flex-1 py-2 px-4 rounded-md font-medium text-sm transition-colors"
 							class:bg-white={activeTab === 'manual'}
-							class:text-purple-600={activeTab === 'manual'}
+							class:text-[#2C3580]={activeTab === 'manual'}
 							class:shadow-sm={activeTab === 'manual'}
 							class:text-gray-600={activeTab !== 'manual'}
 							onclick={() => (activeTab = 'manual')}
@@ -2018,7 +1983,7 @@
 						<button
 							class="flex-1 py-2 px-4 rounded-md font-medium text-sm transition-colors"
 							class:bg-white={activeTab === 'upload'}
-							class:text-purple-600={activeTab === 'upload'}
+							class:text-[#2C3580]={activeTab === 'upload'}
 							class:shadow-sm={activeTab === 'upload'}
 							class:text-gray-600={activeTab !== 'upload'}
 							onclick={() => (activeTab = 'upload')}
@@ -2036,7 +2001,7 @@
 							{#if showSmartAssist}
 								<button
 									onclick={() => (activeTab = 'upload')}
-									class="text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded-lg hover:bg-blue-200 transition-colors"
+									class="text-sm bg-blue-100 text-[#3c4d9c]  px-3 py-1 rounded-lg hover:bg-blue-200 transition-colors"
 								>
 									← Back to Smart Assist
 								</button>
@@ -2053,7 +2018,7 @@
 										id="course-code"
 										type="text"
 										bind:value={courseCode}
-										class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+										class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2C3580] focus:border-transparent"
 										placeholder="e.g., MTH 101, BIO 201"
 									/>
 								</div>
@@ -2064,7 +2029,7 @@
 									<select
 										id="academic-year"
 										bind:value={selectedYear}
-										class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+										class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2C3580] focus:border-transparent"
 									>
 										<option value="">Select year</option>
 										{#each academicYears as year}
@@ -2082,7 +2047,7 @@
 									id="course-name"
 									type="text"
 									bind:value={courseName}
-									class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+									class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2C3580] focus:border-transparent"
 									placeholder="e.g., Mathematics, Biology, Introduction to Physics"
 								/>
 							</div>
@@ -2096,7 +2061,7 @@
 										id="course-grade"
 										bind:value={selectedGrade}
 										disabled={!currentGradingSystem}
-										class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
+										class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2C3580] focus:border-transparent disabled:bg-gray-100"
 									>
 										<option value="">Select grade</option>
 										{#each availableGrades as grade}
@@ -2120,7 +2085,7 @@
 										bind:value={credits}
 										min="0.5"
 										step="0.5"
-										class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+										class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2C3580] focus:border-transparent"
 										placeholder="3"
 									/>
 								</div>
@@ -2128,7 +2093,7 @@
 
 							<button
 								onclick={addCourse}
-								class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+								class="w-full bg-[#2C3580] text-white py-2 px-4 rounded-lg hover:bg-[#3c4d9c]  transition-colors font-medium"
 							>
 								Add Course
 							</button>
@@ -2146,8 +2111,8 @@
 						<!-- File Upload Area -->
 						<div
 							class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center transition-colors duration-200"
-							class:border-purple-500={dragActive}
-							class:bg-purple-50={dragActive}
+							class:border-[#2C3580]={dragActive}
+							class:bg-[#3c4d9c] ={dragActive}
 							ondragover={handleDragOver}
 							ondragleave={handleDragLeave}
 							ondrop={handleDrop}
@@ -2193,7 +2158,7 @@
 									</div>
 
 									<div class="mt-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
-										<p class="text-xs text-blue-700">
+										<p class="text-xs text-[#3c4d9c] ">
 											💡 <strong>Smart Processing:</strong>
 											• PDF files are automatically converted to high-quality images • JPG/PNG images
 											are processed directly with OCR • Best results with clear, readable text
@@ -2219,7 +2184,7 @@
 							{#if !selectedFile}
 								<label
 									for="transcriptFileInput"
-									class="mt-4 inline-block bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-colors cursor-pointer"
+									class="mt-4 inline-block bg-[#2C3580] text-white px-6 py-2 rounded-lg hover:bg-[#3c4d9c]  transition-colors cursor-pointer"
 								>
 									Choose File
 								</label>
@@ -2232,7 +2197,7 @@
 								<button
 									onclick={processTranscript}
 									disabled={processing}
-									class="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-8 py-3 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all font-medium text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+									class="bg-gradient-to-r from-[#2C3580] to-[#2C3580] text-white px-8 py-3 rounded-lg hover:from-[#2C3580] hover:to-[#3c4d9c]  transition-all font-medium text-lg disabled:opacity-50 disabled:cursor-not-allowed"
 								>
 									{#if processing}
 										🔄 Processing Transcript...
@@ -2246,14 +2211,14 @@
 						<!-- Processing Progress -->
 						{#if processing}
 							<div
-								class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 border border-blue-200"
+								class="bg-gradient-to-r from-blue-50 to-[#3c4d9c]  rounded-xl p-6 border border-blue-200"
 							>
 								<h4 class="text-xl font-bold text-gray-900 mb-4">Processing Your Transcript</h4>
 
 								<div class="space-y-4">
 									<div class="w-full bg-gray-200 rounded-full h-3">
 										<div
-											class="bg-gradient-to-r from-purple-600 to-blue-600 h-3 rounded-full transition-all duration-300"
+											class="bg-gradient-to-r from-[#2C3580] to-[#2C3580] h-3 rounded-full transition-all duration-300"
 											style="width: {processingProgress}%"
 										></div>
 									</div>
@@ -2271,7 +2236,7 @@
 						<!-- Smart Hybrid Preview -->
 						{#if showPreview && detectedSessions.length > 0}
 							<div
-								class="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-6 border border-purple-200"
+								class="bg-gradient-to-r from-[#3c4d9c]  to-blue-50 rounded-xl p-6 border border-purple-200"
 							>
 								<h4 class="text-xl font-bold text-gray-900 mb-4">
 									🎯 Smart Analysis Results - Please Review
@@ -2287,7 +2252,7 @@
 									{#each detectedSessions as session, sessionIndex}
 										<div class="bg-white rounded-lg border border-purple-200 p-4">
 											<h5
-												class="text-lg font-semibold text-purple-600 mb-3 border-b border-purple-100 pb-1"
+												class="text-lg font-semibold text-[#2C3580] mb-3 border-b border-purple-100 pb-1"
 											>
 												📚 {session.name}
 												{#if session.year}
@@ -2301,12 +2266,12 @@
 											<div class="space-y-2">
 												{#each session.courses as course, courseIndex}
 													<div
-														class="flex items-center justify-between p-2 bg-purple-50 rounded border border-purple-100"
+														class="flex items-center justify-between p-2 bg-[#3c4d9c]  rounded border border-purple-100"
 													>
 														<div class="flex-1">
 															<div class="font-medium text-gray-900">
 																{#if course.code}
-																	<span class="text-purple-600 font-semibold">{course.code}</span> -
+																	<span class="text-[#2C3580] font-semibold">{course.code}</span> -
 																{/if}
 																{course.name}
 															</div>
@@ -2342,7 +2307,7 @@
 								<div class="flex gap-3 justify-center">
 									<button
 										onclick={confirmExtractedSessions}
-										class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium"
+										class="bg-[#2C3580] text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium"
 									>
 										✅ Confirm & Add All Courses
 									</button>
@@ -2386,7 +2351,7 @@
 														type="text"
 														bind:value={course.code}
 														oninput={() => updateEditingCourse(index, 'code', course.code)}
-														class="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+														class="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-[#2C3580] focus:border-[#2C3580]"
 														placeholder="e.g., MTH101"
 													/>
 												</div>
@@ -2401,7 +2366,7 @@
 														type="text"
 														bind:value={course.name}
 														oninput={() => updateEditingCourse(index, 'name', course.name)}
-														class="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+														class="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-[#2C3580] focus:border-[#2C3580]"
 														placeholder="e.g., Mathematics I"
 													/>
 												</div>
@@ -2416,7 +2381,7 @@
 														type="number"
 														bind:value={course.credits}
 														oninput={() => updateEditingCourse(index, 'credits', course.credits)}
-														class="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+														class="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-[#2C3580] focus:border-[#2C3580]"
 														min="1"
 														max="12"
 														step="1"
@@ -2434,7 +2399,7 @@
 														id="edit-course-grade-{index}"
 														bind:value={course.grade}
 														onchange={() => updateEditingCourse(index, 'grade', course.grade)}
-														class="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+														class="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-[#2C3580] focus:border-[#2C3580]"
 													>
 														<option value="">Select Grade</option>
 														{#each availableGrades as grade}
@@ -2453,7 +2418,7 @@
 														id="edit-course-year-{index}"
 														bind:value={course.year}
 														onchange={() => updateEditingCourse(index, 'year', course.year)}
-														class="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+														class="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-[#2C3580] focus:border-[#2C3580]"
 													>
 														<option value="">Select Year</option>
 														{#each academicYears as year}
@@ -2494,7 +2459,7 @@
 								<div class="flex gap-3 justify-center">
 									<button
 										onclick={confirmEditedCourses}
-										class="bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium text-lg"
+										class="bg-[#2C3580] text-white px-8 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium text-lg"
 									>
 										✅ Confirm & Add All {coursesForEditing.length} Courses
 									</button>
@@ -2525,7 +2490,7 @@
 											<div class="flex-1">
 												<div class="font-medium text-gray-900">
 													{#if course.code}
-														<span class="text-green-600 font-semibold">{course.code}</span> -
+														<span class="text-[#2C3580] font-semibold">{course.code}</span> -
 													{/if}
 													{course.name}
 												</div>
@@ -2533,7 +2498,7 @@
 													Grade: <span class="font-medium">{course.grade}</span> | Credits:
 													<span class="font-medium">{course.credits}</span>
 													{#if course.year}
-														| Year: <span class="font-medium text-blue-600">{course.year}</span>
+														| Year: <span class="font-medium text-[#2C3580]">{course.year}</span>
 													{/if}
 												</div>
 											</div>
@@ -2550,7 +2515,7 @@
 								<div class="text-center">
 									<button
 										onclick={useExtractedCourses}
-										class="bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium text-lg"
+										class="bg-[#2C3580] text-white px-8 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium text-lg"
 									>
 										✅ Add These Courses
 									</button>
@@ -2567,7 +2532,7 @@
 
 								<div class="mb-4 p-4 bg-blue-100 rounded-lg border border-blue-200">
 									<p class="text-blue-800 font-medium">✅ Text extraction successful!</p>
-									<p class="text-blue-700 text-sm mt-1">
+									<p class="text-[#3c4d9c]  text-sm mt-1">
 										I can see your transcript content. Let me help you add courses quickly using the
 										options below.
 									</p>
@@ -2583,7 +2548,7 @@
 											<button
 												class="p-4 border rounded-lg text-left hover:bg-blue-50 transition-colors"
 												class:bg-blue-100={selectedTemplate === template.id}
-												class:border-blue-500={selectedTemplate === template.id}
+												class:border-[#2C3580]={selectedTemplate === template.id}
 												class:border-gray-300={selectedTemplate !== template.id}
 												onclick={() => selectTemplate(template.id)}
 											>
@@ -2591,7 +2556,7 @@
 												<div class="text-sm text-gray-600 mb-2">{template.example}</div>
 												<div class="text-xs text-gray-500 mb-1">{template.pattern}</div>
 												{#if template.description}
-													<div class="text-xs text-blue-600 font-medium">
+													<div class="text-xs text-[#2C3580] font-medium">
 														{template.description}
 													</div>
 												{/if}
@@ -2615,7 +2580,7 @@
 														<div class="flex-1">
 															<div class="font-medium text-gray-900">
 																{#if item.suggested.code}
-																	<span class="text-green-600 font-semibold"
+																	<span class="text-[#2C3580] font-semibold"
 																		>{item.suggested.code}</span
 																	> -
 																{/if}
@@ -2631,7 +2596,7 @@
 														</div>
 														<button
 															onclick={() => quickAddCourse(item.suggested)}
-															class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+															class="bg-[#2C3580] text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
 														>
 															Quick Add
 														</button>
@@ -2657,7 +2622,7 @@
 											<button
 												class="w-full text-left text-sm py-2 px-3 rounded transition-colors focus:outline-none group border-l-2"
 												class:bg-green-100={isProcessed}
-												class:border-green-500={isProcessed}
+												class:border-[#2C3580]={isProcessed}
 												class:hover:bg-green-50={!isProcessed}
 												class:cursor-pointer={!isProcessed}
 												class:border-transparent={!isProcessed}
@@ -2682,12 +2647,12 @@
 															class:text-green-700={isProcessed}>{line}</span
 														>
 														{#if isProcessed}
-															<span class="text-green-600 text-xs ml-2">✅ Added</span>
+															<span class="text-[#2C3580] text-xs ml-2">✅ Added</span>
 														{/if}
 													</div>
 													{#if !isProcessed}
 														<span
-															class="text-green-600 text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+															class="text-[#2C3580] text-xs opacity-0 group-hover:opacity-100 transition-opacity"
 														>
 															Click to extract →
 														</span>
@@ -2709,12 +2674,12 @@
 											📊 Lines analyzed: {processedLines.size} of {smartAssistData.extractedLines
 												.length}
 										</p>
-										<p class="text-xs text-blue-600 mt-1">
+										<p class="text-xs text-[#2C3580] mt-1">
 											Click lines below to extract course information
 										</p>
 										<div class="w-full bg-blue-200 rounded-full h-2 mt-2">
 											<div
-												class="bg-blue-600 h-2 rounded-full transition-all duration-300"
+												class="bg-[#2C3580] h-2 rounded-full transition-all duration-300"
 												style="width: {smartAssistData.extractedLines.length > 0
 													? (processedLines.size / smartAssistData.extractedLines.length) * 100
 													: 0}%"
@@ -2726,13 +2691,13 @@
 								<div class="flex gap-3 justify-center">
 									<button
 										onclick={() => finishSmartAssist()}
-										class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium"
+										class="bg-[#2C3580] text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium"
 									>
 										✅ Done - Continue to Conversion
 									</button>
 									<button
 										onclick={() => switchToManualEntry()}
-										class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+										class="bg-[#2C3580] text-white px-6 py-3 rounded-lg hover:bg-[#3c4d9c]  transition-colors font-medium"
 									>
 										📝 Switch to Manual Entry
 									</button>
@@ -2764,7 +2729,7 @@
 							{#if yearCourses.length > 0}
 								<div class="mb-6">
 									<h4
-										class="text-lg font-semibold text-blue-600 mb-3 border-b border-blue-200 pb-1"
+										class="text-lg font-semibold text-[#2C3580] mb-3 border-b border-blue-200 pb-1"
 									>
 										📚 {year} ({yearCourses.length} courses)
 									</h4>
@@ -2777,7 +2742,7 @@
 												<div class="flex-1 space-y-1">
 													<div class="font-medium text-gray-900">
 														{#if course.code}
-															<span class="text-blue-600 font-semibold">{course.code}</span> -
+															<span class="text-[#2C3580] font-semibold">{course.code}</span> -
 														{/if}
 														{course.name}
 													</div>
@@ -2785,7 +2750,7 @@
 														Grade: <span class="font-medium">{course.grade}</span> | Credits:
 														<span class="font-medium">{course.credits}</span>
 														| US GPA:
-														<span class="font-medium text-green-600">{course.usGPA.toFixed(1)}</span
+														<span class="font-medium text-[#2C3580]">{course.usGPA.toFixed(1)}</span
 														>
 													</div>
 													<!-- Inline edit controls -->
@@ -2865,7 +2830,7 @@
 													Grade: <span class="font-medium">{course.grade}</span> | Credits:
 													<span class="font-medium">{course.credits}</span>
 													| US GPA:
-													<span class="font-medium text-green-600">{course.usGPA.toFixed(1)}</span>
+													<span class="font-medium text-[#2C3580]">{course.usGPA.toFixed(1)}</span>
 												</div>
 												<div class="grid grid-cols-3 gap-2 text-sm">
 													<input
@@ -2922,7 +2887,7 @@
 
 						<button
 							onclick={convertGPA}
-							class="w-full mt-4 bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 transition-colors font-medium text-lg"
+							class="w-full mt-4 bg-[#2C3580] text-white py-3 px-4 rounded-lg hover:bg-green-700 transition-colors font-medium text-lg"
 						>
 							🚀 Convert My GPA
 						</button>
@@ -2936,7 +2901,7 @@
 
 						<div class="space-y-4">
 							<div class="text-center p-6 bg-white rounded-lg shadow-sm">
-								<div class="text-4xl font-bold text-green-600 mb-2">
+								<div class="text-4xl font-bold text-[#2C3580] mb-2">
 									{convertedGPA.toFixed(2)}
 								</div>
 								<div class="text-lg text-gray-700">US 4.0 GPA Scale</div>
@@ -2944,18 +2909,18 @@
 
 							<div class="grid grid-cols-2 gap-4 text-center">
 								<div class="bg-white p-4 rounded-lg shadow-sm">
-									<div class="text-2xl font-bold text-blue-600">{totalCredits}</div>
+									<div class="text-2xl font-bold text-[#2C3580]">{totalCredits}</div>
 									<div class="text-sm text-gray-600">Total Credits</div>
 								</div>
 								<div class="bg-white p-4 rounded-lg shadow-sm">
-									<div class="text-lg font-bold text-purple-600">{gpaClass}</div>
+									<div class="text-lg font-bold text-[#2C3580]">{gpaClass}</div>
 									<div class="text-sm text-gray-600">GPA Class</div>
 								</div>
 							</div>
 
 							<button
 								onclick={downloadTranscript}
-								class="w-full bg-purple-600 text-white py-3 px-4 rounded-lg hover:bg-purple-700 transition-colors font-medium"
+								class="w-full bg-[#2C3580] text-white py-3 px-4 rounded-lg hover:bg-[#2C3580] transition-colors font-medium"
 							>
 								📄 Download Transcript (PDF)
 							</button>
@@ -2970,13 +2935,13 @@
 										<h4 class="font-semibold text-blue-900 mb-1">
 											Want to analyze your academic profile?
 										</h4>
-										<p class="text-blue-700 text-sm mb-3">
+										<p class="text-[#3c4d9c]  text-sm mb-3">
 											Get comprehensive insights into your strengths, weaknesses, and
 											competitiveness for studying abroad - completely FREE!
 										</p>
 										<button
 											onclick={handleAnalyzeAcademicProfile}
-											class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
+											class="bg-[#2C3580] text-white px-4 py-2 rounded-lg hover:bg-[#3c4d9c]  transition-colors font-medium text-sm"
 										>
 											📊 Analyze My Profile
 										</button>
@@ -2991,7 +2956,7 @@
 				{#if showAcademicAnalysis && analysis && analysis.hasAnalysis}
 					<div
 						id="academic-analysis-section"
-						class="mt-8 bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl shadow-lg p-6"
+						class="mt-8 bg-gradient-to-br from-[#3c4d9c]  to-blue-50 rounded-xl shadow-lg p-6"
 					>
 						<div class="text-center mb-6">
 							<h3 class="text-2xl font-bold text-gray-900 mb-2">
@@ -3005,18 +2970,18 @@
 						<!-- Quick Stats -->
 						<div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
 							<div class="bg-white rounded-lg shadow-sm p-4 text-center">
-								<div class="text-2xl font-bold text-blue-600 mb-1">
+								<div class="text-2xl font-bold text-[#2C3580] mb-1">
 									{academicProfile.totalGPA.toFixed(2)}
 								</div>
 								<div class="text-sm text-gray-600">Overall GPA</div>
 								<div class="text-xs text-gray-500">{analysis.overall.gpaCategory}</div>
 							</div>
 							<div class="bg-white rounded-lg shadow-sm p-4 text-center">
-								<div class="text-2xl font-bold text-green-600 mb-1">
+								<div class="text-2xl font-bold text-[#2C3580] mb-1">
 									{analysis.strengths.length}
 								</div>
 								<div class="text-sm text-gray-600">Key Strengths</div>
-								<div class="text-xs text-green-600">Identified</div>
+								<div class="text-xs text-[#2C3580]">Identified</div>
 							</div>
 							<div class="bg-white rounded-lg shadow-sm p-4 text-center">
 								<div class="text-2xl font-bold text-orange-600 mb-1">
@@ -3026,11 +2991,11 @@
 								<div class="text-xs text-orange-600">To Improve</div>
 							</div>
 							<div class="bg-white rounded-lg shadow-sm p-4 text-center">
-								<div class="text-2xl font-bold text-purple-600 mb-1">
+								<div class="text-2xl font-bold text-[#2C3580] mb-1">
 									{analysis.competitiveness.percentile}th
 								</div>
 								<div class="text-sm text-gray-600">Percentile</div>
-								<div class="text-xs text-purple-600">{analysis.competitiveness.level}</div>
+								<div class="text-xs text-[#2C3580]">{analysis.competitiveness.level}</div>
 							</div>
 						</div>
 
@@ -3127,7 +3092,7 @@
 
 						<!-- Premium Upgrade Banner -->
 						<div
-							class="bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg p-6 text-white mb-6"
+							class="bg-gradient-to-r from-[#2C3580] to-[#2C3580] rounded-lg p-6 text-white mb-6"
 						>
 							<div class="flex flex-col md:flex-row items-center justify-between">
 								<div class="mb-4 md:mb-0 md:mr-6">
@@ -3140,7 +3105,7 @@
 								<div class="flex-shrink-0">
 									<a
 										href="/pricing"
-										class="inline-block bg-white text-purple-700 px-5 py-3 rounded-lg hover:bg-purple-50 transition-colors font-medium text-sm"
+										class="inline-block bg-white text-[#2C3580] px-5 py-3 rounded-lg hover:bg-[#3c4d9c]  transition-colors font-medium text-sm"
 									>
 										Upgrade Now
 									</a>
@@ -3152,7 +3117,7 @@
 						<div class="flex flex-col sm:flex-row gap-4 justify-center">
 							<a
 								href="/academic-analyzer"
-								class="inline-flex items-center justify-center px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
+								class="inline-flex items-center justify-center px-6 py-3 bg-[#2C3580] text-white rounded-lg hover:bg-[#2C3580] transition-colors font-medium"
 							>
 								<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 									<path
@@ -3166,7 +3131,7 @@
 							</a>
 							<a
 								href="/universities"
-								class="inline-flex items-center justify-center px-6 py-3 border border-purple-300 text-purple-700 rounded-lg hover:bg-purple-50 transition-colors font-medium"
+								class="inline-flex items-center justify-center px-6 py-3 border  text-[#2C3580] rounded-lg hover:bg-[#3c4d9c]  transition-colors font-medium"
 							>
 								<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 									<path
@@ -3206,19 +3171,19 @@
 
 			<div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
 				<div>
-					<div class="text-3xl font-bold text-green-600">50+</div>
+					<div class="text-3xl font-bold text-[#2C3580]">50+</div>
 					<div class="text-sm text-gray-600">African Countries</div>
 				</div>
 				<div>
-					<div class="text-3xl font-bold text-blue-600">3,200+</div>
+					<div class="text-3xl font-bold text-[#2C3580]">3,200+</div>
 					<div class="text-sm text-gray-600">Conversions Completed</div>
 				</div>
 				<div>
-					<div class="text-3xl font-bold text-purple-600">100%</div>
+					<div class="text-3xl font-bold text-[#2C3580]">100%</div>
 					<div class="text-sm text-gray-600">FREE Service</div>
 				</div>
 				<div>
-					<div class="text-3xl font-bold text-yellow-600">24/7</div>
+					<div class="text-3xl font-bold text-[#2C3580]">24/7</div>
 					<div class="text-sm text-gray-600">Available Access</div>
 				</div>
 			</div>
@@ -3226,7 +3191,7 @@
 
 		<!-- Call to Action Section -->
 		<div
-			class="mt-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-8 text-center text-white"
+			class="mt-16 bg-gradient-to-r from-[#2C3580] to-[#2C3580] rounded-lg p-8 text-center text-white"
 		>
 			<h3 class="text-2xl font-bold mb-4">Ready to Build Your Complete Application Package?</h3>
 			<p class="text-blue-100 mb-6">
@@ -3236,25 +3201,25 @@
 			<div class="flex flex-col sm:flex-row gap-4 justify-center">
 				<a
 					href="/sop"
-					class="bg-white text-blue-600 px-6 py-3 rounded-lg font-medium hover:bg-gray-100 transition duration-200"
+					class="bg-white text-[#2C3580] px-6 py-3 rounded-lg font-medium hover:bg-gray-100 transition duration-200"
 				>
 					📝 Generate Statement of Purpose
 				</a>
 				<a
 					href="/universities"
-					class="border-2 border-white text-white px-6 py-3 rounded-lg font-medium hover:bg-white hover:text-blue-600 transition duration-200"
+					class="border-2 border-white text-white px-6 py-3 rounded-lg font-medium hover:bg-white hover:text-[#2C3580] transition duration-200"
 				>
 					🏛️ Find Matching Universities
 				</a>
 				<a
 					href="/scholarships"
-					class="border-2 border-white text-white px-6 py-3 rounded-lg font-medium hover:bg-white hover:text-blue-600 transition duration-200"
+					class="border-2 border-white text-white px-6 py-3 rounded-lg font-medium hover:bg-white hover:text-[#2C3580] transition duration-200"
 				>
 					💰 Discover Scholarships
 				</a>
 				<a
 					href="/pricing"
-					class="border-2 border-white text-white px-6 py-3 rounded-lg font-medium hover:bg-white hover:text-blue-600 transition duration-200"
+					class="border-2 border-white text-white px-6 py-3 rounded-lg font-medium hover:bg-white hover:text-[#2C3580] transition duration-200"
 				>
 					📊 View All Features
 				</a>
@@ -3277,7 +3242,7 @@
 				</p>
 				<button
 					onclick={() => (statusMessage = '')}
-					class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium text-sm"
+					class="bg-[#2C3580] text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium text-sm"
 				>
 					Got it! ✨
 				</button>

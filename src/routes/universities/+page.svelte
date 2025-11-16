@@ -15,9 +15,9 @@
   <meta name="description" content="Find universities across USA, UK, Canada & Australia that match your profile. Get scholarship recommendations & financial analysis." />
 </svelte:head>
 
-<div class="min-h-screen bg-gray-50 py-20">
+<div class="min-h-screen bg-gray-50 pt-28">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="text-center mb-16">
+    <div class="text-center shadow-lg px-4 py-6 mb-16">
       <h1 class="text-4xl font-bold text-gray-900 mb-4">
         Global University Matching
       </h1>
@@ -26,7 +26,7 @@
       </p>
       
       <!-- Global Coverage Banner -->
-      <div class="bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-lg border border-blue-200 max-w-5xl mx-auto mb-8">
+      <div class="bg-gradient-to-r from-blue-50 to-white p-6 rounded-lg border border-blue-200 max-w-5xl mx-auto mb-8">
         <div class="flex items-center justify-center space-x-4 mb-4">
           <span class="text-3xl">🌍</span>
           <div class="text-center">
@@ -39,23 +39,23 @@
         <!-- Country Coverage Grid - First Row -->
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 mb-3">
           <div class="bg-white p-3 rounded-lg shadow-sm text-center">
-            <div class="font-bold text-blue-600">🇺🇸 United States</div>
+            <div class="font-bold text-[#2C3580]">🇺🇸 United States</div>
             <div class="text-sm text-gray-600">7,000+ Universities</div>
           </div>
           <div class="bg-white p-3 rounded-lg shadow-sm text-center">
-            <div class="font-bold text-blue-600">🇬🇧 United Kingdom</div>
+            <div class="font-bold text-[#2C3580]">🇬🇧 United Kingdom</div>
             <div class="text-sm text-gray-600">109 Universities</div>
           </div>
           <div class="bg-white p-3 rounded-lg shadow-sm text-center">
-            <div class="font-bold text-blue-600">🇨🇦 Canada</div>
+            <div class="font-bold text-[#2C3580]">🇨🇦 Canada</div>
             <div class="text-sm text-gray-600">89 Universities</div>
           </div>
           <div class="bg-white p-3 rounded-lg shadow-sm text-center">
-            <div class="font-bold text-blue-600">🇩🇪 Germany</div>
+            <div class="font-bold text-[#2C3580]">🇩🇪 Germany</div>
             <div class="text-sm text-gray-600">89 Universities</div>
           </div>
           <div class="bg-white p-3 rounded-lg shadow-sm text-center">
-            <div class="font-bold text-blue-600">🇫🇷 France</div>
+            <div class="font-bold text-[#2C3580]">🇫🇷 France</div>
             <div class="text-sm text-gray-600">49 Universities</div>
           </div>
         </div>
@@ -63,19 +63,19 @@
         <!-- Country Coverage Grid - Second Row (Centered) -->
         <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 mb-6 mx-auto max-w-3xl">
           <div class="bg-white p-3 rounded-lg shadow-sm text-center">
-            <div class="font-bold text-blue-600">🇮🇹 Italy</div>
+            <div class="font-bold text-[#2C3580]">🇮🇹 Italy</div>
             <div class="text-sm text-gray-600">47 Universities</div>
           </div>
           <div class="bg-white p-3 rounded-lg shadow-sm text-center">
-            <div class="font-bold text-blue-600">🇯🇵 Japan</div>
+            <div class="font-bold text-[#2C3580]">🇯🇵 Japan</div>
             <div class="text-sm text-gray-600">59 Universities</div>
           </div>
           <div class="bg-white p-3 rounded-lg shadow-sm text-center">
-            <div class="font-bold text-blue-600">🇦🇺 Australia</div>
+            <div class="font-bold text-[#2C3580]">🇦🇺 Australia</div>
             <div class="text-sm text-gray-600">48 Universities</div>
           </div>
           <div class="bg-white p-3 rounded-lg shadow-sm text-center">
-            <div class="font-bold text-blue-600">🇳🇱 Netherlands</div>
+            <div class="font-bold text-[#2C3580]">🇳🇱 Netherlands</div>
             <div class="text-sm text-gray-600">29 Universities</div>
           </div>
         </div>
@@ -83,17 +83,17 @@
         <!-- Enhanced Features Grid -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
           <div class="bg-white p-3 rounded text-center">
-            <div class="text-lg font-bold text-blue-600">💰</div>
+            <div class="text-lg font-bold text-[#2C3580]">💰</div>
             <div class="font-medium">Scholarship Intelligence</div>
             <div class="text-gray-600">Real funding opportunities</div>
           </div>
           <div class="bg-white p-3 rounded text-center">
-            <div class="text-lg font-bold text-green-600">📊</div>
+            <div class="text-lg font-bold text-[#2C3580]">📊</div>
             <div class="font-medium">Cost Analysis</div>
             <div class="text-gray-600">True cost after aid</div>
           </div>
           <div class="bg-white p-3 rounded text-center">
-            <div class="text-lg font-bold text-purple-600">🎯</div>
+            <div class="text-lg font-bold text-[#2C3580]">🎯</div>
             <div class="font-medium">Smart Matching</div>
             <div class="text-gray-600">AI-powered recommendations</div>
           </div>
@@ -208,22 +208,22 @@
     </div>
 
     <!-- Call to Action Section -->
-    <div class="mt-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-8 text-center text-white">
+    <div class="mt-16 bg-gradient-to-r from-[#2C3580] to-[#2C3580] rounded-lg p-8 text-center text-white">
       <h3 class="text-2xl font-bold mb-4">Ready to Build Your University Application Portfolio?</h3>
       <p class="text-blue-100 mb-6">
         Use our comprehensive suite of AI-powered tools to create compelling application documents and secure funding.
       </p>
       <div class="flex flex-col sm:flex-row gap-4 justify-center">
-        <a href="/sop" class="bg-white text-blue-600 px-6 py-3 rounded-lg font-medium hover:bg-gray-100 transition duration-200">
+        <a href="/sop" class="bg-white text-[#2C3580] px-6 py-3 rounded-lg font-medium hover:bg-gray-100 transition duration-200">
           📝 Generate Statement of Purpose
         </a>
-        <a href="/scholarships" class="border-2 border-white text-white px-6 py-3 rounded-lg font-medium hover:bg-white hover:text-blue-600 transition duration-200">
+        <a href="/scholarships" class="border-2 border-white text-white px-6 py-3 rounded-lg font-medium hover:bg-white hover:text-[#2C3580] transition duration-200">
           💰 Find Scholarships
         </a>
-        <a href="/cover-letters" class="border-2 border-white text-white px-6 py-3 rounded-lg font-medium hover:bg-white hover:text-blue-600 transition duration-200">
+        <a href="/cover-letters" class="border-2 border-white text-white px-6 py-3 rounded-lg font-medium hover:bg-white hover:text-[#2C3580] transition duration-200">
           ✉️ Create Cover Letter
         </a>
-        <a href="/dashboard" class="border-2 border-white text-white px-6 py-3 rounded-lg font-medium hover:bg-white hover:text-blue-600 transition duration-200">
+        <a href="/dashboard" class="border-2 border-white text-white px-6 py-3 rounded-lg font-medium hover:bg-white hover:text-[#2C3580] transition duration-200">
           📊 View Dashboard
         </a>
       </div>
@@ -238,28 +238,28 @@
       
       <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
         <div>
-          <div class="text-3xl font-bold text-blue-600">7,520+</div>
+          <div class="text-3xl font-bold text-[#2C3580]">7,520+</div>
           <div class="text-sm text-gray-600">Universities Available</div>
           <div class="text-xs text-gray-500 mt-1">Smart search shows best matches</div>
         </div>
         <div>
-          <div class="text-3xl font-bold text-green-600">9</div>
+          <div class="text-3xl font-bold text-[#2C3580]">9</div>
           <div class="text-sm text-gray-600">Countries Covered</div>
         </div>
         <div>
-          <div class="text-3xl font-bold text-purple-600">95%</div>
+          <div class="text-3xl font-bold text-[#2C3580]">95%</div>
           <div class="text-sm text-gray-600">Student Satisfaction</div>
         </div>
         <div>
-          <div class="text-3xl font-bold text-red-600">24/7</div>
+          <div class="text-3xl font-bold text-[#2C3580]">24/7</div>
           <div class="text-sm text-gray-600">Support Available</div>
         </div>
       </div>
     </div>
 
     <!-- Call to Action -->
-    <div class="text-center">
-      <a href="/universities/database" class="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+    <div class="text-center pb-10 pt-12">
+      <a href="/universities/database" class="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-[#2C3580] hover:bg-[#3c4d9c] ">
         Explore All Universities
         <svg class="ml-2 -mr-1 w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />

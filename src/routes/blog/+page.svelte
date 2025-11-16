@@ -57,7 +57,7 @@
 />
 
 <!-- Header Section with Faint Blue Background -->
-<section class="bg-gradient-to-b from-blue-50 to-white py-16">
+<section class="bg-gradient-to-b from-blue-50 to-white py-30">
   <div class="container mx-auto px-4 pt-8 pb-12">
     <div class="text-center mb-8">
       <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Study Abroad Blog</h1>
@@ -76,7 +76,7 @@
           />
           <button
             type="submit"
-            class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition-colors shadow-sm"
+            class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-[#2C3580] text-white p-2 rounded-full hover:bg-blue-700 transition-colors shadow-sm"
             aria-label="Search articles"
           >
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -96,7 +96,7 @@
     <div class="mb-8">
       <p class="text-gray-600">
         {total > 0 ? `Found ${total} articles` : 'No articles found'} for "{search}"
-        <a href="/blog" class="text-blue-600 hover:underline ml-2">Clear search</a>
+        <a href="/blog" class="text-[#2C3580] hover:underline ml-2">Clear search</a>
       </p>
     </div>
   {/if}
@@ -150,7 +150,7 @@
             </div>
             
             <h2 class="text-xl font-bold text-gray-900 mb-3 line-clamp-2">
-              <a href="/blog/{post.slug}" class="hover:text-blue-600 transition-colors">
+              <a href="/blog/{post.slug}" class="hover:text-[#2C3580] transition-colors">
                 {post.title}
               </a>
             </h2>
@@ -163,7 +163,7 @@
             
             <a
               href="/blog/{post.slug}"
-              class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium"
+              class="inline-flex items-center text-[#2C3580] hover:text-blue-800 font-medium"
             >
               Read More
               <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -192,16 +192,16 @@
           <div class="bg-gray-50 rounded-lg p-6">
             <h3 class="font-semibold text-gray-900 mb-4">Quick Links</h3>
             <nav class="space-y-2">
-              <a href="/scholarships" class="block text-blue-600 hover:text-blue-800 text-sm">
+              <a href="/scholarships" class="block text-[#2C3580] hover:text-blue-800 text-sm">
                 Find Scholarships
               </a>
-              <a href="/universities" class="block text-blue-600 hover:text-blue-800 text-sm">
+              <a href="/universities" class="block text-[#2C3580] hover:text-blue-800 text-sm">
                 University Database
               </a>
-              <a href="/test-prep" class="block text-blue-600 hover:text-blue-800 text-sm">
+              <a href="/test-prep" class="block text-[#2C3580] hover:text-blue-800 text-sm">
                 IELTS Preparation
               </a>
-              <a href="/visa-guide" class="block text-blue-600 hover:text-blue-800 text-sm">
+              <a href="/visa-guide" class="block text-[#2C3580] hover:text-blue-800 text-sm">
                 Visa Guidelines
               </a>
             </nav>
@@ -216,7 +216,7 @@
         {#if page > 1}
           <button
             onclick={() => goToPage(page - 1)}
-            class="px-4 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+            class="px-4 py-2 text-gray-600 hover:text-[#2C3580] hover:bg-blue-50 rounded-lg transition-colors"
           >
             ← Previous
           </button>
@@ -225,13 +225,13 @@
         {#each Array(totalPages) as _, i}
           {@const pageNum = i + 1}
           {#if pageNum === page}
-            <span class="px-4 py-2 bg-blue-600 text-white rounded-lg">
+            <span class="px-4 py-2 bg-[#2C3580] text-white rounded-lg">
               {pageNum}
             </span>
           {:else if Math.abs(pageNum - page) <= 2 || pageNum === 1 || pageNum === totalPages}
             <button
               onclick={() => goToPage(pageNum)}
-              class="px-4 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+              class="px-4 py-2 text-gray-600 hover:text-[#2C3580] hover:bg-blue-50 rounded-lg transition-colors"
             >
               {pageNum}
             </button>
@@ -243,7 +243,7 @@
         {#if page < totalPages}
           <button
             onclick={() => goToPage(page + 1)}
-            class="px-4 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+            class="px-4 py-2 text-gray-600 hover:text-[#2C3580] hover:bg-blue-50 rounded-lg transition-colors"
           >
             Next →
           </button>

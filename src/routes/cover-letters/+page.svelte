@@ -187,7 +187,7 @@
     <div class="bg-white border-b border-gray-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center space-x-2 py-4 text-sm">
-                <a href="/dashboard" class="text-blue-600 hover:text-blue-800 transition-colors">Dashboard</a>
+                <a href="/dashboard" class="text-[#2C3580] hover:text-[#3c4d9c] transition-colors">Dashboard</a>
                 <span class="text-gray-400">›</span>
                 <span class="text-gray-600 font-medium">Cover Letters</span>
             </div>
@@ -226,25 +226,25 @@
             
             <!-- Position Type Overview -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-                <div class="bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg p-6 text-center">
+                <div class="bg-gradient-to-r from-[#2C3580] to-[#3c4d9c] text-white rounded-lg p-6 text-center">
                     <div class="text-3xl mb-3">🎓</div>
                     <h3 class="font-semibold mb-2">Academic Positions</h3>
                     <p class="text-sm opacity-90">PhD, PostDoc, Professor, Research Scientist</p>
                 </div>
                 
-                <div class="bg-gradient-to-r from-green-500 to-blue-600 text-white rounded-lg p-6 text-center">
+                <div class="bg-gradient-to-r from-[#2C3580] to-[#3c4d9c] text-white rounded-lg p-6 text-center">
                     <div class="text-3xl mb-3">💼</div>
                     <h3 class="font-semibold mb-2">Industry Roles</h3>
                     <p class="text-sm opacity-90">Corporate, Startup, Consulting, Tech</p>
                 </div>
                 
-                <div class="bg-gradient-to-r from-red-500 to-pink-600 text-white rounded-lg p-6 text-center">
+                <div class="bg-gradient-to-r from-[#2C3580] to-[#3c4d9c] text-white rounded-lg p-6 text-center">
                     <div class="text-3xl mb-3">🏛️</div>
                     <h3 class="font-semibold mb-2">Government/NGO</h3>
                     <p class="text-sm opacity-90">Public sector, Policy, International</p>
                 </div>
                 
-                <div class="bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-lg p-6 text-center">
+                <div class="bg-gradient-to-r from-[#2C3580] to-[#3c4d9c] text-white rounded-lg p-6 text-center">
                     <div class="text-3xl mb-3">🔬</div>
                     <h3 class="font-semibold mb-2">Hybrid Roles</h3>
                     <p class="text-sm opacity-90">Industry R&D, Corporate Research</p>
@@ -256,7 +256,7 @@
                 <div class="inline-flex flex-col sm:flex-row gap-4">
                     <button
                         onclick={() => startGenerator()}
-                        class="px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all font-semibold text-lg shadow-lg"
+                        class="px-8 py-4 bg-[#2C3580]  text-white rounded-lg hover:bg-[#3c4d9c] transition-all font-semibold text-lg shadow-lg"
                     >
                         ✨ Create New Cover Letter
                     </button>
@@ -345,7 +345,7 @@
                     <p class="text-gray-600 mb-6">Create your first cover letter to get started</p>
                     <button
                         onclick={() => startGenerator()}
-                        class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
+                        class="px-6 py-3 bg-[#2C3580] text-white rounded-lg hover:bg-[#3c4d9c] transition-colors font-medium"
                     >
                         Create Your First Cover Letter
                     </button>
@@ -356,7 +356,7 @@
             <AdSenseAd adSlot="8877167254" className="my-12" />
             
             <!-- Features & Benefits -->
-            <div class="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div class=" grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 <div class="text-center">
                     <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
                         <span class="text-2xl">🎯</span>

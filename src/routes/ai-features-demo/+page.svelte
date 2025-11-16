@@ -312,7 +312,7 @@ I am writing to express my strong interest in the Software Engineer position at 
                 </div>
                 
         <!-- Call to Action Section -->
-        <div class="mt-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg shadow-lg text-white p-8 text-center">
+        <div class="mt-12 bg-gradient-to-r from-[#2C3580] to-[#3c4d9c] rounded-lg shadow-lg text-white p-8 text-center">
             <h2 class="text-2xl font-bold mb-4">Ready to Enhance Your Academic Writing?</h2>
             <p class="text-lg opacity-90 mb-6">Start using our AI tools in your document creation workflow.</p>
             <div class="flex flex-wrap justify-center gap-4">

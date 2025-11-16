@@ -32,7 +32,7 @@
 
 <div class="min-h-screen bg-gray-50">
 	<!-- Hero Section with Title -->
-	<section class="pt-24 pb-12 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700">
+	<section class="pt-30 pb-12 bg-gradient-to-br from-[#2C3580] to-[#3c4d9c]">
 		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 			<div class="text-center">
 				<h1 class="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight">
@@ -197,7 +197,7 @@
 	</section>
 
 	<!-- Call to Action Section -->
-	<section class="py-20 bg-gradient-to-r from-slate-600 to-slate-700">
+	<section class="py-20 bg-gradient-to-r from-[#2C3580] to-[#3c4d9c]">
 		<div class="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
 			<h2 class="text-4xl font-bold text-white mb-6">
 				Need Help with Your Application Documents?

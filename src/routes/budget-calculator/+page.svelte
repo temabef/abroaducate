@@ -514,7 +514,7 @@
 
   /* Hero Section */
   .hero-section {
-    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+    background: linear-gradient(135deg, #2C3580 0%, #3c4d9c 100%);
     color: white;
     padding: 7rem 2rem 5rem;
     text-align: center;
@@ -685,7 +685,7 @@
 
   .benefit-card:nth-child(1)::before { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
   .benefit-card:nth-child(2)::before { background: linear-gradient(90deg, #10b981, #34d399); }
-  .benefit-card:nth-child(3)::before { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+  .benefit-card:nth-child(3)::before { background: linear-gradient(90deg, #2C3580, #60a5fa); }
   .benefit-card:nth-child(4)::before { background: linear-gradient(90deg, #8b5cf6, #a78bfa); }
 
   .benefit-icon {
@@ -714,7 +714,7 @@
 
   .benefit-card:nth-child(1) .benefit-icon { color: #f59e0b; }
   .benefit-card:nth-child(2) .benefit-icon { color: #10b981; }
-  .benefit-card:nth-child(3) .benefit-icon { color: #3b82f6; }
+  .benefit-card:nth-child(3) .benefit-icon { color: #2C3580; }
   .benefit-card:nth-child(4) .benefit-icon { color: #8b5cf6; }
 
   .benefit-icon svg {
@@ -738,7 +738,7 @@
 
   /* Features Highlight */
   .features-highlight {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #2C3580 0%, #3c4d9c 100%);
     padding: 4rem 2rem;
     color: white;
   }
@@ -834,7 +834,7 @@
 
   .faq-item {
     padding: 1.5rem;
-    border-left: 4px solid #3b82f6;
+    border-left: 4px solid #2C3580;
     background: #f8fafc;
   }
 
@@ -899,7 +899,7 @@
     left: 0;
     width: 100%;
     height: 3px;
-    background: linear-gradient(90deg, #3b82f6, #60a5fa);
+    background: linear-gradient(90deg, #2C3580, #60a5fa);
     transform: scaleX(0);
     transform-origin: left;
     transition: transform 0.3s ease;
@@ -923,12 +923,12 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #3b82f6;
+    color: #2C3580;
     transition: all 0.3s ease;
   }
 
   .tool-card:hover .tool-icon {
-    background: #3b82f6;
+    background: #2C3580;
     color: white;
     transform: scale(1.1);
   }
@@ -948,7 +948,7 @@
   }
 
   .tool-card:hover h3 {
-    color: #3b82f6;
+    color: #2C3580;
   }
 
   .tool-card p {
@@ -1096,7 +1096,7 @@
   }
 
   .modal-button.primary {
-    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    background: linear-gradient(135deg, #2C3580, #1d4ed8);
     color: white;
   }
 

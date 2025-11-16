@@ -340,7 +340,7 @@
         {#each sections as section, i}
                             <button
                     onclick={() => goToSection(i)}
-                    class="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors {currentSection === section.id ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}"
+                    class="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors {currentSection === section.id ? 'bg-[#2C3580] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}"
                     disabled={i > currentSectionIndex}
                 >
                 <span>{section.icon}</span>

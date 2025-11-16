@@ -408,64 +408,6 @@
 				</div>
 			</div>
 		</section>
-		<!-- <button class={mt-8 px-4 py-2 rounded-lg font-medium ${plan.button.bg} ${plan.button.text} ${plan.button.hover} transition} > Get Started </button>. -->
-
-		<!-- Pricing Cards -->
-		<!-- <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto"> -->
-		<!-- Professional Tier -->
-		<!-- <div
-				class="bg-white rounded-lg shadow-lg border-2 border-blue-500 p-8 relative transform scale-105"
-			> -->
-		<!-- <div class="text-center mb-6">
-					<h3 class="text-2xl font-bold text-gray-900 mb-2">Academic Professional</h3>
-					<div class="text-4xl font-bold text-blue-600 mb-2">
-						${prices.professional[billingCycle]}
-					</div>
-					<p class="text-gray-500">
-						per month{#if billingCycle === 'annual'}, billed annually{/if}
-					</p>
-				</div>
-
-				<div class="grid grid-cols-1 gap-3">
-					<button
-						onclick={() => handleUpgrade('professional', { trial: true })}
-						disabled={loading}
-						class="w-full py-3 px-4 bg-green-600 text-white font-medium rounded-md hover:bg-green-700 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-					>
-						{loading ? 'Creating checkout...' : 'Start 3‑day free trial'}
-					</button>
-					<button
-						onclick={() => handleUpgrade('professional')}
-						disabled={loading}
-						class="w-full py-3 px-4 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-					>
-						{loading ? 'Creating checkout...' : 'Buy Professional'}
-					</button>
-					<p class="text-xs text-gray-500 text-center">
-						No charge today. Cancel anytime before trial ends.
-					</p>
-				</div>
-			</div>Elite Tier -->
-		<!-- <div class="bg-white rounded-lg shadow-lg border-2 border-gray-200 p-8 relative">
-				<div class="text-center mb-6">
-					<h3 class="text-2xl font-bold text-gray-900 mb-2">Academic Elite</h3>
-					<div class="text-4xl font-bold text-blue-600 mb-2">
-						${prices.elite[billingCycle]}
-					</div>
-					<p class="text-gray-500">
-						per month{#if billingCycle === 'annual'}, billed annually{/if}
-					</p>
-				</div>
-
-				<button
-					onclick={() => handleUpgrade('elite')}
-					disabled={loading}
-					class="w-full py-3 px-4font-medium ${plan.button.bg} ${plan.button.text} ${plan.button.hover} transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-				>
-					{loading ? 'Creating checkout...' : 'Upgrade to Elite'}
-				</button>
-			</div>
-		</div>  -->
 
 		<!-- Email System Highlight -->
 		<div

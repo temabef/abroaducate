@@ -277,7 +277,7 @@
             value: 'undergraduate',
             label: '🎓 Undergraduate Application',
             description: 'College admissions, university applications',
-            color: 'from-blue-500 to-indigo-600',
+            color: 'from-blue-500 to-[#2C3580]',
             wordLimits: [250, 500, 650, 1000]
         },
         {
@@ -487,7 +487,7 @@
 
 <div class="personal-statement-generator">
     <!-- Header -->
-    <div class="bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-6 rounded-t-lg">
+    <div class="bg-gradient-to-r from-[#2C3580] to-[#2C3580] text-white p-6 rounded-t-lg">
         <h2 class="text-2xl font-bold mb-2">💭 Personal Statement Generator</h2>
         <p class="opacity-90">Create compelling personal statements that tell your unique story</p>
         
@@ -518,9 +518,9 @@
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     {#each applicationTypes as applicationType}
-                        <label class={`relative overflow-hidden rounded-lg border-3 cursor-pointer transition-all ${
+                        <label class={`relative overflow-hidden rounded-lg  cursor-pointer transition-all ${
                             personalStatementData.applicationType === applicationType.value 
-                                ? 'border-purple-600 ring-4 ring-purple-300 shadow-lg transform scale-105' 
+                                ? ' shadow-xl transform scale-105' 
                                 : 'border-gray-200 hover:border-gray-400 hover:shadow-md'
                         }`}>
                             <input 
@@ -844,7 +844,7 @@
                 <button
                     onclick={generatePersonalStatement}
                     disabled={!personalStatementData.institutionName || !personalStatementData.personalDetails.formativeExperience}
-                    class="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-purple-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+                    class="w-full bg-gradient-to-r from-[#2C3580] to-[#2C3580] text-white py-3 px-6 rounded-lg font-semibold hover:from-purple-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
                 >
                     ✨ Generate Personal Statement
                 </button>
@@ -858,7 +858,7 @@
                     <div class="flex gap-2">
                         <button
                             onclick={copyPersonalStatement}
-                            class="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
+                            class="px-6 py-3 bg-[#2C3580] text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
                         >
                             📋 Copy to Clipboard
                         </button>
@@ -914,7 +914,7 @@
                             (currentStep === 2 && (!personalStatementData.institutionName || !personalStatementData.programName)) ||
                             (currentStep === 3 && !personalStatementData.personalDetails.formativeExperience)
                         }
-                        class="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        class="px-6 py-2 bg-[#2C3580] text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                         Next →
                     </button>
