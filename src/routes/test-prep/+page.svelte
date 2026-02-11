@@ -93,7 +93,7 @@
 <script lang="ts">
   import AuthenticationFlow from '$lib/components/AuthenticationFlow.svelte';
   import { goto } from '$app/navigation';
-  import AdSenseAd from '$lib/components/AdSenseAd.svelte';
+  // Manual AdSense blocks removed (auto ads only)
   let { data } = $props();
   let { session, supabase } = $derived(data);
   let showAuthModal = $state(false);
@@ -630,7 +630,7 @@
 
     <!-- Ad placement before Study Tips -->
     <!-- <div class="my-10 max-w-4xl mx-auto">
-      <AdSenseAd adSlot="8877167254" className="bg-gray-50 p-4 rounded-lg border" variant="in-article" />
+      Manual AdSense block removed (auto ads only)
     </div> -->
     
     <!-- Study Tips and Strategies -->

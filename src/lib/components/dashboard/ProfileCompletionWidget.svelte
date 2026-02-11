@@ -27,6 +27,10 @@
 
   onMount(async () => {
     await loadProfileCompletion();
+
+    const handler = () => void loadProfileCompletion();
+    window.addEventListener('abroaducate:profile-updated', handler);
+    return () => window.removeEventListener('abroaducate:profile-updated', handler);
   });
 
   async function loadProfileCompletion() {
@@ -106,21 +110,8 @@
       return '/dashboard';
     }
     
-    // Route to specific sections based on missing fields
-    if (profileCompletion.missing_fields.includes('Target countries')) {
-      return '/onboarding?focus=countries';
-    }
-    if (profileCompletion.missing_fields.includes('Field of study')) {
-      return '/onboarding?focus=field';
-    }
-    if (profileCompletion.missing_fields.includes('Exact GPA')) {
-      return '/onboarding?focus=gpa';
-    }
-    if (profileCompletion.missing_fields.includes('Target intake')) {
-      return '/onboarding?focus=intake';
-    }
-    
-    return '/onboarding';
+    // Dashboard now contains the roadmap checklist panel
+    return '/dashboard#roadmap';
   }
 </script>
 

@@ -47,7 +47,7 @@
 				showAuthModal = true;
 			} else {
 				// User is already logged in, redirect to dashboard
-				window.location.href = '/dashboard';
+				window.location.href = '/plan';
 			}
 			return;
 		}
@@ -173,7 +173,7 @@
 		},
 		{
 			name: 'Elite Plan',
-			description: 'Premium AI tools and priority access to power your global operations.',
+			description: 'Premium support + human-touch guidance for high-stakes applications.',
 			price: '$29',
 			subText: '(monthly)',
 			color: 'white',
@@ -187,6 +187,7 @@
 			features: [
 				'UNLIMITED Documents: Generate as many documents as you need',
 				'Unlimited AI: Unlimited reviews, enhancements, optimizations, grammar checks, plagiarism checks, and tone analyses',
+				'Human-touch support: priority advisory (booked via email/support)',
 				'University Database: 1500+ universities worldwide + priority access + new universities first',
 				'Academic Analysis: Comprehensive transcript analysis + Quick assessment',
 				'Priority email support (24h response)',
@@ -305,6 +306,22 @@
 					</div>
 				</div>
 
+				<!-- What paid users get (Strategy Pack) -->
+				<div class="mb-12 rounded-2xl border border-[#2C3580]/20 bg-gradient-to-br from-indigo-50 to-white p-6 sm:p-8">
+					<h3 class="text-lg font-semibold text-slate-900 mb-2">What you get when you unlock the full plan</h3>
+					<p class="text-slate-600 text-sm mb-4 max-w-2xl">
+						Paid plans unlock the full <strong>Strategy Pack</strong> and smarter tools—not just more documents.
+					</p>
+					<ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 text-sm text-slate-700">
+						<li class="flex items-center gap-2"><span class="text-emerald-500 font-bold">✓</span> Full ranked scholarship list (not just 3)</li>
+						<li class="flex items-center gap-2"><span class="text-emerald-500 font-bold">✓</span> Win strategy per scholarship (how to stand out)</li>
+						<li class="flex items-center gap-2"><span class="text-emerald-500 font-bold">✓</span> Full timeline + deadline reminders</li>
+						<li class="flex items-center gap-2"><span class="text-emerald-500 font-bold">✓</span> Application playbooks (step-by-step per scholarship)</li>
+						<li class="flex items-center gap-2"><span class="text-emerald-500 font-bold">✓</span> Higher document & AI limits</li>
+						<li class="flex items-center gap-2"><span class="text-emerald-500 font-bold">✓</span> Ad-free experience</li>
+					</ul>
+				</div>
+
 				<div class="mt-16 grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
 					{#each pricingPlans as plan, i}
 						<div
@@ -396,7 +413,7 @@
 									<!-- frre plan btn -->
 								{:else}
 									<button
-										onclick={() => handleUpgrade('free plan')}
+										onclick={() => handleUpgrade('free')}
 										class={`w-full py-3 px-4 rounded-lg font-medium ${plan.button.bg} ${plan.button.text} ${plan.button.hover} transition duration-300`}
 									>
 										Get Started Free
@@ -891,4 +908,4 @@
 </div>
 
 <!-- Authentication Modal -->
-<AuthenticationFlow bind:show={showAuthModal} {supabase} mode={authMode} returnUrl="/dashboard" />
+<AuthenticationFlow bind:show={showAuthModal} {supabase} mode={authMode} returnUrl="/plan" />

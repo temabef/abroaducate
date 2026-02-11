@@ -1,1305 +1,1151 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import AuthenticationFlow from '$lib/components/AuthenticationFlow.svelte';
-	import heroImage from '$lib/images/background-image.png';
-	import studyAbroadCollage from '$lib/images/study-abroad-collage.jpg';
-	import studyAbroad1 from '$lib/images/study-abroad-1.jpg';
-	import studyAbroad2 from '$lib/images/study-abroad-2.jpg';
-	import studyAbroad3 from '$lib/images/study-abroad-3.jpg';
-	import studyAbroad4 from '$lib/images/study-abroad-4.jpg';
-
 	import victory from '$lib/images/victory_testimonial.png';
 	import mojisola from '$lib/images/mojisola_testimonial.png';
 	import david from '$lib/images/david_testimonial.png';
 	import chima from '$lib/images/chima_testimonial.png';
 	import ayomide from '$lib/images/ayomide_testimonial.png';
 
-	let { data } = $props();
-	let { session, supabase } = $derived(data);
-	let prefersReducedMotion = false;
-	let activityItems: Array<{ message: string; ts: string; type: string }> = $state([]);
-	let activityIdx = $state(0);
-	let activityTimer: any = null;
-	let activityLoading = $state(true);
-	let recentScholarships: Array<{
-		id: string;
-		title: string;
-		location?: string;
-		deadline?: string;
-		created_at?: string;
-	}> = $state([]);
-	let scholarshipIdx = $state(0);
-	let scholarshipTimer: any = null;
-	let scrollProgress = $state(0);
+	import heroIllustration from '$lib/images/illustrations/hero-study-abroad.png';
+	import step1Illustration from '$lib/images/illustrations/step-1-explore.png';
+	import step2Illustration from '$lib/images/illustrations/step-2-plan.png';
+	import step3Illustration from '$lib/images/illustrations/step-3-reward.png';
+	import benefitMatchingIllustration from '$lib/images/illustrations/benefit-matching.png';
+	import benefitDocumentsIllustration from '$lib/images/illustrations/benefit-documents.png';
+	import benefitSupportIllustration from '$lib/images/illustrations/benefit-support.png';
+	import ctaRoadmapIllustration from '$lib/images/illustrations/cta-roadmap.png';
 
-	let showAuthModal = $state(false);
+	let { data } = $props();
+	let { session } = $derived(data);
+	
 	let openFAQ = $state<number | null>(null);
-	let pendingDashboardRedirect = $state(false);
+	let finderLocation = $state('');
+	let finderLevel = $state<'bachelors' | 'masters' | 'phd' | 'graduate' | ''>('');
+	let finderField = $state('');
 
 	function toggleFAQ(index: number) {
 		openFAQ = openFAQ === index ? null : index;
 	}
 
-	// Your original FAQ content
+	function goToUniversityFinder() {
+		const params = new URLSearchParams();
+		if (finderLocation.trim()) params.set('country', finderLocation.trim());
+		if (finderLevel) params.set('degree_level', finderLevel);
+		if (finderField.trim()) params.set('field', finderField.trim());
+		params.set('autosearch', '1');
+		goto(`/universities?${params.toString()}`);
+	}
+
+	function goToPlan() {
+		// Plan requires login; send anonymous users to signup with a return path.
+		if (session?.user) {
+			goto('/plan');
+		} else {
+			goto('/auth?signup=true&source=home&next=/plan');
+		}
+	}
+
 	const faqs = [
 		{
-			question: 'Is Abroaducate really free to start?',
-			answer:
-				'Yes! Our Academic Starter plan is completely free and includes 4 documents per month, AI features, university matching, and more. You can create your first SOP, cover letter, or academic CV without paying anything. Upgrade only when you need more features.'
+			question: 'What is Abroaducate?',
+			answer: "Abroaducate is your AI-powered study abroad planner. Get a ranked shortlist (scholarships + universities), step-by-step application guidance, and a timeline so you know what to do next."
 		},
 		{
-			question: 'How does Abroaducate compare to traditional consultants?',
-			answer:
-				'Traditional consultants charge $500-$3,000+ and often provide limited, one-time services. Abroaducate offers comprehensive, always-available AI assistance starting at $12/month. You get 24/7 access to advanced AI tools, unlimited revisions, and support for your entire application journey - not just one document.'
+			question: 'Is Abroaducate really free to start?',
+			answer: 'Yes. You can browse scholarships and universities for free, and generate a basic plan preview. Upgrade only when you want the full Strategy Pack (full ranking + explanations + timelines/reminders).'
+		},
+		{
+			question: 'How does the Strategy Pack work?',
+			answer: "In about 60 seconds, you tell us your degree level, field, GPA range, and preferred countries. We generate your Strategy Pack: ranked scholarships, a safety/target/reach university plan, and a simple timeline of next steps."
+		},
+		{
+			question: 'What documents can you help me create?',
+			answer: 'We offer AI-powered generation for Statement of Purpose (SOP), Cover Letters, Personal Statements, and Academic CVs. Free users get 4 documents per month. Professional plan ($12/mo) includes 50 documents monthly, while Elite plan ($29/mo) offers unlimited document generation.'
 		},
 		{
 			question: 'Which countries and universities do you support?',
-			answer:
-				'We support 7,000+ universities across the US, UK, Canada, and Australia. Our database includes Ivy League schools, Russell Group universities, and top institutions worldwide. We also support 40+ international grading systems for accurate GPA conversion from any country.'
+			answer: 'We support 1,500+ universities across the US, UK, Canada, Australia, Germany, and other major study abroad destinations. Our database includes top-tier institutions and tracks 500+ scholarship opportunities. We also support 40+ international grading systems for GPA conversion.'
 		},
 		{
-			question: 'What AI models do you use and how good are they?',
-			answer:
-				'We use multiple GPT models including GPT-3.5-turbo, GPT-4o-mini, and GPT-4o depending on your subscription tier. Our AI is specifically trained for academic writing and understands the nuances of different document types, application requirements, and academic fields.'
+			question: 'Do you offer test preparation?',
+			answer: 'Yes! We provide completely free IELTS test preparation including Reading, Listening, Writing, and Speaking practice tests. All users get unlimited access to test prep materials regardless of subscription plan.'
 		},
 		{
-			question: "You mentioned you're new - should I trust you with my applications?",
-			answer:
-				"We're transparent about being new because we believe in honesty. However, we've spent 12+ months building 50+ features before launching. Our platform is comprehensive and production-ready. Plus, with our free tier, you can test everything risk-free before upgrading."
+			question: 'How is this different from traditional consultants?',
+			answer: 'Traditional consultants charge $500-$3,000+ for limited, one-time services. Abroaducate gives you 24/7 AI assistance, comprehensive tools, personalized guidance, and continuous support starting at just $12/month. Our free tier lets you test everything before upgrading.'
 		},
 		{
-			question: 'What\'s your "Pay-As-We-Grow" promise?',
-			answer:
-				"As our platform grows and we add more features, your usage limits automatically increase at no extra cost. You're locking in today's prices while getting more value over time. We're starting conservative to ensure quality, but your benefits expand as we scale."
-		},
-		{
-			question: 'Can I cancel anytime? Are there long-term commitments?',
-			answer:
-				"Absolutely! You can cancel anytime with no penalties or long-term commitments. We offer both monthly and annual plans (annual saves 20%), but you're never locked in. Your data remains accessible even after cancellation."
-		},
-		{
-			question: 'How quickly can I get my first document ready?',
-			answer:
-				'Most students have their first document ready within 24 hours of signup. Our AI can generate a complete SOP or cover letter in minutes, then you can refine it using our enhancement tools. The speed depends on how much information you provide and your revision preferences.'
+			question: 'Can I track my application progress?',
+			answer: 'Absolutely! Our platform includes application tracking, document checklists, deadline management, and progress monitoring. You can manage multiple university applications and scholarship deadlines all in one place.'
 		}
 	];
 
-	function scrollToSection(sectionId: string) {
-		if (typeof document !== 'undefined') {
-			document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
-		}
-	}
+	// Popular study destinations (Unsplash; container has fallback gradient if image fails)
+	const popularCountries = [
+		{ name: 'United States', slug: 'united-states', code: 'US', image: 'https://images.unsplash.com/photo-1485738422979-f5c462d49f74?w=800&h=600&fit=crop' },
+		{ name: 'United Kingdom', slug: 'united-kingdom', code: 'UK', image: 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=800&h=600&fit=crop' },
+		{ name: 'Canada', slug: 'canada', code: 'CA', image: 'https://images.unsplash.com/photo-1519832979-6fa011b87667?w=800&h=600&fit=crop' },
+		{ name: 'Australia', slug: 'australia', code: 'AU', image: 'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?w=800&h=600&fit=crop' },
+		{ name: 'Germany', slug: 'germany', code: 'DE', image: 'https://images.unsplash.com/photo-1560930950-5cc20e80e392?w=800&h=600&fit=crop' },
+		{ name: 'Netherlands', slug: 'netherlands', code: 'NL', image: 'https://images.unsplash.com/photo-1534351590666-13e3e96b5017?w=800&h=600&fit=crop' }
+	];
 
-	function showSignup() {
-		showAuthModal = true;
-	}
+	// Popular fields of study
+	const popularFields = [
+		'Computer Science', 'Business Administration', 'Engineering',
+		'Data Science', 'Medicine', 'Psychology',
+		'Law', 'Economics', 'Biology',
+		'Architecture', 'Marketing', 'Finance'
+	];
 
-	function handleManageApplications() {
-		if (session) {
-			goto('/dashboard');
-		} else {
-			pendingDashboardRedirect = true;
-			showAuthModal = true;
-		}
-	}
-
-	function handleAuthSuccess() {
-		if (pendingDashboardRedirect) {
-			pendingDashboardRedirect = false;
-			goto('/dashboard');
-		}
-	}
-
-	function animateCounters() {
-		try {
-			const elements = Array.from(document.querySelectorAll<HTMLElement>('[data-counter]'));
-			if (elements.length === 0) return;
-			const start = performance.now();
-			const duration = 1000;
-			const formatter = (num: number, el: HTMLElement) => {
-				const suffix = el.dataset.suffix || '';
-				const prefix = el.dataset.prefix || '';
-				const useComma = el.dataset.comma === '1';
-				const value = useComma ? Math.floor(num).toLocaleString() : Math.floor(num).toString();
-				el.textContent = `${prefix}${value}${suffix}`;
-			};
-			const targets = elements.map((el) => ({ el, target: Number(el.dataset.counter || '0') }));
-			targets.forEach(({ el }) => {
-				el.textContent = '0';
-			});
-			const tick = (t: number) => {
-				const p = Math.min(1, (t - start) / duration);
-				const eased = 1 - Math.pow(1 - p, 3);
-				targets.forEach(({ el, target }) => {
-					formatter(target * eased, el);
-				});
-				if (p < 1) requestAnimationFrame(tick);
-			};
-			requestAnimationFrame(tick);
-		} catch {}
-	}
-
-	// Observer disabled for now to rule out any visibility race
-	function observeAndAnimate() {
-		/* no-op */
-	}
-
-	function initialRevealAboveFold() {
-		try {
-			const vh = window.innerHeight || 800;
-			document.querySelectorAll<HTMLElement>('.reveal').forEach((el) => {
-				const rect = el.getBoundingClientRect();
-				if (rect.top < vh * 0.95) {
-					el.classList.add('revealed');
-				}
-			});
-		} catch {}
-	}
-
-	async function loadRecentActivity() {
-		try {
-			const res = await fetch('/api/recent-activity');
-			if (!res.ok) return;
-			const json = await res.json();
-			activityItems = json.items || [];
-			if (activityTimer) clearInterval(activityTimer);
-			if (activityItems.length > 0) {
-				activityIdx = 0;
-				activityTimer = setInterval(() => {
-					activityIdx = (activityIdx + 1) % activityItems.length;
-				}, 6000);
-			}
-		} catch {}
-		activityLoading = false;
-	}
-
-	async function loadRecentScholarships() {
-		try {
-			const { data, error } = await supabase
-				.from('public_scholarships_decoded')
-				.select('id, title, location, deadline, created_at, is_active')
-				.eq('is_active', true)
-				.order('created_at', { ascending: false })
-				.limit(10);
-			if (!error && data) {
-				recentScholarships = data as any;
-				if (scholarshipTimer) clearInterval(scholarshipTimer);
-				// No rotation UI (compact pill), so no timer needed
-			}
-		} catch {}
-	}
-
-	function relTime(iso?: string): string {
-		if (!iso) return '';
-		const diff = Math.max(0, Date.now() - new Date(iso).getTime());
-		const s = Math.floor(diff / 1000);
-		if (s < 60) return `${s}s ago`;
-		const m = Math.floor(s / 60);
-		if (m < 60) return `${m}m ago`;
-		const h = Math.floor(m / 60);
-		if (h < 24) return `${h}h ago`;
-		const d = Math.floor(h / 24);
-		return `${d}d ago`;
-	}
-	function recentScholarshipsAdded(hours = 24): number {
-		const cutoff = Date.now() - hours * 60 * 60 * 1000;
-		return recentScholarships.filter(
-			(s) => s.created_at && new Date(s.created_at).getTime() >= cutoff
-		).length;
-	}
-
-	function startFadeOnView() {
-		try {
-			const observer = new IntersectionObserver(
-				(entries) => {
-					for (const e of entries) {
-						if (e.isIntersecting) {
-							(e.target as HTMLElement).classList.add('fade-up');
-							(e.target as HTMLElement).classList.add('drawn');
-							observer.unobserve(e.target);
-						}
-					}
-				},
-				{ threshold: 0.08 }
-			);
-			document.querySelectorAll('[data-fade], [data-draw]').forEach((el) => observer.observe(el));
-		} catch {}
-	}
-
-	$effect(() => {
-		if (typeof window !== 'undefined') {
-			document.documentElement.classList.add('js');
-			prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-			// Immediately reveal hero and anything above the fold
-			initialRevealAboveFold();
-			// Force hero visible regardless of observer timing
-			const hero = document.getElementById('hero');
-			if (hero) hero.classList.add('revealed');
-			// Observer disabled; rely on default visible content
-			loadRecentActivity();
-			loadRecentScholarships();
-			startFadeOnView();
-			if (!prefersReducedMotion) animateCounters();
-
-			const updateProgress = () => {
-				const h = document.documentElement;
-				const max = h.scrollHeight - h.clientHeight || 1;
-				scrollProgress = Math.max(0, Math.min(1, window.scrollY / max));
-			};
-			window.addEventListener('scroll', updateProgress, { passive: true });
-			updateProgress();
-		}
-	});
 </script>
 
 <svelte:head>
-	<title>Abroaducate - Your Complete Academic Application Platform</title>
+	<title>Abroaducate - Your AI Study Abroad Guide</title>
 	<meta
 		name="description"
-		content="Generate SOPs, cover letters, track applications, find scholarships, and optimize your academic journey with AI-powered tools."
+		content="Get your Strategy Pack: a ranked shortlist of scholarships and universities, step-by-step application guidance, and a timeline of what to do next. Free to start."
 	/>
 </svelte:head>
 
-<div class="bg-white">
-	<!-- Scroll progress (purely visual) -->
-	<div class="progress-bar" style={`width:${scrollProgress * 100}%;`}></div>
-
-	<!-- Hero Section -->
-	<section
-		id="home"
-		class="relative overflow-hidden text-white py-18 px-6 min-h-screen flex items-center justify-center"
-		style="background-image: url('{heroImage}'); background-size: cover; background-position: center;"
-	>
-		<div
-			class="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,_rgba(255,255,255,0.05)_1px,_transparent_0)] [background-size:40px_40px]"
-		></div>
-
-		<div
-			class="absolute inset-0 bg-gradient-to-t from-[#4B31E3]/60 via-transparent to-transparent pointer-events-none z-10"
-		></div>
-
-		<div
-			class="relative z-20 max-w-7xl p-2 mx-auto w-full flex flex-col items-center justify-center lg:flex-row lg:justify-between gap-12 text-center lg:text-left"
-		>
-			<!-- text section -->
-			<div class="lg:w-1/2 flex flex-col items-center lg:items-start pt-5">
-				<h1 class="text-4xl md:text-5xl text-white mb-6 leading-tight">
-					Your Complete<br />
-					<span
-						class="bg-gradient-to-r from-blue-400 to-blue-800 bg-clip-text text-transparent grad-animate"
-					>
-						Academic Journey
-					</span><br />
-					Starts Here
+<!-- HERO SECTION -->
+<section class="relative overflow-hidden bg-gradient-to-b from-slate-50 via-white to-white pt-24 pb-16 px-6">
+	<div class="pointer-events-none absolute inset-0">
+		<div class="absolute -top-24 -right-24 h-80 w-80 rounded-full bg-indigo-200/40 blur-3xl"></div>
+		<div class="absolute -bottom-24 -left-24 h-80 w-80 rounded-full bg-violet-200/30 blur-3xl"></div>
+	</div>
+	<div class="max-w-7xl mx-auto">
+		<div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+			<!-- Left: Text Content -->
+			<div class="text-center lg:text-left">
+				<div class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/70 px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm">
+					<span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+					Ranked shortlist + timeline — free to start
+				</div>
+				<h1 class="mt-6 text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
+					Get your study abroad plan in minutes
 				</h1>
-
-				<p
-					class="font-extralight text-md sm:text-lg text-white/80 max-w-lg mx-auto lg:mx-0 mb-6 leading-relaxed"
-				>
-					From exploration to acceptance - get comprehensive guidance, AI-powered tools, and expert
-					support for every step of your international education journey.
+				<p class="text-lg text-gray-600 mb-8 leading-relaxed max-w-xl">
+					Start with a free Plan (our quick diagnostic), then get your Strategy Pack: a ranked shortlist (scholarships + universities), step-by-step guidance, and a simple timeline—built from your profile.
 				</p>
 
-				<!-- buttons -->
-				<div class="flex justify-center lg:justify-start">
-					<div class="flex flex-col sm:flex-row gap-4 justify-center items-center mb-4">
-						{#if session}
-							<a
-								href="/dashboard"
-								data-sveltekit-prefetch
-								class="relative flex items-center bg-white hover:bg-[#3c4d9c] pr-4 rounded-full shadow-lg hover:shadow-xl transition duration-300 group"
-							>
-								<span class="text-[#2C3580] font-semibold text-sm py-4 pl-8 pr-4">
-									Continue Your Journey
-								</span>
-								<div
-									class="ml-auto w-12 h-12 flex items-center justify-center transition duration-300"
-								>
-									<svg
-										xmlns="http://www.w3.org/2000/svg"
-										class="w-5 h-5 text-[#2C3580]"
-										fill="none"
-										viewBox="0 0 24 24"
-										stroke="currentColor"
-									>
-										<path
-											stroke-linecap="round"
-											stroke-linejoin="round"
-											stroke-width="2"
-											d="M13 7l5 5m0 0l-5 5m5-5H6"
-										/>
-									</svg>
-								</div>
-							</a>
-						{:else}
-							<button
-								onclick={showSignup}
-								class="relative flex items-center bg-white hover:bg-[#3c4d9c] pr-4 rounded-full shadow-lg hover:shadow-xl transition duration-300 group"
-							>
-								<span class="text-[#2C3580] font-semibold text-sm py-4 pl-8 pr-4">
-									Get Started for Free
-								</span>
-								<div
-									class="ml-auto w-12 h-12 flex items-center justify-center transition duration-300"
-								>
-									<svg
-										xmlns="http://www.w3.org/2000/svg"
-										class="w-5 h-5 text-[#2C3580]"
-										fill="none"
-										viewBox="0 0 24 24"
-										stroke="currentColor"
-									>
-										<path
-											stroke-linecap="round"
-											stroke-linejoin="round"
-											stroke-width="2"
-											d="M13 7l5 5m0 0l-5 5m5-5H6"
-										/>
-									</svg>
-								</div>
-							</button>
-						{/if}
+				<!-- Primary CTA -->
+				<div class="flex flex-col sm:flex-row gap-4 items-center justify-center lg:justify-start mb-6">
+					<a
+						href="/diagnostic"
+						class="inline-flex items-center justify-center bg-[#2C3580] hover:bg-[#3c4d9c] text-white font-bold text-lg px-8 py-4 rounded-xl shadow-lg shadow-indigo-900/10 transition-all duration-300 transform hover:scale-[1.02]"
+					>
+						Get my free plan
+					</a>
+					<button
+						type="button"
+						onclick={goToPlan}
+						class="inline-flex items-center justify-center bg-white hover:bg-slate-50 text-[#2C3580] font-semibold text-lg px-8 py-4 rounded-xl border-2 border-[#2C3580] transition-all duration-300"
+					>
+						Open Strategy Pack
+					</button>
+				</div>
+				<div class="text-sm text-slate-600">
+					Already exploring? <a href="/scholarships" class="font-semibold text-[#2C3580] hover:underline">Browse scholarships</a>.
+				</div>
 
-						<button
-							onclick={() => scrollToSection('journey-map')}
-							class="relative flex items-center bg-transparent border-2 border-white text-white pr-4 rounded-full hover:bg-[#3c4d9c] shadow-lg hover:shadow-xl transition duration-300 group"
-						>
-							<span class="font-semibold text-sm py-4 pl-8 pr-4"> See How It Works </span>
-							<div
-								class="ml-auto w-12 h-12 flex items-center justify-center transition duration-300"
+				<!-- University/Program Finder (Studee-style, adapted to Abroaducate) -->
+				<form
+					class="mt-6 rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-sm backdrop-blur"
+					onsubmit={(e) => { e.preventDefault(); goToUniversityFinder(); }}
+				>
+					<div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+						<div>
+							<label for="finder-location" class="block text-xs font-semibold text-slate-600 mb-1">Destination</label>
+							<input
+								id="finder-location"
+								type="text"
+								bind:value={finderLocation}
+								placeholder="e.g., United States"
+								class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#2C3580]/30"
+							/>
+						</div>
+						<div>
+							<label for="finder-level" class="block text-xs font-semibold text-slate-600 mb-1">Level</label>
+							<select
+								id="finder-level"
+								bind:value={finderLevel}
+								class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#2C3580]/30"
 							>
-								<svg
-									xmlns="http://www.w3.org/2000/svg"
-									class="w-5 h-5"
-									fill="none"
-									viewBox="0 0 24 24"
-									stroke="currentColor"
-								>
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-										d="M13 7l5 5m0 0l-5 5m5-5H6"
-									/>
-								</svg>
-							</div>
+								<option value="">All levels</option>
+								<option value="bachelors">Bachelor's</option>
+								<option value="masters">Master's</option>
+								<option value="phd">PhD</option>
+								<option value="graduate">Graduate</option>
+							</select>
+						</div>
+						<div>
+							<label for="finder-field" class="block text-xs font-semibold text-slate-600 mb-1">Field</label>
+							<input
+								id="finder-field"
+								type="text"
+								bind:value={finderField}
+								placeholder="e.g., Engineering"
+								class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#2C3580]/30"
+							/>
+						</div>
+					</div>
+					<div class="mt-3 flex items-center justify-between gap-3">
+						<p class="text-xs text-slate-500">
+							Tip: add your GPA inside the matcher for smarter results.
+						</p>
+						<button
+							type="submit"
+							class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800 transition"
+						>
+							Find universities
 						</button>
 					</div>
-				</div>
-				<div
-					class="inline-flex items-center px-4 py-1.5 bg-white/10 rounded-full text-sm text-white/90"
-				>
-					{#if activityLoading}
-						<div class="flex items-center gap-2 w-full">
-							<span class="inline-block w-2 h-2 rounded-full bg-white/20 animate-pulse"></span>
-							<span class="flex-1 h-3 bg-white/20 rounded animate-pulse"></span>
+				</form>
+
+				<!-- Trust Indicators -->
+				<div class="flex items-center justify-center lg:justify-start gap-4 mt-6">
+					<div class="flex -space-x-2">
+						<img src={victory} alt="Student testimonial" class="w-10 h-10 rounded-full border-2 border-white object-cover" />
+						<img src={mojisola} alt="Student testimonial" class="w-10 h-10 rounded-full border-2 border-white object-cover" />
+						<img src={david} alt="Student testimonial" class="w-10 h-10 rounded-full border-2 border-white object-cover" />
+						<img src={chima} alt="Student testimonial" class="w-10 h-10 rounded-full border-2 border-white object-cover" />
+						<img src={ayomide} alt="Student testimonial" class="w-10 h-10 rounded-full border-2 border-white object-cover" />
+					</div>
+					<div class="text-left">
+						<div class="text-sm font-semibold text-gray-900">Trusted by 10,000+ students</div>
+						<div class="flex items-center gap-1 text-sm text-gray-600">
+							<span class="flex items-center gap-0.5 text-amber-500" aria-label="5 out of 5 stars">
+								<svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.176 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.809c-.783-.57-.38-1.81.588-1.81h3.462a1 1 0 00.95-.69l1.07-3.292z"/></svg>
+								<svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.176 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.809c-.783-.57-.38-1.81.588-1.81h3.462a1 1 0 00.95-.69l1.07-3.292z"/></svg>
+								<svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.176 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.809c-.783-.57-.38-1.81.588-1.81h3.462a1 1 0 00.95-.69l1.07-3.292z"/></svg>
+								<svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.176 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.809c-.783-.57-.38-1.81.588-1.81h3.462a1 1 0 00.95-.69l1.07-3.292z"/></svg>
+								<svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.176 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.809c-.783-.57-.38-1.81.588-1.81h3.462a1 1 0 00.95-.69l1.07-3.292z"/></svg>
+							</span>
+							<span>500+ scholarships tracked</span>
 						</div>
-					{:else if activityItems.length > 0}
-						<div class="flex items-center gap-2">
-							<span class="inline-block w-2 h-2 bg-green-400 rounded-full mr-2"></span>
-							<span>{activityItems[activityIdx].message}</span>
-						</div>
-					{:else}
-						<span class="inline-block w-2 h-2 bg-green-400 rounded-full mr-2"></span>
-						Trusted by 500+ users globally
-					{/if}
-				</div>
-			</div>
-
-			<!-- Image Section -->
-			<div class="w-full lg:w-1/2 flex justify-center relative lg:h-[550px]">
-				<!-- Collage for small screens -->
-				<div class="lg:hidden relative w-full h-full flex items-start justify-start">
-					<img
-						src={studyAbroadCollage}
-						alt="Students on their academic journey"
-						class="w-full max-w-xl h-full rounded-3xl object-full"
-					/>
-				</div>
-
-				<!-- Three separate images for large screens -->
-				<div class="hidden lg:block relative w-full max-w-screen-lg h-full">
-					<!-- Left rotated image -->
-					<img
-						src={studyAbroad2}
-						alt="Student exploring university options"
-						class="absolute top-1/2 -translate-y-1/2 left-0 w-64 h-80 rounded-3xl -rotate-12 shadow-xl object-cover border border-white/20"
-					/>
-
-					<!-- Center main image -->
-					<img
-						src={studyAbroad1}
-						alt="Student celebrating university acceptance"
-						class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 w-80 h-[500px] rounded-3xl shadow-2xl object-cover border border-white/20"
-					/>
-
-					<!-- Right rotated image -->
-					<img
-						src={studyAbroad3}
-						alt="Student using AI tools for document prep"
-						class="absolute top-1/2 -translate-y-1/2 right-0 w-64 h-80 rounded-3xl rotate-12 shadow-xl object-cover border border-white/20"
-					/>
-				</div>
-			</div>
-		</div>
-	</section>
-
-	<!-- About Section -->
-	<section
-		id="about-abroaducate"
-		class="relative overflow-hidden bg-[#F7F8F6] text-gray-900 py-20 px-6 lg:py-28 flex items-center justify-center"
-	>
-		<!-- Subtle background pattern -->
-		<div
-			class="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,_rgba(0,0,0,0.02)_1px,_transparent_0)] [background-size:36px_36px] z-0"
-		></div>
-
-		<div
-			class="relative z-10 mx-auto w-full flex flex-col items-start justify-between gap-12 text-center lg:text-left max-w-7xl"
-		>
-			<!-- Top Section -->
-			<div class="w-full flex flex-col justify-center items-center gap-4">
-				<!-- Top heading group: Pill, subtitle, and main headline -->
-				<div class="text-center">
-					<div
-						class="inline-flex items-center px-4 py-1.5 bg-[#d0ff5e]/30 rounded-full text-xs text-[#2C3580] font-medium"
-					>
-						<span class="inline-block w-2.5 h-2.5 bg-[#d0ff5e] rounded-full mr-2"></span>
-						About Abroaducate
 					</div>
 				</div>
-
-				<!-- Main Text Block: Wider and with a new supporting paragraph -->
-				<div class="max-w-5xl text-center">
-					<h1
-						class="text-3xl sm:text-4xl md:text-5xl lg:text-[2.6rem] text-[#0A0A23] leading-tight"
-					>
-						We provide a seamless path to global education, designed to meet the needs of every
-						aspiring student.
-					</h1>
-					<p class="mt-6 max-w-3xl mx-auto text-gray-600 text-lg">
-						From AI-powered document generators to a comprehensive university database, our platform
-						is built on a foundation of real data and proven success.
-					</p>
-				</div>
 			</div>
 
-			<!-- Bottom Section (Stats) -->
-			<div
-				class="w-full px-20 flex flex-col sm:grid sm:grid-cols-2 lg:flex lg:flex-row items-center justify-between gap-y-10 gap-x-10 lg:gap-x-16 text-center"
-			>
-				<div class="flex flex-col items-center">
-					<span class="text-4xl md:text-5xl font-medium text-[#0A0A23]">50+</span>
-					<span class="text-gray-500 text-base mt-1">Features Built & Ready</span>
-				</div>
-				<div class="flex flex-col items-center">
-					<span class="text-4xl md:text-5xl font-medium text-[#0A0A23]">7,000+</span>
-					<span class="text-gray-500 text-base mt-1">Universities Worldwide</span>
-				</div>
-				<div class="flex flex-col items-center">
-					<span class="text-4xl md:text-5xl font-medium text-[#0A0A23]">95%</span>
-					<span class="text-gray-500 text-base mt-1">Application Success Rate</span>
-				</div>
-				<div class="flex flex-col items-center">
-					<span class="text-4xl md:text-5xl font-medium text-[#0A0A23]">24hrs</span>
-					<span class="text-gray-500 text-base mt-1">From Signup to First Document</span>
+			<!-- Right: Hero Illustration -->
+			<div class="relative">
+				<div class="pointer-events-none absolute -inset-6 rounded-[2.5rem] bg-gradient-to-br from-indigo-200/40 via-violet-200/30 to-emerald-100/20 blur-2xl"></div>
+				<div class="relative">
+					<img
+						src={heroIllustration}
+						alt="A student planning their study abroad journey with guidance and scholarships"
+						class="w-full max-h-[520px] object-contain drop-shadow-[0_25px_60px_rgba(15,23,42,0.18)]"
+						loading="eager"
+					/>
+
+					<!-- Floating mini-cards (integrated, no big box) -->
+					<div class="float-card hidden md:block absolute -left-2 top-10 rounded-2xl bg-white/90 backdrop-blur border border-slate-200 px-4 py-3 shadow-md">
+						<div class="text-xs font-semibold text-slate-500">Scholarships</div>
+						<div class="text-sm font-bold text-slate-900">500+ tracked</div>
+					</div>
+					<div class="float-card float-card-slow hidden md:block absolute -right-2 bottom-10 rounded-2xl bg-white/90 backdrop-blur border border-slate-200 px-4 py-3 shadow-md">
+						<div class="text-xs font-semibold text-slate-500">Documents</div>
+						<div class="text-sm font-bold text-slate-900">4/mo free</div>
+					</div>
 				</div>
 			</div>
 		</div>
-	</section>
+	</div>
+</section>
 
-	<!-- Journey Map Section -->
-	<section
-		id="journey-map"
-		class="relative overflow-hidden bg-[#F7F8F6] text-gray-900 py-18 px-6 lg:py-18"
-	>
-		<!-- Subtle dotted background like the design -->
-		<div
-			class="absolute inset-0 pointer-events-none opacity-30"
-			style="background-image: radial-gradient(currentColor 1px, transparent 1px); background-size: 24px 24px; color: #E6E6E6;"
-		></div>
-
-		<div class="relative max-w-7xl mx-auto">
-			<!-- Title + CTA (centered) -->
-			<div class="text-center mb-12">
-				<div
-					class="inline-flex items-center justify-center space-x-2 text-xs font-medium text-[#2C3580] bg-[#F0ECFF] px-4 py-1.5 rounded-full mx-auto mb-4"
-				>
-					<span>● Abroaducate Features</span>
+<!-- STRATEGY PACK PREVIEW -->
+<section class="bg-white py-16 px-6">
+	<div class="max-w-7xl mx-auto">
+		<div class="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+			<div class="text-center lg:text-left">
+				<div class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/70 px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm">
+					<span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+					Your Strategy Pack (Plan-first)
 				</div>
-
-				<h2 class="text-3xl sm:text-4xl lg:text-5xl text-gray-900 leading-tight mb-4">
-					Smart Steps, Seamless Success
+				<h2 class="mt-6 text-3xl md:text-4xl font-bold text-slate-900">
+					Everything you need—on one page
 				</h2>
-
-				<p class="text-lg text-gray-600 max-w-3xl mx-auto">
-					From analyzing your profile to securing your visa, Abroaducate brings every stage of your
-					academic journey together in one smart, seamless platform.
+				<p class="mt-3 text-lg text-slate-600 max-w-xl mx-auto lg:mx-0">
+					Your free Plan is the quick diagnostic. Your Strategy Pack (Plan) is the saved, upgradable version with ranking, playbooks, and timelines—so you always know what to do next.
 				</p>
 
-				<!-- Single CTA -->
-				<div class="mt-6">
-					{#if session}
-						<a
-							href="/academic-analyzer"
-							data-sveltekit-prefetch
-							class="bg-[#2C3580] hover:bg-[#3c4d9c] text-white px-8 py-3 rounded-full transition duration-300 shadow-md"
-						>
-							Start with Profile Analysis
-						</a>
-					{:else}
-						<button
-							onclick={showSignup}
-							class="bg-[#2C3580] hover:bg-[#3c4d9c] text-white px-8 py-3 rounded-full transition duration-300 shadow-md"
-						>
-							Begin Your Journey Today
-						</button>
-					{/if}
+				<div class="mt-6 grid gap-3 text-left max-w-xl mx-auto lg:mx-0">
+					<div class="flex items-start gap-3">
+						<div class="mt-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+							<svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+								<path stroke-linecap="round" stroke-linejoin="round" d="M20 6 9 17l-5-5" />
+							</svg>
+						</div>
+						<div class="text-slate-700"><strong>Ranked matches</strong> for scholarships and universities</div>
+					</div>
+					<div class="flex items-start gap-3">
+						<div class="mt-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+							<svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+								<path stroke-linecap="round" stroke-linejoin="round" d="M20 6 9 17l-5-5" />
+							</svg>
+						</div>
+						<div class="text-slate-700"><strong>Step-by-step playbooks</strong> that explain how to apply</div>
+					</div>
+					<div class="flex items-start gap-3">
+						<div class="mt-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+							<svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+								<path stroke-linecap="round" stroke-linejoin="round" d="M20 6 9 17l-5-5" />
+							</svg>
+						</div>
+						<div class="text-slate-700"><strong>Timeline</strong> so you don’t miss deadlines</div>
+					</div>
+				</div>
+
+				<div class="mt-8 flex flex-col sm:flex-row gap-4 items-center justify-center lg:justify-start">
+					<button
+						type="button"
+						onclick={goToPlan}
+						class="inline-flex items-center justify-center bg-[#2C3580] hover:bg-[#3c4d9c] text-white font-bold text-lg px-8 py-4 rounded-xl shadow-lg shadow-indigo-900/10 transition-all duration-300 transform hover:scale-[1.02]"
+					>
+						Generate my plan
+					</button>
+					<a
+						href="/pricing"
+						class="inline-flex items-center justify-center bg-white hover:bg-slate-50 text-[#2C3580] font-semibold text-lg px-8 py-4 rounded-xl border-2 border-[#2C3580] transition-all duration-300"
+					>
+						View pricing
+					</a>
 				</div>
 			</div>
 
-			<!-- Main content: image (left) + features (right) -->
-			<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-				<!-- Left: Image card (spans 7/12 on large screens) -->
-				<div class="lg:col-span-7">
-					<!-- Decorative inner card to match screenshot -->
-					<div
-						class="rounded-xl bg-[#FAFBFB] p-6 flex items-center justify-center"
-						style="min-height:360px;"
-					>
-						<!-- Replace src with your image path -->
+			<!-- Visual preview (lightweight mock) -->
+			<div class="relative">
+				<div class="pointer-events-none absolute -inset-6 rounded-[2.5rem] bg-gradient-to-br from-indigo-200/35 via-violet-200/25 to-emerald-100/15 blur-2xl"></div>
+				<div class="relative rounded-3xl border border-slate-200 bg-white/80 backdrop-blur p-6 shadow-sm">
+					<div class="flex items-center justify-between">
+						<div class="text-sm font-semibold text-slate-700">Strategy Pack preview</div>
+						<div class="text-xs text-slate-500">Top picks + timeline</div>
+					</div>
+
+					<div class="mt-4 grid grid-cols-1 gap-3">
+						<div class="rounded-2xl border border-slate-200 bg-white p-4">
+							<div class="text-xs font-semibold text-slate-500">Top scholarships</div>
+							<div class="mt-2 space-y-2">
+								<div class="flex items-center justify-between text-sm">
+									<span class="font-semibold text-slate-900">Scholarship A</span>
+									<span class="rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 px-2 py-0.5 text-xs font-semibold">92% match</span>
+								</div>
+								<div class="flex items-center justify-between text-sm">
+									<span class="font-semibold text-slate-900">Scholarship B</span>
+									<span class="rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 px-2 py-0.5 text-xs font-semibold">84% match</span>
+								</div>
+								<div class="flex items-center justify-between text-sm">
+									<span class="font-semibold text-slate-900">Scholarship C</span>
+									<span class="rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 px-2 py-0.5 text-xs font-semibold">79% match</span>
+								</div>
+							</div>
+						</div>
+
+						<div class="rounded-2xl border border-slate-200 bg-white p-4">
+							<div class="text-xs font-semibold text-slate-500">University plan</div>
+							<div class="mt-2 grid grid-cols-3 gap-2 text-xs">
+								<div class="rounded-xl border border-emerald-100 bg-emerald-50 px-2 py-2 text-emerald-800 font-semibold text-center">Safety</div>
+								<div class="rounded-xl border border-sky-100 bg-sky-50 px-2 py-2 text-sky-800 font-semibold text-center">Target</div>
+								<div class="rounded-xl border border-amber-100 bg-amber-50 px-2 py-2 text-amber-800 font-semibold text-center">Reach</div>
+							</div>
+						</div>
+
+						<div class="rounded-2xl border border-slate-200 bg-white p-4">
+							<div class="text-xs font-semibold text-slate-500">Next steps</div>
+							<div class="mt-2 space-y-2 text-sm text-slate-700">
+								<div class="flex items-start justify-between gap-3">
+									<span>Draft SOP for University X</span>
+									<span class="text-xs text-slate-500 whitespace-nowrap">This week</span>
+								</div>
+								<div class="flex items-start justify-between gap-3">
+									<span>Apply to Scholarship A</span>
+									<span class="text-xs text-slate-500 whitespace-nowrap">14 days</span>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
+
+<!-- STATS BAR -->
+<section class="bg-white py-10 px-6">
+	<div class="max-w-7xl mx-auto">
+		<div class="rounded-3xl border border-slate-200 bg-gradient-to-r from-indigo-50 via-white to-violet-50 px-6 py-8">
+			<div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+				<div class="rounded-2xl bg-white/70 border border-slate-200 p-4">
+					<div class="text-3xl font-bold text-slate-900 mb-1">10,000+</div>
+					<div class="text-slate-600 text-sm">Students Guided</div>
+				</div>
+				<div class="rounded-2xl bg-white/70 border border-slate-200 p-4">
+					<div class="text-3xl font-bold text-slate-900 mb-1">1,500+</div>
+					<div class="text-slate-600 text-sm">Universities</div>
+				</div>
+				<div class="rounded-2xl bg-white/70 border border-slate-200 p-4">
+					<div class="text-3xl font-bold text-slate-900 mb-1">500+</div>
+					<div class="text-slate-600 text-sm">Scholarships</div>
+				</div>
+				<div class="rounded-2xl bg-white/70 border border-slate-200 p-4">
+					<div class="text-3xl font-bold text-slate-900 mb-1">Free</div>
+					<div class="text-slate-600 text-sm">IELTS Test Prep</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
+
+<!-- HOW IT WORKS - 3 STEPS -->
+<section class="bg-white py-20 px-6 overflow-hidden">
+	<div class="max-w-7xl mx-auto">
+		<!-- Section Header -->
+		<div class="text-center mb-16">
+			<h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+				Plan → Strategy Pack → Applications
+			</h2>
+		</div>
+
+		<!-- Steps Grid: uniform illustration size + staggered fade-in -->
+		<div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+			<!-- Step 1: Free plan -->
+			<div class="home-step-card text-center group" style="animation-delay: 0ms;">
+				<div class="mb-6 flex justify-center">
+					<div class="step-illustration-box relative w-32 h-32 flex items-center justify-center">
+						<div class="absolute inset-0 rounded-full bg-indigo-100 blur-xl"></div>
 						<img
-							src={studyAbroad4}
-							alt="Phone mockup"
-							class="w-full max-w-xs sm:max-w-md md:max-w-md object-contain rounded-xl drop-shadow-lg"
+							src={step1Illustration}
+							alt="Get your roadmap"
+							class="relative w-full h-full object-contain drop-shadow-sm transition-transform duration-300 group-hover:scale-110"
+							loading="lazy"
 						/>
 					</div>
 				</div>
-
-				<!-- Right: Feature list (spans 5/12 on large screens) -->
-				<div class="lg:col-span-5">
-					<div class="relative pl-6">
-						<!-- Gradient vertical line -->
-						<div
-							class="absolute left-0 top-0 h-3/3 w-[3px] bg-gradient-to-b from-[#2C3580] to-gray-300 rounded-full"
-						></div>
-
-						<div class="space-y-10 pt-4">
-							<!-- Stage 1: Start Journey -->
-							<div>
-								<div>
-									<h3 class="text-2xl font-semibold text-gray-900 mb-2">Start Your Journey</h3>
-									<p class="text-gray-600 mb-2">
-										Explore study options and understand your academic strengths.
-									</p>
-								</div>
-							</div>
-							<!-- Stage 2: Prepare Documents -->
-							<div>
-								<div>
-									<h3 class="text-2xl font-semibold text-gray-900 mb-2">Prepare Documents</h3>
-									<p class="text-gray-600 mb-2">
-										Create professional and persuasive application documents with ease.
-									</p>
-								</div>
-							</div>
-							<!-- Stage 3: Find Funding -->
-							<div>
-								<div>
-									<h3 class="text-2xl font-semibold text-gray-900 mb-2">Find Funding</h3>
-									<p class="text-gray-600 mb-2">
-										Access scholarships, grants, and financial planning tools.
-									</p>
-								</div>
-							</div>
-							<!-- Stage 4: Submit Applications -->
-							<div>
-								<div>
-									<h3 class="text-2xl font-semibold text-gray-900 mb-2">Submit Applications</h3>
-									<p class="text-gray-600 mb-2">
-										Organize deadlines and manage every submission efficiently.
-									</p>
-								</div>
-							</div>
-							<!-- Stage 5: Next Steps -->
-							<div>
-								<div>
-									<h3 class="text-2xl font-semibold text-gray-900 mb-2">Next Steps</h3>
-									<p class="text-gray-600 mb-2">
-										Prepare for admission offers and a smooth transition abroad.
-									</p>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-				<!-- end right -->
-			</div>
-			<!-- end grid -->
-		</div>
-		<!-- end container -->
-	</section>
-
-	<!-- Testimonials Section-->
-	<section class="py-20 bg-gray-50">
-		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-			<div class="text-center mb-12">
-				<span
-					class="inline-flex items-center px-3 py-1 text-xs font-medium bg-[#e6f6e7] text-[#2a7f3f] rounded-full mb-4"
-				>
-					<span class="w-2 h-2 bg-[#2a7f3f] rounded-full mr-2"></span>
-					Student Success Stories
-				</span>
-				<h2 class="text-3xl sm:text-4xl lg:text-5xl text-gray-900 mb-2">
-					Endorsed by <span class="text-gray-900">Universities</span>,
-					<span class="text-[#2C3580]">Trusted</span> by Students
-				</h2>
-				<p class="text-lg text-gray-600 max-w-2xl mx-auto">
-					We bridge the gap between aspiring students and global institutions. Our platform
-					streamlines the recruitment process for schools while offering students a clear, guided,
-					and personalized roadmap to international education.
+				<h3 class="text-xl font-bold text-gray-900 mb-3">Get your free plan</h3>
+				<p class="text-gray-600 leading-relaxed mb-4">
+					Answer a few questions to get pathway + funding guidance and a preview of what to do next.
 				</p>
+				<a href="/diagnostic" class="inline-block text-indigo-600 font-semibold hover:text-indigo-700">
+					Start →
+				</a>
 			</div>
-			<div class="relative h-auto lg:h-[90vh] overflow-hidden">
-				<div
-					class="absolute top-0 left-0 z-10 w-full h-32 bg-gradient-to-b from-gray-50 to-transparent pointer-events-none"
-				></div>
 
-				<div class="flex flex-col lg:flex-row gap-8">
-					<!-- column 1 -->
-					<div class="w-full lg:w-1/2 flex flex-col gap-8 lg:mt-6">
-						<div class="bg-white rounded-xl p-6 shadow-lg border border-gray-100 flex-shrink-0">
-							<div class="mb-4 flex items-center space-x-3">
-								<img
-									src={victory}
-									alt="Victory Testimonial"
-									class="w-10 h-10 aspect-square rounded-full object-cover"
-								/>
-
-								<div>
-									<h3 class="font-semibold text-gray-900 flex items-center">
-										Victory Olorunfemi - Nigeria
-										<span
-											class="ml-2 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center"
-										>
-											<svg
-												xmlns="http://www.w3.org/2000/svg"
-												class="h-3 w-3 text-white"
-												fill="none"
-												viewBox="0 0 24 24"
-												stroke="currentColor"
-												><path
-													stroke-linecap="round"
-													stroke-linejoin="round"
-													stroke-width="3"
-													d="M5 13l4 4L19 7"
-												/></svg
-											>
-										</span>
-									</h3>
-									<p class="text-sm text-gray-500">
-										Applying for PhD Programs in Europe, USA and Canada
-									</p>
-								</div>
-							</div>
-							<p class="text-gray-700 text-sm">
-								What I love most about the platform is the scholarship matcher. It seems so easy to
-								use! I no longer have to randomly search for schools. Now, I just use the platform,
-								pick a few options, and go with it. The Abroaducate team did a really great job, and
-								I honestly pray they get more exposure.
-							</p>
-						</div>
-
-						<div class="bg-white rounded-xl p-6 shadow-lg border border-gray-100 flex-shrink-0">
-							<div class="mb-4 flex items-center space-x-3">
-								<img
-									src={chima}
-									alt="chima Testimonial"
-									class="w-10 h-10 aspect-square rounded-full object-cover"
-								/>
-
-								<div>
-									<h3 class="font-semibold text-gray-900 flex items-center">
-										Chima Okwuokei - Nigeria
-										<span
-											class="ml-2 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center"
-										>
-											<svg
-												xmlns="http://www.w3.org/2000/svg"
-												class="h-3 w-3 text-white"
-												fill="none"
-												viewBox="0 0 24 24"
-												stroke="currentColor"
-												><path
-													stroke-linecap="round"
-													stroke-linejoin="round"
-													stroke-width="3"
-													d="M5 13l4 4L19 7"
-												/></svg
-											>
-										</span>
-									</h3>
-									<p class="text-sm text-gray-500">
-										Applying for Masters & PhD Programs in Europe, USA and Canada
-									</p>
-								</div>
-							</div>
-							<p class="text-gray-700 text-sm">
-								Before now, I had no idea what Abroaducate was. When I first came across it, it felt
-								like a goldmine! The scholarship content is so well organized, and they offer so
-								many free services to support your study abroad journey. I highly recommend this
-								platform to anyone interested in studying abroad!
-							</p>
-						</div>
-					</div>
-
-					<!-- column 2 -->
-					<div class="w-full lg:w-1/2 flex flex-col gap-8">
-						<div class="bg-white rounded-xl p-6 shadow-lg border border-gray-100 flex-shrink-0">
-							<div class="mb-4 flex items-center space-x-3">
-								<img
-									src={mojisola}
-									alt="Mojisola_Testimonial"
-									class="w-10 h-10 aspect-square rounded-full object-cover"
-								/>
-								<div>
-									<h3 class="font-semibold text-gray-900 flex items-center">
-										Mojisola Abosede - Nigeria
-										<span
-											class="ml-2 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center"
-										>
-											<svg
-												xmlns="http://www.w3.org/2000/svg"
-												class="h-3 w-3 text-white"
-												fill="none"
-												viewBox="0 0 24 24"
-												stroke="currentColor"
-												><path
-													stroke-linecap="round"
-													stroke-linejoin="round"
-													stroke-width="3"
-													d="M5 13l4 4L19 7"
-												/></svg
-											>
-										</span>
-									</h3>
-									<p class="text-sm text-gray-500">Applying to schools in UK and US</p>
-								</div>
-							</div>
-							<p class="text-gray-700 text-sm">
-								Attending Abroaducate’s webinar was such an eye-opener. I gained so much clarity and
-								felt more confident about taking the next steps in my study abroad plans.
-							</p>
-						</div>
-
-						<div class="bg-white rounded-xl p-6 shadow-lg border border-gray-100 flex-shrink-0">
-							<div class="mb-4 flex items-center space-x-3">
-								<img
-									src={ayomide}
-									alt="Ayo"
-									class="w-10 h-10 aspect-square rounded-full object-cover"
-								/>
-								<div>
-									<h3 class="font-semibold text-gray-900 flex items-center">
-										Ayomide Ojo - Nigeria
-										<span
-											class="ml-2 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center"
-										>
-											<svg
-												xmlns="http://www.w3.org/2000/svg"
-												class="h-3 w-3 text-white"
-												fill="none"
-												viewBox="0 0 24 24"
-												stroke="currentColor"
-												><path
-													stroke-linecap="round"
-													stroke-linejoin="round"
-													stroke-width="3"
-													d="M5 13l4 4L19 7"
-												/></svg
-											>
-										</span>
-									</h3>
-									<p class="text-sm text-gray-500">Applying to Graduate Programs</p>
-								</div>
-							</div>
-							<p class="text-gray-700 text-sm">
-								Abroaducate made my whole study-abroad process so much easier. I used it to check my
-								GPA, find schools that actually fit my profile, and even get a proper draft for my
-								SOP. It saved me a lot of stress and time. I still double-checked everything myself,
-								but it gave me a solid head start. Definitely worth trying.
-							</p>
-						</div>
-
-						<div class="bg-white rounded-xl p-6 shadow-lg border border-gray-100 flex-shrink-0">
-							<div class="mb-4 flex items-center space-x-3">
-								<img src={david} class="w-10 h-10 rounded-full object-cover" />
-								<div>
-									<h3 class="font-semibold text-gray-900 flex items-center">
-										David Daniel - Nigeria
-										<span
-											class="ml-2 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center"
-										>
-											<svg
-												xmlns="http://www.w3.org/2000/svg"
-												class="h-3 w-3 text-white"
-												fill="none"
-												viewBox="0 0 24 24"
-												stroke="currentColor"
-												><path
-													stroke-linecap="round"
-													stroke-linejoin="round"
-													stroke-width="3"
-													d="M5 13l4 4L19 7"
-												/></svg
-											>
-										</span>
-									</h3>
-									<p class="text-sm text-gray-500">Applying for Graduate Programs</p>
-								</div>
-							</div>
-							<p class="text-gray-700 text-sm">
-								The scholarship-matching feature is amazing — it quickly finds opportunities that
-								fit my field, country, and funding needs. Abroaducate has made my application
-								journey more organized and confident.
-							</p>
-						</div>
+			<!-- Step 2: Strategy Pack -->
+			<div class="home-step-card text-center group" style="animation-delay: 150ms;">
+				<div class="mb-6 flex justify-center">
+					<div class="step-illustration-box relative w-32 h-32 flex items-center justify-center">
+						<div class="absolute inset-0 rounded-full bg-violet-100 blur-xl"></div>
+						<img
+							src={step2Illustration}
+							alt="Open your Strategy Pack"
+							class="relative w-full h-full object-contain drop-shadow-sm transition-transform duration-300 group-hover:scale-110"
+							loading="lazy"
+						/>
 					</div>
 				</div>
+				<h3 class="text-xl font-bold text-gray-900 mb-3">Open your Strategy Pack</h3>
+				<p class="text-gray-600 leading-relaxed mb-4">
+					Save your plan and unlock ranked scholarships, a university plan, and a timeline.
+				</p>
+				<button type="button" onclick={goToPlan} class="inline-block text-indigo-600 font-semibold hover:text-indigo-700">
+					Generate my plan →
+				</button>
+			</div>
 
-				<div
-					class="absolute bottom-0 left-0 z-10 w-full h-32 bg-gradient-to-t from-gray-50 to-transparent pointer-events-none"
-				></div>
+			<!-- Step 3: Apply with confidence -->
+			<div class="home-step-card text-center group" style="animation-delay: 300ms;">
+				<div class="mb-6 flex justify-center">
+					<div class="step-illustration-box relative w-32 h-32 flex items-center justify-center">
+						<div class="absolute inset-0 rounded-full bg-emerald-100 blur-xl"></div>
+						<img
+							src={step3Illustration}
+							alt="Apply with confidence"
+							class="relative w-full h-full object-contain drop-shadow-sm transition-transform duration-300 group-hover:scale-110"
+							loading="lazy"
+						/>
+					</div>
+				</div>
+				<h3 class="text-xl font-bold text-gray-900 mb-3">Apply with confidence</h3>
+				<p class="text-gray-600 leading-relaxed mb-4">
+					Follow step-by-step playbooks (“how to apply”), create documents, and track deadlines.
+				</p>
+				<a href="/scholarships" class="inline-block text-indigo-600 font-semibold hover:text-indigo-700">
+					Explore opportunities →
+				</a>
 			</div>
 		</div>
-	</section>
 
-	<!-- FAQ Section -->
-	<section class="bg-gray-50/50 antialiased">
-		<div class="max-w-7xl mx-auto py-16 px-4 sm:py-24 sm:px-6 lg:px-8">
-			<div class="text-center">
-				<!-- Pill Tag -->
-				<div
-					class="inline-flex items-center gap-2 bg-lime-100 text-lime-800 text-sm px-4 py-1 rounded-full mb-4"
-				>
-					<span class="w-2 h-2 bg-lime-500 rounded-full"></span>
-					Frequently asked question
+		<!-- Support Message -->
+		<div class="text-center mt-12">
+			<p class="text-gray-600">
+				Free to start, upgrade only when you need more. Cancel anytime.
+			</p>
+		</div>
+	</div>
+</section>
+
+<!-- PLATFORM QUICK LINKS -->
+<section class="bg-white py-20 px-6">
+	<div class="max-w-7xl mx-auto">
+		<div class="text-center mb-12">
+			<h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+				Start here
+			</h2>
+			<p class="text-lg text-gray-600 max-w-3xl mx-auto">
+				Keep it simple: start with the Plan, then open your Strategy Pack.
+			</p>
+		</div>
+
+		<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+			<a href="/diagnostic" class="group rounded-2xl border border-slate-200 bg-white p-6 hover:border-indigo-300 hover:shadow-md transition">
+				<div class="flex items-start gap-4">
+					<div class="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
+						<svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M12 2l7 4v6c0 5-3 9-7 10-4-1-7-5-7-10V6l7-4z" />
+							<path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4" />
+						</svg>
+					</div>
+					<div>
+						<div class="font-semibold text-gray-900 group-hover:text-emerald-700">Get your free plan</div>
+						<div class="mt-1 text-sm text-gray-600">Take the diagnostic and get your next steps.</div>
+					</div>
 				</div>
+			</a>
 
-				<!-- Main Heading -->
-				<h1 class="text-3xl sm:text-4xl lg:text-5xl tracking-tight text-gray-900">
-					Before You <span class="text-[#2C3580]">Ask...</span>
-				</h1>
+			<button type="button" onclick={goToPlan} class="text-left group rounded-2xl border border-slate-200 bg-white p-6 hover:border-indigo-300 hover:shadow-md transition">
+				<div class="flex items-start gap-4">
+					<div class="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-50 text-indigo-700">
+						<svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M9 11l3 3L22 4" />
+							<path stroke-linecap="round" stroke-linejoin="round" d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1-2-2h11" />
+						</svg>
+					</div>
+					<div>
+						<div class="font-semibold text-gray-900 group-hover:text-indigo-700">Open your Strategy Pack</div>
+						<div class="mt-1 text-sm text-gray-600">Save your plan and unlock ranking + timelines.</div>
+					</div>
+				</div>
+			</button>
 
-				<!-- Subheading -->
-				<p class="mt-6 max-w-2xl mx-auto text-lg text-gray-500">
-					We've answered the most common questions so you can spend less time worrying and more time
-					building your future.
+			<a href="/scholarships" class="group rounded-2xl border border-slate-200 bg-white p-6 hover:border-indigo-300 hover:shadow-md transition">
+				<div class="flex items-start gap-4">
+					<div class="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-50 text-indigo-700">
+						<svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M12 2l2.7 6.2L22 9.2l-5.4 4.3 1.7 6.5L12 16.9 5.7 20l1.7-6.5L2 9.2l7.3-1 2.7-6.2z" />
+						</svg>
+					</div>
+					<div>
+						<div class="font-semibold text-gray-900 group-hover:text-indigo-700">Browse scholarships</div>
+						<div class="mt-1 text-sm text-gray-600">Search 500+ funding opportunities.</div>
+					</div>
+				</div>
+			</a>
+		</div>
+	</div>
+</section>
+
+<!-- BENEFITS SECTION -->
+<section class="bg-gray-50 py-20 px-6">
+	<div class="max-w-7xl mx-auto">
+		<div class="text-center mb-16">
+			<h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+				Everything you need in one platform
+			</h2>
+			<p class="text-lg text-gray-600 max-w-3xl mx-auto">
+				From finding scholarships to creating documents, we guide you through every step of your study abroad journey
+			</p>
+		</div>
+
+		<!-- Benefit 1: Scholarship & Opportunity Matching -->
+		<div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-20">
+			<div class="order-2 lg:order-1">
+				<h3 class="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
+					Find scholarships & opportunities
+				</h3>
+				<p class="text-gray-600 mb-6 leading-relaxed">
+					Our AI-powered diagnostic tool analyzes your profile and matches you with the best funding opportunities
 				</p>
+				<ul class="space-y-3">
+					<li class="flex items-start gap-3">
+						<svg class="w-6 h-6 text-indigo-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+							<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+						</svg>
+						<span class="text-gray-700"><strong>500+ scholarships</strong> tracked across major study destinations</span>
+					</li>
+					<li class="flex items-start gap-3">
+						<svg class="w-6 h-6 text-indigo-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+							<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+						</svg>
+						<span class="text-gray-700"><strong>Personalized matching</strong> based on your GPA, field, and goals</span>
+					</li>
+					<li class="flex items-start gap-3">
+						<svg class="w-6 h-6 text-indigo-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+							<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+						</svg>
+						<span class="text-gray-700"><strong>Eligibility checking</strong> before you apply - save time and money</span>
+					</li>
+				</ul>
+			</div>
+			<div class="order-1 lg:order-2">
+				<div class="relative">
+					<div class="pointer-events-none absolute -inset-6 rounded-[2.5rem] bg-gradient-to-br from-indigo-200/40 via-sky-100/30 to-white blur-2xl"></div>
+					<img
+						src={benefitDocumentsIllustration}
+						alt="AI-powered matching and recommendations"
+						class="relative w-full max-h-[460px] object-contain drop-shadow-[0_25px_60px_rgba(15,23,42,0.14)]"
+						loading="lazy"
+					/>
+				</div>
+			</div>
+		</div>
 
-				<!-- Call-to-Action Link (styled as a button) -->
-				<div class="mt-8 flex justify-center">
-					<a
-						href="/contact"
-						class="inline-flex items-center justify-center gap-2 px-6 py-3 border border-transparent text-base rounded-full shadow-sm text-white bg-[#2C3580] hover:bg-[#3c4d9c] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#3c4d9c]"
-					>
-						Can't find your answer?
-						<!-- Paper Plane Icon -->
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							class="h-5 w-5 -rotate-45"
-							viewBox="0 0 20 20"
-							fill="currentColor"
+		<!-- Benefit 2: AI Document Creation -->
+		<div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-20">
+			<div>
+				<div class="relative">
+					<div class="pointer-events-none absolute -inset-6 rounded-[2.5rem] bg-gradient-to-br from-violet-200/40 via-pink-100/25 to-white blur-2xl"></div>
+					<img
+						src={benefitMatchingIllustration}
+						alt="Document creation and AI assistance"
+						class="relative w-full max-h-[460px] object-contain drop-shadow-[0_25px_60px_rgba(15,23,42,0.14)]"
+						loading="lazy"
+					/>
+				</div>
+			</div>
+			<div>
+				<h3 class="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
+					AI-powered document creation
+				</h3>
+				<p class="text-gray-600 mb-6 leading-relaxed">
+					Create professional application documents in minutes with our AI assistant
+				</p>
+				<ul class="space-y-3">
+					<li class="flex items-start gap-3">
+						<svg class="w-6 h-6 text-indigo-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+							<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+						</svg>
+						<span class="text-gray-700"><strong>Smart generation</strong> for SOPs, cover letters, CVs, and personal statements</span>
+					</li>
+					<li class="flex items-start gap-3">
+						<svg class="w-6 h-6 text-indigo-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+							<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+						</svg>
+						<span class="text-gray-700"><strong>AI review & enhancement</strong> with instant feedback</span>
+					</li>
+					<li class="flex items-start gap-3">
+						<svg class="w-6 h-6 text-indigo-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+							<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+						</svg>
+						<span class="text-gray-700"><strong>Free tier included</strong> - 4 documents per month on Starter plan</span>
+					</li>
+				</ul>
+			</div>
+		</div>
+
+		<!-- Benefit 3: Complete Guidance -->
+		<div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+			<div class="order-2 lg:order-1">
+				<h3 class="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
+					Guided support every step
+				</h3>
+				<p class="text-gray-600 mb-6 leading-relaxed">
+					From test prep to application tracking, we're with you throughout your journey
+				</p>
+				<ul class="space-y-3">
+					<li class="flex items-start gap-3">
+						<svg class="w-6 h-6 text-indigo-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+							<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+						</svg>
+						<span class="text-gray-700"><strong>Free IELTS prep</strong> with unlimited practice tests</span>
+					</li>
+					<li class="flex items-start gap-3">
+						<svg class="w-6 h-6 text-indigo-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+							<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+						</svg>
+						<span class="text-gray-700"><strong>Application tracking</strong> with document checklists and deadlines</span>
+					</li>
+					<li class="flex items-start gap-3">
+						<svg class="w-6 h-6 text-indigo-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+							<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+						</svg>
+						<span class="text-gray-700"><strong>GPA converter & calculators</strong> for international standards</span>
+					</li>
+				</ul>
+			</div>
+			<div class="order-1 lg:order-2">
+				<div class="relative">
+					<div class="pointer-events-none absolute -inset-6 rounded-[2.5rem] bg-gradient-to-br from-emerald-200/30 via-teal-100/25 to-white blur-2xl"></div>
+					<img
+						src={benefitSupportIllustration}
+						alt="Guidance and support through every step"
+						class="relative w-full max-h-[460px] object-contain drop-shadow-[0_25px_60px_rgba(15,23,42,0.14)]"
+						loading="lazy"
+					/>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
+
+<!-- PRICING PREVIEW -->
+<section class="bg-white py-20 px-6">
+	<div class="max-w-7xl mx-auto">
+		<div class="text-center mb-12">
+			<h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+				Simple pricing
+			</h2>
+			<p class="text-lg text-gray-600 max-w-3xl mx-auto">
+				Start with the free Plan. Upgrade only when you want the full Strategy Pack and higher limits.
+			</p>
+		</div>
+
+		<div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+			<!-- Starter -->
+			<div class="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+				<div class="text-sm font-semibold text-slate-600">Starter</div>
+				<div class="mt-2 flex items-end gap-2">
+					<div class="text-4xl font-bold text-slate-900">$0</div>
+					<div class="text-sm text-slate-500">/month</div>
+				</div>
+				<p class="mt-3 text-slate-600">
+					Get your Plan and explore scholarships and universities.
+				</p>
+				<ul class="mt-6 space-y-3 text-sm text-slate-700">
+					<li class="flex gap-2"><span class="text-emerald-600 font-bold">✓</span>Free diagnostic plan</li>
+					<li class="flex gap-2"><span class="text-emerald-600 font-bold">✓</span>Browse scholarships + universities</li>
+					<li class="flex gap-2"><span class="text-emerald-600 font-bold">✓</span>Basic tools (docs/test prep/tracking)</li>
+				</ul>
+				<a
+					href="/diagnostic"
+					class="mt-8 inline-flex w-full items-center justify-center rounded-xl bg-[#2C3580] px-6 py-3 text-base font-bold text-white hover:bg-[#3c4d9c] transition"
+				>
+					Get free plan
+				</a>
+			</div>
+
+			<!-- Professional -->
+			<div class="relative rounded-3xl border-2 border-[#2C3580] bg-gradient-to-b from-indigo-50 via-white to-white p-8 shadow-md">
+				<div class="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-[#2C3580] px-4 py-1 text-xs font-bold text-white shadow">
+					Most popular
+				</div>
+				<div class="text-sm font-semibold text-slate-700">Professional</div>
+				<div class="mt-2 flex items-end gap-2">
+					<div class="text-4xl font-bold text-slate-900">$12</div>
+					<div class="text-sm text-slate-500">/month</div>
+				</div>
+				<p class="mt-3 text-slate-600">
+					Unlock deeper intelligence and higher limits.
+				</p>
+				<ul class="mt-6 space-y-3 text-sm text-slate-700">
+					<li class="flex gap-2"><span class="text-emerald-600 font-bold">✓</span>More ranked matches + previews</li>
+					<li class="flex gap-2"><span class="text-emerald-600 font-bold">✓</span>Stronger document tools + higher limits</li>
+					<li class="flex gap-2"><span class="text-emerald-600 font-bold">✓</span>Better reminders and tracking</li>
+				</ul>
+				<a
+					href="/pricing"
+					class="mt-8 inline-flex w-full items-center justify-center rounded-xl bg-[#2C3580] px-6 py-3 text-base font-bold text-white hover:bg-[#3c4d9c] transition"
+				>
+					See plans
+				</a>
+				<p class="mt-3 text-center text-xs text-slate-500">Cancel anytime.</p>
+			</div>
+
+			<!-- Elite -->
+			<div class="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+				<div class="text-sm font-semibold text-slate-600">Elite</div>
+				<div class="mt-2 flex items-end gap-2">
+					<div class="text-4xl font-bold text-slate-900">$29</div>
+					<div class="text-sm text-slate-500">/month</div>
+				</div>
+				<p class="mt-3 text-slate-600">
+					For high-stakes applications needing priority support.
+				</p>
+				<ul class="mt-6 space-y-3 text-sm text-slate-700">
+					<li class="flex gap-2"><span class="text-emerald-600 font-bold">✓</span>Highest limits + priority features</li>
+					<li class="flex gap-2"><span class="text-emerald-600 font-bold">✓</span>Human-touch support (priority advisory)</li>
+					<li class="flex gap-2"><span class="text-emerald-600 font-bold">✓</span>Fast support response time</li>
+				</ul>
+				<a
+					href="/pricing"
+					class="mt-8 inline-flex w-full items-center justify-center rounded-xl border-2 border-[#2C3580] bg-white px-6 py-3 text-base font-bold text-[#2C3580] hover:bg-slate-50 transition"
+				>
+					View Elite
+				</a>
+			</div>
+		</div>
+
+		<div class="text-center mt-10">
+			<a href="/pricing" class="text-indigo-600 font-semibold hover:text-indigo-700">
+				See full pricing details →
+			</a>
+		</div>
+	</div>
+</section>
+
+<!-- POPULAR DESTINATIONS -->
+<section class="bg-white py-20 px-6">
+	<div class="max-w-7xl mx-auto">
+		<div class="text-center mb-12">
+			<h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+				Popular study destinations
+			</h2>
+			<p class="text-lg text-gray-600 max-w-2xl mx-auto">
+				Explore opportunities in top countries for international students
+			</p>
+		</div>
+		
+		<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-5">
+			{#each popularCountries as country}
+				<a
+					href={`/scholarships?country=${country.slug}`}
+					class="destination-card group block rounded-xl overflow-hidden border border-slate-200 bg-slate-100 hover:border-indigo-400 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2"
+				>
+					<div class="aspect-[4/3] min-h-[100px] relative overflow-hidden bg-gradient-to-br from-indigo-700 to-slate-800">
+						<img
+							src={country.image}
+							alt=""
+							class="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
+							loading="lazy"
+							onerror={(e) => { (e.currentTarget as HTMLImageElement).style.opacity = '0'; }}
+						/>
+						<!-- Slim gradient at bottom so image dominates; label in a thin bar -->
+						<div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent pointer-events-none"></div>
+						<div class="absolute bottom-0 left-0 right-0 py-2 px-2 text-center pointer-events-none">
+							<span class="text-white text-sm font-bold tracking-tight drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">{country.name}</span>
+						</div>
+					</div>
+				</a>
+			{/each}
+		</div>
+		
+		<div class="text-center mt-10">
+			<a href="/scholarships" class="inline-flex items-center gap-2 text-[#2C3580] font-semibold hover:text-[#3c4d9c] transition-colors">
+				View all destinations
+				<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+			</a>
+		</div>
+	</div>
+</section>
+
+<!-- POPULAR FIELDS -->
+<section class="bg-gray-50 py-20 px-6">
+	<div class="max-w-7xl mx-auto">
+		<div class="text-center mb-12">
+			<h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+				Popular fields of study
+			</h2>
+			<p class="text-lg text-gray-600">
+				Find scholarships and programs in your field
+			</p>
+		</div>
+		
+		<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+			{#each popularFields as field}
+				<a
+					href={`/scholarships?field=${encodeURIComponent(field)}`}
+					class="bg-white hover:bg-indigo-50 rounded-lg p-4 text-center font-medium text-gray-700 hover:text-indigo-600 transition-all duration-300 border border-gray-200 hover:border-indigo-300"
+				>
+					{field}
+				</a>
+			{/each}
+		</div>
+		
+		<div class="text-center mt-8">
+			<a href="/scholarships" class="text-indigo-600 font-semibold hover:text-indigo-700">
+				Explore all fields →
+			</a>
+		</div>
+	</div>
+</section>
+
+<!-- CTA SECTION -->
+<section class="bg-white py-20 px-6">
+	<div class="max-w-7xl mx-auto">
+		<div class="relative overflow-hidden rounded-3xl border border-slate-200 bg-gradient-to-br from-indigo-50 via-white to-violet-50 px-6 py-10 md:px-10">
+			<div class="pointer-events-none absolute inset-0">
+				<div class="absolute -top-24 -right-24 h-80 w-80 rounded-full bg-indigo-200/35 blur-3xl"></div>
+				<div class="absolute -bottom-24 -left-24 h-80 w-80 rounded-full bg-violet-200/25 blur-3xl"></div>
+			</div>
+
+			<div class="relative grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+				<div class="text-center lg:text-left">
+					<div class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/70 px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm">
+						<span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+						Free to start • upgrade only when needed
+					</div>
+
+					<h2 class="mt-6 text-3xl md:text-4xl font-bold text-slate-900">
+						Ready to start your study abroad journey?
+					</h2>
+					<p class="mt-3 text-lg text-slate-600 max-w-xl">
+						Start with your free Plan, then open your Strategy Pack to get ranked matches, timelines, and next steps.
+					</p>
+
+					<div class="mt-6 grid gap-3 text-left max-w-xl mx-auto lg:mx-0">
+						<div class="flex items-start gap-3">
+							<div class="mt-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+								<svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+									<path stroke-linecap="round" stroke-linejoin="round" d="M20 6 9 17l-5-5" />
+								</svg>
+							</div>
+							<div class="text-slate-700"><strong>Discover</strong> scholarships and funding pathways you qualify for</div>
+						</div>
+						<div class="flex items-start gap-3">
+							<div class="mt-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+								<svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+									<path stroke-linecap="round" stroke-linejoin="round" d="M20 6 9 17l-5-5" />
+								</svg>
+							</div>
+							<div class="text-slate-700"><strong>Get guided steps</strong> based on your GPA, field, and target countries</div>
+						</div>
+						<div class="flex items-start gap-3">
+							<div class="mt-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+								<svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+									<path stroke-linecap="round" stroke-linejoin="round" d="M20 6 9 17l-5-5" />
+								</svg>
+							</div>
+							<div class="text-slate-700"><strong>Create stronger documents</strong> with AI-powered SOP/CV/letters</div>
+						</div>
+					</div>
+
+					<div class="mt-8 flex flex-col sm:flex-row gap-4 items-center justify-center lg:justify-start">
+						<a
+							href="/diagnostic"
+							class="inline-flex items-center justify-center bg-[#2C3580] hover:bg-[#3c4d9c] text-white font-bold text-lg px-8 py-4 rounded-xl shadow-lg shadow-indigo-900/10 transition-all duration-300 transform hover:scale-[1.02]"
 						>
-							<path
-								d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"
-							/>
+							Get my free plan
+						</a>
+						<button
+							type="button"
+							onclick={goToPlan}
+							class="inline-flex items-center justify-center bg-white hover:bg-slate-50 text-[#2C3580] font-semibold text-lg px-8 py-4 rounded-xl border-2 border-[#2C3580] transition-all duration-300"
+						>
+							Open Strategy Pack
+						</button>
+					</div>
+				</div>
+
+				<div class="relative">
+					<div class="pointer-events-none absolute -inset-6 rounded-[2.5rem] bg-gradient-to-br from-indigo-200/40 via-violet-200/25 to-white blur-2xl"></div>
+					<img
+						src={ctaRoadmapIllustration}
+						alt="A personalized plan with study abroad milestones"
+						class="relative w-full max-h-[320px] object-contain drop-shadow-[0_25px_60px_rgba(15,23,42,0.16)]"
+						loading="lazy"
+					/>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="bg-white py-20 px-6">
+	<div class="max-w-7xl mx-auto">
+		<div class="text-center mb-12">
+			<h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+				Trusted by students worldwide
+			</h2>
+			<p class="text-lg text-gray-600 max-w-2xl mx-auto">
+				Join thousands of students who've successfully used Abroaducate for their study abroad journey
+			</p>
+		</div>
+
+		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+			<div class="bg-gray-50 rounded-xl p-6 border border-gray-100">
+				<div class="flex items-center gap-3 mb-4">
+					<img src={victory} alt="Victory testimonial" class="w-12 h-12 rounded-full object-cover" />
+					<div>
+						<h4 class="font-semibold text-gray-900">Victory Olorunfemi</h4>
+						<p class="text-sm text-gray-500">Nigeria → PhD Programs</p>
+					</div>
+				</div>
+				<p class="text-gray-700 text-sm leading-relaxed">
+					"The scholarship matcher made everything so easy! I no longer have to randomly search. The platform did a great job - highly recommend!"
+				</p>
+			</div>
+
+			<div class="bg-gray-50 rounded-xl p-6 border border-gray-100">
+				<div class="flex items-center gap-3 mb-4">
+					<img src={ayomide} alt="Ayomide testimonial" class="w-12 h-12 rounded-full object-cover" />
+					<div>
+						<h4 class="font-semibold text-gray-900">Ayomide Ojo</h4>
+						<p class="text-sm text-gray-500">Nigeria → Graduate Programs</p>
+					</div>
+				</div>
+				<p class="text-gray-700 text-sm leading-relaxed">
+					"Made my whole process so much easier. Used it to check my GPA, find schools that fit my profile, and get my SOP draft. Saved me a lot of stress!"
+				</p>
+			</div>
+
+			<div class="bg-gray-50 rounded-xl p-6 border border-gray-100">
+				<div class="flex items-center gap-3 mb-4">
+					<img src={chima} alt="Chima testimonial" class="w-12 h-12 rounded-full object-cover" />
+					<div>
+						<h4 class="font-semibold text-gray-900">Chima Okwuokei</h4>
+						<p class="text-sm text-gray-500">Nigeria → Masters Programs</p>
+					</div>
+				</div>
+				<p class="text-gray-700 text-sm leading-relaxed">
+					"Felt like a goldmine! The scholarship content is well organized with so many free services. I highly recommend this platform!"
+				</p>
+			</div>
+		</div>
+	</div>
+</section>
+
+<style>
+	@keyframes floaty {
+		0% { transform: translateY(0); }
+		50% { transform: translateY(-8px); }
+		100% { transform: translateY(0); }
+	}
+
+	.float-card {
+		animation: floaty 6s ease-in-out infinite;
+		will-change: transform;
+	}
+
+	.float-card.float-card-slow {
+		animation-duration: 8s;
+		animation-delay: 0.4s;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.float-card,
+		.float-card.float-card-slow {
+			animation: none;
+		}
+	}
+
+	/* Staggered fade-in for Plan → Strategy Pack → Applications steps */
+	@keyframes homeStepFadeIn {
+		from {
+			opacity: 0;
+			transform: translateY(20px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	.home-step-card {
+		animation: homeStepFadeIn 0.6s ease-out forwards;
+		opacity: 0;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.home-step-card {
+			animation: none;
+			opacity: 1;
+		}
+	}
+</style>
+
+<!-- FAQ SECTION -->
+<section class="bg-gray-50 py-20 px-6">
+	<div class="max-w-4xl mx-auto">
+		<div class="text-center mb-12">
+			<h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+				Frequently asked questions
+			</h2>
+		</div>
+
+		<div class="space-y-4">
+			{#each faqs as faq, index}
+				<div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+					<button
+						onclick={() => toggleFAQ(index)}
+						class="w-full text-left px-6 py-5 flex items-center justify-between hover:bg-gray-50 transition-colors"
+					>
+						<h3 class="text-lg font-semibold text-gray-900 pr-4">{faq.question}</h3>
+						<svg
+							class="w-5 h-5 text-gray-400 flex-shrink-0 transition-transform {openFAQ === index ? 'rotate-180' : ''}"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+						>
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+						</svg>
+					</button>
+					{#if openFAQ === index}
+						<div class="px-6 pb-5 pt-2 text-gray-600 leading-relaxed border-t border-gray-100">
+							{faq.answer}
+						</div>
+					{/if}
+				</div>
+			{/each}
+		</div>
+	</div>
+</section>
+
+<!-- FOOTER -->
+<footer class="bg-gray-900 text-white py-12 px-6">
+	<div class="max-w-7xl mx-auto">
+		<div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+			<!-- Brand -->
+			<div>
+				<h3 class="text-2xl font-bold mb-3">Abroaducate</h3>
+				<p class="text-gray-400 text-sm">Your AI-powered study abroad advisor</p>
+			</div>
+
+			<!-- Platform Links -->
+			<div>
+				<h4 class="font-semibold mb-3 text-sm uppercase tracking-wider text-gray-400">Platform</h4>
+				<ul class="space-y-2 text-sm">
+					<li><a href="/diagnostic" class="text-gray-300 hover:text-white transition">Get free plan</a></li>
+					<li><a href="/scholarships" class="text-gray-300 hover:text-white transition">Scholarships</a></li>
+					<li><a href="/universities" class="text-gray-300 hover:text-white transition">Universities</a></li>
+					<li><a href="/tools" class="text-gray-300 hover:text-white transition">Tools</a></li>
+					<li><a href="/test-prep" class="text-gray-300 hover:text-white transition">Test Prep</a></li>
+				</ul>
+			</div>
+
+			<!-- Resources -->
+			<div>
+				<h4 class="font-semibold mb-3 text-sm uppercase tracking-wider text-gray-400">Resources</h4>
+				<ul class="space-y-2 text-sm">
+					<li><a href="/blog" class="text-gray-300 hover:text-white transition">Blog</a></li>
+					<li><a href="/pricing" class="text-gray-300 hover:text-white transition">Pricing</a></li>
+					<li><a href="/contact" class="text-gray-300 hover:text-white transition">Contact</a></li>
+					{#if session}
+						<li><a href="/dashboard" class="text-gray-300 hover:text-white transition">Dashboard</a></li>
+					{/if}
+				</ul>
+			</div>
+
+			<!-- Legal & Social -->
+			<div>
+				<h4 class="font-semibold mb-3 text-sm uppercase tracking-wider text-gray-400">Legal</h4>
+				<ul class="space-y-2 text-sm mb-4">
+					<li><a href="/privacy" class="text-gray-300 hover:text-white transition">Privacy Policy</a></li>
+					<li><a href="/terms" class="text-gray-300 hover:text-white transition">Terms of Service</a></li>
+				</ul>
+				
+				<div class="flex items-center gap-3 mt-4">
+					<a href="https://x.com/abroaducate" target="_blank" rel="noopener noreferrer" aria-label="Abroaducate on X" class="text-gray-400 hover:text-white transition">
+						<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+							<path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.26l-5.356-7.003-6.127 7.003H1.47l7.73-8.834L1 2.25h7.19l4.817 6.348L18.244 2.25Zm-1.161 17.52h1.833L7.084 4.623H5.117l11.966 15.147Z"/>
+						</svg>
+					</a>
+					<a href="https://linkedin.com/company/abroaducate" target="_blank" rel="noopener noreferrer" aria-label="Abroaducate on LinkedIn" class="text-gray-400 hover:text-white transition">
+						<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+							<path d="M19 0h-14C2.24 0 0 2.24 0 5v14c0 2.76 2.24 5 5 5h14c2.76 0 5-2.24 5-5V5c0-2.76-2.24-5-5-5zM8 19H5V8h3v11zm-1.5-12.27c-.97 0-1.75-.79-1.75-1.76s.78-1.76 1.75-1.76S8.25 4 8.25 4.97 7.47 6.73 6.5 6.73zM19 19h-3v-5.6c0-3.37-4-3.11-4 0V19h-3V8h3v1.77C13.4 7.18 19 7 19 12.25V19z"/>
+						</svg>
+					</a>
+					<a href="https://instagram.com/abroaducate" target="_blank" rel="noopener noreferrer" aria-label="Abroaducate on Instagram" class="text-gray-400 hover:text-white transition">
+						<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+							<path d="M7.75 2h8.5A5.75 5.75 0 0 1 22 7.75v8.5A5.75 5.75 0 0 1 16.25 22h-8.5A5.75 5.75 0 0 1 2 16.25v-8.5A5.75 5.75 0 0 1 7.75 2Zm0 1.5A4.25 4.25 0 0 0 3.5 7.75v8.5A4.25 4.25 0 0 0 7.75 20.5h8.5A4.25 4.25 0 0 0 20.5 16.25v-8.5A4.25 4.25 0 0 0 16.25 3.5h-8.5Zm4.25 3A5.75 5.75 0 1 1 6.25 12 5.75 5.75 0 0 1 12 6.5Zm0 1.5a4.25 4.25 0 1 0 4.25 4.25A4.25 4.25 0 0 0 12 8Zm5.25-.75a1.25 1.25 0 1 1 1.25-1.25 1.25 1.25 0 0 1-1.25 1.25Z"/>
 						</svg>
 					</a>
 				</div>
 			</div>
-
-			<!-- FAQ Grid -->
-			<div class="mt-20">
-				<!-- `items-start` prevents grid items from stretching -->
-				<div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-					{#each faqs as faq, index}
-						<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-							<button onclick={() => toggleFAQ(index)} class="w-full text-left focus:outline-none">
-								<div class="flex items-center justify-between gap-4">
-									<h3 class="text-lg text-gray-900">{faq.question}</h3>
-									<!-- Plus Icon -->
-									<span
-										class="text-3xl text-gray-400 font-light {openFAQ === index
-											? 'transform rotate-45'
-											: ''} transition-transform duration-300 flex-shrink-0"
-									>
-										+
-									</span>
-								</div>
-							</button>
-
-							<!-- Answer Panel -->
-							{#if openFAQ === index}
-								<div class="mt-4 text-gray-600 transition-all duration-300">
-									<p>{faq.answer}</p>
-								</div>
-							{/if}
-						</div>
-					{/each}
-				</div>
-			</div>
 		</div>
-	</section>
 
-	<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-20">
-		<section
-			class="relative rounded-3xl overflow-hidden text-center"
-			style="background-image: url('{heroImage}'); background-size: cover; background-position: center;"
-		>
-			<div class="relative max-w-4xl mx-auto py-20 px-4 sm:px-6 lg:px-8">
-				<h2 class="text-4xl md:text-5xl font-semibold text-white tracking-tight">
-					Ready to Start Your Academic Journey?
-				</h2>
-				<p class="mt-4 text-lg text-indigo-100 max-w-2xl mx-auto">
-					Join thousands of students who've successfully used Abroaducate for their applications.
-				</p>
-
-				<div class="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-					{#if session}
-						<a
-							href="/dashboard"
-							class="inline-flex items-center gap-3 bg-white text-[#2C3580] font-semibold px-6 py-3 rounded-full shadow-lg transition-transform duration-300 hover:scale-105"
-						>
-							Go to Your Dashboard
-							<span class="bg-indigo-100 text-[#2C3580] p-1.5 rounded-full">
-								<svg
-									xmlns="http://www.w3.org/2000/svg"
-									class="h-5 w-5 transform -rotate-45"
-									fill="none"
-									viewBox="0 0 24 24"
-									stroke="currentColor"
-									stroke-width="2"
-								>
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										d="M14 5l7 7m0 0l-7 7m7-7H3"
-									/>
-								</svg>
-							</span>
-						</a>
-					{:else}
-						<button
-							onclick={showSignup}
-							class="inline-flex items-center gap-3 bg-white text-[#2C3580] font-semibold px-6 py-3 rounded-full shadow-lg transition-transform duration-300 hover:scale-105"
-						>
-							Get Started
-							<span class="bg-indigo-100 text-[#2C3580] p-1.5 rounded-full">
-								<svg
-									xmlns="http://www.w3.org/2000/svg"
-									class="h-5 w-5 transform -rotate-45"
-									fill="none"
-									viewBox="0 0 24 24"
-									stroke="currentColor"
-									stroke-width="2"
-								>
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										d="M14 5l7 7m0 0l-7 7m7-7H3"
-									/>
-								</svg>
-							</span>
-						</button>
-					{/if}
-
-					<a
-						href="/pricing"
-						class="inline-flex items-center gap-3 border-2 border-white/50 text-white font-semibold px-6 py-3 rounded-full transition-colors duration-300 hover:bg-white/10"
-					>
-						View Pricing
-						<span class="bg-white/20 text-white p-1.5 rounded-full">
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								class="h-5 w-5 transform -rotate-45"
-								fill="none"
-								viewBox="0 0 24 24"
-								stroke="currentColor"
-								stroke-width="2"
-							>
-								<path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-							</svg>
-						</span>
-					</a>
-				</div>
-			</div>
-		</section>
+		<div class="border-t border-gray-800 pt-8 text-center text-gray-400 text-sm">
+			<p>&copy; {new Date().getFullYear()} Abroaducate. All rights reserved.</p>
+		</div>
 	</div>
-
-	<footer class="bg-[#1D245A] text-white">
-		<div class="max-w-7xl mx-auto px-4 sm:px-6 pb-14 pt-18">
-			<div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-				<div>
-					<div class="flex items-center space-x-3 mb-4">
-						<img src="/logo-icon.svg" alt="Abroaducate" class="w-8 h-8" />
-						<h3 class="text-2xl">Abroaducate</h3>
-					</div>
-					<p class="text-white">Your complete academic application platform powered by AI.</p>
-				</div>
-
-				<div class="md:border-l md:border-dashed md:border-white/20 md:pl-8">
-					<h4 class="mb-4 tracking-wider text-white/40">PLATFORM</h4>
-					<ul class="space-y-3 text-white">
-						<li><a href="/blog" class="hover:text-white transition">Blog</a></li>
-						<li><a href="/sop" class="hover:text-white transition">SOP Generator</a></li>
-						<li>
-							<a href="/universities" class="hover:text-white transition">University Search</a>
-						</li>
-						<li><a href="/scholarships" class="hover:text-white transition">Scholarships</a></li>
-						<li><a href="/test-prep" class="hover:text-white transition">Test Prep</a></li>
-						<li><a href="/academic-cv" class="hover:text-white transition">Academic CV</a></li>
-					</ul>
-				</div>
-
-				<div class="md:border-l md:border-dashed md:border-white/20 md:pl-8">
-					<h4 class="text-white/40 mb-4 tracking-wider">TOOLS & SUPPORT</h4>
-					<ul class="space-y-3 text-white">
-						<li><a href="/gpa-converter" class="hover:text-white transition">GPA Converter</a></li>
-						<li>
-							<a href="/visa-interview-practice" class="hover:text-white transition"
-								>Visa Interview</a
-							>
-						</li>
-						<li><a href="/pricing" class="hover:text-white transition">Pricing</a></li>
-						<li><a href="/contact" class="hover:text-white transition">Contact Support</a></li>
-						<li>
-							<button
-								class="hover:text-white transition bg-transparent border-none p-0 cursor-pointer text-left"
-								onclick={handleManageApplications}
-							>
-								Dashboard
-							</button>
-						</li>
-					</ul>
-				</div>
-
-				<div class="md:border-l md:border-dashed md:border-white/20 md:pl-8">
-					<h4 class="text-white/40 mb-4 tracking-wider">CONNECT & FOLLOW</h4>
-					<ul class="space-y-3 text-white">
-						<li><a href="/privacy" class="hover:text-white transition">Privacy Policy</a></li>
-						<li><a href="/terms" class="hover:text-white transition">Terms of Service</a></li>
-						<li><a href="/cookies" class="hover:text-white transition">Cookie Policy</a></li>
-					</ul>
-
-					<h4 class="text-white/40 mt-6 mb-4 tracking-wider">SOCIALS</h4>
-					<div class="flex items-center space-x-4">
-						<!-- X (formerly Twitter) -->
-						<a
-							href="https://x.com/abroaducate"
-							target="_blank"
-							class="text-white hover:text-white transition"
-							aria-label="Follow us on X"
-						>
-							<svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-								<path
-									d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.26l-5.356-7.003-6.127 7.003H1.47l7.73-8.834L1 2.25h7.19l4.817 6.348L18.244 2.25Zm-1.161 17.52h1.833L7.084 4.623H5.117l11.966 15.147Z"
-								/>
-							</svg>
-						</a>
-
-						<!-- LinkedIn -->
-						<a
-							href="https://linkedin.com/company/abroaducate"
-							target="_blank"
-							class="text-white hover:text-white transition"
-							aria-label="Follow us on LinkedIn"
-						>
-							<svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-								<path
-									fill-rule="evenodd"
-									d="M19 0h-14C2.24 0 0 2.24 0 5v14c0 2.76 2.24 5 5 5h14c2.76 0 5-2.24 5-5V5c0-2.76-2.24-5-5-5zM8 19H5V8h3v11zm-1.5-12.27c-.97 0-1.75-.79-1.75-1.76s.78-1.76 1.75-1.76S8.25 4 8.25 4.97 7.47 6.73 6.5 6.73zM19 19h-3v-5.6c0-3.37-4-3.11-4 0V19h-3V8h3v1.77C13.4 7.18 19 7 19 12.25V19z"
-									clip-rule="evenodd"
-								/>
-							</svg>
-						</a>
-
-						<!-- Facebook -->
-						<a
-							href="https://facebook.com/abroaducate"
-							target="_blank"
-							class="text-white hover:text-white transition"
-							aria-label="Follow us on Facebook"
-						>
-							<svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-								<path
-									d="M22.675 0h-21.35C.595 0 0 .595 0 1.326v21.348C0 23.405.595 24 1.325 24h11.495V14.708h-3.13v-3.622h3.13V8.413c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.795.143v3.24l-1.918.001c-1.504 0-1.796.715-1.796 1.763v2.311h3.587l-.467 3.622h-3.12V24h6.116C23.405 24 24 23.405 24 22.674V1.326C24 .595 23.405 0 22.675 0z"
-								/>
-							</svg>
-						</a>
-
-						<!-- Instagram -->
-						<a
-							href="https://instagram.com/abroaducate"
-							target="_blank"
-							class="text-white hover:text-white transition"
-							aria-label="Follow us on Instagram"
-						>
-							<svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-								<path
-									d="M7.75 2h8.5A5.75 5.75 0 0 1 22 7.75v8.5A5.75 5.75 0 0 1 16.25 22h-8.5A5.75 5.75 0 0 1 2 16.25v-8.5A5.75 5.75 0 0 1 7.75 2Zm0 1.5A4.25 4.25 0 0 0 3.5 7.75v8.5A4.25 4.25 0 0 0 7.75 20.5h8.5A4.25 4.25 0 0 0 20.5 16.25v-8.5A4.25 4.25 0 0 0 16.25 3.5h-8.5Zm4.25 3A5.75 5.75 0 1 1 6.25 12 5.75 5.75 0 0 1 12 6.5Zm0 1.5a4.25 4.25 0 1 0 4.25 4.25A4.25 4.25 0 0 0 12 8Zm5.25-.75a1.25 1.25 0 1 1 1.25-1.25 1.25 1.25 0 0 1-1.25 1.25Z"
-								/>
-							</svg>
-						</a>
-
-						<!-- YouTube -->
-						<a
-							href="https://youtube.com/@saheedkolawole"
-							target="_blank"
-							class="text-white hover:text-white transition"
-							aria-label="Subscribe on YouTube"
-						>
-							<svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-								<path
-									d="M23.498 6.186a2.97 2.97 0 0 0-2.09-2.1C19.56 3.5 12 3.5 12 3.5s-7.56 0-9.408.586a2.97 2.97 0 0 0-2.09 2.1A31.385 31.385 0 0 0 .5 12a31.385 31.385 0 0 0 .002 5.814 2.97 2.97 0 0 0 2.09 2.1C4.44 20.5 12 20.5 12 20.5s7.56 0 9.408-.586a2.97 2.97 0 0 0 2.09-2.1A31.385 31.385 0 0 0 23.5 12a31.385 31.385 0 0 0-.002-5.814ZM9.75 15.02V8.98l6 3.02-6 3.02Z"
-								/>
-							</svg>
-						</a>
-
-						<!-- Email -->
-						<a
-							href="mailto:support@abroaducate.com"
-							class="text-white hover:text-white transition"
-							aria-label="Send us an email"
-						>
-							<svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-								<path
-									d="M1.5 4.5h21a.75.75 0 0 1 .75.75v13.5a.75.75 0 0 1-.75.75h-21A.75.75 0 0 1 .75 18.75V5.25a.75.75 0 0 1 .75-.75Zm10.5 8.318 9.144-5.743H3.356l8.644 5.743Zm-9.75 5.682h19.5V7.724l-9.75 6.48-9.75-6.48V18.5Z"
-								/>
-							</svg>
-						</a>
-					</div>
-				</div>
-			</div>
-
-			<div
-				class="border-t border-dashed border-white/20 mt-12 pt-8 pb-8 text-center text-white text-sm"
-			>
-				<p>&copy; {new Date().getFullYear()} Abroaducate. All rights reserved.</p>
-			</div>
-		</div>
-	</footer>
-</div>
-
-<!-- Authentication Modal -->
-<AuthenticationFlow bind:show={showAuthModal} {supabase} mode="signup" returnUrl="/dashboard" />
-
-<style>
-	/* Default: visible for SSR/no-JS. When JS boots, we add .js to <html> and then animate */
-	.reveal {
-		opacity: 1;
-		transform: none;
-		transition:
-			opacity 300ms ease,
-			transform 300ms ease;
-	}
-	/* Disable hide-on-load to avoid any flicker; we only add subtle transition */
-	:global(html.js) .reveal {
-		opacity: 1;
-		transform: none;
-	}
-	/* Revealed state (new class) */
-	:global(.revealed) {
-		opacity: 1;
-		transform: none;
-	}
-	/* Ensure hero never hides due to reveal class */
-	#hero {
-		opacity: 1 !important;
-		transform: none !important;
-	}
-	/* Non-blocking enhancements */
-	.fade-up {
-		animation: fadeUp 420ms ease forwards;
-	}
-	@keyframes fadeUp {
-		from {
-			transform: translateY(6px);
-			opacity: 0.98;
-		}
-		to {
-			transform: none;
-			opacity: 1;
-		}
-	}
-	.grad-animate {
-		background-size: 200% 200%;
-		animation: gradShift 6s ease infinite;
-	}
-	@keyframes gradShift {
-		0% {
-			background-position: 0% 50%;
-		}
-		50% {
-			background-position: 100% 50%;
-		}
-		100% {
-			background-position: 0% 50%;
-		}
-	}
-	/* Journey line: base is always visible; animated overlay draws in */
-	.line-base,
-	.line-anim {
-		position: absolute;
-		left: 0;
-		right: 0;
-		height: 6px;
-		border-radius: 9999px;
-	}
-	.line-base {
-		background: linear-gradient(90deg, #93c5fd, #86efac, #c4b5fd);
-		opacity: 0.7;
-	}
-	.line-anim {
-		background: linear-gradient(90deg, #93c5fd, #86efac, #c4b5fd);
-		width: 0%;
-		opacity: 1;
-		transition: width 800ms ease;
-	}
-	:global(.drawn) .line-anim {
-		width: 100%;
-	}
-	@media (prefers-reduced-motion: reduce) {
-		.reveal,
-		:global(html.js) .reveal {
-			opacity: 1;
-			transform: none;
-			transition: none;
-		}
-		.fade-up,
-		.grad-animate {
-			animation: none;
-		}
-	}
-	/* Scroll progress bar */
-	.progress-bar {
-		position: fixed;
-		top: 0;
-		left: 0;
-		height: 3px;
-		background: linear-gradient(90deg, #3b82f6, #a855f7);
-		z-index: 9999;
-		transform-origin: 0 0;
-	}
-	/* Button/Card hovers */
-	.hover-elevate {
-		transition:
-			transform 160ms ease,
-			box-shadow 160ms ease;
-	}
-	.hover-elevate:hover {
-		transform: translateY(-1px);
-		box-shadow: 0 8px 20px rgba(2, 6, 23, 0.12);
-	}
-	/* .link-underline declared when needed */
-</style>
+</footer>

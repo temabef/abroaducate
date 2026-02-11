@@ -3,7 +3,6 @@
   import { goto } from '$app/navigation';
   import { analytics } from '$lib/utils/posthog';
   import BudgetCalculator from '$lib/components/BudgetCalculator.svelte';
-  import AdSenseAd from '$lib/components/AdSenseAd.svelte';
   import SEO from '$lib/components/SEO.svelte';
   import AuthenticationFlow from '$lib/components/AuthenticationFlow.svelte';
 
@@ -204,14 +203,7 @@
     </div>
   </section>
 
-  <!-- AdSense Ad - Top -->
-  <div class="ad-container">
-    <AdSenseAd 
-      adSlot="6442575607"
-      adFormat="auto"
-      className="bg-gray-50 p-4 rounded-lg border"
-    />
-  </div>
+  <!-- Manual AdSense blocks removed (auto ads only) -->
 
   <!-- Main Calculator -->
   <section class="calculator-section">
@@ -222,14 +214,7 @@
     />
   </section>
 
-  <!-- AdSense Ad - Middle -->
-  <div class="ad-container">
-    <AdSenseAd 
-      adSlot="6442575607"
-      adFormat="auto"
-      className="bg-gray-50 p-4 rounded-lg border my-8"
-    />
-  </div>
+  <!-- Manual AdSense blocks removed (auto ads only) -->
 
   <!-- Why Use This Calculator Section -->
   <section class="why-section">
@@ -355,14 +340,7 @@
     </div>
   </section>
 
-  <!-- AdSense Ad - Bottom -->
-  <div class="ad-container">
-    <AdSenseAd 
-      adSlot="6442575607"
-      adFormat="auto"
-      className="bg-gray-50 p-4 rounded-lg border my-8"
-    />
-  </div>
+  <!-- Manual AdSense blocks removed (auto ads only) -->
 
   <!-- Related Tools Section -->
   <section class="related-tools">
@@ -423,14 +401,12 @@
     role="dialog" 
     aria-modal="true" 
     tabindex="-1"
-    onclick={closeModal}
+    onclick={(e) => e.currentTarget === e.target && closeModal()}
     onkeydown={(e) => e.key === 'Escape' && closeModal()}
   >
     <div 
       class="modal-content" 
       role="document"
-      onclick={(e) => e.stopPropagation()}
-      onkeydown={() => {}}
     >
       <div class="modal-header">
         <div class="modal-title">
@@ -958,12 +934,6 @@
   }
 
   /* Ad Container */
-  .ad-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 2rem;
-  }
-
   /* Success Modal */
   .modal-overlay {
     position: fixed;
@@ -1168,7 +1138,6 @@
 
     .calculator-section,
     .why-section,
-    .testimonials-section,
     .faq-section,
     .related-tools {
       padding: 2rem 1rem;

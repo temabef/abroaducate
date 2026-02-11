@@ -8,13 +8,15 @@ export async function getAIModelForUser(
     userId: string
 ): Promise<string> {
     try {
-        // Get user's current plan
+        // Get user's current plan (be resilient to multiple rows)
         const { data: subscription } = await supabase
             .from('user_subscriptions')
-            .select('plan_type')
+            .select('plan_type, created_at')
             .eq('user_id', userId)
-            .in('status', ['active','trialing'])
-            .single();
+            .in('status', ['active', 'trialing'])
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
 
         const planType = subscription?.plan_type || 'free';
 

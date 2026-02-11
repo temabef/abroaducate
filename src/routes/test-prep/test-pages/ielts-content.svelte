@@ -1,5 +1,4 @@
 <script lang="ts">
-	import AdSenseAd from '$lib/components/AdSenseAd.svelte';
 	import { goto } from '$app/navigation';
 	import heroImage from '$lib/images/background-image.png';
 	import ieltsListening from '$lib/images/ielts-listening.png';
@@ -615,13 +614,7 @@
 	</div>
 </div>
 
-<div class="my-10 max-w-4xl mx-auto">
-	<AdSenseAd
-		adSlot="8877167254"
-		className="bg-gray-50 p-4 rounded-lg border"
-		variant="in-article"
-	/>
-</div>
+<!-- Manual AdSense block removed (auto ads only) -->
 
 <div class="mb-12">
 	<h2 class="text-3xl font-bold text-gray-900 mb-6">Essential Study Tips & Strategies</h2>

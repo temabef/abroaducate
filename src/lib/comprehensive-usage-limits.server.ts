@@ -45,6 +45,9 @@ const AI_FEATURE_LIMITS: Record<string, Record<string, number | null>> = {
 		
 		// Application Tracking - MATCHES PRICING PAGE EXACTLY
 		application_tracking: 12, // 12 applications with basic reminders
+
+		// Scholarship intelligence (paid-only)
+		scholarship_win_strategy: 0,
 		
 		// Document Checklist Limits - FREE FOR ALL
 		document_checklists: null, // Unlimited access
@@ -85,6 +88,9 @@ const AI_FEATURE_LIMITS: Record<string, Record<string, number | null>> = {
 		
 		// Application Tracking - MATCHES PRICING PAGE EXACTLY
 		application_tracking: 1000, // 1000 applications with analytics
+
+		// Scholarship intelligence (paid)
+		scholarship_win_strategy: 50,
 		
 		// Document Checklist Limits - FREE FOR ALL
 		document_checklists: null, // Unlimited access
@@ -125,6 +131,9 @@ const AI_FEATURE_LIMITS: Record<string, Record<string, number | null>> = {
 		
 		// Application Tracking - UNLIMITED
 		application_tracking: null, // Unlimited applications
+
+		// Scholarship intelligence (paid)
+		scholarship_win_strategy: null,
 		
 		// Document Checklist Limits - FREE FOR ALL
 		document_checklists: null, // Unlimited access

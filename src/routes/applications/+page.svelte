@@ -29,7 +29,7 @@
 
     onMount(async () => {
         if (!session?.user) {
-            goto('/');
+            goto('/auth?next=/applications');
             return;
         }
         

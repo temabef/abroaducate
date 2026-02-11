@@ -1,5 +1,4 @@
 <script lang="ts">
-  import AdSenseAd from '$lib/components/AdSenseAd.svelte';
   import UniversityMatcher from '$lib/components/UniversityMatcher.svelte';
   import { page } from '$app/stores';
   import { onMount } from 'svelte';
@@ -106,8 +105,7 @@
       </div>
     </div>
 
-    <!-- Ad after country coverage -->
-    <AdSenseAd adSlot="6442575607" className="my-8" />
+    <!-- Manual AdSense blocks removed (auto ads only) -->
 
     {#if isUkUniversityView}
       <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">

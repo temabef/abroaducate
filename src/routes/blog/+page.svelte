@@ -1,7 +1,6 @@
 <script lang="ts">
   import type { PageData } from './$types';
   import SEO from '$lib/components/SEO.svelte';
-  import AdSenseAd from '$lib/components/AdSenseAd.svelte';
   import { goto, invalidateAll } from '$app/navigation';
   import { page as currentPage } from '$app/stores';
 
@@ -179,12 +178,7 @@
       <!-- Right Sidebar with Ads -->
       <div class="lg:col-span-1">
         <div class="sticky top-8 space-y-6">
-          <!-- Google Ads - Vertical Banner -->
-          <AdSenseAd 
-            adSlot="6442575607"
-            adFormat="auto"
-            className="sidebar-ad"
-          />
+          <!-- Manual AdSense block removed (auto ads only) -->
 
 
 

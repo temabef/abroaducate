@@ -1,5 +1,4 @@
 <script lang="ts">
-  import AdSenseAd from '$lib/components/AdSenseAd.svelte';
     import { onMount } from 'svelte';
     import { goto } from '$app/navigation';
     import CoverLetterGenerator from '$lib/components/CoverLetterGenerator.svelte';
@@ -352,8 +351,7 @@
                 </div>
             {/if}
             
-            <!-- Ad after Cover Letter Generator -->
-            <AdSenseAd adSlot="8877167254" className="my-12" />
+            <!-- Manual AdSense block removed (auto ads only) -->
             
             <!-- Features & Benefits -->
             <div class=" grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

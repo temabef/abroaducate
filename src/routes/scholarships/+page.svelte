@@ -1,11 +1,11 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { page } from '$app/stores';
   import AuthenticationFlow from '$lib/components/AuthenticationFlow.svelte';
   import { formatCurrencyAmount, formatScholarshipText } from '$lib/utils/htmlEntities';
   import { analytics } from '$lib/utils/posthog';
   import QuickProfileModal from '$lib/components/QuickProfileModal.svelte';
   import { loadQuickProfile, type QuickProfile, gpaMidpoint } from '$lib/services/quickProfile';
-  import AdSenseAd from '$lib/components/AdSenseAd.svelte';
   
   let { data } = $props();
   let { supabase, session } = $derived(data);
@@ -78,6 +78,28 @@
   let showQuickProfile = $state(false);
   let authRequiredForProfile = $state(false);
 
+  // Initialize filters from URL params (used by homepage finder)
+  onMount(() => {
+    const sp = $page.url.searchParams;
+    const location = sp.get('location') || '';
+    const level = sp.get('level') || '';
+    const field = sp.get('field') || '';
+    const type = sp.get('type') || '';
+    const funding_category = sp.get('funding_category') || '';
+
+    if (location || level || field || type || funding_category) {
+      filters = {
+        ...filters,
+        location,
+        level,
+        field,
+        type,
+        funding_category
+      };
+      showFilters = true;
+    }
+  });
+
   // Functions for pagination
   function updateScholarships() {
     console.log("🔍 Filtering - Mode:", viewMode, "Total:", allScholarships.length);
@@ -127,7 +149,7 @@
     // Sort scholarships
     if (sortBy === 'deadline') {
       filtered.sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime());
-    } else if (sortBy === 'match') {
+    } else if (sortBy === 'matchScore') {
       filtered.sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0));
     } else if (sortBy === 'created_at') {
       filtered.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
@@ -208,14 +230,41 @@
     try {
       console.log('🔄 Loading scholarships...');
       
-      const { data: scholarshipData, error: fetchError } = await supabase
-        .from('public_scholarships_decoded')
-        .select('*')
-        .order('created_at', { ascending: false });
+      // Primary source: decoded view (better text rendering).
+      // Some Supabase views don't expose `created_at` for ordering; if so, retry without ordering.
+      let scholarshipData: any[] | null = null;
+      let fetchError: any = null;
+
+      {
+        const res = await supabase
+          .from('public_scholarships_decoded')
+          .select('*')
+          .order('created_at', { ascending: false });
+        scholarshipData = (res.data as any[] | null) ?? null;
+        fetchError = res.error;
+      }
+
+      if (fetchError) {
+        console.warn('⚠️ Decoded view ordered query failed; retrying without order.', fetchError);
+        const res2 = await supabase.from('public_scholarships_decoded').select('*');
+        scholarshipData = (res2.data as any[] | null) ?? null;
+        fetchError = res2.error;
+      }
+
+      // Fallback: base table (keeps list working even if view is unavailable/misconfigured)
+      if (fetchError) {
+        console.warn('⚠️ Decoded view query failed; falling back to scholarships table.', fetchError);
+        const res3 = await supabase.from('scholarships').select('*').order('created_at', { ascending: false });
+        scholarshipData = (res3.data as any[] | null) ?? null;
+        fetchError = res3.error;
+      }
 
       if (fetchError) {
         console.error('❌ Error loading scholarships:', fetchError);
         error = 'Failed to load scholarships. Please try again.';
+        allScholarships = [];
+        filteredScholarships = [];
+        displayScholarships = [];
         return;
       }
 
@@ -274,6 +323,12 @@
         saved: allScholarships.filter(s => s.saved).length,
         applied: allScholarships.filter(s => s.applied).length
       });
+
+      // Ensure deterministic ordering even if server ordering wasn't possible
+      allScholarships.sort(
+        (a, b) =>
+          new Date((b as any).created_at || 0).getTime() - new Date((a as any).created_at || 0).getTime()
+      );
       
       // Initial filtering after loading
       updateScholarships();
@@ -498,14 +553,18 @@
   <meta name="description" content="Browse thousands of scholarships and funding opportunities for your academic journey." />
 </svelte:head>
 
-<div class="min-h-screen bg-gray-50 pt-30">
+<div class="min-h-screen bg-slate-50 pt-20">
   <!-- Header -->
-  <div class="bg-white shadow-sm border-b">
+  <div class="bg-white shadow-sm border-b border-slate-200">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
-          <h1 class="text-3xl font-bold text-gray-900">Scholarship Opportunities</h1>
-          <p class="text-gray-600 mt-1">
+          <div class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/70 px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm">
+            <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+            Explore scholarships (free) • Unlock win strategies (paid)
+          </div>
+          <h1 class="mt-4 text-3xl md:text-4xl font-bold text-slate-900">Scholarships</h1>
+          <p class="text-slate-600 mt-1">
             {isLoading ? 'Loading...' : `${filteredScholarships.length} scholarships available`}
           </p>
         </div>
@@ -513,13 +572,13 @@
         <div class="flex items-center gap-4">
           <button
             onclick={() => loadScholarships()}
-            class="bg-yellow-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-yellow-700 transition duration-200"
+            class="bg-[#2C3580] text-white px-4 py-2 rounded-xl font-semibold hover:bg-[#3c4d9c] transition duration-200"
           >
             🔄 Refresh
           </button>
           <button
             onclick={() => showFilters = !showFilters}
-            class="bg-gray-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-gray-700 transition duration-200"
+            class="bg-slate-900 text-white px-4 py-2 rounded-xl font-semibold hover:bg-slate-800 transition duration-200"
           >
             {showFilters ? 'Hide' : 'Show'} Filters
           </button>
@@ -550,13 +609,13 @@
             type="text"
             bind:value={searchQuery}
             placeholder="Search scholarships by title, provider, field, or location..."
-            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+            class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#2C3580]/30 focus:border-[#2C3580]"
           />
         </div>
         <div class="flex gap-2">
           <select
             bind:value={sortBy}
-            class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+            class="px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#2C3580]/30 focus:border-[#2C3580]"
           >
             <option value="created_at">Latest First</option>
             <option value="matchScore">Best Match</option>
@@ -585,15 +644,15 @@
 
     <!-- Filters Panel -->
     {#if showFilters}
-      <div class="mb-6 p-6 bg-white rounded-lg shadow-sm border">
-        <h3 class="text-lg font-semibold mb-4">Filters</h3>
+      <div class="mb-6 p-6 bg-white rounded-2xl shadow-sm border border-slate-200">
+        <h3 class="text-lg font-semibold mb-4 text-slate-900">Filters</h3>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           <div>
             <label for="filter-funding-category" class="block text-sm font-medium text-gray-700 mb-1">Funding Category</label>
             <select
               id="filter-funding-category"
               bind:value={filters.funding_category}
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+              class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#2C3580]/30 focus:border-[#2C3580]"
             >
               <option value="">All Categories</option>
               <option value="Traditional Scholarship">🏆 Traditional Scholarship</option>
@@ -608,7 +667,7 @@
               type="text"
               bind:value={filters.location}
               placeholder="e.g., United States"
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+              class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#2C3580]/30 focus:border-[#2C3580]"
             />
           </div>
           <div>
@@ -616,7 +675,7 @@
             <select
               id="filter-level"
               bind:value={filters.level}
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+              class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#2C3580]/30 focus:border-[#2C3580]"
             >
               <option value="">All Levels</option>
               <option value="Bachelor">Bachelor's</option>
@@ -632,7 +691,7 @@
               type="text"
               bind:value={filters.field}
               placeholder="e.g., Engineering"
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+              class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#2C3580]/30 focus:border-[#2C3580]"
             />
           </div>
           <div>
@@ -640,7 +699,7 @@
             <select
               id="filter-type"
               bind:value={filters.type}
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+              class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#2C3580]/30 focus:border-[#2C3580]"
             >
               <option value="">All Types</option>
               <option value="Merit-based">Merit-based</option>
@@ -659,7 +718,7 @@
               currentPage = 1;
               updateScholarships();
             }}
-            class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition duration-200"
+            class="px-4 py-2 bg-slate-900 text-white rounded-xl font-semibold hover:bg-slate-800 transition duration-200"
           >
             Clear All Filters
           </button>
@@ -670,7 +729,7 @@
     <!-- Loading State -->
     {#if isLoading}
       <div class="text-center py-12">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-600 mx-auto"></div>
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2C3580] mx-auto"></div>
         <p class="mt-4 text-gray-600">Loading scholarships...</p>
       </div>
 
@@ -692,21 +751,11 @@
               currentPage = 1;
               updateScholarships();
             }}
-            class="text-yellow-600 hover:text-yellow-700 underline"
+            class="text-indigo-700 hover:text-indigo-800 underline"
           >
             Clear all filters
           </button>
         {/if}
-      </div>
-
-      <!-- Ad after filters -->
-      <div class="my-8 max-w-4xl mx-auto">
-        <AdSenseAd 
-          adSlot="6442575607" 
-          className="bg-gray-50 p-4 rounded-lg"
-          {session}
-          {supabase}
-        />
       </div>
 
     <!-- Scholarship Grid -->
@@ -724,15 +773,8 @@
 
         <!-- Scholarship Cards -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {#each displayScholarships as scholarship, index (scholarship.id)}
-            <!-- Insert ONE ad after the 5th item (index 4) as a single-column card on desktop -->
-            {#if index === 4}
-              <div class="my-2">
-                <AdSenseAd adSlot="6442575607" className="bg-gray-50 p-4 rounded-lg border" />
-              </div>
-            {/if}
-            
-            <div class="bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow duration-200">
+          {#each displayScholarships as scholarship (scholarship.id)}
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow duration-200">
               <div class="p-6">
                 <!-- Funding Category Badge -->
                 {#if scholarship.funding_category && scholarship.funding_category !== 'Traditional Scholarship'}
@@ -750,7 +792,7 @@
                 <!-- Header -->
                 <div class="flex items-start justify-between">
                   <div class="flex-1 mr-4">
-                    <a href={`/scholarships/${scholarship.id}`} class="block hover:text-blue-600">
+                    <a href={`/scholarships/${scholarship.id}`} class="block hover:text-indigo-700">
                       <h3 class="text-lg font-semibold text-gray-900 mb-1">{scholarship.title}</h3>
                     </a>
                     <p class="text-gray-600">{scholarship.provider}</p>
@@ -797,7 +839,7 @@
 
                 <!-- Amount and Deadline -->
                 <div class="flex items-center justify-between mb-4">
-                  <div class="text-xl font-bold text-yellow-600">{formatCurrencyAmount(scholarship.amount)}</div>
+                  <div class="text-xl font-bold text-indigo-700">{formatCurrencyAmount(scholarship.amount)}</div>
                   {#each [getDeadlineStatus(scholarship.deadline)] as status}
                     <div>
                       <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {status.class}">
@@ -856,7 +898,7 @@
                 <!-- Actions -->
                 <div class="flex gap-3 pt-4 border-t">
                   <a href={`/scholarships/${scholarship.id}`} 
-                    class="flex-1 px-4 py-2 bg-yellow-600 text-white hover:bg-yellow-700 rounded-lg transition duration-200 text-center"
+                    class="flex-1 px-4 py-2 bg-[#2C3580] text-white hover:bg-[#3c4d9c] rounded-lg transition duration-200 text-center"
                   >
                     View Details
                   </a>
@@ -888,11 +930,6 @@
           {/each}
         </div>
 
-        <!-- Add ONE ad at the end of the grid (before pagination) -->
-        <div class="my-8 max-w-3xl mx-auto">
-          <AdSenseAd adSlot="6442575607" className="bg-gray-50 p-4 rounded-lg border" />
-        </div>
-
         <!-- Pagination -->
         {#if totalPages > 1}
           <div class="flex items-center justify-center space-x-2 mt-8">
@@ -912,7 +949,7 @@
               <button
                 onclick={() => goToPage(page)}
                 class="px-3 py-2 text-sm font-medium {currentPage === page 
-                  ? 'text-white bg-yellow-600 border-yellow-600' 
+                  ? 'text-white bg-[#2C3580] border-[#2C3580]' 
                   : 'text-gray-500 bg-white border-gray-300 hover:bg-gray-50'} border rounded-md"
               >
                 {page}
@@ -932,20 +969,20 @@
     {/if}
 
     <!-- Call to Action Section -->
-    <div class="mt-12 bg-gradient-to-r from-yellow-600 to-orange-600 rounded-lg p-8 text-center text-white">
+    <div class="mt-12 bg-gradient-to-r from-[#2C3580] to-indigo-600 rounded-2xl p-8 text-center text-white border border-indigo-200/20">
       <h3 class="text-2xl font-bold mb-4">Need Help with Your Applications?</h3>
-      <p class="text-yellow-100 mb-6">
+      <p class="text-indigo-100 mb-6">
         Use our AI-powered tools to create compelling scholarship essays and application documents.
       </p>
       <div class="flex flex-col sm:flex-row gap-4 justify-center">
-        <a href="/sop" class="bg-white text-yellow-600 px-6 py-3 rounded-lg font-medium hover:bg-gray-100 transition duration-200">
+        <a href="/sop" class="bg-white text-[#2C3580] px-6 py-3 rounded-lg font-medium hover:bg-gray-100 transition duration-200">
           📝 Generate Statement of Purpose
         </a>
-        <a href="/cover-letters" class="border-2 border-white text-white px-6 py-3 rounded-lg font-medium hover:bg-white hover:text-yellow-600 transition duration-200">
+        <a href="/cover-letters" class="border-2 border-white text-white px-6 py-3 rounded-lg font-medium hover:bg-white hover:text-[#2C3580] transition duration-200">
           ✉️ Create Cover Letter
         </a>
-        <a href="/dashboard" class="border-2 border-white text-white px-6 py-3 rounded-lg font-medium hover:bg-white hover:text-yellow-600 transition duration-200">
-          📊 View Dashboard
+        <a href="/plan" class="border-2 border-white text-white px-6 py-3 rounded-lg font-medium hover:bg-white hover:text-[#2C3580] transition duration-200">
+          🎯 Open Plan
         </a>
       </div>
     </div>

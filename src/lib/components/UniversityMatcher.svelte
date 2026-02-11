@@ -97,9 +97,32 @@
                 void tryResumeFromCache();
             }
 
+            // Prefill from URL (used by homepage finder)
+            const country = params.get('country');
+            const degreeLevel = params.get('degree_level');
+            const field = params.get('field');
+            const autoSearch = params.get('autosearch') === '1';
+
+            if (country) {
+                profileForm.preferred_countries = [country];
+            }
+            if (degreeLevel) {
+                profileForm.degree_level = degreeLevel;
+            }
+            if (field) {
+                profileForm.field = field;
+            }
+
             // Load user profile if logged in
             if (session?.user?.id) {
                 void loadUserProfile();
+            }
+
+            // Optionally auto-run search after prefill (homepage finder)
+            if (autoSearch && (country || degreeLevel || field)) {
+                setTimeout(() => {
+                    void analyzeMatches(1);
+                }, 0);
             }
 
             // Try to restore cached results and form data

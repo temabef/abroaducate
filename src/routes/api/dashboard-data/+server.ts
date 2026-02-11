@@ -55,6 +55,13 @@ export const GET: RequestHandler = async ({ locals: { supabase } }) => {
     console.log('Personal Statements count:', personalStatements?.length || 0);
     if (personalStatementsError) console.warn('Error fetching personal statements:', personalStatementsError);
 
+    // Applications count (for roadmap checklist tick-off)
+    const { count: applicationsCount, error: applicationsError } = await supabase
+      .from('applications')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId);
+    if (applicationsError) console.warn('Error fetching applications count:', applicationsError);
+
     // Calculate summary statistics
     const summary = {
       total_documents: (sops?.length || 0) + (coverLetters?.length || 0) + (personalStatements?.length || 0),
@@ -78,6 +85,7 @@ export const GET: RequestHandler = async ({ locals: { supabase } }) => {
     return json({
       success: true,
       summary,
+      applications_count: applicationsCount || 0,
       documents: {
         sops: sops || [],
         coverLetters: coverLetters || [],
@@ -89,7 +97,8 @@ export const GET: RequestHandler = async ({ locals: { supabase } }) => {
         userEmail: session.user.email,
         sopCount: sops?.length || 0,
         coverLetterCount: coverLetters?.length || 0,
-        personalStatementCount: personalStatements?.length || 0
+        personalStatementCount: personalStatements?.length || 0,
+        applicationsCount: applicationsCount || 0
       }
     });
 

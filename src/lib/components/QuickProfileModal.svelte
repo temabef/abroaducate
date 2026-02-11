@@ -46,55 +46,129 @@
     try { analytics.trackEvent('quick_profile_closed', { source: 'modal' }); } catch {}
     dispatch('cancel');
   }
+
+  function onKeydown(e: KeyboardEvent) {
+    if (e.key === 'Escape') close();
+  }
 </script>
 
 {#if isOpen}
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-    <div class="bg-white w-full max-w-lg rounded-xl shadow-lg p-6">
-      <div class="flex items-center justify-between mb-3">
-        <h3 class="text-lg font-semibold">Quick Profile</h3>
-        <button class="text-gray-500 hover:text-gray-700" on:click={close}>✕</button>
-      </div>
-      <p class="text-sm text-gray-600 mb-4">60 seconds to personalize results. You can change these later.</p>
-
-      <div class="space-y-3">
+  <div
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-[1px] px-4"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Quick profile"
+    tabindex="-1"
+    on:keydown={onKeydown}
+  >
+    <div class="w-full max-w-2xl rounded-3xl border border-slate-200 bg-white/90 shadow-xl">
+      <!-- Header -->
+      <div class="px-6 py-5 border-b border-slate-200 flex items-start justify-between gap-4">
         <div>
-          <label for="qp-degree" class="block text-sm font-medium mb-1">Degree level</label>
-          <select id="qp-degree" bind:value={form.degree_level} class="w-full border rounded px-3 py-2">
-            <option value="undergraduate">Undergraduate/Bachelor's</option>
-            <option value="masters">Master's/Graduate</option>
-            <option value="phd">PhD/Doctoral</option>
-            <option value="graduate">Graduate (general)</option>
-          </select>
-        </div>
-
-        <div>
-          <label for="qp-field" class="block text-sm font-medium mb-1">Field of study</label>
-          <input id="qp-field" bind:value={form.field_of_study} placeholder="e.g., Computer Science" class="w-full border rounded px-3 py-2" />
-        </div>
-
-        <div>
-          <p class="block text-sm font-medium mb-1">Preferred countries (up to 3)</p>
-          <div class="grid grid-cols-3 gap-2">
-            {#each countryOptions as c}
-              <button type="button" class="text-sm px-2 py-1 rounded border {form.preferred_countries.includes(c) ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700'}" on:click={() => toggleCountry(c)}>{c}</button>
-            {/each}
+          <div class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/70 px-3 py-1 text-xs font-semibold text-slate-700 shadow-sm">
+            <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+            60-second setup
           </div>
+          <h3 class="mt-3 text-xl font-bold text-slate-900">Quick Profile</h3>
+          <p class="mt-1 text-sm text-slate-600">
+            We’ll use this to personalize your Plan. You can change it anytime.
+          </p>
         </div>
+        <button
+          type="button"
+          class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition"
+          aria-label="Close quick profile"
+          on:click={close}
+        >
+          ✕
+        </button>
+      </div>
 
-        <div class="grid grid-cols-2 gap-3">
+      <!-- Body -->
+      <div class="px-6 py-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Degree -->
+          <div class="md:col-span-2">
+            <div class="text-sm font-semibold text-slate-800 mb-2">Degree level</div>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+              {#each [
+                { value: 'undergraduate', label: "Bachelor's" },
+                { value: 'masters', label: 'Masters' },
+                { value: 'phd', label: 'PhD' },
+                { value: 'graduate', label: 'Graduate' }
+              ] as opt}
+                <button
+                  type="button"
+                  class="rounded-xl border px-3 py-3 text-sm font-semibold transition text-center
+                    {form.degree_level === opt.value
+                      ? 'border-[#2C3580] bg-indigo-50 text-[#2C3580]'
+                      : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'}"
+                  on:click={() => (form.degree_level = opt.value as QuickProfile['degree_level'])}
+                >
+                  {opt.label}
+                </button>
+              {/each}
+            </div>
+          </div>
+
+          <!-- Field -->
+          <div class="md:col-span-2">
+            <label for="qp-field" class="block text-sm font-semibold text-slate-800 mb-2">Field of study</label>
+            <input
+              id="qp-field"
+              bind:value={form.field_of_study}
+              placeholder="e.g., Computer Science, Public Health, Business"
+              class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#2C3580]/30"
+            />
+            <p class="mt-2 text-xs text-slate-500">This helps us rank scholarships and universities more accurately.</p>
+          </div>
+
+          <!-- Countries -->
+          <div class="md:col-span-2">
+            <div class="flex items-center justify-between gap-3 mb-2">
+              <div class="text-sm font-semibold text-slate-800">Preferred countries</div>
+              <div class="text-xs text-slate-500">{form.preferred_countries.length}/3 selected</div>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              {#each countryOptions as c}
+                <button
+                  type="button"
+                  class="rounded-full border px-3 py-2 text-sm font-semibold transition
+                    {form.preferred_countries.includes(c)
+                      ? 'border-[#2C3580] bg-indigo-50 text-[#2C3580]'
+                      : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'}"
+                  on:click={() => toggleCountry(c)}
+                >
+                  {c}
+                </button>
+              {/each}
+            </div>
+            <p class="mt-2 text-xs text-slate-500">Optional, but recommended for better matching.</p>
+          </div>
+
+          <!-- GPA -->
           <div>
-            <label for="qp-gpa" class="block text-sm font-medium mb-1">GPA range (4.0 scale)</label>
-            <select id="qp-gpa" bind:value={form.gpa_range} class="w-full border rounded px-3 py-2">
+            <label for="qp-gpa" class="block text-sm font-semibold text-slate-800 mb-2">GPA range (4.0 scale)</label>
+            <select
+              id="qp-gpa"
+              bind:value={form.gpa_range}
+              class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#2C3580]/30"
+            >
               <option value="<2.5">Below 2.5</option>
               <option value="2.5-3.0">2.5–3.0</option>
               <option value="3.0-3.5">3.0–3.5</option>
               <option value="3.5-4.0">3.5–4.0</option>
             </select>
           </div>
+
+          <!-- Priority -->
           <div>
-            <label for="qp-priority" class="block text-sm font-medium mb-1">Scholarship priority</label>
-            <select id="qp-priority" bind:value={form.scholarship_priority} class="w-full border rounded px-3 py-2">
+            <label for="qp-priority" class="block text-sm font-semibold text-slate-800 mb-2">Scholarship priority</label>
+            <select
+              id="qp-priority"
+              bind:value={form.scholarship_priority}
+              class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#2C3580]/30"
+            >
               <option value="essential">Essential</option>
               <option value="high">High</option>
               <option value="moderate">Moderate</option>
@@ -104,16 +178,29 @@
         </div>
       </div>
 
-      <div class="mt-5 flex items-center justify-end gap-3">
-        <button class="px-4 py-2 rounded border" on:click={close}>Cancel</button>
-        <button class="px-4 py-2 rounded bg-blue-600 text-white disabled:opacity-50" disabled={!form.field_of_study} on:click={submit}>Save</button>
+      <!-- Footer -->
+      <div class="px-6 py-5 border-t border-slate-200 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        <div class="text-xs text-slate-500">
+          Tip: You can update this later from your account settings.
+        </div>
+        <div class="flex items-center justify-end gap-3">
+          <button
+            type="button"
+            class="px-5 py-3 rounded-xl border border-slate-200 bg-white text-slate-800 font-semibold hover:bg-slate-50 transition"
+            on:click={close}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="px-5 py-3 rounded-xl bg-[#2C3580] text-white font-semibold hover:bg-[#3c4d9c] transition disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={!form.field_of_study}
+            on:click={submit}
+          >
+            Save profile
+          </button>
+        </div>
       </div>
     </div>
   </div>
 {/if}
-
-<style>
-  :global(.bg-black\/40){ backdrop-filter: blur(1px); }
-  .border { border: 1px solid #e5e7eb; }
-</style>
-

@@ -5,8 +5,8 @@ import { SvelteKitPWA } from '@vite-pwa/sveltekit';
 
 export default defineConfig({
 	plugins: [
-		sveltekit(), 
 		tailwindcss(),
+		sveltekit(), 
 		SvelteKitPWA({
 			registerType: 'autoUpdate',
 			workbox: {

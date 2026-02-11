@@ -22,6 +22,7 @@ export interface UnifiedProfile {
   standardized_gpa_4_scale?: number;  // Auto-calculated
   profile_completion_score?: number;  // 0-100%
   onboarding_completed?: boolean;
+  phone_number?: string;  // Optional phone for WhatsApp/SMS updates
   visa_preferences?: Record<string, any>;
   notification_preferences?: {
     weekly_digest?: boolean;
@@ -36,19 +37,20 @@ export interface UnifiedProfile {
 
 // Type for onboarding flow (subset of UnifiedProfile)
 export interface OnboardingData {
-  // Step 1: Target & Timeline
+  // Step 1: Basic Info
   preferred_countries: string[];
-  target_intake?: string;
+  phone_number?: string;
   
-  // Step 2: Academic Performance
+  // Step 2: Preferences
+  field_of_study: string;
+  degree_level: 'undergraduate' | 'masters' | 'phd' | 'graduate';
+  target_intake?: string;
+  budget_range?: '0-20k' | '20k-50k' | '50k-100k' | '100k+' | 'skip' | '';
+  
+  // Auto-populated from conversion (can be added later via separate tool)
   current_gpa_value?: number;
   current_gpa_scale?: string;
   gpa_range: '<2.5' | '2.5-3.0' | '3.0-3.5' | '3.5-4.0';
-  
-  // Step 3: Focus & Budget
-  field_of_study: string;
-  degree_level: 'undergraduate' | 'masters' | 'phd' | 'graduate';
-  budget_range?: '0-20k' | '20k-50k' | '50k-100k' | '100k+' | 'skip' | '';
   scholarship_priority: 'essential' | 'high' | 'moderate' | 'low';
 }
 
@@ -73,6 +75,19 @@ export async function loadUnifiedProfile(
   supabase: SupabaseClient, 
   session: any
 ): Promise<{ profile: UnifiedProfile | null; source: 'remote' | 'local' | 'none' }> {
+  const localProfile = loadProfileFromLocal();
+
+  function coreScore(p: UnifiedProfile | null): number {
+    if (!p) return 0;
+    let score = 0;
+    if (p.preferred_countries && p.preferred_countries.length > 0) score += 2;
+    if (p.field_of_study) score += 1;
+    if (p.degree_level) score += 1;
+    if (p.current_gpa_value) score += 1;
+    if (p.target_intake) score += 1;
+    return score;
+  }
+
   try {
     if (session?.user?.id && supabase) {
       const { data, error } = await supabase
@@ -83,7 +98,7 @@ export async function loadUnifiedProfile(
         
       if (!error && data) {
         // Convert database format to UnifiedProfile
-        const profile: UnifiedProfile = {
+        const remoteProfile: UnifiedProfile = {
           degree_level: data.degree_level,
           field_of_study: data.field_of_study,
           preferred_countries: data.preferred_countries || [],
@@ -96,12 +111,19 @@ export async function loadUnifiedProfile(
           standardized_gpa_4_scale: data.standardized_gpa_4_scale,
           profile_completion_score: data.profile_completion_score,
           onboarding_completed: data.onboarding_completed,
+          phone_number: data.phone_number,
           visa_preferences: data.visa_preferences,
           notification_preferences: data.notification_preferences,
           created_at: data.created_at,
           updated_at: data.updated_at
         };
-        return { profile, source: 'remote' };
+
+        // Prefer the more complete profile (fixes cases where remote save fails but local has newer data)
+        if (localProfile && coreScore(localProfile) > coreScore(remoteProfile)) {
+          return { profile: localProfile, source: 'local' };
+        }
+
+        return { profile: remoteProfile, source: 'remote' };
       }
     }
   } catch (error) {
@@ -109,7 +131,6 @@ export async function loadUnifiedProfile(
   }
   
   // Fallback to localStorage
-  const localProfile = loadProfileFromLocal();
   if (localProfile) {
     return { profile: localProfile, source: 'local' };
   }
@@ -141,6 +162,7 @@ export async function saveUnifiedProfile(
           current_gpa_value: profile.current_gpa_value,
           current_gpa_scale: profile.current_gpa_scale,
           onboarding_completed: profile.onboarding_completed,
+          phone_number: profile.phone_number,
           visa_preferences: profile.visa_preferences,
           notification_preferences: profile.notification_preferences
           // Note: standardized_gpa_4_scale and profile_completion_score are auto-calculated by triggers

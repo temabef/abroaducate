@@ -866,6 +866,10 @@ export const POST: RequestHandler = async ({ request, locals }) => {
             return json({ error: 'Login required' }, { status: 401 });
         }
 
+        // Parse the user profile from the request first so we can support preview mode
+        const userProfile: UserProfile = await request.json();
+        const previewMode = (userProfile as any)?.preview === true;
+
         // Defaults (will be adjusted based on plan)
         let userPlanLimit = 25; // Free base limit
         let userPlanType = 'free';
@@ -884,12 +888,11 @@ export const POST: RequestHandler = async ({ request, locals }) => {
                 userPlanLimit = 25; // Reduced from 50 (Free tier)
             }
             
-            // Track this usage
-            await incrementComprehensiveUsage(userId, 'university_matching');
+            // Track this usage (skip in preview mode to avoid consuming limits for previews)
+            if (!previewMode) {
+                await incrementComprehensiveUsage(userId, 'university_matching');
+            }
         }
-
-        // Parse the user profile from the request
-        const userProfile: UserProfile = await request.json();
         
         console.log("🔍 DEBUG: Received user profile:", JSON.stringify(userProfile));
         

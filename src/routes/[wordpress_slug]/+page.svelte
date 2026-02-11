@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import SEO from '$lib/components/SEO.svelte';
-	import AdSenseAd from '$lib/components/AdSenseAd.svelte';
 	
 	export let data;
 	
@@ -311,7 +310,7 @@
 					
 					<!-- In-content Ad -->
 					<div class="my-8 p-4 bg-gray-50 rounded-lg text-center">
-						<AdSenseAd adSlot="6646272505" />
+						<!-- Manual AdSense block removed (auto ads only) -->
 					</div>
 				</article>
 
@@ -320,7 +319,7 @@
 					<div class="sticky top-24 space-y-6">
 						<!-- Sidebar Ad -->
 						<div class="p-4 bg-gray-50 rounded-lg text-center">
-							<AdSenseAd adSlot="7563850500" />
+							<!-- Manual AdSense block removed (auto ads only) -->
 						</div>
 
 						<!-- Related Posts / CTA -->
@@ -507,11 +506,6 @@
 	/* Emphasis/Italic */
 	:global(.blog-content em, .blog-content i) {
 		font-style: italic;
-	}
-	
-	/* Handle any remaining asterisk formatting that didn't convert */
-	:global(.blog-content) {
-		/* This is a fallback - ideally all should be converted by markdown-it */
 	}
 	
 	/* Images */

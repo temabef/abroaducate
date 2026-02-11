@@ -1,6 +1,5 @@
 <script lang="ts">
   import type { SupabaseClient } from '@supabase/supabase-js';
-  import ProfileCompletionWidget from './ProfileCompletionWidget.svelte';
   import NewMatchesWidget from './NewMatchesWidget.svelte';
   import ApplicationTrackerWidget from './ApplicationTrackerWidget.svelte';
   import QuickActionsHub from './QuickActionsHub.svelte';
@@ -18,9 +17,8 @@
     <QuickActionsHub {supabase} {session} />
   </div>
 
-  <!-- Second Row: Profile Completion + New Matches -->
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-    <ProfileCompletionWidget {supabase} {session} />
+  <!-- Second Row: New Matches -->
+  <div class="w-full">
     <NewMatchesWidget {supabase} {session} />
   </div>
 

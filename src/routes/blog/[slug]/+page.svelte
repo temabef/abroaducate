@@ -1,7 +1,6 @@
 <script lang="ts">
   import type { PageData } from './$types';
   import SEO from '$lib/components/SEO.svelte';
-  import AdSenseAd from '$lib/components/AdSenseAd.svelte';
 
   let { data }: { data: PageData } = $props();
   const { post, html } = data;
@@ -34,7 +33,7 @@
 <SEO
   title={post.title}
   description={post.excerpt || `Read ${post.title} on our study abroad blog`}
-  ogImage={post.cover_image_url}
+  image={post.cover_image_url}
   schemaType="Article"
 />
 
@@ -49,9 +48,10 @@
         style="object-fit: cover; object-position: 50% 10% !important; min-height: 100%; min-width: 100%;"
         loading="eager"
         onerror={(e) => {
-          e.target.style.display = 'none';
+          const img = e.currentTarget as HTMLImageElement;
+          img.style.display = 'none';
           // Hide the overlay if image fails to load
-          const overlay = e.target.parentElement.querySelector('.bg-black');
+          const overlay = img.nextElementSibling as HTMLElement | null;
           if (overlay) overlay.style.display = 'none';
         }}
       />
@@ -128,13 +128,7 @@
             {@html html}
           </div>
 
-          <!-- In-Content Ad -->
-          <AdSenseAd 
-            adSlot="6646272505"
-            adFormat="auto"
-            variant="in-article"
-            className="in-content-ad"
-          />
+          <!-- Manual AdSense block removed (auto ads only) -->
 
           <!-- Share Section -->
           <div class="mt-12 pt-8 border-t border-gray-200">
@@ -176,12 +170,7 @@
         <!-- Sidebar -->
         <div class="lg:col-span-1">
           <div class="sticky top-8 space-y-6">
-            <!-- Google Ads - Vertical Banner -->
-            <AdSenseAd 
-              adSlot="7563850500"
-              adFormat="auto"
-              className="sidebar-ad"
-            />
+            <!-- Manual AdSense block removed (auto ads only) -->
 
             <!-- Navigation -->
             <div class="bg-gray-50 rounded-lg p-6">

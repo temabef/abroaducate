@@ -2,7 +2,6 @@
 	import { onMount } from 'svelte';
 	import VisaInterviewPractice from '$lib/components/VisaInterviewPractice.svelte';
 	import { analytics } from '$lib/utils/posthog';
-	import AdSenseAd from '$lib/components/AdSenseAd.svelte';
 
 	let { data } = $props();
 	let { session, supabase } = $derived(data);
@@ -93,10 +92,7 @@
 				</div>
 			</div>
 
-			<!-- Ad placement after How It Works section -->
-			<div class="my-10 max-w-4xl mx-auto">
-				<AdSenseAd adSlot="6442575607" className="bg-gray-50 p-4 rounded-lg border" variant="in-article" />
-			</div>
+			<!-- Manual AdSense blocks removed (auto ads only) -->
 
 			<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
 				<div class="text-center">

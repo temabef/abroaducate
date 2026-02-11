@@ -35,6 +35,8 @@
   let selectedApplication: ScholarshipApplication | null = $state(null);
   let showApplicationDetail = $state(false);
   let showLoginModal = $state(false);
+  let bulkWinStrategyLoading = $state(false);
+  let bulkWinStrategyMessage = $state<string | null>(null);
 
   // Statistics
   let stats = $state({
@@ -264,6 +266,39 @@
     if (daysUntil === 1) return 'Due tomorrow';
     return `${daysUntil} days left`;
   }
+
+  async function generateWinStrategiesForSaved() {
+    const ids = applications.map((a) => a.scholarship_id).slice(0, 10);
+    if (ids.length === 0) return;
+    bulkWinStrategyLoading = true;
+    bulkWinStrategyMessage = null;
+    try {
+      const res = await fetch('/api/scholarships/win-strategy/bulk-generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scholarship_ids: ids })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        if (res.status === 403 && data.upgradeRequired) {
+          bulkWinStrategyMessage = 'Unlock full plan to generate win strategies in bulk.';
+        } else {
+          bulkWinStrategyMessage = data.message || data.error || 'Request failed.';
+        }
+        return;
+      }
+      const { generated = 0, skipped = 0, failed = 0, limit_reached } = data;
+      if (limit_reached) {
+        bulkWinStrategyMessage = `Monthly limit reached. Generated: ${generated}, skipped (cached): ${skipped}, failed: ${failed}.`;
+      } else {
+        bulkWinStrategyMessage = `Done. Generated: ${generated}, skipped (cached): ${skipped}, failed: ${failed}.`;
+      }
+    } catch (e) {
+      bulkWinStrategyMessage = 'Network error. Try again.';
+    } finally {
+      bulkWinStrategyLoading = false;
+    }
+  }
 </script>
 
 <svelte:head>
@@ -275,12 +310,31 @@
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <!-- Header -->
     <div class="mb-8">
-      <h1 class="text-4xl font-bold text-gray-900 mb-4">
-        Saved Scholarships
-      </h1>
-      <p class="text-xl text-gray-600">
-        Track all your scholarship applications, deadlines, and progress in one place.
-      </p>
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 class="text-4xl font-bold text-gray-900 mb-4">
+            Saved Scholarships
+          </h1>
+          <p class="text-xl text-gray-600">
+            Track all your scholarship applications, deadlines, and progress in one place.
+          </p>
+        </div>
+        {#if applications.length > 0}
+          <div class="flex flex-col gap-2 shrink-0">
+            <button
+              type="button"
+              onclick={generateWinStrategiesForSaved}
+              disabled={bulkWinStrategyLoading}
+              class="rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-800 hover:bg-indigo-100 transition disabled:opacity-60"
+            >
+              {bulkWinStrategyLoading ? 'Generating…' : 'Generate win strategies (up to 10)'}
+            </button>
+            {#if bulkWinStrategyMessage}
+              <p class="text-xs text-gray-600">{bulkWinStrategyMessage}</p>
+            {/if}
+          </div>
+        {/if}
+      </div>
     </div>
 
     {#if !session}

@@ -1,7 +1,7 @@
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ params, locals: { getSession, supabase } }) => {
+export const load: PageServerLoad = async ({ params, locals: { getSession, supabase, supabaseServiceRole } }) => {
   // Get the current session
   const session = await getSession();
   
@@ -54,6 +54,30 @@ export const load: PageServerLoad = async ({ params, locals: { getSession, supab
     session,
     scholarship,
     savedStatus,
-    relatedScholarships
+    relatedScholarships,
+    winStrategy: (async () => {
+      // Only return stored AI win strategy to paid users.
+      if (!session?.user?.id) return null;
+
+      const { data: subscription } = await supabaseServiceRole
+        .from('user_subscriptions')
+        .select('plan_type')
+        .eq('user_id', session.user.id)
+        .in('status', ['active', 'trialing'])
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      const planType = subscription?.plan_type || 'free';
+      if (planType === 'free') return null;
+
+      const { data: row } = await supabaseServiceRole
+        .from('scholarship_win_strategies')
+        .select('strategy, updated_at, model, version')
+        .eq('scholarship_id', scholarshipId)
+        .maybeSingle();
+
+      return row?.strategy || null;
+    })()
   };
 }; 

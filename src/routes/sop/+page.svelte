@@ -1,5 +1,4 @@
 <script lang="ts">
-  import AdSenseAd from '$lib/components/AdSenseAd.svelte';
   import { onMount } from 'svelte';
   import FormSection from '$lib/components/FormSection.svelte';
   import { analytics } from '$lib/utils/posthog';
@@ -51,8 +50,7 @@
     <!-- Comprehensive SOP Form -->
     <FormSection />
     
-    <!-- Ad after SOP Form -->
-    <AdSenseAd adSlot="8877167254" className="my-12" />
+    <!-- Manual AdSense block removed (auto ads only) -->
     
     <!-- Additional Features Section -->
     <div class="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
