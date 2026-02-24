@@ -65,7 +65,15 @@ export const POST: RequestHandler = async ({ request }) => {
       return json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    console.log('🔄 Starting email reminder cron job...');
+    let forceDigestAllRegistered = false;
+    try {
+      const body = await request.json().catch(() => ({}));
+      forceDigestAllRegistered = !!body?.force_digest_all_registered;
+    } catch {
+      // no body or invalid JSON
+    }
+
+    console.log('🔄 Starting email reminder cron job...' + (forceDigestAllRegistered ? ' [MANUAL: force digest to all registered]' : ''));
 
     // Get the current day of week (0 = Sunday, 1 = Monday, etc.)
     const today = new Date();
@@ -104,48 +112,42 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     for (const user of allUsers || []) {
-      const planType = userTierMap.get(user.user_id) || 'free';
-      const isPaid = planType === 'professional' || planType === 'elite';
-      const isMonday = dayOfWeek === 1;
-      let sendDaily = false;
-      let sendWeekly = false;
-      if (isPaid) {
-        if (isMonday) {
-          // If both are enabled, send only daily
-          if (user.scholarship_digest_daily && user.scholarship_digest_weekly) {
-            sendDaily = true;
-          } else if (user.scholarship_digest_daily) {
-            sendDaily = true;
-          } else if (user.scholarship_digest_weekly) {
-            sendWeekly = true;
+      const wantsDigest = !!(user.scholarship_digest_weekly || user.scholarship_digest_daily);
+      if (!wantsDigest) continue;
+
+      let shouldSend = false;
+      if (forceDigestAllRegistered) {
+        // One-time manual run: send to everyone who has digest enabled
+        shouldSend = true;
+      } else {
+        const planType = userTierMap.get(user.user_id) || 'free';
+        const isPaid = planType === 'professional' || planType === 'elite';
+        const isMonday = dayOfWeek === 1;
+        let sendDaily = false;
+        let sendWeekly = false;
+        if (isPaid) {
+          if (isMonday) {
+            if (user.scholarship_digest_daily && user.scholarship_digest_weekly) sendDaily = true;
+            else if (user.scholarship_digest_daily) sendDaily = true;
+            else if (user.scholarship_digest_weekly) sendWeekly = true;
+          } else {
+            if (user.scholarship_digest_daily) sendDaily = true;
           }
         } else {
-          if (user.scholarship_digest_daily) {
-            sendDaily = true;
-          }
+          if (isMonday && user.scholarship_digest_weekly) sendWeekly = true;
         }
-      } else {
-        // Free users: only weekly
-        if (isMonday && user.scholarship_digest_weekly) {
-          sendWeekly = true;
-        }
+        shouldSend = sendDaily || sendWeekly;
       }
-      // Send the appropriate digest
+
+      if (!shouldSend) continue;
+
       try {
         const { data: authUser } = await supabase.auth.admin.getUserById(user.user_id);
         if (authUser.user?.email) {
-          if (sendDaily) {
-            const emailSent = await sendScholarshipDigest(authUser.user.email, user.user_id);
-            if (emailSent) {
-              emailsProcessed.scholarship_digest++;
-              totalEmailsSent++;
-            }
-          } else if (sendWeekly) {
-            const emailSent = await sendScholarshipDigest(authUser.user.email, user.user_id);
-            if (emailSent) {
-              emailsProcessed.scholarship_digest++;
-              totalEmailsSent++;
-            }
+          const emailSent = await sendScholarshipDigest(authUser.user.email, user.user_id);
+          if (emailSent) {
+            emailsProcessed.scholarship_digest++;
+            totalEmailsSent++;
           }
         }
       } catch (error) {

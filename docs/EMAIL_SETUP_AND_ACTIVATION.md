@@ -199,6 +199,17 @@ The endpoint **`POST /api/cron/send-reminders`** does:
 - **File (GitHub Actions):** See `.github/workflows/cron-reminders.yml`; no vercel.json cron needed that calls this URL with the secret (e.g. via serverless function that adds the header). You can start with once per day (e.g. 9:00 UTC); then adjust logic inside the handler for “only Mondays” for weekly digest if needed.
 Once `CRON_SECRET` is set in GitHub, the workflow will call the endpoint daily; no other cron setup needed.
 
+**One-time manual run (e.g. “send digest to all registered users today”):** Call the same endpoint with a JSON body to force sending the scholarship digest to every registered user who has digest enabled (ignores Monday-only rule for that run):
+
+```bash
+curl -X POST "https://abroaducate.com/api/cron/send-reminders" \
+  -H "Authorization: Bearer YOUR_CRON_SECRET" \
+  -H "Content-Type: application/json" \
+  -d "{\"force_digest_all_registered\": true}"
+```
+
+Use the same `CRON_SECRET` as in Vercel/GitHub. After this one-time run, the normal schedule (e.g. weekly on Monday) continues as configured.
+
 ---
 
 ## 8. Quick checklist before / after you pay
