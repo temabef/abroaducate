@@ -24,3 +24,7 @@ google-vision-credentials.json
 # Vite
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Accidental CLI output / junk (e.g. partial command output saved to file)
+tatus
+ter

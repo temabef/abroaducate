@@ -306,8 +306,9 @@ export const POST: RequestHandler = async ({ request }) => {
         .eq('setting_key', 'send_day')
         .single();
 
-      const sendFrequency = frequencySettings?.setting_value || 'weekly';
-      const sendDay = sendDaySettings?.setting_value || 1; // Default to Monday
+      const rawFreq = frequencySettings?.setting_value ?? 'weekly';
+      const sendFrequency = typeof rawFreq === 'string' && rawFreq.startsWith('"') ? JSON.parse(rawFreq) : rawFreq;
+      const sendDay = typeof sendDaySettings?.setting_value === 'number' ? sendDaySettings.setting_value : 1; // Default Monday
 
       let shouldSendNewsletter = false;
       if (sendFrequency === 'daily') {
@@ -316,6 +317,16 @@ export const POST: RequestHandler = async ({ request }) => {
         shouldSendNewsletter = dayOfWeek === sendDay;
       } else if (sendFrequency === 'monthly') {
         shouldSendNewsletter = today.getDate() === 1; // First of month
+      } else if (sendFrequency === 'bi-weekly') {
+        const { data: lastDigestRow } = await supabase
+          .from('newsletter_settings')
+          .select('setting_value')
+          .eq('setting_key', 'last_digest_sent')
+          .single();
+        const lastSentRaw = lastDigestRow?.setting_value;
+        const lastSent = lastSentRaw && lastSentRaw !== 'null' ? new Date(typeof lastSentRaw === 'string' && lastSentRaw.startsWith('"') ? JSON.parse(lastSentRaw) : lastSentRaw) : null;
+        const daysSince = (lastSent && !isNaN(lastSent.getTime())) ? (today.getTime() - lastSent.getTime()) / (24 * 60 * 60 * 1000) : 999;
+        shouldSendNewsletter = daysSince >= 14; // Every two weeks
       }
 
       if (shouldSendNewsletter) {
@@ -426,13 +437,13 @@ export const POST: RequestHandler = async ({ request }) => {
 
 async function sendScholarshipDigest(email: string, userId: string | null, source?: string): Promise<boolean> {
   try {
-    // Get new scholarships from the last week
-    const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    // Get new/recent scholarships from the last 2 weeks (curated digest, up to 10)
+    const twoWeeksAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
     
     const { data: scholarships } = await supabase
       .from('scholarships')
       .select('id, title, provider, deadline, amount, description')
-      .gte('created_at', oneWeekAgo.toISOString())
+      .gte('created_at', twoWeeksAgo.toISOString())
       .order('created_at', { ascending: false })
       .limit(10);
 

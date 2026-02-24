@@ -10,7 +10,7 @@ const supabase = createClient(PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 interface SettingsUpdate {
   newsletter_enabled?: boolean;
   scholarship_digest_enabled?: boolean;
-  send_frequency?: 'daily' | 'weekly' | 'monthly';
+  send_frequency?: 'daily' | 'weekly' | 'bi-weekly' | 'monthly';
   send_day?: number; // 0-6 (Sunday-Saturday)
   send_time?: string; // HH:MM format
   max_emails_per_batch?: number;
@@ -180,7 +180,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     }
 
     // Update send frequency
-    if (updates.send_frequency && ['daily', 'weekly', 'monthly'].includes(updates.send_frequency)) {
+    if (updates.send_frequency && ['daily', 'weekly', 'bi-weekly', 'monthly'].includes(updates.send_frequency)) {
       await updateSetting('send_frequency', updates.send_frequency, 'How often to send newsletter');
       updatedSettings.push('send_frequency');
     }

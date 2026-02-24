@@ -5,6 +5,7 @@
 
 import type { SupabaseClient, Session } from '@supabase/supabase-js';
 import { browser } from '$app/environment';
+import { loadUnifiedProfile } from './unifiedProfile.js';
 
 /**
  * Determine where to redirect user after successful authentication
