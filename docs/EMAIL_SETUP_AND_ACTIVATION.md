@@ -201,6 +201,9 @@ Once `CRON_SECRET` is set in GitHub, the workflow will call the endpoint daily; 
 
 **One-time manual run (e.g. “send digest to all registered users today”):** Call the same endpoint with a JSON body to force sending the scholarship digest to every registered user who has digest enabled (ignores Monday-only rule for that run):
 
+**Using Insomnia:** Method `POST`, URL `https://abroaducate.com/api/cron/send-reminders`. Header `Authorization`: `Bearer YOUR_CRON_SECRET`. Header `Content-Type`: `application/json`. Body (JSON): `{ "force_digest_all_registered": true }`. Send.
+
+**Using curl:**
 ```bash
 curl -X POST "https://abroaducate.com/api/cron/send-reminders" \
   -H "Authorization: Bearer YOUR_CRON_SECRET" \

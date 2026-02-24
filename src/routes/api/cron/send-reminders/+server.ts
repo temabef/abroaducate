@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { SUPABASE_SERVICE_ROLE_KEY, CRON_SECRET, SENDGRID_API_KEY, FROM_EMAIL } from '$env/static/private';
+import { SUPABASE_SERVICE_ROLE_KEY, SENDGRID_API_KEY, FROM_EMAIL } from '$env/static/private';
+import { env } from '$env/dynamic/private';
 import { PUBLIC_SUPABASE_URL } from '$env/static/public';
 import { createClient } from '@supabase/supabase-js';
 
@@ -60,8 +61,9 @@ export const POST: RequestHandler = async ({ request }) => {
     if (!authHeader && xAuthHeader) {
       authHeader = xAuthHeader;
     }
-    // Verify cron authorization
-    if (authHeader !== `Bearer ${CRON_SECRET}`) {
+    // Verify cron authorization (use runtime env so Vercel env vars work)
+    const cronSecret = env.CRON_SECRET;
+    if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
       return json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -838,7 +840,8 @@ The Abroaducate Team
 // GET endpoint for manual testing
 export const GET: RequestHandler = async ({ request }) => {
   const authHeader = request.headers.get('authorization');
-  if (authHeader !== `Bearer ${CRON_SECRET}`) {
+  const cronSecret = env.CRON_SECRET;
+  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
     return json({ error: 'Unauthorized' }, { status: 401 });
   }
 
