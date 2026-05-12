@@ -62,14 +62,19 @@
 			</section>
 
 			<section class="lp-section">
-				<h2>4. Credits and Payment</h2>
-				<p>Abroaducate uses a <strong>pay-as-you-go credit system</strong>. Credits are consumed when you use AI-powered features.</p>
+				<h2>4. Subscription Plans and Payment</h2>
+				<p>Abroaducate offers <strong>monthly and annual subscription plans</strong>:</p>
 				<ul>
-					<li><strong>Free credits:</strong> 3 lifetime credits on signup, at no charge</li>
-					<li><strong>Credit packs:</strong> 20 credits ($4.99), 50 credits ($9.99), 130 credits ($24.99)</li>
-					<li>Credits are lifetime — they do not expire</li>
+					<li><strong>Academic Starter</strong> — Free (no charge)</li>
+					<li><strong>Academic Professional</strong> — $12/month (or $115.20/year, saving 20%)</li>
+					<li><strong>Academic Elite</strong> — $29/month (or $278.40/year, saving 20%)</li>
+				</ul>
+				<ul>
+					<li>Paid plans include a 3-day free trial — you will not be charged until the trial ends</li>
+					<li>Subscriptions are billed monthly or annually in advance</li>
 					<li>All payments are processed securely through Stripe or Paddle</li>
 					<li>Prices are subject to change with 30 days notice</li>
+					<li>You may cancel at any time — access continues until the end of the billing period</li>
 					<li>Refunds are governed by our <a href="/refund-policy">Refund Policy</a></li>
 				</ul>
 			</section>

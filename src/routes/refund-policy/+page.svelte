@@ -27,7 +27,7 @@
 			<p class="rp-date">Last updated: May 2026</p>
 			<p class="rp-intro">
 				This Refund Policy explains when and how Abroaducate issues refunds for purchases made on
-				our platform. By purchasing credits on Abroaducate, you agree to this policy.
+				our platform. By subscribing to a paid plan on Abroaducate, you agree to this policy.
 			</p>
 		</div>
 
@@ -37,48 +37,67 @@
 			<section class="rp-section">
 				<h2>1. What We Sell</h2>
 				<p>
-					Abroaducate sells <strong>prepaid credit packs</strong> — digital credits that are consumed
-					when you use AI-powered features such as scholarship strategy generation and document
-					creation. Credits are lifetime (they do not expire) and are tied to your account.
+					Abroaducate offers <strong>monthly and annual subscription plans</strong> that give
+					students access to AI-powered document generation, scholarship matching, university
+					recommendations, and application tracking tools.
 				</p>
-				<p>Available credit packs:</p>
+				<p>Available plans:</p>
 				<ul>
-					<li><strong>20 credits</strong> — $4.99</li>
-					<li><strong>50 credits</strong> — $9.99</li>
-					<li><strong>130 credits</strong> — $24.99</li>
+					<li><strong>Academic Starter</strong> — Free (no charge)</li>
+					<li><strong>Academic Professional</strong> — $12/month (or $115.20/year, saving 20%)</li>
+					<li><strong>Academic Elite</strong> — $29/month (or $278.40/year, saving 20%)</li>
 				</ul>
 				<p>
-					All new users also receive <strong>3 free credits</strong> on signup at no charge.
+					Paid plans include a <strong>3-day free trial</strong>. You will not be charged until
+					the trial period ends.
 				</p>
 			</section>
 
 			<section class="rp-section">
 				<h2>2. Refund Policy</h2>
 				<div class="rp-callout">
-					<strong>We offer a 14-day refund on all credit pack purchases.</strong> If you are not
-					satisfied with your purchase for any reason, contact us within 14 days of the purchase
-					date and we will issue a full refund — no questions asked.
+					<strong>We offer a 14-day refund on all subscription purchases.</strong> If you are not
+					satisfied with your subscription for any reason, contact us within 14 days of your first
+					charge and we will issue a full refund — no questions asked.
 				</div>
 				<p>
-					To request a refund, contact us within <strong>14 days</strong> of your purchase date.
+					To request a refund, contact us within <strong>14 days</strong> of your payment date.
 					Refunds are processed within 5–10 business days to the original payment method.
 				</p>
 			</section>
 
 			<section class="rp-section">
-				<h2>3. How to Request a Refund</h2>
+				<h2>3. Free Trial</h2>
+				<p>
+					All paid plans begin with a <strong>3-day free trial</strong>. You may cancel at any
+					time during the trial period without being charged. If you do not cancel before the
+					trial ends, your subscription will begin and your payment method will be charged.
+				</p>
+			</section>
+
+			<section class="rp-section">
+				<h2>4. Cancellation</h2>
+				<p>
+					You may cancel your subscription at any time through your account settings or by
+					contacting us. Cancellation stops future charges. Your access to paid features continues
+					until the end of your current billing period.
+				</p>
+			</section>
+
+			<section class="rp-section">
+				<h2>5. How to Request a Refund</h2>
 				<div class="rp-contact-box">
 					<div><strong>Email:</strong> <a href="mailto:hello@abroaducate.com">hello@abroaducate.com</a></div>
 					<div><strong>Contact form:</strong> <a href="/contact">abroaducate.com/contact</a></div>
 				</div>
 				<p>
-					Please include your account email address and the date of purchase. We aim to respond
+					Please include your account email address and the date of the charge. We aim to respond
 					within 2 business days.
 				</p>
 			</section>
 
 			<section class="rp-section">
-				<h2>4. Refund Processing</h2>
+				<h2>6. Refund Processing</h2>
 				<p>
 					Approved refunds are processed within <strong>5–10 business days</strong> and returned to
 					the original payment method. Refunds are issued in the same currency as the original
@@ -87,16 +106,7 @@
 			</section>
 
 			<section class="rp-section">
-				<h2>5. Free Credits</h2>
-				<p>
-					The 3 free credits provided to all new users upon signup are not redeemable for cash and
-					are not subject to this refund policy. They are a complimentary allowance to explore the
-					platform.
-				</p>
-			</section>
-
-			<section class="rp-section">
-				<h2>6. Changes to This Policy</h2>
+				<h2>7. Changes to This Policy</h2>
 				<p>
 					We may update this Refund Policy from time to time. Any changes will be posted on this
 					page with an updated date. Continued use of the platform after changes constitutes
@@ -105,7 +115,7 @@
 			</section>
 
 			<section class="rp-section">
-				<h2>7. Contact Us</h2>
+				<h2>8. Contact Us</h2>
 				<div class="rp-contact-box">
 					<div><strong>Company:</strong> Abroaducate, Inc</div>
 					<div><strong>Email:</strong> <a href="mailto:hello@abroaducate.com">hello@abroaducate.com</a></div>
