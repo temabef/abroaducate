@@ -53,70 +53,41 @@
 			</section>
 
 			<section class="rp-section">
-				<h2>2. General Refund Policy</h2>
+				<h2>2. Refund Policy</h2>
 				<div class="rp-callout">
-					<strong>All credit purchases are non-refundable once credits have been used.</strong>
-					Because credits are consumed immediately upon use of AI features, we are unable to reverse
-					the delivery of the digital service once it has been provided.
+					<strong>We offer a 14-day refund on all credit pack purchases.</strong> If you are not
+					satisfied with your purchase for any reason, contact us within 14 days of the purchase
+					date and we will issue a full refund — no questions asked.
 				</div>
 				<p>
-					This is consistent with standard practice for digital goods under applicable consumer
-					protection regulations, including the EU Consumer Rights Directive, which provides that
-					the right of withdrawal does not apply to digital content that has been fully performed
-					with the consumer's prior express consent.
+					To request a refund, contact us within <strong>14 days</strong> of your purchase date.
+					Refunds are processed within 5–10 business days to the original payment method.
 				</p>
 			</section>
 
 			<section class="rp-section">
-				<h2>3. When We Do Issue Refunds</h2>
-				<p>We will issue a full refund in the following circumstances:</p>
-				<ul>
-					<li>
-						<strong>Unused credits within 14 days:</strong> If you purchased a credit pack and have
-						not used any credits from that purchase, you may request a full refund within
-						<strong>14 days</strong> of purchase.
-					</li>
-					<li>
-						<strong>Technical failure:</strong> If a credit was deducted from your account but the
-						AI feature failed to deliver a result due to a platform error on our side, we will
-						restore the credit or issue a refund for that credit.
-					</li>
-					<li>
-						<strong>Duplicate charge:</strong> If you were charged more than once for the same
-						purchase due to a payment processing error, we will refund the duplicate charge in full.
-					</li>
-					<li>
-						<strong>Unauthorised transaction:</strong> If you believe a purchase was made on your
-						account without your authorisation, contact us immediately. We will investigate and, if
-						confirmed, issue a full refund.
-					</li>
-				</ul>
-			</section>
-
-			<section class="rp-section">
-				<h2>4. How to Request a Refund</h2>
-				<p>To request a refund, contact us within 14 days of your purchase:</p>
+				<h2>3. How to Request a Refund</h2>
 				<div class="rp-contact-box">
 					<div><strong>Email:</strong> <a href="mailto:hello@abroaducate.com">hello@abroaducate.com</a></div>
 					<div><strong>Contact form:</strong> <a href="/contact">abroaducate.com/contact</a></div>
 				</div>
 				<p>
-					Please include your account email address, the date of purchase, and the reason for your
-					refund request. We aim to respond within 2 business days.
+					Please include your account email address and the date of purchase. We aim to respond
+					within 2 business days.
 				</p>
 			</section>
 
 			<section class="rp-section">
-				<h2>5. Refund Processing</h2>
+				<h2>4. Refund Processing</h2>
 				<p>
 					Approved refunds are processed within <strong>5–10 business days</strong> and returned to
-					the original payment method. Processing times may vary depending on your bank or card
-					issuer. Refunds are issued in the same currency as the original purchase.
+					the original payment method. Refunds are issued in the same currency as the original
+					purchase.
 				</p>
 			</section>
 
 			<section class="rp-section">
-				<h2>6. Free Credits</h2>
+				<h2>5. Free Credits</h2>
 				<p>
 					The 3 free credits provided to all new users upon signup are not redeemable for cash and
 					are not subject to this refund policy. They are a complimentary allowance to explore the
@@ -125,7 +96,7 @@
 			</section>
 
 			<section class="rp-section">
-				<h2>7. Changes to This Policy</h2>
+				<h2>6. Changes to This Policy</h2>
 				<p>
 					We may update this Refund Policy from time to time. Any changes will be posted on this
 					page with an updated date. Continued use of the platform after changes constitutes
@@ -134,10 +105,9 @@
 			</section>
 
 			<section class="rp-section">
-				<h2>8. Contact Us</h2>
-				<p>If you have any questions about this Refund Policy, please contact us:</p>
+				<h2>7. Contact Us</h2>
 				<div class="rp-contact-box">
-					<div><strong>Company:</strong> Abroaducate</div>
+					<div><strong>Company:</strong> Abroaducate, Inc</div>
 					<div><strong>Email:</strong> <a href="mailto:hello@abroaducate.com">hello@abroaducate.com</a></div>
 					<div><strong>Website:</strong> <a href="https://abroaducate.com">abroaducate.com</a></div>
 				</div>
