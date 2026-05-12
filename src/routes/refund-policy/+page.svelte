@@ -1,6 +1,6 @@
 <svelte:head>
   <title>Refund Policy - Abroaducate</title>
-  <meta name="description" content="Abroaducate Refund Policy — understand how refunds work for credit purchases on our platform." />
+  <meta name="description" content="Abroaducate Refund Policy — understand how refunds work for subscriptions on our platform." />
   <meta name="robots" content="index, follow" />
 </svelte:head>
 
@@ -13,7 +13,7 @@
       <p class="text-lg text-gray-600 mb-4">Last updated: May 2026</p>
       <p class="text-gray-700">
         This Refund Policy explains when and how Abroaducate issues refunds for purchases made on our platform.
-        By purchasing credits or any paid feature on Abroaducate, you agree to this policy.
+        By subscribing to a paid plan on Abroaducate, you agree to this policy.
       </p>
     </div>
 
@@ -24,69 +24,90 @@
       <section>
         <h2 class="text-2xl font-bold text-gray-900 mb-4">1. What We Sell</h2>
         <p class="text-gray-700 mb-4">
-          Abroaducate sells <strong>prepaid credit packs</strong> — digital credits that are consumed when you
-          use AI-powered features such as scholarship strategy generation and document creation.
-          Credits are lifetime (they do not expire) and are tied to your account.
+          Abroaducate offers <strong>monthly and annual subscription plans</strong> that give students
+          access to AI-powered document generation, scholarship matching, university recommendations,
+          and application tracking tools.
         </p>
-        <p class="text-gray-700">
-          Available credit packs:
-        </p>
-        <ul class="list-disc pl-6 space-y-2 text-gray-700 mt-3">
-          <li>20 credits — $4.99</li>
-          <li>50 credits — $9.99</li>
-          <li>130 credits — $24.99</li>
+        <p class="text-gray-700 mb-3">Available plans:</p>
+        <ul class="list-disc pl-6 space-y-2 text-gray-700">
+          <li><strong>Academic Starter</strong> — Free (no charge)</li>
+          <li><strong>Academic Professional</strong> — $12/month (or $115.20/year, saving 20%)</li>
+          <li><strong>Academic Elite</strong> — $29/month (or $278.40/year, saving 20%)</li>
         </ul>
+        <p class="text-gray-700 mt-4">
+          Paid plans include a <strong>3-day free trial</strong>. You will not be charged until the
+          trial period ends.
+        </p>
       </section>
 
-      <!-- 2. General Policy -->
+      <!-- 2. Free Trial -->
       <section>
-        <h2 class="text-2xl font-bold text-gray-900 mb-4">2. General Refund Policy</h2>
+        <h2 class="text-2xl font-bold text-gray-900 mb-4">2. Free Trial</h2>
+        <p class="text-gray-700 mb-4">
+          All paid plans begin with a <strong>3-day free trial</strong>. You may cancel at any time
+          during the trial period without being charged. If you do not cancel before the trial ends,
+          your subscription will automatically begin and your payment method will be charged.
+        </p>
+        <p class="text-gray-700">
+          To cancel during your trial, go to your account settings or contact us at
+          <a href="mailto:hello@abroaducate.com" class="text-blue-600 hover:underline">hello@abroaducate.com</a>.
+        </p>
+      </section>
+
+      <!-- 3. General Policy -->
+      <section>
+        <h2 class="text-2xl font-bold text-gray-900 mb-4">3. General Refund Policy</h2>
         <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-4">
           <p class="text-blue-800">
-            <strong>All credit purchases are non-refundable once credits have been used.</strong>
-            Because our credits are consumed immediately upon use of AI features, we are unable to
-            reverse the delivery of the digital service once it has been provided.
+            <strong>Subscription payments are generally non-refundable.</strong> When you subscribe,
+            you gain immediate access to all features of your plan. Because the digital service is
+            delivered immediately upon payment, we do not offer refunds for the current billing period
+            once it has begun.
           </p>
         </div>
         <p class="text-gray-700">
-          This is consistent with standard practice for digital goods and services under applicable
-          consumer protection regulations, including the EU Consumer Rights Directive, which provides
-          that the right of withdrawal does not apply to digital content that has been fully performed
-          with the consumer's prior express consent.
+          You may cancel your subscription at any time. Cancellation stops future charges, and your
+          access to paid features continues until the end of your current billing period. Cancellation
+          does not entitle you to a refund for the current period.
         </p>
       </section>
 
-      <!-- 3. Exceptions -->
+      <!-- 4. Exceptions -->
       <section>
-        <h2 class="text-2xl font-bold text-gray-900 mb-4">3. When We Do Issue Refunds</h2>
-        <p class="text-gray-700 mb-4">We will issue a full refund in the following circumstances:</p>
+        <h2 class="text-2xl font-bold text-gray-900 mb-4">4. When We Do Issue Refunds</h2>
+        <p class="text-gray-700 mb-4">We will issue a full or partial refund in the following circumstances:</p>
         <ul class="list-disc pl-6 space-y-3 text-gray-700">
           <li>
-            <strong>Unused credits:</strong> If you purchased a credit pack and have not used any credits
-            from that purchase, you may request a full refund within <strong>14 days</strong> of purchase.
+            <strong>Charged after cancellation:</strong> If you were charged after successfully
+            cancelling your subscription, we will refund the charge in full.
           </li>
           <li>
-            <strong>Technical failure:</strong> If a credit was deducted from your account but the AI
-            feature failed to deliver a result due to a platform error on our side, we will restore
-            the credit or issue a refund for that credit.
+            <strong>Duplicate charge:</strong> If you were charged more than once for the same
+            billing period due to a payment processing error, we will refund the duplicate charge.
           </li>
           <li>
-            <strong>Duplicate charge:</strong> If you were charged more than once for the same purchase
-            due to a payment processing error, we will refund the duplicate charge in full.
+            <strong>Service unavailability:</strong> If the platform was completely inaccessible for
+            a significant portion of your billing period due to an issue on our side, we will consider
+            a pro-rated refund on a case-by-case basis.
           </li>
           <li>
-            <strong>Unauthorised transaction:</strong> If you believe a purchase was made on your account
-            without your authorisation, contact us immediately. We will investigate and, if confirmed,
-            issue a full refund.
+            <strong>Unauthorised transaction:</strong> If you believe a subscription was started on
+            your account without your authorisation, contact us immediately. We will investigate and,
+            if confirmed, cancel the subscription and issue a full refund.
+          </li>
+          <li>
+            <strong>Within 48 hours of first charge:</strong> If you contact us within 48 hours of
+            your first subscription charge (after the free trial ends) and have not made significant
+            use of the platform, we will consider a refund at our discretion.
           </li>
         </ul>
       </section>
 
-      <!-- 4. How to Request -->
+      <!-- 5. How to Request -->
       <section>
-        <h2 class="text-2xl font-bold text-gray-900 mb-4">4. How to Request a Refund</h2>
+        <h2 class="text-2xl font-bold text-gray-900 mb-4">5. How to Request a Refund</h2>
         <p class="text-gray-700 mb-4">
-          To request a refund, contact us within 14 days of your purchase:
+          To request a refund, contact us as soon as possible after the charge:
         </p>
         <div class="bg-gray-50 border border-gray-200 rounded-lg p-6">
           <ul class="space-y-2 text-gray-700">
@@ -95,14 +116,14 @@
           </ul>
         </div>
         <p class="text-gray-700 mt-4">
-          Please include your account email address, the date of purchase, and the reason for your
+          Please include your account email address, the date of the charge, and the reason for your
           refund request. We aim to respond within 2 business days.
         </p>
       </section>
 
-      <!-- 5. Processing -->
+      <!-- 6. Processing -->
       <section>
-        <h2 class="text-2xl font-bold text-gray-900 mb-4">5. Refund Processing</h2>
+        <h2 class="text-2xl font-bold text-gray-900 mb-4">6. Refund Processing</h2>
         <p class="text-gray-700 mb-4">
           Approved refunds are processed within <strong>5–10 business days</strong> and returned to
           the original payment method. Processing times may vary depending on your bank or card issuer.
@@ -113,18 +134,25 @@
         </p>
       </section>
 
-      <!-- 6. Free Credits -->
+      <!-- 7. Cancellation -->
       <section>
-        <h2 class="text-2xl font-bold text-gray-900 mb-4">6. Free Credits</h2>
-        <p class="text-gray-700">
-          The 3 free credits provided to all new users upon signup are not redeemable for cash and
-          are not subject to this refund policy. They are a complimentary allowance to explore the platform.
+        <h2 class="text-2xl font-bold text-gray-900 mb-4">7. How to Cancel</h2>
+        <p class="text-gray-700 mb-4">
+          You can cancel your subscription at any time by:
+        </p>
+        <ul class="list-disc pl-6 space-y-2 text-gray-700">
+          <li>Going to your account settings and selecting "Cancel subscription"</li>
+          <li>Emailing us at <a href="mailto:hello@abroaducate.com" class="text-blue-600 hover:underline">hello@abroaducate.com</a></li>
+        </ul>
+        <p class="text-gray-700 mt-4">
+          Cancellation takes effect at the end of your current billing period. You will retain access
+          to your paid plan features until that date.
         </p>
       </section>
 
-      <!-- 7. Changes -->
+      <!-- 8. Changes -->
       <section>
-        <h2 class="text-2xl font-bold text-gray-900 mb-4">7. Changes to This Policy</h2>
+        <h2 class="text-2xl font-bold text-gray-900 mb-4">8. Changes to This Policy</h2>
         <p class="text-gray-700">
           We may update this Refund Policy from time to time. Any changes will be posted on this page
           with an updated date. Continued use of the platform after changes constitutes acceptance of
@@ -132,9 +160,9 @@
         </p>
       </section>
 
-      <!-- 8. Contact -->
+      <!-- 9. Contact -->
       <section>
-        <h2 class="text-2xl font-bold text-gray-900 mb-4">8. Contact Us</h2>
+        <h2 class="text-2xl font-bold text-gray-900 mb-4">9. Contact Us</h2>
         <p class="text-gray-700 mb-4">
           If you have any questions about this Refund Policy, please contact us:
         </p>
