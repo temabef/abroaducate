@@ -1,196 +1,326 @@
+<script lang="ts">
+	import { ChevronLeft } from 'lucide-svelte';
+</script>
+
 <svelte:head>
-  <title>Refund Policy - Abroaducate</title>
-  <meta name="description" content="Abroaducate Refund Policy — understand how refunds work for subscriptions on our platform." />
-  <meta name="robots" content="index, follow" />
+	<title>Refund Policy — Abroaducate</title>
+	<meta name="description" content="Abroaducate Refund Policy — how refunds work for credit pack purchases on our platform." />
+	<meta name="robots" content="index, follow" />
 </svelte:head>
 
-<div class="min-h-screen bg-gray-50 py-12">
-  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="rp-page">
+	<!-- Top nav -->
+	<div class="rp-topbar">
+		<div class="rp-topbar-inner">
+			<a href="/" class="rp-back">
+				<ChevronLeft size={16} />
+				Back to Abroaducate
+			</a>
+		</div>
+	</div>
 
-    <!-- Header -->
-    <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
-      <h1 class="text-4xl font-bold text-gray-900 mb-4">Refund Policy</h1>
-      <p class="text-lg text-gray-600 mb-4">Last updated: May 2026</p>
-      <p class="text-gray-700">
-        This Refund Policy explains when and how Abroaducate issues refunds for purchases made on our platform.
-        By subscribing to a paid plan on Abroaducate, you agree to this policy.
-      </p>
-    </div>
+	<div class="rp-container">
+		<!-- Header -->
+		<div class="rp-header">
+			<p class="rp-label">Legal</p>
+			<h1 class="rp-title">Refund Policy</h1>
+			<p class="rp-date">Last updated: May 2026</p>
+			<p class="rp-intro">
+				This Refund Policy explains when and how Abroaducate issues refunds for purchases made on
+				our platform. By purchasing credits on Abroaducate, you agree to this policy.
+			</p>
+		</div>
 
-    <!-- Content -->
-    <div class="bg-white rounded-lg shadow-lg p-8 space-y-8">
+		<!-- Sections -->
+		<div class="rp-body">
 
-      <!-- 1. Our Product -->
-      <section>
-        <h2 class="text-2xl font-bold text-gray-900 mb-4">1. What We Sell</h2>
-        <p class="text-gray-700 mb-4">
-          Abroaducate offers <strong>monthly and annual subscription plans</strong> that give students
-          access to AI-powered document generation, scholarship matching, university recommendations,
-          and application tracking tools.
-        </p>
-        <p class="text-gray-700 mb-3">Available plans:</p>
-        <ul class="list-disc pl-6 space-y-2 text-gray-700">
-          <li><strong>Academic Starter</strong> — Free (no charge)</li>
-          <li><strong>Academic Professional</strong> — $12/month (or $115.20/year, saving 20%)</li>
-          <li><strong>Academic Elite</strong> — $29/month (or $278.40/year, saving 20%)</li>
-        </ul>
-        <p class="text-gray-700 mt-4">
-          Paid plans include a <strong>3-day free trial</strong>. You will not be charged until the
-          trial period ends.
-        </p>
-      </section>
+			<section class="rp-section">
+				<h2>1. What We Sell</h2>
+				<p>
+					Abroaducate sells <strong>prepaid credit packs</strong> — digital credits that are consumed
+					when you use AI-powered features such as scholarship strategy generation and document
+					creation. Credits are lifetime (they do not expire) and are tied to your account.
+				</p>
+				<p>Available credit packs:</p>
+				<ul>
+					<li><strong>20 credits</strong> — $4.99</li>
+					<li><strong>50 credits</strong> — $9.99</li>
+					<li><strong>130 credits</strong> — $24.99</li>
+				</ul>
+				<p>
+					All new users also receive <strong>3 free credits</strong> on signup at no charge.
+				</p>
+			</section>
 
-      <!-- 2. Free Trial -->
-      <section>
-        <h2 class="text-2xl font-bold text-gray-900 mb-4">2. Free Trial</h2>
-        <p class="text-gray-700 mb-4">
-          All paid plans begin with a <strong>3-day free trial</strong>. You may cancel at any time
-          during the trial period without being charged. If you do not cancel before the trial ends,
-          your subscription will automatically begin and your payment method will be charged.
-        </p>
-        <p class="text-gray-700">
-          To cancel during your trial, go to your account settings or contact us at
-          <a href="mailto:hello@abroaducate.com" class="text-blue-600 hover:underline">hello@abroaducate.com</a>.
-        </p>
-      </section>
+			<section class="rp-section">
+				<h2>2. General Refund Policy</h2>
+				<div class="rp-callout">
+					<strong>All credit purchases are non-refundable once credits have been used.</strong>
+					Because credits are consumed immediately upon use of AI features, we are unable to reverse
+					the delivery of the digital service once it has been provided.
+				</div>
+				<p>
+					This is consistent with standard practice for digital goods under applicable consumer
+					protection regulations, including the EU Consumer Rights Directive, which provides that
+					the right of withdrawal does not apply to digital content that has been fully performed
+					with the consumer's prior express consent.
+				</p>
+			</section>
 
-      <!-- 3. General Policy -->
-      <section>
-        <h2 class="text-2xl font-bold text-gray-900 mb-4">3. General Refund Policy</h2>
-        <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-4">
-          <p class="text-blue-800">
-            <strong>Subscription payments are generally non-refundable.</strong> When you subscribe,
-            you gain immediate access to all features of your plan. Because the digital service is
-            delivered immediately upon payment, we do not offer refunds for the current billing period
-            once it has begun.
-          </p>
-        </div>
-        <p class="text-gray-700">
-          You may cancel your subscription at any time. Cancellation stops future charges, and your
-          access to paid features continues until the end of your current billing period. Cancellation
-          does not entitle you to a refund for the current period.
-        </p>
-      </section>
+			<section class="rp-section">
+				<h2>3. When We Do Issue Refunds</h2>
+				<p>We will issue a full refund in the following circumstances:</p>
+				<ul>
+					<li>
+						<strong>Unused credits within 14 days:</strong> If you purchased a credit pack and have
+						not used any credits from that purchase, you may request a full refund within
+						<strong>14 days</strong> of purchase.
+					</li>
+					<li>
+						<strong>Technical failure:</strong> If a credit was deducted from your account but the
+						AI feature failed to deliver a result due to a platform error on our side, we will
+						restore the credit or issue a refund for that credit.
+					</li>
+					<li>
+						<strong>Duplicate charge:</strong> If you were charged more than once for the same
+						purchase due to a payment processing error, we will refund the duplicate charge in full.
+					</li>
+					<li>
+						<strong>Unauthorised transaction:</strong> If you believe a purchase was made on your
+						account without your authorisation, contact us immediately. We will investigate and, if
+						confirmed, issue a full refund.
+					</li>
+				</ul>
+			</section>
 
-      <!-- 4. Exceptions -->
-      <section>
-        <h2 class="text-2xl font-bold text-gray-900 mb-4">4. When We Do Issue Refunds</h2>
-        <p class="text-gray-700 mb-4">We will issue a full or partial refund in the following circumstances:</p>
-        <ul class="list-disc pl-6 space-y-3 text-gray-700">
-          <li>
-            <strong>Charged after cancellation:</strong> If you were charged after successfully
-            cancelling your subscription, we will refund the charge in full.
-          </li>
-          <li>
-            <strong>Duplicate charge:</strong> If you were charged more than once for the same
-            billing period due to a payment processing error, we will refund the duplicate charge.
-          </li>
-          <li>
-            <strong>Service unavailability:</strong> If the platform was completely inaccessible for
-            a significant portion of your billing period due to an issue on our side, we will consider
-            a pro-rated refund on a case-by-case basis.
-          </li>
-          <li>
-            <strong>Unauthorised transaction:</strong> If you believe a subscription was started on
-            your account without your authorisation, contact us immediately. We will investigate and,
-            if confirmed, cancel the subscription and issue a full refund.
-          </li>
-          <li>
-            <strong>Within 48 hours of first charge:</strong> If you contact us within 48 hours of
-            your first subscription charge (after the free trial ends) and have not made significant
-            use of the platform, we will consider a refund at our discretion.
-          </li>
-        </ul>
-      </section>
+			<section class="rp-section">
+				<h2>4. How to Request a Refund</h2>
+				<p>To request a refund, contact us within 14 days of your purchase:</p>
+				<div class="rp-contact-box">
+					<div><strong>Email:</strong> <a href="mailto:hello@abroaducate.com">hello@abroaducate.com</a></div>
+					<div><strong>Contact form:</strong> <a href="/contact">abroaducate.com/contact</a></div>
+				</div>
+				<p>
+					Please include your account email address, the date of purchase, and the reason for your
+					refund request. We aim to respond within 2 business days.
+				</p>
+			</section>
 
-      <!-- 5. How to Request -->
-      <section>
-        <h2 class="text-2xl font-bold text-gray-900 mb-4">5. How to Request a Refund</h2>
-        <p class="text-gray-700 mb-4">
-          To request a refund, contact us as soon as possible after the charge:
-        </p>
-        <div class="bg-gray-50 border border-gray-200 rounded-lg p-6">
-          <ul class="space-y-2 text-gray-700">
-            <li><strong>Email:</strong> <a href="mailto:hello@abroaducate.com" class="text-blue-600 hover:underline">hello@abroaducate.com</a></li>
-            <li><strong>Contact form:</strong> <a href="/contact" class="text-blue-600 hover:underline">abroaducate.com/contact</a></li>
-          </ul>
-        </div>
-        <p class="text-gray-700 mt-4">
-          Please include your account email address, the date of the charge, and the reason for your
-          refund request. We aim to respond within 2 business days.
-        </p>
-      </section>
+			<section class="rp-section">
+				<h2>5. Refund Processing</h2>
+				<p>
+					Approved refunds are processed within <strong>5–10 business days</strong> and returned to
+					the original payment method. Processing times may vary depending on your bank or card
+					issuer. Refunds are issued in the same currency as the original purchase.
+				</p>
+			</section>
 
-      <!-- 6. Processing -->
-      <section>
-        <h2 class="text-2xl font-bold text-gray-900 mb-4">6. Refund Processing</h2>
-        <p class="text-gray-700 mb-4">
-          Approved refunds are processed within <strong>5–10 business days</strong> and returned to
-          the original payment method. Processing times may vary depending on your bank or card issuer.
-        </p>
-        <p class="text-gray-700">
-          Refunds are issued in the same currency as the original purchase. We are not responsible
-          for any currency conversion fees charged by your bank.
-        </p>
-      </section>
+			<section class="rp-section">
+				<h2>6. Free Credits</h2>
+				<p>
+					The 3 free credits provided to all new users upon signup are not redeemable for cash and
+					are not subject to this refund policy. They are a complimentary allowance to explore the
+					platform.
+				</p>
+			</section>
 
-      <!-- 7. Cancellation -->
-      <section>
-        <h2 class="text-2xl font-bold text-gray-900 mb-4">7. How to Cancel</h2>
-        <p class="text-gray-700 mb-4">
-          You can cancel your subscription at any time by:
-        </p>
-        <ul class="list-disc pl-6 space-y-2 text-gray-700">
-          <li>Going to your account settings and selecting "Cancel subscription"</li>
-          <li>Emailing us at <a href="mailto:hello@abroaducate.com" class="text-blue-600 hover:underline">hello@abroaducate.com</a></li>
-        </ul>
-        <p class="text-gray-700 mt-4">
-          Cancellation takes effect at the end of your current billing period. You will retain access
-          to your paid plan features until that date.
-        </p>
-      </section>
+			<section class="rp-section">
+				<h2>7. Changes to This Policy</h2>
+				<p>
+					We may update this Refund Policy from time to time. Any changes will be posted on this
+					page with an updated date. Continued use of the platform after changes constitutes
+					acceptance of the revised policy.
+				</p>
+			</section>
 
-      <!-- 8. Changes -->
-      <section>
-        <h2 class="text-2xl font-bold text-gray-900 mb-4">8. Changes to This Policy</h2>
-        <p class="text-gray-700">
-          We may update this Refund Policy from time to time. Any changes will be posted on this page
-          with an updated date. Continued use of the platform after changes constitutes acceptance of
-          the revised policy.
-        </p>
-      </section>
+			<section class="rp-section">
+				<h2>8. Contact Us</h2>
+				<p>If you have any questions about this Refund Policy, please contact us:</p>
+				<div class="rp-contact-box">
+					<div><strong>Company:</strong> Abroaducate</div>
+					<div><strong>Email:</strong> <a href="mailto:hello@abroaducate.com">hello@abroaducate.com</a></div>
+					<div><strong>Website:</strong> <a href="https://abroaducate.com">abroaducate.com</a></div>
+				</div>
+			</section>
 
-      <!-- 9. Contact -->
-      <section>
-        <h2 class="text-2xl font-bold text-gray-900 mb-4">9. Contact Us</h2>
-        <p class="text-gray-700 mb-4">
-          If you have any questions about this Refund Policy, please contact us:
-        </p>
-        <div class="bg-gray-50 border border-gray-200 rounded-lg p-6">
-          <ul class="space-y-2 text-gray-700">
-            <li><strong>Company:</strong> Abroaducate</li>
-            <li><strong>Email:</strong> <a href="mailto:hello@abroaducate.com" class="text-blue-600 hover:underline">hello@abroaducate.com</a></li>
-            <li><strong>Website:</strong> <a href="https://abroaducate.com" class="text-blue-600 hover:underline">abroaducate.com</a></li>
-          </ul>
-        </div>
-      </section>
+		</div>
 
-    </div>
-
-    <!-- Footer nav -->
-    <div class="mt-8 text-center text-sm text-gray-500 space-x-4">
-      <a href="/terms" class="hover:text-gray-700">Terms of Service</a>
-      <span>·</span>
-      <a href="/privacy" class="hover:text-gray-700">Privacy Policy</a>
-      <span>·</span>
-      <a href="/contact" class="hover:text-gray-700">Contact Us</a>
-    </div>
-
-  </div>
+		<!-- Footer nav -->
+		<div class="rp-footer-nav">
+			<a href="/terms">Terms of Service</a>
+			<span>·</span>
+			<a href="/privacy">Privacy Policy</a>
+			<span>·</span>
+			<a href="/contact">Contact Us</a>
+		</div>
+	</div>
 </div>
 
 <style>
-  html {
-    scroll-behavior: smooth;
-  }
+	.rp-page {
+		min-height: 100vh;
+		background: #f8fafc;
+		padding-top: 4rem;
+	}
+
+	.rp-topbar {
+		background: white;
+		border-bottom: 1px solid #e2e8f0;
+		position: sticky;
+		top: 4rem;
+		z-index: 10;
+	}
+
+	.rp-topbar-inner {
+		max-width: 52rem;
+		margin: 0 auto;
+		padding: 0.75rem 1.5rem;
+	}
+
+	.rp-back {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+		font-size: 0.875rem;
+		font-weight: 600;
+		color: #64748b;
+		text-decoration: none;
+		transition: color 0.15s;
+	}
+
+	.rp-back:hover { color: #0f172a; }
+
+	.rp-container {
+		max-width: 52rem;
+		margin: 0 auto;
+		padding: 3rem 1.5rem 4rem;
+	}
+
+	/* Header */
+	.rp-header {
+		margin-bottom: 2.5rem;
+	}
+
+	.rp-label {
+		font-size: 0.75rem;
+		font-weight: 700;
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+		color: #f97316;
+		margin-bottom: 0.5rem;
+	}
+
+	.rp-title {
+		font-family: 'Outfit', sans-serif;
+		font-size: 2.5rem;
+		font-weight: 800;
+		color: #0f172a;
+		margin-bottom: 0.5rem;
+		letter-spacing: -0.03em;
+	}
+
+	.rp-date {
+		font-size: 0.875rem;
+		color: #94a3b8;
+		margin-bottom: 1rem;
+	}
+
+	.rp-intro {
+		font-size: 1rem;
+		line-height: 1.7;
+		color: #475569;
+	}
+
+	/* Body */
+	.rp-body {
+		background: white;
+		border: 1px solid #e2e8f0;
+		border-radius: 1rem;
+		padding: 2.5rem;
+		display: flex;
+		flex-direction: column;
+		gap: 2.5rem;
+	}
+
+	.rp-section h2 {
+		font-family: 'Outfit', sans-serif;
+		font-size: 1.125rem;
+		font-weight: 700;
+		color: #0f172a;
+		margin-bottom: 0.875rem;
+	}
+
+	.rp-section p {
+		font-size: 0.9375rem;
+		line-height: 1.7;
+		color: #475569;
+		margin-bottom: 0.75rem;
+	}
+
+	.rp-section p:last-child { margin-bottom: 0; }
+
+	.rp-section ul {
+		list-style: disc;
+		padding-left: 1.5rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.625rem;
+		margin: 0.75rem 0;
+	}
+
+	.rp-section li {
+		font-size: 0.9375rem;
+		line-height: 1.6;
+		color: #475569;
+	}
+
+	.rp-callout {
+		background: #eff6ff;
+		border: 1px solid #bfdbfe;
+		border-radius: 0.75rem;
+		padding: 1rem 1.25rem;
+		font-size: 0.9375rem;
+		line-height: 1.6;
+		color: #1e40af;
+		margin-bottom: 0.875rem;
+	}
+
+	.rp-contact-box {
+		background: #f8fafc;
+		border: 1px solid #e2e8f0;
+		border-radius: 0.75rem;
+		padding: 1rem 1.25rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.375rem;
+		font-size: 0.9375rem;
+		color: #475569;
+		margin: 0.75rem 0;
+	}
+
+	.rp-contact-box a {
+		color: #f97316;
+		text-decoration: none;
+	}
+
+	.rp-contact-box a:hover { text-decoration: underline; }
+
+	/* Footer nav */
+	.rp-footer-nav {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.75rem;
+		margin-top: 2rem;
+		font-size: 0.8125rem;
+		color: #94a3b8;
+	}
+
+	.rp-footer-nav a {
+		color: #64748b;
+		text-decoration: none;
+		transition: color 0.15s;
+	}
+
+	.rp-footer-nav a:hover { color: #0f172a; }
 </style>
