@@ -96,7 +96,7 @@
 					<div
 						class="calendly-inline-widget"
 						data-url="{CALENDLY_URL}?hide_gdpr_banner=1&primary_color=f97316"
-						style="min-width:320px;height:700px;"
+						style="min-width:320px;height:900px;"
 					></div>
 				</div>
 			</div>

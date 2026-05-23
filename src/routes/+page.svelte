@@ -265,7 +265,7 @@ return () => clearInterval(interval);
 				<ul class="solution-bullets">
 					<li><CheckCircle2 size={20} /> <span>Find affordable programs with real cost breakdowns</span></li>
 					<li><CheckCircle2 size={20} /> <span>Get auto-matched with relevant scholarships</span></li>
-					<li><CheckCircle2 size={20} /> <span>Generate tailored SOPs, cover letters, and CVs</span></li>
+					<li><CheckCircle2 size={20} /> <span>Generate tailored SOPs, cover letters, and personal statements</span></li>
 					<li><CheckCircle2 size={20} /> <span>Track deadlines and application progress</span></li>
 				</ul>
 				<a href="/programs" class="btn-cta-primary btn-cta-navy">Explore Programs <ChevronRight size={16} /></a>
