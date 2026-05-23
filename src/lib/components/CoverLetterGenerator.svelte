@@ -4,10 +4,10 @@
     import { handleUpgradeRequired } from '$lib/services/upgradeService';
     import { coverLetterFormStore, saveCoverLetterStateToSessionStorage, coverLetterPendingGeneration } from '$lib/stores/coverLetterStore';
     import { get } from 'svelte/store';
+    import { GraduationCap, Briefcase, Landmark, FlaskConical, PenLine, Sparkles, Clipboard, Save, RefreshCw } from 'lucide-svelte';
     
     export let existingUserData: any = null;
     export let existingSOPData: any = null;
-    
     const dispatch = createEventDispatcher();
     
     interface CoverLetterData {
@@ -279,30 +279,10 @@
     
     // Position type options
     const positionTypes = [
-        {
-            value: 'academic',
-            label: '🎓 Academic Position',
-            description: 'PhD, PostDoc, Professor, Research Scientist',
-            color: 'from-blue-500 to-purple-600'
-        },
-        {
-            value: 'industry',
-            label: '💼 Industry Position', 
-            description: 'Corporate, Startup, Consulting, Tech',
-            color: 'from-green-500 to-blue-600'
-        },
-        {
-            value: 'government',
-            label: '🏛️ Government/NGO',
-            description: 'Public sector, Policy, International orgs',
-            color: 'from-red-500 to-pink-600'
-        },
-        {
-            value: 'hybrid',
-            label: '🔬 Hybrid Role',
-            description: 'Industry R&D, Corporate Research, Think Tanks',
-            color: 'from-purple-500 to-indigo-600'
-        }
+        { value: 'academic', label: 'Academic Position', description: 'PhD, PostDoc, Professor, Research Scientist', color: 'from-blue-500 to-purple-600', icon: GraduationCap },
+        { value: 'industry', label: 'Industry Position', description: 'Corporate, Startup, Consulting, Tech', color: 'from-green-500 to-blue-600', icon: Briefcase },
+        { value: 'government', label: 'Government/NGO', description: 'Public sector, Policy, International orgs', color: 'from-red-500 to-pink-600', icon: Landmark },
+        { value: 'hybrid', label: 'Hybrid Role', description: 'Industry R&D, Corporate Research, Think Tanks', color: 'from-purple-500 to-indigo-600', icon: FlaskConical }
     ];
     
     // Pre-populate from existing data
@@ -472,7 +452,7 @@
 <div class="cover-letter-generator">
     <!-- Header -->
     <div class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-6 rounded-t-lg">
-        <h2 class="text-2xl font-bold mb-2">📝 Smart Cover Letter Generator</h2>
+        <h2 class="text-2xl font-bold mb-2 flex items-center gap-2"><PenLine size={22} /> Smart Cover Letter Generator</h2>
         <p class="opacity-90">Create compelling cover letters for academic and industry positions</p>
         
         {#if currentStep <= totalSteps}
@@ -514,7 +494,10 @@
                                 class="sr-only"
                             />
                             <div class={`bg-gradient-to-r ${positionType.color} p-4 text-white`}>
-                                <div class="font-bold text-lg">{positionType.label}</div>
+                                <div class="flex items-center gap-2 font-bold text-lg mb-1">
+                                    <svelte:component this={positionType.icon} size={18} />
+                                    {positionType.label}
+                                </div>
                                 <div class="text-sm opacity-90">{positionType.description}</div>
                             </div>
                         </label>
@@ -700,7 +683,7 @@
                             <p class="text-red-500 text-sm mt-1">{experienceError}</p>
                         {/if}
                         {#if existingSOPData}
-                            <p class="text-xs text-gray-500 mt-1">✨ Pre-filled from your SOP. Feel free to edit.</p>
+                            <p class="text-xs text-gray-500 mt-1">Pre-filled from your SOP. Feel free to edit.</p>
                         {/if}
                     </div>
                     
@@ -830,7 +813,7 @@
                     disabled={!coverLetterData.jobTitle || !coverLetterData.companyName}
                     class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-indigo-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
                 >
-                    ✨ Generate Cover Letter
+                    Generate Cover Letter
                 </button>
             </div>
             
@@ -844,7 +827,7 @@
                             onclick={copyCoverLetter}
                             class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
                         >
-                            📋 Copy to Clipboard
+                            Copy to Clipboard
                         </button>
                     </div>
                 </div>
@@ -864,13 +847,13 @@
                         onclick={saveCoverLetter}
                         class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
                     >
-                        💾 Save & Edit
+                        Save & Edit
                     </button>
                     <button
                         onclick={startOver}
                         class="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
                     >
-                        🔄 Create Another Cover Letter
+                        Create Another Cover Letter
                     </button>
                 </div>
             </div>

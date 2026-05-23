@@ -1,56 +1,22 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { SUPABASE_SERVICE_ROLE_KEY, SENDGRID_API_KEY, FROM_EMAIL } from '$env/static/private';
+import { SUPABASE_SERVICE_ROLE_KEY } from '$env/static/private';
 import { env } from '$env/dynamic/private';
 import { PUBLIC_SUPABASE_URL } from '$env/static/public';
 import { createClient } from '@supabase/supabase-js';
+import { sendEmail } from '$lib/server/email.server';
 
 // Create admin client for server operations
 const supabase = createClient(PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-// Email service configuration
-const fromName = process.env.FROM_NAME || 'Abroaducate';
-const fromEmail = FROM_EMAIL || 'hello@abroaducate.com';
-const from = `${fromName} <${fromEmail}>`;
-
-// SendGrid email sending function
-async function sendEmailViaSendGrid(to: string, subject: string, htmlContent: string, textContent: string): Promise<{ success: boolean, error?: string }> {
-  if (!SENDGRID_API_KEY) {
-    const errMsg = '❌ SendGrid API key not configured';
-    console.error(errMsg);
-    return { success: false, error: errMsg };
-  }
-
-  try {
-    const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${SENDGRID_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        personalizations: [{ to: [{ email: to }] }],
-        from: { email: fromEmail, name: fromName },
-        subject: subject,
-        content: [
-          { type: 'text/plain', value: textContent },
-          { type: 'text/html', value: htmlContent }
-        ]
-      })
-    });
-
-    if (response.ok) {
-      console.log(`✅ Email sent successfully to ${to}: ${subject}`);
-      return { success: true };
-    } else {
-      const errorText = await response.text();
-      console.error(`❌ SendGrid error for ${to}:`, errorText);
-      return { success: false, error: errorText };
-    }
-  } catch (error) {
-    console.error(`❌ Error sending email to ${to}:`, error);
-    return { success: false, error: String(error) };
-  }
+// Thin wrapper that keeps the same call signature used throughout this file
+async function sendEmailViaSendGrid(
+  to: string,
+  subject: string,
+  htmlContent: string,
+  textContent: string
+): Promise<{ success: boolean; error?: string }> {
+  return sendEmail({ to, subject, html: htmlContent, text: textContent });
 }
 
 export const POST: RequestHandler = async ({ request }) => {
@@ -68,14 +34,60 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     let forceDigestAllRegistered = false;
+    let batchSize = 80;
+    let batchOffset = 0;
+    let testEmail: string | null = null;
     try {
       const body = await request.json().catch(() => ({}));
       forceDigestAllRegistered = !!body?.force_digest_all_registered;
+      if (typeof body?.batch_size === 'number' && body.batch_size > 0) batchSize = Math.min(200, body.batch_size);
+      if (typeof body?.offset === 'number' && body.offset >= 0) batchOffset = body.offset;
+      if (typeof body?.test_email === 'string' && body.test_email) testEmail = body.test_email;
     } catch {
       // no body or invalid JSON
     }
 
-    console.log('🔄 Starting email reminder cron job...' + (forceDigestAllRegistered ? ' [MANUAL: force digest to all registered]' : ''));
+    // TEST MODE: if test_email is provided, send only to that address and return immediately
+    if (testEmail) {
+      const twoWeeksAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
+      const { data: scholarships } = await supabase
+        .from('scholarships')
+        .select('id, title, provider, deadline, amount, description')
+        .gte('created_at', twoWeeksAgo.toISOString())
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      const results: any = { test_mode: true, sent_to: testEmail };
+
+      // Send scholarship digest
+      if (scholarships && scholarships.length > 0) {
+        console.log(`[TEST MODE] Sending scholarship digest to: ${testEmail}`);
+        const subject = `${scholarships.length} new scholarships this week — Abroaducate`;
+        const html = generateScholarshipDigestHTML(scholarships);
+        const text = generateScholarshipDigestText(scholarships);
+        const r = await sendEmailViaSendGrid(testEmail, subject, html, text);
+        results.digest = { success: r.success, scholarships_count: scholarships.length };
+      } else {
+        results.digest = { skipped: true, reason: 'No new scholarships in last 2 weeks' };
+      }
+
+      // Send a sample deadline reminder
+      console.log(`[TEST MODE] Sending sample deadline reminder to: ${testEmail}`);
+      const sampleApp = {
+        university_name: 'Technical University of Munich',
+        program_name: 'MSc Computer Science',
+        application_deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days from now
+      };
+      const reminderSubject = `Deadline reminder: ${sampleApp.university_name} — 7 days left`;
+      const reminderHtml = generateApplicationReminderHTML(sampleApp, 7, 'important');
+      const reminderText = generateApplicationReminderText(sampleApp, 7, 'important');
+      const r2 = await sendEmailViaSendGrid(testEmail, reminderSubject, reminderHtml, reminderText);
+      results.deadline_reminder = { success: r2.success };
+
+      return json({ success: true, ...results });
+    }
+
+    console.log('🔄 Starting email reminder cron job...' + (forceDigestAllRegistered ? ` [MANUAL: force digest, batch offset=${batchOffset} size=${batchSize}]` : ''));
 
     // Get the current day of week (0 = Sunday, 1 = Monday, etc.)
     const today = new Date();
@@ -101,25 +113,27 @@ export const POST: RequestHandler = async ({ request }) => {
         scholarship_digest_daily
       `);
 
-    // Get user tiers for all users
-    const { data: allSubs } = await supabase
-      .from('user_subscriptions')
-      .select('user_id, plan_type, status');
-
-    const userTierMap = new Map();
-    for (const sub of allSubs || []) {
-      if (sub.status === 'active') {
-        userTierMap.set(sub.user_id, sub.plan_type);
+    // Get user tiers for all users (skip when doing batched force digest)
+    let userTierMap = new Map<string, string>();
+    if (!forceDigestAllRegistered) {
+      const { data: allSubs } = await supabase
+        .from('user_subscriptions')
+        .select('user_id, plan_type, status');
+      for (const sub of allSubs || []) {
+        if (sub.status === 'active') {
+          userTierMap.set(sub.user_id, sub.plan_type);
+        }
       }
     }
 
+    // Build list of users to process for scholarship digest
+    const digestEligible: { user_id: string }[] = [];
     for (const user of allUsers || []) {
       const wantsDigest = !!(user.scholarship_digest_weekly || user.scholarship_digest_daily);
       if (!wantsDigest) continue;
 
       let shouldSend = false;
       if (forceDigestAllRegistered) {
-        // One-time manual run: send to everyone who has digest enabled
         shouldSend = true;
       } else {
         const planType = userTierMap.get(user.user_id) || 'free';
@@ -140,9 +154,48 @@ export const POST: RequestHandler = async ({ request }) => {
         }
         shouldSend = sendDaily || sendWeekly;
       }
+      if (shouldSend) digestEligible.push({ user_id: user.user_id });
+    }
 
-      if (!shouldSend) continue;
+    // When force-digest: process only this batch to avoid timeout, then return
+    if (forceDigestAllRegistered && digestEligible.length > 0) {
+      digestEligible.sort((a, b) => a.user_id.localeCompare(b.user_id));
+      const totalEligible = digestEligible.length;
+      const batch = digestEligible.slice(batchOffset, batchOffset + batchSize);
 
+      for (const user of batch) {
+        try {
+          const { data: authUser } = await supabase.auth.admin.getUserById(user.user_id);
+          if (authUser.user?.email) {
+            const emailSent = await sendScholarshipDigest(authUser.user.email, user.user_id);
+            if (emailSent) {
+              emailsProcessed.scholarship_digest++;
+              totalEmailsSent++;
+            }
+          }
+        } catch (error) {
+          console.error(`Error sending scholarship digest to user ${user.user_id}:`, error);
+        }
+      }
+
+      const hasMore = batchOffset + batchSize < totalEligible;
+      const nextOffset = batchOffset + batchSize;
+
+      return json({
+        success: true,
+        total_emails_sent: totalEmailsSent,
+        breakdown: emailsProcessed,
+        force_digest_batch: true,
+        hasMore,
+        next_offset: hasMore ? nextOffset : undefined,
+        total_eligible: totalEligible,
+        processed_this_batch: batch.length,
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    // Normal cron: process all eligible users (no batching)
+    for (const user of digestEligible) {
       try {
         const { data: authUser } = await supabase.auth.admin.getUserById(user.user_id);
         if (authUser.user?.email) {
@@ -157,129 +210,37 @@ export const POST: RequestHandler = async ({ request }) => {
       }
     }
 
-    // ============ APPLICATION REMINDERS (PAID USERS ONLY) ============
-    
-    // Get paid users with application deadline reminders enabled
-    const { data: paidUsersPrefs } = await supabase
+    // ============ APPLICATION DEADLINE REMINDERS (ALL USERS) ============
+    // Removed paid-only gate — all users get deadline reminders for programs/scholarships
+    // they have saved to their dashboard.
+
+    const { data: allUsersPrefs } = await supabase
       .from('user_preferences')
       .select('user_id, email_deadlines, instant_alerts')
       .eq('email_deadlines', true);
 
-    console.log(`⏰ Processing application reminders for ${paidUsersPrefs?.length || 0} users`);
+    console.log(`⏰ Processing application reminders for ${allUsersPrefs?.length || 0} users`);
 
-    for (const userPref of paidUsersPrefs || []) {
+    for (const userPref of allUsersPrefs || []) {
       try {
-        // Check if user has active subscription
-        const { data: subscription } = await supabase
-          .from('user_subscriptions')
-          .select('plan_type')
-          .eq('user_id', userPref.user_id)
-          .eq('status', 'active')
-          .single();
-
-        if (subscription) {
-          const { data: authUser } = await supabase.auth.admin.getUserById(userPref.user_id);
-          
-          if (authUser.user?.email) {
-            const remindersSent = await sendApplicationReminders(
-              authUser.user.email,
-              userPref.user_id,
-              userPref.instant_alerts
-            );
-            emailsProcessed.application_reminders += remindersSent;
-            totalEmailsSent += remindersSent;
-          }
+        const { data: authUser } = await supabase.auth.admin.getUserById(userPref.user_id);
+        if (authUser.user?.email) {
+          const remindersSent = await sendApplicationReminders(
+            authUser.user.email,
+            userPref.user_id,
+            userPref.instant_alerts
+          );
+          emailsProcessed.application_reminders += remindersSent;
+          totalEmailsSent += remindersSent;
         }
       } catch (error) {
         console.error(`Error processing application reminders for user ${userPref.user_id}:`, error);
       }
     }
 
-    // ============ SUBSCRIPTION ALERTS (PAID USERS ONLY) ============
-    
-    // Check for expiring subscriptions (7 days, 3 days, 1 day before expiry)
-    const checkDates = [7, 3, 1];
-    
-    for (const daysAhead of checkDates) {
-      const targetDate = new Date();
-      targetDate.setDate(targetDate.getDate() + daysAhead);
-      const targetDateStr = targetDate.toISOString().split('T')[0];
-
-      const { data: expiringSubscriptions } = await supabase
-        .from('user_subscriptions')
-        .select('user_id, plan_type, expires_at')
-        .eq('status', 'active')
-        .gte('expires_at', targetDateStr)
-        .lt('expires_at', targetDateStr + ' 23:59:59');
-
-      for (const subscription of expiringSubscriptions || []) {
-        try {
-          // Check if user wants subscription alerts
-          const { data: userPref } = await supabase
-            .from('user_preferences')
-            .select('subscription_alerts')
-            .eq('user_id', subscription.user_id)
-            .single();
-
-          if (userPref?.subscription_alerts) {
-            const { data: authUser } = await supabase.auth.admin.getUserById(subscription.user_id);
-            
-            if (authUser.user?.email) {
-              const emailSent = await sendSubscriptionAlert(
-                authUser.user.email,
-                subscription.user_id,
-                subscription.plan_type,
-                daysAhead
-              );
-              if (emailSent) {
-                emailsProcessed.subscription_alerts++;
-                totalEmailsSent++;
-              }
-            }
-          }
-        } catch (error) {
-          console.error(`Error sending subscription alert for user ${subscription.user_id}:`, error);
-        }
-      }
-    }
-
-    // ============ TRIAL ENDING REMINDERS (24H BEFORE) ============
-    try {
-      const now = new Date();
-      const cutoff = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-      const { data: trialingSubscriptions } = await supabase
-        .from('user_subscriptions')
-        .select('user_id, plan_type, current_period_end')
-        .eq('status', 'trialing')
-        .gte('current_period_end', now.toISOString())
-        .lte('current_period_end', cutoff.toISOString());
-
-      for (const sub of trialingSubscriptions || []) {
-        try {
-          // Check if user wants subscription alerts
-          const { data: userPref } = await supabase
-            .from('user_preferences')
-            .select('subscription_alerts')
-            .eq('user_id', sub.user_id)
-            .single();
-
-          if (userPref?.subscription_alerts) {
-            const { data: authUser } = await supabase.auth.admin.getUserById(sub.user_id);
-            if (authUser.user?.email) {
-              const ok = await sendTrialEndingReminder(authUser.user.email, sub.user_id, sub.plan_type, sub.current_period_end);
-              if (ok) {
-                emailsProcessed.trial_end_alerts++;
-                totalEmailsSent++;
-              }
-            }
-          }
-        } catch (err) {
-          console.error('Error sending trial ending reminder for user', sub.user_id, err);
-        }
-      }
-    } catch (err) {
-      console.error('Trial ending reminder block error', err);
-    }
+    // Subscription expiry alerts and trial ending reminders removed —
+    // the platform is now pay-as-you-go credits, not subscriptions.
+    // Low-credit warnings are sent at the point of use (spend_credits RPC → API endpoint).
 
     // ============ NEWSLETTER SUBSCRIBERS (NON-USERS) ============
     
@@ -343,6 +304,29 @@ export const POST: RequestHandler = async ({ request }) => {
 
         console.log(`📧 Processing newsletter for ${newsletterSubscribers?.length || 0} subscribers`);
 
+        // Deduplicate: skip newsletter subscribers who are already registered users
+        // (they'll get the digest via the registered user flow above)
+        let dedupedSubscribers = newsletterSubscribers || [];
+        if (dedupedSubscribers.length > 0) {
+          const emails = dedupedSubscribers.map((s: any) => s.email.toLowerCase());
+          // Fetch registered user emails in batches of 500
+          const registeredEmails = new Set<string>();
+          for (let i = 0; i < emails.length; i += 500) {
+            const chunk = emails.slice(i, i + 500);
+            const { data: authUsers } = await supabase.auth.admin.listUsers({ perPage: 1000 });
+            if (authUsers?.users) {
+              for (const u of authUsers.users) {
+                if (u.email) registeredEmails.add(u.email.toLowerCase());
+              }
+            }
+            break; // listUsers returns all users in one call up to perPage
+          }
+          const before = dedupedSubscribers.length;
+          dedupedSubscribers = dedupedSubscribers.filter((s: any) => !registeredEmails.has(s.email.toLowerCase()));
+          const skipped = before - dedupedSubscribers.length;
+          if (skipped > 0) console.log(`📧 Skipped ${skipped} newsletter subscribers who are already registered users`);
+        }
+
         // Get batch size setting
         const { data: batchSettings } = await supabase
           .from('newsletter_settings')
@@ -352,10 +336,10 @@ export const POST: RequestHandler = async ({ request }) => {
 
         const batchSize = batchSettings?.setting_value || 100;
 
-        // Process in batches to avoid overwhelming SendGrid
-        if (newsletterSubscribers && newsletterSubscribers.length > 0) {
-          for (let i = 0; i < newsletterSubscribers.length; i += batchSize) {
-            const batch = newsletterSubscribers.slice(i, i + batchSize);
+        // Process in batches to avoid overwhelming the email provider
+        if (dedupedSubscribers.length > 0) {
+          for (let i = 0; i < dedupedSubscribers.length; i += batchSize) {
+            const batch = dedupedSubscribers.slice(i, i + batchSize);
             
             for (const subscriber of batch) {
               try {
@@ -379,7 +363,7 @@ export const POST: RequestHandler = async ({ request }) => {
             }
 
             // Add delay between batches to respect rate limits
-            if (i + batchSize < newsletterSubscribers.length) {
+            if (i + batchSize < dedupedSubscribers.length) {
               await new Promise(resolve => setTimeout(resolve, 1000)); // 1 second delay
             }
           }
@@ -460,8 +444,8 @@ async function sendScholarshipDigest(email: string, userId: string | null, sourc
     
     // Generate email content
     const subject = source 
-      ? `🎓 Weekly Scholarship Digest - ${scholarships.length} New Opportunities (${source})`
-      : `🎓 Weekly Scholarship Digest - ${scholarships.length} New Opportunities`;
+      ? `${scholarships.length} new scholarships this week — Abroaducate`
+      : `${scholarships.length} new scholarships this week — Abroaducate`;
     
     const htmlContent = generateScholarshipDigestHTML(scholarships, source);
     const textContent = generateScholarshipDigestText(scholarships, source);
@@ -538,7 +522,7 @@ async function sendApplicationReminders(email: string, userId: string, instantAl
         
         // Generate email content
         const urgency = daysUntil <= 1 ? 'critical' : daysUntil <= 3 ? 'urgent' : daysUntil <= 7 ? 'important' : 'moderate';
-        const subject = `⏰ Application Deadline: ${app.university_name} - ${daysUntil} day${daysUntil === 1 ? '' : 's'} remaining`;
+        const subject = `Deadline reminder: ${app.university_name} — ${daysUntil === 0 ? 'due today' : daysUntil === 1 ? '1 day left' : `${daysUntil} days left`}`;
         
         const htmlContent = generateApplicationReminderHTML(app, daysUntil, urgency);
         const textContent = generateApplicationReminderText(app, daysUntil, urgency);
@@ -652,47 +636,66 @@ async function sendTrialEndingReminder(email: string, userId: string, planType: 
 
 function generateScholarshipDigestHTML(scholarships: any[], source?: string): string {
   const scholarshipCards = scholarships.map(s => `
-    <div style="background-color: #f8fafc; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin-bottom: 16px;">
-      <h4 style="color: #1f2937; margin: 0 0 8px 0; font-size: 18px;">${s.title}</h4>
-      <p style="color: #6b7280; margin: 0 0 8px 0; font-size: 14px;">Provider: ${s.provider}</p>
-      ${s.amount ? `<p style="color: #059669; margin: 0 0 8px 0; font-weight: 600;">Amount: ${s.amount}</p>` : ''}
-      ${s.deadline ? `<p style="color: #dc2626; margin: 0 0 8px 0; font-size: 14px;">Deadline: ${new Date(s.deadline).toLocaleDateString()}</p>` : ''}
-      <a href="https://abroaducate.com/scholarships/${s.id}" style="color: #2563eb; text-decoration: none; font-weight: 600;">View Details →</a>
+    <div style="border:1px solid #e2e8f0;border-radius:12px;padding:20px;margin-bottom:16px;background:#fff;">
+      <h4 style="color:#0f172a;margin:0 0 6px 0;font-size:16px;font-weight:700;font-family:'Outfit',sans-serif;">${s.title}</h4>
+      <p style="color:#64748b;margin:0 0 10px 0;font-size:13px;">${s.provider}${s.location ? ` · ${s.location}` : ''}</p>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px;">
+        ${s.amount ? `<span style="background:#f0fdf4;color:#16a34a;font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;border:1px solid #bbf7d0;">${s.amount}</span>` : ''}
+        ${s.deadline ? `<span style="background:#fff7ed;color:#ea580c;font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;border:1px solid #fed7aa;">Deadline: ${new Date(s.deadline).toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'})}</span>` : ''}
+        ${s.level ? `<span style="background:#f1f5f9;color:#475569;font-size:12px;font-weight:600;padding:3px 10px;border-radius:20px;border:1px solid #e2e8f0;">${s.level}</span>` : ''}
+      </div>
+      <a href="https://abroaducate.com/scholarships/${s.id}" style="color:#f97316;text-decoration:none;font-weight:700;font-size:13px;">View scholarship →</a>
     </div>
   `).join('');
 
-  return `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="utf-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Weekly Scholarship Digest</title>
-    </head>
-    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-      <div style="text-align: center; border-bottom: 2px solid #f0f0f0; padding-bottom: 20px; margin-bottom: 30px;">
-        <h1 style="color: #1E40AF; margin: 0; font-size: 28px;">🎓 Abroaducate</h1>
-        <h2 style="color: #374151; margin: 10px 0 0 0; font-size: 22px;">Weekly Scholarship Digest</h2>
+  return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Weekly Scholarship Digest</title>
+</head>
+<body style="margin:0;padding:0;background:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+<div style="max-width:600px;margin:0 auto;background:#f1f5f9;padding:32px 16px;">
+  <div style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+
+    <!-- Header -->
+    <div style="background:#0f172a;padding:28px 32px;text-align:center;position:relative;">
+      <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:radial-gradient(circle at 50% 0%,rgba(249,115,22,0.15),transparent 60%);"></div>
+      <div style="position:relative;">
+        <p style="color:#fff;font-size:22px;font-weight:800;margin:0;font-family:'Outfit',sans-serif;letter-spacing:-0.5px;">Abroaducate</p>
+        <p style="color:#94a3b8;font-size:13px;margin:4px 0 0;">Your study abroad strategy platform</p>
       </div>
-      
-      <div style="background-color: #dbeafe; border-left: 4px solid #3b82f6; padding: 15px; margin-bottom: 25px; border-radius: 4px;">
-        <h3 style="color: #1e40af; margin: 0 0 5px 0;">📋 ${scholarships.length} New Scholarships This Week</h3>
-        <p style="margin: 0; color: #374151;">Don't miss these new opportunities!${source ? ` (From your ${source} subscription)` : ''}</p>
+    </div>
+
+    <!-- Body -->
+    <div style="padding:32px;">
+      <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:16px;margin-bottom:24px;">
+        <p style="color:#9a3412;font-weight:700;font-size:14px;margin:0 0 4px;">🎓 ${scholarships.length} New Scholarships This Week</p>
+        <p style="color:#c2410c;font-size:13px;margin:0;">Fresh opportunities matched to your interests. Don't miss the deadlines.</p>
       </div>
-      
+
       ${scholarshipCards}
-      
-      <div style="text-align: center; margin: 30px 0;">
-        <a href="https://abroaducate.com/scholarships" style="display: inline-block; background-color: #2563EB; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600;">Browse All Scholarships</a>
-        ${source ? '<br><br><a href="https://abroaducate.com/subscribe" style="display: inline-block; background-color: #059669; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600;">Create Free Account</a>' : ''}
+
+      <div style="text-align:center;margin:28px 0 8px;">
+        <a href="https://abroaducate.com/scholarships" style="display:inline-block;background:#f97316;color:#fff;font-weight:700;font-size:15px;padding:14px 32px;border-radius:10px;text-decoration:none;">Browse All Scholarships</a>
       </div>
-      
-      <div style="border-top: 1px solid #e5e7eb; padding-top: 20px; margin-top: 30px; text-align: center; color: #6b7280; font-size: 14px;">
-        <p style="margin: 5px 0;"><a href="https://abroaducate.com/account/preferences" style="color: #2563EB; text-decoration: none;">Manage email preferences</a></p>
-      </div>
-    </body>
-    </html>
-  `;
+      ${source ? `<div style="text-align:center;margin-top:12px;"><a href="https://abroaducate.com/register" style="display:inline-block;background:#0f172a;color:#fff;font-weight:700;font-size:14px;padding:12px 28px;border-radius:10px;text-decoration:none;">Create Free Account</a></div>` : ''}
+    </div>
+
+    <!-- Footer -->
+    <div style="background:#f8fafc;padding:16px 32px;border-top:1px solid #e2e8f0;text-align:center;">
+      <p style="color:#64748b;font-size:12px;margin:0;">
+        <a href="https://abroaducate.com/settings" style="color:#64748b;text-decoration:none;">Manage email preferences</a>
+        &nbsp;·&nbsp;
+        <a href="https://abroaducate.com" style="color:#64748b;text-decoration:none;">abroaducate.com</a>
+      </p>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>`;
 }
 
 function generateScholarshipDigestText(scholarships: any[], source?: string): string {
@@ -704,80 +707,94 @@ function generateScholarshipDigestText(scholarships: any[], source?: string): st
   Link: https://abroaducate.com/scholarships/${s.id}
   `).join('\n');
 
-  return `
-🎓 ABROADUCATE - Weekly Scholarship Digest
-
-${scholarships.length} New Scholarships This Week${source ? ` (From your ${source} subscription)` : ''}
+  return `Abroaducate — ${scholarships.length} New Scholarships This Week
 
 ${scholarshipList}
 
 Browse all scholarships: https://abroaducate.com/scholarships
-${source ? 'Create free account: https://abroaducate.com/subscribe' : 'Manage preferences: https://abroaducate.com/account/preferences'}
+${source ? 'Create free account: https://abroaducate.com/register' : 'Manage preferences: https://abroaducate.com/settings'}
 
-Best regards,
-The Abroaducate Team
+Abroaducate · abroaducate.com
   `;
 }
 
 function generateApplicationReminderHTML(app: any, daysUntil: number, urgency: string): string {
-  const urgencyColors: Record<string, string> = {
-    critical: '#DC2626',
-    urgent: '#EA580C',
-    important: '#D97706',
-    moderate: '#2563EB'
-  };
+  const isUrgent = daysUntil <= 3;
+  const deadlineLabel = daysUntil === 0 ? 'Due today' : daysUntil === 1 ? '1 day left' : `${daysUntil} days left`;
+  const deadlineFormatted = new Date(app.application_deadline).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
 
-  return `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="utf-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Application Deadline Reminder</title>
-    </head>
-    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-      <div style="text-align: center; border-bottom: 2px solid #f0f0f0; padding-bottom: 20px; margin-bottom: 30px;">
-        <h1 style="color: #1E40AF; margin: 0; font-size: 28px;">🎓 Abroaducate</h1>
+  return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Application Deadline Reminder</title>
+</head>
+<body style="margin:0;padding:0;background:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+<div style="max-width:600px;margin:0 auto;background:#f1f5f9;padding:32px 16px;">
+  <div style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+
+    <!-- Header -->
+    <div style="background:#0f172a;padding:28px 32px;text-align:center;position:relative;">
+      <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:radial-gradient(circle at 50% 0%,rgba(249,115,22,0.15),transparent 60%);"></div>
+      <div style="position:relative;">
+        <p style="color:#fff;font-size:22px;font-weight:800;margin:0;font-family:'Outfit',sans-serif;letter-spacing:-0.5px;">Abroaducate</p>
+        <p style="color:#94a3b8;font-size:13px;margin:4px 0 0;">Your study abroad strategy platform</p>
       </div>
-      
-      <div style="background-color: ${urgencyColors[urgency]}15; border-left: 4px solid ${urgencyColors[urgency]}; padding: 15px; margin-bottom: 25px; border-radius: 4px;">
-        <h2 style="color: ${urgencyColors[urgency]}; margin: 0 0 5px 0;">⏰ Application Deadline Reminder</h2>
-        <p style="margin: 0; color: #555;">Your application deadline is ${daysUntil === 0 ? 'TODAY' : `in ${daysUntil} day${daysUntil === 1 ? '' : 's'}`}!</p>
+    </div>
+
+    <!-- Body -->
+    <div style="padding:32px;">
+
+      <!-- Urgency banner -->
+      <div style="background:${isUrgent ? '#fff1f2' : '#fff7ed'};border:1px solid ${isUrgent ? '#fecdd3' : '#fed7aa'};border-radius:10px;padding:16px;margin-bottom:24px;">
+        <p style="color:${isUrgent ? '#9f1239' : '#9a3412'};font-weight:700;font-size:14px;margin:0 0 4px;">Deadline reminder — ${deadlineLabel}</p>
+        <p style="color:${isUrgent ? '#be123c' : '#c2410c'};font-size:13px;margin:0;">Don't miss your application window for this program.</p>
       </div>
-      
-      <div style="background-color: #f8fafc; padding: 20px; border-radius: 8px; margin-bottom: 25px;">
-        <h3 style="color: #1f2937; margin: 0 0 15px 0;">📋 Application Details</h3>
-        <p><strong>University:</strong> ${app.university_name}</p>
-        <p><strong>Program:</strong> ${app.program_name}</p>
-        <p><strong>Deadline:</strong> <span style="color: ${urgencyColors[urgency]}; font-weight: 600;">${new Date(app.application_deadline).toLocaleDateString()}</span></p>
-        <p><strong>Time Remaining:</strong> <span style="color: ${urgencyColors[urgency]}; font-weight: 600;">${daysUntil === 0 ? 'DUE TODAY!' : `${daysUntil} day${daysUntil === 1 ? '' : 's'} left`}</span></p>
+
+      <!-- Program details -->
+      <div style="border:1px solid #e2e8f0;border-radius:12px;padding:20px;margin-bottom:24px;background:#f8fafc;">
+        <h3 style="color:#0f172a;font-size:17px;font-weight:700;margin:0 0 4px;font-family:'Outfit',sans-serif;">${app.program_name}</h3>
+        <p style="color:#64748b;font-size:14px;margin:0 0 16px;">${app.university_name}</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <span style="background:${isUrgent ? '#fff1f2' : '#fff7ed'};color:${isUrgent ? '#be123c' : '#ea580c'};font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px;border:1px solid ${isUrgent ? '#fecdd3' : '#fed7aa'};">Deadline: ${deadlineFormatted}</span>
+          <span style="background:#f1f5f9;color:#475569;font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px;border:1px solid #e2e8f0;">${deadlineLabel}</span>
+        </div>
       </div>
-      
-      <div style="text-align: center; margin: 30px 0;">
-        <a href="https://abroaducate.com/applications" style="display: inline-block; background-color: #2563EB; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600;">View Application</a>
+
+      <div style="text-align:center;margin:28px 0 8px;">
+        <a href="https://abroaducate.com/dashboard" style="display:inline-block;background:#f97316;color:#fff;font-weight:700;font-size:15px;padding:14px 32px;border-radius:10px;text-decoration:none;">Open Dashboard</a>
       </div>
-    </body>
-    </html>
-  `;
+    </div>
+
+    <!-- Footer -->
+    <div style="background:#f8fafc;padding:16px 32px;border-top:1px solid #e2e8f0;text-align:center;">
+      <p style="color:#64748b;font-size:12px;margin:0;">
+        <a href="https://abroaducate.com/settings" style="color:#64748b;text-decoration:none;">Manage email preferences</a>
+        &nbsp;·&nbsp;
+        <a href="https://abroaducate.com" style="color:#64748b;text-decoration:none;">abroaducate.com</a>
+      </p>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>`;
 }
 
 function generateApplicationReminderText(app: any, daysUntil: number, urgency: string): string {
-  return `
-🎓 ABROADUCATE - Application Deadline Reminder
+  const deadlineLabel = daysUntil === 0 ? 'Due today' : daysUntil === 1 ? '1 day left' : `${daysUntil} days left`;
+  return `Abroaducate — Deadline reminder
 
-Your application deadline is ${daysUntil === 0 ? 'TODAY' : `in ${daysUntil} day${daysUntil === 1 ? '' : 's'}`}!
+${app.program_name}
+${app.university_name}
 
-Application Details:
-- University: ${app.university_name}
-- Program: ${app.program_name}
-- Deadline: ${new Date(app.application_deadline).toLocaleDateString()}
-- Time Remaining: ${daysUntil === 0 ? 'DUE TODAY!' : `${daysUntil} days left`}
+Deadline: ${new Date(app.application_deadline).toLocaleDateString()} (${deadlineLabel})
 
-View your application: https://abroaducate.com/applications
+Open your dashboard: https://abroaducate.com/dashboard
 
-Best regards,
-The Abroaducate Team
-  `;
+Manage preferences: https://abroaducate.com/settings
+`;
 }
 
 function generateSubscriptionAlertHTML(planType: string, daysUntilExpiry: number): string {
@@ -848,8 +865,6 @@ export const GET: RequestHandler = async ({ request }) => {
   return json({
     message: 'Email cron job endpoint is active',
     timestamp: new Date().toISOString(),
-    sendgrid_configured: !!SENDGRID_API_KEY,
-    from_email: fromEmail,
     note: 'Use POST method to execute the reminder job'
   });
 }; 

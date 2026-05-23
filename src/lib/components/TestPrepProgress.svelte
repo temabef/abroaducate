@@ -103,11 +103,11 @@
           </div>
           <div class="section-status">
             {#if section.completed}
-              <CheckCircle size={16} class="completed-icon" />
+              <CheckCircle size={16} class="text-emerald-500" />
             {:else if section.id === currentSection}
-              <Play size={16} class="current-icon" />
+              <Play size={16} class="text-blue-500" />
             {:else}
-              <Circle size={16} class="pending-icon" />
+              <Circle size={16} class="text-slate-400" />
             {/if}
           </div>
         </button>
@@ -267,86 +267,4 @@
     align-items: center;
   }
 
-  .completed-icon {
-    color: #10b981;
-  }
-
-  .current-icon {
-    color: #3b82f6;
-  }
-
-  .pending-icon {
-    color: #9ca3af;
-  }
-
-  .audio-controls {
-    background: #f8fafc;
-    border-radius: 8px;
-    padding: 16px;
-    margin-bottom: 24px;
-  }
-
-  .audio-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 12px;
-    font-weight: 600;
-    color: #374151;
-  }
-
-  .audio-player {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .audio-toggle-btn {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: #3b82f6;
-    color: white;
-    border: none;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background-color 0.2s;
-  }
-
-  .audio-toggle-btn:hover {
-    background: #2563eb;
-  }
-
-  .audio-progress {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .audio-slider {
-    flex: 1;
-    height: 4px;
-    background: #e5e7eb;
-    border-radius: 2px;
-    outline: none;
-    cursor: pointer;
-  }
-
-  .audio-slider::-webkit-slider-thumb {
-    appearance: none;
-    width: 16px;
-    height: 16px;
-    background: #3b82f6;
-    border-radius: 50%;
-    cursor: pointer;
-  }
-
-  .audio-time {
-    font-size: 0.875rem;
-    color: #6b7280;
-    min-width: 40px;
-  }
 </style> 

@@ -250,9 +250,10 @@
               <p class="mt-1 text-sm text-slate-600">Add at least one destination country.</p>
 
               <div class="mt-4">
-                <label class="block text-sm font-semibold text-slate-700 mb-2">Destination countries *</label>
+                <label for="onboarding-country-search" class="block text-sm font-semibold text-slate-700 mb-2">Destination countries *</label>
                 <div class="relative">
                   <input
+                    id="onboarding-country-search"
                     type="text"
                     bind:value={countrySearch}
                     placeholder="Type a country and press Enter…"
@@ -303,7 +304,7 @@
                       {#each onboardingData.preferred_countries as c}
                         <span class="inline-flex items-center gap-2 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 px-3 py-1 text-sm">
                           {c}
-                          <button type="button" onclick={() => removeCountry(c)} class="rounded-full hover:bg-indigo-100 px-1">
+                          <button type="button" onclick={() => removeCountry(c)} class="rounded-full hover:bg-indigo-100 px-1" aria-label={`Remove ${c}`}>
                             <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
                           </button>
                         </span>
@@ -315,8 +316,9 @@
             </div>
 
             <div>
-              <label class="block text-sm font-semibold text-slate-700 mb-2">Phone (optional)</label>
+              <label for="onboarding-phone" class="block text-sm font-semibold text-slate-700 mb-2">Phone (optional)</label>
               <input
+                id="onboarding-phone"
                 type="tel"
                 bind:value={onboardingData.phone_number}
                 placeholder="WhatsApp number for reminders"
@@ -343,8 +345,9 @@
               <p class="mt-1 text-sm text-slate-600">This helps us personalize recommendations and tools.</p>
 
               <div class="mt-4">
-                <label class="block text-sm font-semibold text-slate-700 mb-2">Field of study *</label>
+                <label for="onboarding-field-search" class="block text-sm font-semibold text-slate-700 mb-2">Field of study *</label>
                 <input
+                  id="onboarding-field-search"
                   type="text"
                   bind:value={fieldSearch}
                   placeholder="Type a field and press Enter…"
@@ -374,7 +377,7 @@
                   <div class="mt-3">
                     <span class="inline-flex items-center gap-2 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 px-3 py-1 text-sm">
                       {onboardingData.field_of_study}
-                      <button type="button" onclick={() => (onboardingData.field_of_study = '')} class="rounded-full hover:bg-indigo-100 px-1">
+                      <button type="button" onclick={() => (onboardingData.field_of_study = '')} class="rounded-full hover:bg-indigo-100 px-1" aria-label="Clear selected field of study">
                         <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
                       </button>
                     </span>
@@ -384,7 +387,7 @@
             </div>
 
             <div>
-              <label class="block text-sm font-semibold text-slate-700 mb-2">Degree level *</label>
+              <p class="block text-sm font-semibold text-slate-700 mb-2">Degree level *</p>
               <div class="grid grid-cols-2 gap-3">
                 {#each [
                   { value: 'undergraduate', label: 'Undergraduate' },
@@ -409,8 +412,8 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-semibold text-slate-700 mb-2">Preferred intake (optional)</label>
-                <select bind:value={onboardingData.target_intake} class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#2C3580]/30">
+                <label for="onboarding-target-intake" class="block text-sm font-semibold text-slate-700 mb-2">Preferred intake (optional)</label>
+                <select id="onboarding-target-intake" bind:value={onboardingData.target_intake} class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#2C3580]/30">
                   <option value="">Select</option>
                   {#each availableIntakes as intake}
                     <option value={intake}>{intake}</option>
@@ -418,8 +421,8 @@
                 </select>
               </div>
               <div>
-                <label class="block text-sm font-semibold text-slate-700 mb-2">Budget (optional)</label>
-                <select bind:value={onboardingData.budget_range} class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#2C3580]/30">
+                <label for="onboarding-budget-range" class="block text-sm font-semibold text-slate-700 mb-2">Budget (optional)</label>
+                <select id="onboarding-budget-range" bind:value={onboardingData.budget_range} class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#2C3580]/30">
                   <option value="">Select</option>
                   {#each budgetRanges as b}
                     <option value={b.value}>{b.label}</option>

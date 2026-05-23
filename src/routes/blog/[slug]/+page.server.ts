@@ -39,12 +39,28 @@ export const load: PageServerLoad = async ({ params, locals }) => {
   // Simple markdown to HTML conversion
   const html = renderMarkdown(post.content || '');
 
+  // Fetch related posts — other published posts excluding current, most recent 4
+  const { data: relatedRows } = await supabase
+    .from('blog_posts')
+    .select('id, title, slug, excerpt, thumbnail_url, published_at, reading_time')
+    .eq('status', 'published')
+    .lte('published_at', new Date().toISOString())
+    .neq('id', post.id)
+    .order('published_at', { ascending: false })
+    .limit(4);
+
+  const related = (relatedRows ?? []).map((r: any) => ({
+    ...r,
+    reading_time: r.reading_time ?? Math.max(1, Math.round((r.content?.split(/\s+/).length || 0) / 200))
+  }));
+
   return {
     post: {
       ...post,
       reading_time
     },
-    html
+    html,
+    related
   };
 };
 
@@ -75,7 +91,13 @@ function renderMarkdown(text: string): string {
     }
     // Lists
     else if (line.match(/^- /)) {
-      line = line.replace(/^- (.*)$/, '<li>$1</li>');
+      // Apply inline formatting to list items too
+      let content = line.replace(/^- /, '');
+      content = content
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+      line = `<li>${content}</li>`;
     }
     // Regular paragraph content
     else {

@@ -3,8 +3,11 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { PUBLIC_SUPABASE_URL } from '$env/static/public';
 import { SUPABASE_SERVICE_ROLE_KEY } from '$env/static/private';
 
-// COMPREHENSIVE USAGE LIMITS - MATCHES PRICING PAGE & SQL EXACTLY
-// Updated: Final version for deployment - matches all systems
+// COMPREHENSIVE USAGE LIMITS
+// NOTE: The platform uses a pay-as-you-go credit system (user_profiles.credits).
+// This file handles legacy feature-type checks for features that are NOT
+// credit-gated (e.g. visa interview question counts, university query counts).
+// For AI document generation and scholarship strategies, use spend_credits RPC instead.
 
 export interface ComprehensiveUsageCheck {
 	allowed: boolean;
@@ -234,12 +237,13 @@ export async function checkComprehensiveUsageLimit(
 				return { allowed: false, planType, currentUsage: 0, limit, message: 'Could not verify usage.' };
 			}
 
-			const allowed = (currentUsage || 0) < limit;
+			const effectiveLimit = limit ?? 0;
+			const allowed = (currentUsage || 0) < effectiveLimit;
 			return {
 				allowed,
 				planType,
 				currentUsage: currentUsage || 0,
-				limit,
+				limit: effectiveLimit,
 				message: allowed ? undefined : `You have reached your monthly limit for ${featureSubtype}.`
 			};
 		}

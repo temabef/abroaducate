@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
   import AuthenticationFlow from '$lib/components/AuthenticationFlow.svelte';
-  import { formatCurrencyAmount, formatScholarshipText } from '$lib/utils/htmlEntities';
+  import { formatCurrencyAmount, formatScholarshipText, decodeHtmlEntities } from '$lib/utils/htmlEntities';
   import { analytics } from '$lib/utils/posthog';
   import QuickProfileModal from '$lib/components/QuickProfileModal.svelte';
   import { loadQuickProfile, type QuickProfile, gpaMidpoint } from '$lib/services/quickProfile';
@@ -74,7 +74,7 @@
 
   // Pagination state
   let currentPage = $state(1);
-  let itemsPerPage = $state(10);
+  let itemsPerPage = $state(12);
   let showQuickProfile = $state(false);
   let authRequiredForProfile = $state(false);
 
@@ -420,9 +420,12 @@
   let showAuthModal = $state(false);
   let pendingSaveScholarshipId = $state<string | null>(null);
   let authMode = $state<'login' | 'signup'>('login');
+  let guestToastMsg = $state('');
 
   async function toggleSaved(scholarshipId: string) {
     if (!session?.user?.id) {
+      guestToastMsg = 'Create a free account or log in to save your favorite scholarships.';
+      setTimeout(() => guestToastMsg = '', 4000);
       pendingSaveScholarshipId = scholarshipId;
       authMode = 'login';
       showAuthModal = true;
@@ -550,443 +553,145 @@
 
 <svelte:head>
   <title>Scholarships - Abroaducate</title>
-  <meta name="description" content="Browse thousands of scholarships and funding opportunities for your academic journey." />
+  <meta name="description" content="Browse scholarships and funding opportunities." />
 </svelte:head>
 
-<div class="min-h-screen bg-slate-50 pt-20">
-  <!-- Header -->
-  <div class="bg-white shadow-sm border-b border-slate-200">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-        <div>
-          <div class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/70 px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm">
-            <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
-            Explore scholarships (free) • Unlock win strategies (paid)
-          </div>
-          <h1 class="mt-4 text-3xl md:text-4xl font-bold text-slate-900">Scholarships</h1>
-          <p class="text-slate-600 mt-1">
-            {isLoading ? 'Loading...' : `${filteredScholarships.length} scholarships available`}
-          </p>
-        </div>
-        
-        <div class="flex items-center gap-4">
-          <button
-            onclick={() => loadScholarships()}
-            class="bg-[#2C3580] text-white px-4 py-2 rounded-xl font-semibold hover:bg-[#3c4d9c] transition duration-200"
-          >
-            🔄 Refresh
-          </button>
-          <button
-            onclick={() => showFilters = !showFilters}
-            class="bg-slate-900 text-white px-4 py-2 rounded-xl font-semibold hover:bg-slate-800 transition duration-200"
-          >
-            {showFilters ? 'Hide' : 'Show'} Filters
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
+<div class="discovery-layout">
+	<!-- HEADER: Page Title & Search -->
+	<div class="discovery-header">
+		<div class="header-content">
+			<div class="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-slate-300 backdrop-blur-md mb-6 shadow-xl relative z-10">
+				<span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+				{allScholarships.length} Actively Monitored Scholarships
+			</div>
+			<h1 class="page-title">Scholarship Discovery</h1>
+			<p class="page-subtitle">Find merit, need-based, and research scholarships perfectly matched to your profile.</p>
+			
+			<div class="search-bar">
+				<svg class="text-slate-400 w-5 h-5 flex-shrink-0 ml-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+				<input 
+					type="text" 
+					bind:value={searchQuery} 
+					placeholder="Search by scholarship title, provider, field, or location..." 
+					class="search-input"
+				/>
+			</div>
+		</div>
+	</div>
 
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    {#if error}
-      <div class="mb-6 p-4 bg-red-100 border border-red-300 rounded-lg">
-        <p class="text-red-800">{error}</p>
-        <button 
-          onclick={() => loadScholarships()}
-          class="mt-2 text-red-600 hover:text-red-800 underline"
-        >
-          Try Again
-        </button>
-      </div>
-    {/if}
-
-    <!-- Search and View Mode -->
-    <div class="mb-6 space-y-4">
-      <!-- Search Bar -->
-      <div class="flex flex-col sm:flex-row gap-4">
-        <div class="flex-1">
-          <input
-            type="text"
-            bind:value={searchQuery}
-            placeholder="Search scholarships by title, provider, field, or location..."
-            class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#2C3580]/30 focus:border-[#2C3580]"
-          />
-        </div>
-        <div class="flex gap-2">
-          <select
-            bind:value={sortBy}
-            class="px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#2C3580]/30 focus:border-[#2C3580]"
-          >
-            <option value="created_at">Latest First</option>
-            <option value="matchScore">Best Match</option>
-            <option value="deadline">Deadline</option>
-            <option value="title">Title A-Z</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- View Mode Tabs -->
-      <div class="flex space-x-1 bg-gray-100 p-1 rounded-lg w-fit">
-        <button
-          onclick={() => switchViewMode('all')}
-          class="px-4 py-2 rounded-md text-sm font-medium transition-colors {viewMode === 'all' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'}"
-        >
-          All ({allScholarships.length})
-        </button>
-        <button
-          onclick={() => switchViewMode('saved')}
-          class="px-4 py-2 rounded-md text-sm font-medium transition-colors {viewMode === 'saved' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'}"
-        >
-          Saved ({allScholarships.filter(s => s.saved).length})
-        </button>
-      </div>
-    </div>
-
-    <!-- Filters Panel -->
-    {#if showFilters}
-      <div class="mb-6 p-6 bg-white rounded-2xl shadow-sm border border-slate-200">
-        <h3 class="text-lg font-semibold mb-4 text-slate-900">Filters</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-          <div>
-            <label for="filter-funding-category" class="block text-sm font-medium text-gray-700 mb-1">Funding Category</label>
-            <select
-              id="filter-funding-category"
-              bind:value={filters.funding_category}
-              class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#2C3580]/30 focus:border-[#2C3580]"
-            >
-              <option value="">All Categories</option>
-              <option value="Traditional Scholarship">🏆 Traditional Scholarship</option>
-              <option value="Graduate Program Funding">🎓 Graduate Program</option>
-              <option value="Advertised Position">🔬 Research Position</option>
-            </select>
+	<div class="discovery-body max-w-7xl mx-auto px-6 py-12">
+        {#if error}
+          <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl">
+            <p class="text-red-600 font-semibold">{error}</p>
+            <button onclick={() => loadScholarships()} class="mt-2 text-red-700 underline text-sm">Try Again</button>
           </div>
-          <div>
-            <label for="filter-location" class="block text-sm font-medium text-gray-700 mb-1">Location</label>
-            <input
-              id="filter-location"
-              type="text"
-              bind:value={filters.location}
-              placeholder="e.g., United States"
-              class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#2C3580]/30 focus:border-[#2C3580]"
-            />
-          </div>
-          <div>
-            <label for="filter-level" class="block text-sm font-medium text-gray-700 mb-1">Level</label>
-            <select
-              id="filter-level"
-              bind:value={filters.level}
-              class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#2C3580]/30 focus:border-[#2C3580]"
-            >
-              <option value="">All Levels</option>
-              <option value="Bachelor">Bachelor's</option>
-              <option value="Master">Master's</option>
-              <option value="PhD">PhD</option>
-              <option value="Graduate">Graduate</option>
-            </select>
-          </div>
-          <div>
-            <label for="filter-field" class="block text-sm font-medium text-gray-700 mb-1">Field</label>
-            <input
-              id="filter-field"
-              type="text"
-              bind:value={filters.field}
-              placeholder="e.g., Engineering"
-              class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#2C3580]/30 focus:border-[#2C3580]"
-            />
-          </div>
-          <div>
-            <label for="filter-type" class="block text-sm font-medium text-gray-700 mb-1">Type</label>
-            <select
-              id="filter-type"
-              bind:value={filters.type}
-              class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#2C3580]/30 focus:border-[#2C3580]"
-            >
-              <option value="">All Types</option>
-              <option value="Merit-based">Merit-based</option>
-              <option value="Research-based">Research-based</option>
-              <option value="Need-based">Need-based</option>
-              <option value="Field-specific">Field-specific</option>
-            </select>
-          </div>
-        </div>
-        <div class="mt-4 flex gap-4">
-          <button
-            onclick={() => { 
-              console.log('🧹 Clearing all filters');
-              filters = { location: '', level: '', field: '', type: '', amount: '', deadline: '', funding_category: '' };
-              searchQuery = '';
-              currentPage = 1;
-              updateScholarships();
-            }}
-            class="px-4 py-2 bg-slate-900 text-white rounded-xl font-semibold hover:bg-slate-800 transition duration-200"
-          >
-            Clear All Filters
-          </button>
-        </div>
-      </div>
-    {/if}
-
-    <!-- Loading State -->
-    {#if isLoading}
-      <div class="text-center py-12">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2C3580] mx-auto"></div>
-        <p class="mt-4 text-gray-600">Loading scholarships...</p>
-      </div>
-
-    <!-- Empty State -->
-    {:else if displayScholarships.length === 0}
-      <div class="text-center py-12">
-        <h3 class="text-lg font-medium text-gray-900 mb-2">No scholarships found</h3>
-        <p class="text-gray-600 mb-4">
-          {filteredScholarships.length === 0 && allScholarships.length > 0 
-            ? 'Try adjusting your search or filters.' 
-            : 'No scholarships available at the moment.'}
-        </p>
-        {#if filteredScholarships.length === 0 && allScholarships.length > 0}
-          <button
-            onclick={() => { 
-              console.log('🧹 Clearing all filters (empty state)');
-              filters = { location: '', level: '', field: '', type: '', amount: '', deadline: '', funding_category: '' };
-              searchQuery = '';
-              currentPage = 1;
-              updateScholarships();
-            }}
-            class="text-indigo-700 hover:text-indigo-800 underline"
-          >
-            Clear all filters
-          </button>
         {/if}
-      </div>
 
-    <!-- Scholarship Grid -->
-    {:else}
-      <div class="space-y-6">
-        <!-- Pagination Info -->
-        <div class="flex items-center justify-between">
-          <p class="text-sm text-gray-600">
-            Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filteredScholarships.length)} of {filteredScholarships.length} scholarships
-          </p>
-          <div class="text-sm text-gray-600">
-            Page {currentPage} of {totalPages}
+        <!-- Guest feedback toast -->
+        {#if guestToastMsg}
+          <div class="fixed top-24 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white px-6 py-3 rounded-full flex items-center gap-3 shadow-2xl animate-fade-up-active">
+            <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <span class="font-medium">{guestToastMsg}</span>
           </div>
-        </div>
+        {/if}
 
-        <!-- Scholarship Cards -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {#each displayScholarships as scholarship (scholarship.id)}
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow duration-200">
-              <div class="p-6">
-                <!-- Funding Category Badge -->
-                {#if scholarship.funding_category && scholarship.funding_category !== 'Traditional Scholarship'}
-                  <div class="mb-3">
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                      {scholarship.funding_category === 'Graduate Program Funding' 
-                        ? 'bg-blue-100 text-blue-800' 
-                        : 'bg-purple-100 text-purple-800'}">
-                      {scholarship.funding_category === 'Graduate Program Funding' ? '🎓' : '🔬'}
-                      {scholarship.funding_category}
-                    </span>
-                  </div>
-                {/if}
-                
-                <!-- Header -->
-                <div class="flex items-start justify-between">
-                  <div class="flex-1 mr-4">
-                    <a href={`/scholarships/${scholarship.id}`} class="block hover:text-indigo-700">
-                      <h3 class="text-lg font-semibold text-gray-900 mb-1">{scholarship.title}</h3>
-                    </a>
-                    <p class="text-gray-600">{scholarship.provider}</p>
-                    {#if !(session?.user?.id && typeof scholarship.matchScore === 'number')}
-                      <button class="sm:hidden mt-2 text-xs text-gray-600 underline hover:text-gray-800" onclick={() => {
-                        analytics.trackEvent('quick_profile_prompt_clicked', { surface: 'scholarships', context: 'card_mobile', scholarship_id: scholarship.id, user_id: session?.user?.id });
-                        if (!session?.user?.id) {
-                          authMode = 'login';
-                          showAuthModal = true;
-                          authRequiredForProfile = true;
-                        } else {
-                          showQuickProfile = true;
-                        }
-                      }}>Complete quick profile to see match</button>
-                    {/if}
-                    
-                    <!-- Additional info for graduate programs -->
-                    {#if scholarship.funding_category === 'Graduate Program Funding' && scholarship.program_name}
-                      <p class="text-sm text-blue-600 mt-1">{scholarship.program_name}</p>
-                    {:else if scholarship.funding_category === 'Advertised Position' && scholarship.professor_name}
-                      <p class="text-sm text-purple-600 mt-1">Prof. {scholarship.professor_name}</p>
-                    {/if}
-                  </div>
-                  <div class="hidden sm:flex flex-col items-end">
-                    {#if session?.user?.id && typeof scholarship.matchScore === 'number'}
-                      <span class="text-sm font-medium {getMatchScoreColor(scholarship.matchScore)}">
-                        {scholarship.matchScore}% match
-                      </span>
-                    {:else}
-                      <button class="text-xs text-gray-500 underline hover:text-gray-700" onclick={() => {
-                        analytics.trackEvent('quick_profile_prompt_clicked', { surface: 'scholarships', context: 'card', scholarship_id: scholarship.id, user_id: session?.user?.id });
-                        if (!session?.user?.id) {
-                          // Require login to store profile in DB
-                          authMode = 'login';
-                          showAuthModal = true;
-                          authRequiredForProfile = true;
-                        } else {
-                          showQuickProfile = true;
-                        }
-                      }}>Complete quick profile to see match</button>
-                    {/if}
-                  </div>
-                </div>
-
-                <!-- Amount and Deadline -->
-                <div class="flex items-center justify-between mb-4">
-                  <div class="text-xl font-bold text-indigo-700">{formatCurrencyAmount(scholarship.amount)}</div>
-                  {#each [getDeadlineStatus(scholarship.deadline)] as status}
-                    <div>
-                      <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {status.class}">
-                        {status.text}
-                      </span>
-                    </div>
-                  {/each}
-                </div>
-
-                <!-- Details -->
-                <div class="grid grid-cols-2 gap-4 mb-4 text-sm">
-                  <div>
-                    <span class="text-gray-500">Location:</span>
-                    <span class="ml-1 text-gray-900">{scholarship.location}</span>
-                  </div>
-                  <div>
-                    <span class="text-gray-500">Level:</span>
-                    <span class="ml-1 text-gray-900">
-                      {#if scholarship.levels && scholarship.levels.length > 1}
-                        {scholarship.levels.join(', ')}
-                      {:else}
-                        {scholarship.level}
-                      {/if}
-                    </span>
-                  </div>
-                  <div>
-                    <span class="text-gray-500">Field:</span>
-                    <span class="ml-1 text-gray-900">{scholarship.field}</span>
-                  </div>
-                  <div>
-                    <span class="text-gray-500">Type:</span>
-                    <span class="ml-1 text-gray-900">{scholarship.type}</span>
-                  </div>
-                </div>
-
-                <!-- Description -->
-                <p class="text-gray-600 text-sm mb-4 line-clamp-2">{formatScholarshipText(scholarship.description)}</p>
-
-                <!-- Requirements -->
-                {#if scholarship.requirements && scholarship.requirements.length > 0}
-                  <div class="mb-4">
-                    <span class="text-sm font-medium text-gray-700">Requirements:</span>
-                    <div class="mt-1 flex flex-wrap gap-1">
-                      {#each scholarship.requirements.slice(0, 3) as requirement}
-                        <span class="inline-flex px-2 py-1 text-xs bg-gray-100 text-gray-800 rounded">
-                          {requirement}
-                        </span>
-                      {/each}
-                      {#if scholarship.requirements.length > 3}
-                        <span class="text-xs text-gray-500">+{scholarship.requirements.length - 3} more</span>
-                      {/if}
-                    </div>
-                  </div>
-                {/if}
-
-                <!-- Actions -->
-                <div class="flex gap-3 pt-4 border-t">
-                  <a href={`/scholarships/${scholarship.id}`} 
-                    class="flex-1 px-4 py-2 bg-[#2C3580] text-white hover:bg-[#3c4d9c] rounded-lg transition duration-200 text-center"
-                  >
-                    View Details
-                  </a>
-                  
-                  {#if scholarship.saved}
-                    <button
-                      onclick={() => toggleSaved(scholarship.id)}
-                      class="flex-1 px-4 py-2 bg-gray-100 text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-200 transition duration-200 flex items-center justify-center"
-                    >
-                      <svg class="w-5 h-5 mr-1 text-yellow-500 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor" fill="none">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path>
-                      </svg>
-                      Saved
-                    </button>
-                  {:else}
-                    <button
-                      onclick={() => toggleSaved(scholarship.id)}
-                      class="flex-1 px-4 py-2 border border-gray-300 text-gray-800 rounded-lg hover:bg-gray-100 transition duration-200 flex items-center justify-center"
-                    >
-                      <svg class="w-5 h-5 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path>
-                      </svg>
-                      Save
-                    </button>
-                  {/if}
-                </div>
-              </div>
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+            <div class="bg-slate-100 p-1 rounded-xl flex inline-block">
+                <button onclick={() => switchViewMode('all')} class="px-5 py-2 rounded-lg text-sm font-bold transition-all {viewMode === 'all' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-900'}">All</button>
+                <button onclick={() => switchViewMode('saved')} class="px-5 py-2 rounded-lg text-sm font-bold transition-all {viewMode === 'saved' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-900'}">Saved</button>
             </div>
-          {/each}
+            
+            <div class="flex items-center gap-3 w-full sm:w-auto">
+                <p class="text-sm text-slate-500 font-medium whitespace-nowrap hidden sm:block">Showing {displayScholarships.length} results</p>
+                <select bind:value={sortBy} class="w-full sm:w-auto text-sm bg-white border border-slate-200 rounded-xl text-slate-700 py-2.5 px-4 font-semibold shadow-sm focus:ring-orange-500 focus:border-orange-500 outline-none">
+                    <option value="created_at">Latest First</option>
+                    <option value="matchScore">Best Match</option>
+                    <option value="deadline">Deadline (Soonest)</option>
+                </select>
+            </div>
         </div>
 
-        <!-- Pagination -->
-        {#if totalPages > 1}
-          <div class="flex items-center justify-center space-x-2 mt-8">
-            <button
-              onclick={prevPage}
-              disabled={currentPage === 1}
-              class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Previous
-            </button>
-            
-            {#each Array.from({length: Math.min(5, totalPages)}, (_, i) => {
-              const start = Math.max(1, currentPage - 2);
-              const end = Math.min(totalPages, start + 4);
-              return start + i;
-            }).filter(page => page <= totalPages) as page}
-              <button
-                onclick={() => goToPage(page)}
-                class="px-3 py-2 text-sm font-medium {currentPage === page 
-                  ? 'text-white bg-[#2C3580] border-[#2C3580]' 
-                  : 'text-gray-500 bg-white border-gray-300 hover:bg-gray-50'} border rounded-md"
-              >
-                {page}
-              </button>
-            {/each}
-            
-            <button
-              onclick={nextPage}
-              disabled={currentPage === totalPages}
-              class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Next
-            </button>
+        {#if isLoading}
+          <div class="py-20 flex justify-center"><div class="animate-spin rounded-full h-10 w-10 border-b-2 border-brand-navy"></div></div>
+        {:else if displayScholarships.length === 0}
+          <div class="bg-white rounded-3xl border border-slate-200 p-16 text-center shadow-sm">
+            <h3 class="text-xl font-bold text-slate-900 mb-2">No scholarships found</h3>
+            <p class="text-slate-500">Adjust your search to discover more funding options.</p>
           </div>
-        {/if}
-      </div>
-    {/if}
+        {:else}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {#each displayScholarships as scholarship (scholarship.id)}
+                    <a href={`/scholarships/${scholarship.id}`} class="program-card">
+                        <div class="p-5 flex flex-col h-full">
+                            <div class="flex justify-between items-start mb-4">
+                                <div class="uni-badge">
+                                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                                    <span class="text-xs font-semibold text-slate-500 tracking-wide uppercase truncate max-w-[180px]">
+                                        {decodeHtmlEntities(scholarship.provider)}
+                                    </span>
+                                </div>
+                                <button onclick={(e) => { e.preventDefault(); toggleSaved(scholarship.id); }} class="transition-colors {scholarship.saved ? 'text-orange-500' : 'text-slate-300 hover:text-orange-500'}" aria-label="Save program">
+                                    <svg class="w-6 h-6 {scholarship.saved ? 'fill-current' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
+                                </button>
+                            </div>
 
-    <!-- Call to Action Section -->
-    <div class="mt-12 bg-gradient-to-r from-[#2C3580] to-indigo-600 rounded-2xl p-8 text-center text-white border border-indigo-200/20">
-      <h3 class="text-2xl font-bold mb-4">Need Help with Your Applications?</h3>
-      <p class="text-indigo-100 mb-6">
-        Use our AI-powered tools to create compelling scholarship essays and application documents.
-      </p>
-      <div class="flex flex-col sm:flex-row gap-4 justify-center">
-        <a href="/sop" class="bg-white text-[#2C3580] px-6 py-3 rounded-lg font-medium hover:bg-gray-100 transition duration-200">
-          📝 Generate Statement of Purpose
-        </a>
-        <a href="/cover-letters" class="border-2 border-white text-white px-6 py-3 rounded-lg font-medium hover:bg-white hover:text-[#2C3580] transition duration-200">
-          ✉️ Create Cover Letter
-        </a>
-        <a href="/plan" class="border-2 border-white text-white px-6 py-3 rounded-lg font-medium hover:bg-white hover:text-[#2C3580] transition duration-200">
-          🎯 Open Plan
-        </a>
-      </div>
-    </div>
-  </div>
+                            <h3 class="text-xl font-bold text-slate-900 mb-2 leading-tight group-hover:text-orange-600 transition-colors">
+                                {decodeHtmlEntities(scholarship.title)}
+                            </h3>
+                            
+                            <div class="flex items-center gap-1.5 text-sm font-semibold text-slate-400 mb-4">
+                                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.242-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                <span class="truncate">{scholarship.location}</span>
+                            </div>
+
+                            <div class="mt-auto grid grid-cols-2 gap-3 pt-4 border-t border-slate-100">
+                                <div>
+                                    <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-0.5">Value</p>
+                                    <p class="text-sm font-bold text-emerald-600 truncate">
+                                        {formatCurrencyAmount(scholarship.amount) || 'Fully Funded'}
+                                    </p>
+                                </div>
+                                <div>
+                                    <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-0.5">Deadline</p>
+                                    <p class="text-sm font-bold {getDeadlineStatus(scholarship.deadline).class.includes('red') ? 'text-red-500' : 'text-slate-700'} truncate">
+                                        {getDeadlineStatus(scholarship.deadline).text}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                {/each}
+            </div>
+
+            <!-- Pagination -->
+            {#if totalPages > 1}
+                <div class="flex items-center justify-center space-x-2 mt-12 mb-8">
+                <button onclick={prevPage} disabled={currentPage === 1} class="px-4 py-2 text-sm font-bold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 disabled:opacity-50">Prev</button>
+                {#each Array.from({length: Math.min(5, totalPages)}, (_, i) => Math.max(1, currentPage - 2) + i).filter(p => p <= totalPages) as page}
+                    <button onclick={() => goToPage(page)} class="w-10 h-10 flex items-center justify-center text-sm font-bold rounded-xl border transition-colors {currentPage === page ? 'bg-[#0f172a] text-white border-[#0f172a]' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}">{page}</button>
+                {/each}
+                <button onclick={nextPage} disabled={currentPage === totalPages} class="px-4 py-2 text-sm font-bold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 disabled:opacity-50">Next</button>
+                </div>
+            {/if}
+        {/if}
+
+        <!-- Call to Action Section -->
+        <div class="mt-12 bg-[#0f172a] rounded-[32px] p-10 md:p-16 text-center text-white relative overflow-hidden shadow-2xl">
+        <div class="absolute inset-0 max-w-7xl mx-auto">
+            <div class="absolute left-0 top-0 w-64 h-64 bg-emerald-500 rounded-full blur-[100px] opacity-20 pointer-events-none"></div>
+        </div>
+        <div class="relative z-10 max-w-2xl mx-auto">
+            <h3 class="text-3xl font-bold mb-4" style="font-family: 'Outfit', sans-serif;">Build Your Winning Application</h3>
+            <p class="text-slate-300 mb-8 text-lg">Use the Copilot Strategy Board to craft high-converting scholarship essays and verify your profile match score.</p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="/dashboard" class="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3.5 rounded-full font-bold transition-colors shadow-lg shadow-orange-500/30">
+                Open Dashboard
+            </a>
+            </div>
+        </div>
+        </div>
+	</div>
+</div>
   <AuthenticationFlow
     bind:show={showAuthModal}
     {supabase}
@@ -1001,5 +706,100 @@
       }
     }}
   />
-  <QuickProfileModal bind:isOpen={showQuickProfile} {supabase} {session} on:completed={() => { showQuickProfile = false; }}/>
-</div> 
+  <QuickProfileModal bind:isOpen={showQuickProfile} {supabase} {session} on:completed={() => { showQuickProfile = false; }}/> 
+
+<style>
+	.discovery-header {
+		background: #0f172a;
+		padding: 4rem 1.5rem 3rem;
+		text-align: center;
+		position: relative;
+		overflow: hidden;
+	}
+
+	.discovery-header::before {
+		content: '';
+		position: absolute;
+		top: 0; left: 0; right: 0; bottom: 0;
+		background: radial-gradient(circle at 50% -20%, rgba(249, 115, 22, 0.15), transparent 60%);
+		pointer-events: none;
+	}
+
+	.header-content {
+		position: relative;
+		max-width: 48rem;
+		margin: 0 auto;
+		z-index: 10;
+	}
+
+	.page-title {
+		font-family: 'Outfit', sans-serif;
+		font-size: 3rem;
+		font-weight: 800;
+		color: white;
+		margin-bottom: 0.75rem;
+		letter-spacing: -0.02em;
+	}
+
+	.page-subtitle {
+		font-size: 1.125rem;
+		color: rgba(255, 255, 255, 0.7);
+		margin-bottom: 2.5rem;
+	}
+
+	.search-bar {
+		display: flex;
+		align-items: center;
+		background: white;
+		border-radius: 9999px;
+		padding: 0.375rem;
+		box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+	}
+
+	.search-input {
+		flex: 1;
+		border: none;
+		outline: none;
+		padding: 1rem 1rem;
+		font-size: 1rem;
+		color: #0f172a;
+		background: transparent;
+	}
+
+	.program-card {
+		background: white;
+		border: 1px solid #e2e8f0;
+		border-radius: 1.25rem;
+		transition: all 0.2s ease;
+		text-decoration: none;
+		display: block;
+		position: relative;
+		overflow: hidden;
+	}
+
+	.program-card:hover {
+		border-color: #cbd5e1;
+		transform: translateY(-4px);
+		box-shadow: 0 12px 24px -8px rgba(15, 23, 42, 0.08);
+	}
+
+	.uni-badge {
+		display: flex;
+		align-items: center;
+		gap: 0.375rem;
+		background: #f8fafc;
+		border: 1px solid #f1f5f9;
+		padding: 0.25rem 0.625rem;
+		border-radius: 9999px;
+	}
+
+	@media (max-width: 640px) {
+		.page-title {
+			font-size: 2.25rem;
+		}
+		
+		.search-input {
+			font-size: 0.9375rem;
+		}
+	}
+</style>

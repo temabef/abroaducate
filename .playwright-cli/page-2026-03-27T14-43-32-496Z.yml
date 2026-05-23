@@ -1,0 +1,166 @@
+- generic [ref=e862]:
+  - banner [ref=e864]:
+    - generic [ref=e866]:
+      - generic [ref=e867]:
+        - link "Studee homepage" [ref=e869] [cursor=pointer]:
+          - /url: /
+        - heading "Apply" [level=1] [ref=e870]
+      - list [ref=e872]:
+        - listitem [ref=e873]:
+          - text: 
+          - generic [ref=e874]: Options
+          - text: 
+        - listitem [ref=e875]:
+          - generic [ref=e876]: Right fit
+          - text: 
+        - listitem [ref=e877]:
+          - generic [ref=e878]: Apply
+  - main [ref=e879]:
+    - generic [ref=e986]:
+      - generic [ref=e989]:
+        - generic [ref=e991]:
+          - text: 
+          - generic [ref=e995]:
+            - text: 
+            - generic [ref=e996]:
+              - generic [ref=e997]:
+                - img "Jessup University campus" [ref=e999]
+                - img "Jessup University logo" [ref=e1001]
+              - heading "Jessup University" [level=2] [ref=e1002]
+              - generic [ref=e1003]: Accountancy - MAccy
+            - generic [ref=e1005]:
+              - generic [ref=e1006]:
+                - term [ref=e1007]: Delivery method
+                - definition [ref=e1008]: 󡀁 On campus
+              - generic [ref=e1009]:
+                - term [ref=e1010]: Pace
+                - definition [ref=e1011]: 󡀂 Full-time
+              - generic [ref=e1012]:
+                - term [ref=e1013]: Start date
+                - definition [ref=e1014]: 󡀃 October 2026
+              - generic [ref=e1015]:
+                - term [ref=e1016]: Apply by
+                - definition [ref=e1017]: 󡀃 18 Aug 2026
+              - generic [ref=e1018]:
+                - term [ref=e1019]: Annual tuition fee
+                - definition [ref=e1020]: 󡀑 11,880 USD
+              - generic [ref=e1021]:
+                - term [ref=e1022]: Application fee from
+                - definition [ref=e1023]: 󡀖 150 USD
+        - generic [ref=e1026]:
+          - generic [ref=e1027]:
+            - heading "Great choice! Let's check it's the right fit" [level=2] [ref=e1028]
+            - paragraph [ref=e1030]: This helps us make sure the university is a good fit for you before you apply.
+          - list [ref=e1033]:
+            - listitem [ref=e1034]:
+              - generic [ref=e1035]: Where are you from? *
+              - generic [ref=e1036]:
+                - generic [ref=e1037]: 
+                - combobox "Where are you from? *" [ref=e1039]
+              - button "us flag USA " [ref=e1163] [cursor=pointer]:
+                - generic [ref=e1164]:
+                  - img "us flag" [ref=e1166]
+                  - generic [ref=e1167]: USA
+                - text: 
+              - generic [ref=e1040]: If you have dual nationality, provide the country of nationality you want to apply with
+            - listitem [ref=e1041]:
+              - generic [ref=e1042]: How old are you? *
+              - generic [ref=e1043]:
+                - generic [ref=e1045] [cursor=pointer]:
+                  - radio "18 +" [ref=e1046]
+                  - text: 18 +
+                - generic [ref=e1049] [cursor=pointer]:
+                  - radio "Under 18" [ref=e1050]
+                  - text: Under 18
+              - generic [ref=e1146]:  Tell us how old you are
+            - listitem [ref=e1052]:
+              - generic [ref=e1053]: "Make sure you've read the university's admission requirements:"
+              - generic [ref=e1055]:
+                - generic [ref=e1056]:
+                  - heading "Undergraduate academic requirements" [level=3] [ref=e1057]
+                  - list [ref=e1058]:
+                    - listitem [ref=e1059]: • Applicants to bachelor’s degree programs must have obtained a secondary school diploma. This diploma must be eligible to access further academic studies in the country where it has been obtained
+                    - listitem [ref=e1060]:
+                      - text: •
+                      - strong [ref=e1061]: Min. GPA
+                      - paragraph [ref=e1062]: "2.5"
+                - generic [ref=e1063]:
+                  - heading "Postgraduate academic requirements" [level=3] [ref=e1064]
+                  - list [ref=e1065]:
+                    - listitem [ref=e1066]: • Application is open to holders of a B.A., B.S., or a higher degree, in any field of study
+                    - listitem [ref=e1067]: • Your undergraduate record must be of good quality, with a minimum 2.7 GPA or equivalent, for all undergraduate studies
+                - generic [ref=e1068]:
+                  - heading "English proficiency" [level=3] [ref=e1069]
+                  - list [ref=e1070]:
+                    - listitem [ref=e1071]:
+                      - text: •
+                      - strong [ref=e1072]:
+                        - strong [ref=e1073]: TOEFL
+                      - paragraph [ref=e1074]:
+                        - strong
+                        - text: 70+
+                    - listitem [ref=e1075]:
+                      - text: •
+                      - strong [ref=e1076]:
+                        - strong [ref=e1077]: IELTS
+                      - paragraph [ref=e1078]:
+                        - strong
+                        - text: "6.0"
+                - generic [ref=e1079]:
+                  - heading "Documents required" [level=3] [ref=e1080]
+                  - list [ref=e1081]:
+                    - listitem [ref=e1082]: • Academic transcripts
+                    - listitem [ref=e1083]: • Application form
+                    - listitem [ref=e1084]: • Bank statements
+                    - listitem [ref=e1085]: • Diploma of previous studies
+                    - listitem [ref=e1086]: • English test scores or waivers
+                    - listitem [ref=e1087]: • Fees refund on visa refusal
+                    - listitem [ref=e1088]: • Motivation letter / Statement of purpose
+                    - listitem [ref=e1089]: • Passport identification page
+                    - listitem [ref=e1090]: • Portfolio (if applicable)
+                    - listitem [ref=e1091]: • Proof of language proficiency
+                    - listitem [ref=e1092]: • Translations
+            - listitem [ref=e1093]:
+              - generic [ref=e1094]: What kind of school do/did you go to most recently? *
+              - generic [ref=e1095]:
+                - generic [ref=e1097] [cursor=pointer]:
+                  - radio "International school (fee-paying - IB, A-levels, AP or other global curriculum)" [checked] [active] [ref=e1098]
+                  - text: International school (fee-paying - IB, A-levels, AP or other global curriculum)
+                - generic [ref=e1101] [cursor=pointer]:
+                  - radio "Private / independent school (fee-paying)" [ref=e1102]
+                  - text: Private / independent school (fee-paying)
+                - generic [ref=e1105] [cursor=pointer]:
+                  - radio "State / government school (non-fee-paying)" [ref=e1106]
+                  - text: State / government school (non-fee-paying)
+                - generic [ref=e1109] [cursor=pointer]:
+                  - radio "Other (e.g. online school, homeschooling)" [ref=e1110]
+                  - text: Other (e.g. online school, homeschooling)
+            - listitem [ref=e1112]:
+              - generic [ref=e1113]: What's your first year budget for tuition and living costs? *
+              - generic [ref=e1118]:
+                - generic [ref=e1119] [cursor=pointer]: USD 
+                - spinbutton "What's your first year budget for tuition and living costs? *" [ref=e1121]: 15,000
+            - listitem [ref=e1122]:
+              - button "Confirm " [ref=e1123] [cursor=pointer]:
+                - generic [ref=e1124]: Confirm 
+      - list [ref=e1133]:
+        - listitem [ref=e1134]: © Studee Ltd 2026. ⋅
+        - listitem [ref=e1135]:
+          - link "Terms of use" [ref=e1136] [cursor=pointer]:
+            - /url: /legal/terms-and-conditions
+          - text: ⋅
+        - listitem [ref=e1137]:
+          - link "Cookies" [ref=e1138] [cursor=pointer]:
+            - /url: /legal/cookies
+          - text: ⋅
+        - listitem [ref=e1139]:
+          - link "Privacy" [ref=e1140] [cursor=pointer]:
+            - /url: /legal/privacy
+          - text: ⋅
+        - listitem [ref=e1141]:
+          - link "Policies" [ref=e1142] [cursor=pointer]:
+            - /url: /policies
+          - text: ⋅
+        - listitem [ref=e1143]:
+          - link "Legal" [ref=e1144] [cursor=pointer]:
+            - /url: /legal

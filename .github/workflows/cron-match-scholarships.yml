@@ -1,0 +1,21 @@
+name: Daily Scholarship Match Refresh
+
+on:
+  schedule:
+    # 03:00 UTC daily — rolls past deadlines forward and rescores all pairs
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+
+jobs:
+  match-scholarships:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger matcher
+        run: |
+          curl -X POST "https://abroaducate.com/api/cron/match-scholarships" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json" \
+            --max-time 600 \
+            --fail-with-body
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}

@@ -1,0 +1,119 @@
+- generic [ref=e2]:
+  - generic [ref=e862]:
+    - banner [ref=e864]:
+      - generic [ref=e866]:
+        - generic [ref=e867]:
+          - link "Studee homepage" [ref=e869] [cursor=pointer]:
+            - /url: /
+          - heading "Apply" [level=1] [ref=e870]
+        - list [ref=e872]:
+          - listitem [ref=e873]:
+            - generic [ref=e874]: Options
+            - text: 
+          - listitem [ref=e875]:
+            - generic [ref=e876]: Right fit
+            - text: 
+          - listitem [ref=e877]:
+            - generic [ref=e878]: Apply
+    - main [ref=e879]:
+      - generic [ref=e880]:
+        - generic [ref=e881]:
+          - heading "How do you want to apply?" [level=1] [ref=e882]
+          - paragraph [ref=e884]: Need full support or just a little help? Apply with Studee or go direct through the university.
+        - generic [ref=e887]:
+          - generic [ref=e888]:
+            - generic [ref=e889]: Get a $250 Amazon gift card when you enroll
+            - paragraph [ref=e891]: At Studee, we're here to support you on your study abroad journey. That's why to welcome you to university, we'll send you a $250 Amazon gift card. You might be wondering why we're offering this reward, but we promise there's no catch.
+            - button " Here's why we do it" [ref=e892] [cursor=pointer]:
+              - generic [ref=e893]:  Here's why we do it
+          - img "Gift card" [ref=e895]
+        - list [ref=e898]:
+          - listitem [ref=e899]:
+            - generic [ref=e900]:
+              - heading "Apply with Studee" [level=2] [ref=e901]
+              - paragraph [ref=e903]: Best for students who want expert support applying to universities abroad.
+              - button "Start application " [ref=e904] [cursor=pointer]:
+                - generic [ref=e905]: Start application 
+            - generic [ref=e906]:
+              - heading "Benefits include:" [level=3] [ref=e907]
+              - list [ref=e908]:
+                - listitem [ref=e909]:  Expert advice available anytime
+                - listitem [ref=e910]:  $250 Amazon gift card when you enroll
+                - listitem [ref=e911]:  Support creating the right application
+                - listitem [ref=e912]:  Application updates and reminders
+                - listitem [ref=e913]:  Fast-tracked university decisions
+                - listitem [ref=e914]:  Exclusive application fee discounts
+          - listitem [ref=e915]:
+            - generic [ref=e916]:
+              - heading "Apply on the university website" [level=2] [ref=e917]
+              - paragraph [ref=e919]: Best for students who feel confident applying directly to the university.
+              - button "Start application " [ref=e920] [cursor=pointer]:
+                - generic [ref=e921]: Start application 
+            - generic [ref=e922]:
+              - heading "Benefits include:" [level=3] [ref=e923]
+              - list [ref=e924]:
+                - listitem [ref=e925]:  Expert support available if and when you need it
+        - list [ref=e927]:
+          - listitem [ref=e928]:
+            - generic [ref=e930]:
+              - generic [ref=e931]: Trusted by 37,000+ students
+              - list [ref=e933]:
+                - listitem [ref=e934]:
+                  - img "Young female student with full smile" [ref=e935]
+                - listitem [ref=e936]:
+                  - img "Young asian female student smiling at an angle" [ref=e937]
+                - listitem [ref=e938]:
+                  - img "Young male white student smiling directly at camera" [ref=e939]
+                - listitem [ref=e940]:
+                  - img "Young white student smiling directly ahead" [ref=e941]
+                - listitem [ref=e942]:
+                  - img "Young black student with tilted head looking directly ahead" [ref=e943]
+          - listitem [ref=e944]:
+            - generic [ref=e947]:
+              - generic [ref=e948]: Highly rated
+              - generic [ref=e950]:
+                - generic [ref=e951]:
+                  - generic [ref=e954]:
+                    - text: 󡀆󡀆󡀆󡀆󡀆
+                    - meter "4.5 out of 5 stars" [ref=e955]
+                  - img "feefo reviews logo" [ref=e957]
+                - generic [ref=e958]: 4.5/5 based on 34 reviews
+          - listitem [ref=e959]:
+            - generic [ref=e960]:
+              - generic [ref=e961]: Accredited & trained by
+              - generic [ref=e963]:
+                - img "AIRC logo" [ref=e964]
+                - img "NAFSA logo" [ref=e965]
+                - img "ICEF logo" [ref=e966]
+        - list [ref=e974]:
+          - listitem [ref=e975]: © Studee Ltd 2026. ⋅
+          - listitem [ref=e976]:
+            - link "Terms of use" [ref=e977] [cursor=pointer]:
+              - /url: /legal/terms-and-conditions
+            - text: ⋅
+          - listitem [ref=e978]:
+            - link "Cookies" [ref=e979] [cursor=pointer]:
+              - /url: /legal/cookies
+            - text: ⋅
+          - listitem [ref=e980]:
+            - link "Privacy" [ref=e981] [cursor=pointer]:
+              - /url: /legal/privacy
+            - text: ⋅
+          - listitem [ref=e982]:
+            - link "Policies" [ref=e983] [cursor=pointer]:
+              - /url: /policies
+            - text: ⋅
+          - listitem [ref=e984]:
+            - link "Legal" [ref=e985] [cursor=pointer]:
+              - /url: /legal
+  - generic [ref=e808]:
+    - paragraph [ref=e810]:
+      - text: We use cookies to enhance your experience. By continuing, you consent to
+      - link "all cookies" [ref=e811] [cursor=pointer]:
+        - /url: /legal/cookies
+      - text: ", including those for analytics, personalization, marketing, and activity recording by"
+      - link "Lucky Orange" [ref=e812] [cursor=pointer]:
+        - /url: https://help-preview.luckyorange.com/article/410-what-tracking-cookies-lucky-orange-sets
+      - text: . This may involve monitoring your site interactions, heatmaps, and click-maps to improve our services. If you’re under 18, you confirm parental consent to use our site.
+    - button "Accept and continue " [ref=e814] [cursor=pointer]:
+      - generic [ref=e815]: Accept and continue 

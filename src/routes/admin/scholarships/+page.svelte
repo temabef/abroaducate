@@ -36,6 +36,8 @@
     professor_email?: string;
     position_details?: string;
     has_automatic_funding?: boolean;
+    full_description_text?: string;
+    raw_requirements_text?: string;
     created_at?: string;
     updated_at?: string;
   }
@@ -90,7 +92,9 @@
     professor_name: '',
     professor_email: '',
     position_details: '',
-    has_automatic_funding: false
+    has_automatic_funding: false,
+    full_description_text: '',
+    raw_requirements_text: ''
   });
 
   // Available level options for multiple selection
@@ -316,11 +320,34 @@
       successModalMessage = result.data.error;
       successModalIcon = '❌';
     } else {
+      // Trigger incremental match against all programs so the new/updated
+      // scholarship shows up in program pages and dashboards right away.
+      const savedId = editingScholarship?.id ?? result.data?.id ?? result.data?.scholarship_id;
+      let matchSummary = '';
+      if (savedId) {
+        try {
+          const res = await fetch('/api/admin/match-scholarship', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ scholarship_id: savedId, rolloverIfPast: true, persistRollover: false })
+          });
+          if (res.ok) {
+            const j = await res.json();
+            matchSummary = ` Matched to ${j.inserted ?? 0} program${(j.inserted ?? 0) === 1 ? '' : 's'}.`;
+          } else {
+            matchSummary = ' (match refresh skipped — see console)';
+            console.warn('match-scholarship endpoint returned', res.status);
+          }
+        } catch (e) {
+          console.warn('match-scholarship call failed', e);
+        }
+      }
+
       cancelForm();
       await loadScholarships();
       showSuccessModal = true;
       successModalTitle = editingScholarship ? 'Scholarship Updated!' : 'Scholarship Added!';
-      successModalMessage = editingScholarship ? 'Scholarship updated successfully.' : 'Scholarship added successfully.';
+      successModalMessage = (editingScholarship ? 'Scholarship updated successfully.' : 'Scholarship added successfully.') + matchSummary;
       successModalIcon = '✅';
     }
   }
@@ -354,6 +381,7 @@
       successModalIcon = '❌';
     } else {
       console.log('✅ Scholarship deleted successfully');
+      // program_scholarship_matches has ON DELETE CASCADE so rows go automatically.
       await loadScholarships();
       showSuccessModal = true;
       successModalTitle = 'Scholarship Deleted!';
@@ -392,7 +420,9 @@
       professor_name: scholarship.professor_name || '',
       professor_email: scholarship.professor_email || '',
       position_details: scholarship.position_details || '',
-      has_automatic_funding: scholarship.has_automatic_funding || false
+      has_automatic_funding: scholarship.has_automatic_funding || false,
+      full_description_text: scholarship.full_description_text || '',
+      raw_requirements_text: scholarship.raw_requirements_text || ''
     };
     showAddForm = true;
   }
@@ -433,7 +463,9 @@
       professor_name: '',
       professor_email: '',
       position_details: '',
-      has_automatic_funding: false
+      has_automatic_funding: false,
+      full_description_text: '',
+      raw_requirements_text: ''
     };
   }
 
@@ -1139,6 +1171,38 @@
                 placeholder="Bachelor's degree&#10;English proficiency&#10;Leadership experience"
                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               ></textarea>
+            </div>
+
+            <!-- Rich Data Inputs -->
+            <div class="col-span-full bg-blue-50/50 p-4 rounded-xl border border-blue-100">
+              <h4 class="font-bold text-gray-900 mb-3 text-sm flex items-center gap-2">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-blue-500"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+                Rich Data Strategy Strategy Fields
+              </h4>
+              <p class="text-xs text-gray-600 mb-4">Paste the entire official text blobs here. The Free Rubric evaluation system scans these massive text blocks to find keywords natively without hallucinating.</p>
+              
+              <div class="space-y-4">
+                <div>
+                  <label for="full_description_text" class="block text-sm font-medium text-gray-700 mb-1">Full Offical Description blob</label>
+                  <textarea
+                    id="full_description_text"
+                    bind:value={formData.full_description_text}
+                    rows="4"
+                    placeholder="Paste the entire About / Description text from the official portal..."
+                    class="w-full px-3 py-2 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-inner"
+                  ></textarea>
+                </div>
+                <div>
+                  <label for="raw_requirements_text" class="block text-sm font-medium text-gray-700 mb-1">Raw Requirements Text Blob</label>
+                  <textarea
+                    id="raw_requirements_text"
+                    bind:value={formData.raw_requirements_text}
+                    rows="4"
+                    placeholder="Paste the entire Eligibility / Requirements criteria block..."
+                    class="w-full px-3 py-2 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-inner"
+                  ></textarea>
+                </div>
+              </div>
             </div>
 
             <!-- Additional Basic Fields -->

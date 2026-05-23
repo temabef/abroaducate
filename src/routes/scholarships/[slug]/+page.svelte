@@ -1,14 +1,25 @@
 <script lang="ts">
+  import { 
+		CalendarDays,
+		Search,
+		TrendingUp,
+		Star,
+		RefreshCw
+	} from 'lucide-svelte';
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
   import AuthenticationFlow from '$lib/components/AuthenticationFlow.svelte';
-  import { formatCurrencyAmount, formatScholarshipText } from '$lib/utils/htmlEntities';
+  import CompactUpgradeModal from '$lib/components/CompactUpgradeModal.svelte';
+  import { formatCurrencyAmount, formatScholarshipText, decodeHtmlEntities } from '$lib/utils/htmlEntities';
   import { subscriptionState } from '$lib/stores/subscription';
   import { loadQuickProfile, gpaMidpoint, type QuickProfile } from '$lib/services/quickProfile';
+  import StrategyDocumentLinker from '$lib/components/StrategyDocumentLinker.svelte';
+  import ScholarshipStrategy from '$lib/components/ScholarshipStrategy.svelte';
   
   let { data } = $props();
   let { session, scholarship, supabase } = $derived(data);
+  let userDocuments = $derived((data as any).userDocuments || []);
   // Compute saved status from SSR data when present
   let isSaved = $state<boolean>(Boolean((data as any).savedStatus));
   // Related scholarships provided by SSR when available
@@ -23,12 +34,58 @@
   let playbookSteps = $state<PlaybookStep[]>([]);
   
   // Paid gating + lightweight personalization
-  let isPremium = $state(false);
+  let showBillingModal = $state(false);
+  let aiWinStrategy = $state<any>((data as any).userStrategy || (data as any).winStrategy || null);
+  // isPremium is $state (not $derived) so it can be upgraded by the subscription store.
+  // It is initialized from SSR data so a returning-user always sees their strategy immediately.
+  // IMPORTANT: isPremium may only ever go false → true, never true → false.
+  let isPremium = $state<boolean>(!!((data as any).userStrategy || (data as any).winStrategy));
   let quickProfile = $state<QuickProfile | null>(null);
   let quickProfileSource = $state<'remote' | 'local' | 'none'>('none');
-  let aiWinStrategy = $state<any>((data as any).winStrategy || null);
   let aiStrategyLoading = $state(false);
   let aiStrategyError = $state<string | null>(null);
+  let generationPhase = $state('');
+
+  let showStrategyLinker = $state(false);
+  let strategyTargetDocument = $state<{ docId?: string, type?: string, text?: string | null, name?: string | null } | null>(null);
+  let strategyActiveTab = $state<'overview' | 'audit' | 'action'>('overview');
+
+  function initiateStrategyGeneration() {
+    if (!session?.user?.id) {
+      authMode = 'login';
+      showAuthModal = true;
+      return;
+    }
+    if (userDocuments && userDocuments.length === 1) {
+      processStrategyGeneration({ docId: userDocuments[0].id, type: userDocuments[0].type, name: userDocuments[0].program_name || 'My Document' });
+    } else {
+      showStrategyLinker = true;
+    }
+  }
+
+  function processStrategyGeneration(info: { docId?: string, type?: string, text?: string | null, name?: string | null }) {
+    strategyTargetDocument = info;
+    generateAIWinStrategy();
+  }
+
+  const LOADING_PHASES = [
+    "Analyzing your academic footprint...",
+    "Identifying targeted narrative angles...",
+    "Finalizing your personal Clarity Report..."
+  ];
+
+  function cyclePhases() {
+    let i = 0;
+    generationPhase = LOADING_PHASES[0];
+    const interval = setInterval(() => {
+      if (!aiStrategyLoading) {
+        clearInterval(interval);
+        return;
+      }
+      i = (i + 1) % LOADING_PHASES.length;
+      generationPhase = LOADING_PHASES[i];
+    }, 2000);
+  }
 
   type RubricKey = 'leadership_impact' | 'academics' | 'research_fit' | 'need_based' | 'regional_targeting' | 'essay_story';
   type RubricItem = { key: RubricKey; label: string; weight: 0 | 1 | 2 | 3; reason: string };
@@ -278,21 +335,43 @@
       showAuthModal = true;
       return;
     }
+
+    // 1. Check for cached strategy in the data provided by SSR or local profile
+    if (aiWinStrategy) return; // Already loaded
+
+    // 2. Force profile if missing (necessary for personalized strategy)
+
+
     aiStrategyLoading = true;
     aiStrategyError = null;
+    cyclePhases();
+
     try {
-      const res = await fetch('/api/scholarships/win-strategy/generate', {
+      const payload = { 
+        scholarshipId: scholarship.id,
+        documentId: strategyTargetDocument?.docId,
+        documentType: strategyTargetDocument?.type,
+        documentText: strategyTargetDocument?.text,
+        documentName: strategyTargetDocument?.name
+      };
+
+      const res = await fetch('/api/scholarship-strategy', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ scholarship_id: scholarship.id })
+        body: JSON.stringify(payload)
       });
       const j = await res.json().catch(() => ({}));
       if (!res.ok) {
-        throw new Error(j?.message || j?.error || `Failed (${res.status})`);
+        if (j?.error === 'Insufficient credits' || j?.error === 'Insufficient credits or billing error') {
+             showBillingModal = true;
+             return;
+        }
+        throw new Error(j?.message || j?.error || `Failed to generate (${res.status})`);
       }
       aiWinStrategy = j?.strategy || null;
+      
     } catch (e: any) {
-      aiStrategyError = e?.message || 'Failed to generate win strategy';
+      aiStrategyError = e?.message || 'Failed to generate win strategy. Please try again.';
     } finally {
       aiStrategyLoading = false;
     }
@@ -362,13 +441,22 @@
     playbookRouteType = computeRouteType(scholarship);
     playbookSteps = computeSteps(scholarship);
   });
-  
+
+  // Whenever aiWinStrategy becomes available (e.g. after a successful Reveal), unlock the UI.
+  // This is the single source of truth for the locked/unlocked state.
+  $effect(() => {
+    if (aiWinStrategy) isPremium = true;
+  });
+
   // Get the scholarship ID from the URL parameter
   // Data is loaded on the server via +page.server.ts; avoid overriding it here to prevent double-fetch/mismatch
   onMount(() => {
-    // Paid status
+    // Subscription state: only UPGRADE isPremium to true for paid-plan users.
+    // Never force it back to false — that would hide an already-revealed strategy.
     const unsub = subscriptionState.subscribe((s) => {
-      isPremium = s?.loaded === true && s.isPremium === true;
+      if (s?.loaded === true && s.isPremium === true) {
+        isPremium = true;
+      }
     });
 
     // Quick profile (anonymous allowed: localStorage fallback)
@@ -649,508 +737,255 @@
 </script>
 
 <svelte:head>
-  <title>{scholarship.title} - Scholarship Details</title>
-  <meta name="description" content="{scholarship.description}" />
+  <title>{decodeHtmlEntities(scholarship.title)} - Scholarship Details</title>
+  <meta name="description" content="{decodeHtmlEntities(scholarship.description)}" />
 </svelte:head>
 
 <div class="min-h-screen bg-slate-50 pt-20 pb-12">
   {#if error}
     <div class="max-w-3xl mx-auto px-4 pt-16">
       <div class="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-        <h2 class="text-red-800 text-xl font-semibold mb-2">Error Loading Scholarship</h2>
+        <h2 class="text-red-800 text-xl font-semibold mb-2">Something went wrong</h2>
         <p class="text-red-700 mb-4">{error}</p>
-        
-        <div class="text-left mb-4 bg-red-100 p-4 rounded overflow-auto">
-          <p class="text-red-700 font-medium">Debug Information:</p>
-          <p class="text-red-600 text-sm mb-1">Scholarship ID: {$page.params.slug}</p>
-          <p class="text-red-600 text-sm mb-1">User authenticated: {session ? 'Yes' : 'No'}</p>
-          <p class="text-red-600 text-sm mb-1">Current timestamp: {new Date().toISOString()}</p>
-        </div>
-        
-        <div class="flex justify-center gap-3">
-          <button
-            onclick={() => window.location.reload()}
-            class="bg-[#2C3580] text-white px-6 py-2 rounded-lg font-medium hover:bg-[#3c4d9c]"
-          >
-            Try Again
-          </button>
-          
-          <button
-            onclick={() => goto('/scholarships')}
-            class="bg-red-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-red-700"
-          >
-            Back to Scholarships
-          </button>
-        </div>
+        <button onclick={() => goto('/scholarships')} class="bg-red-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-red-700">Back to Scholarships</button>
       </div>
     </div>
   {:else}
-    <div class="max-w-6xl mx-auto px-4">
-      <!-- Back Link -->
-      <div class="mb-6">
-        <a href="/scholarships" class="text-indigo-700 hover:text-indigo-800 font-medium inline-flex items-center">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1">
-            <path d="M15 18l-6-6 6-6"></path>
-          </svg>
-          Back to All Scholarships
-        </a>
-      </div>
-      
-      <!-- Scholarship Card -->
-      <div class="bg-white rounded-3xl shadow-sm overflow-hidden mb-8 border border-slate-200">
-        <!-- Header -->
-        <div class="bg-gradient-to-r from-[#2C3580] to-indigo-600 p-7 text-white">
-          <div class="flex justify-between items-start">
-            <h1 class="text-2xl md:text-3xl font-bold mb-2 leading-tight">{scholarship.title}</h1>
-            
-            <!-- Badge based on funding category -->
-            {#if scholarship.funding_category === 'Graduate Program Funding'}
-              <span class="bg-white/90 text-[#2C3580] px-3 py-1 rounded-full text-sm font-semibold">🎓 Program Funding</span>
-            {:else if scholarship.funding_category === 'Advertised Position'}
-              <span class="bg-white/90 text-emerald-700 px-3 py-1 rounded-full text-sm font-semibold">🔬 Research Position</span>
-            {:else}
-              <span class="bg-white/90 text-[#2C3580] px-3 py-1 rounded-full text-sm font-semibold">🏆 Scholarship</span>
-            {/if}
-          </div>
-          <p class="text-lg opacity-90 mb-3">
-            {scholarship.provider}
-          </p>
-          
-          <div class="flex flex-wrap gap-2 mt-4">
-            <span class="bg-white/15 px-3 py-1 rounded-full text-sm border border-white/15">
-              Amount: {formatCurrencyAmount(scholarship.amount)}
-            </span>
-            
-            {#if scholarship.deadline}
-              {@const deadlineStatus = getDeadlineStatus(scholarship.deadline)}
-              <span class="bg-white/15 px-3 py-1 rounded-full text-sm border border-white/15">
-                Deadline: {formatDeadline(scholarship.deadline)}
-                <span class="ml-2 text-white/90 bg-white/10 px-2 py-0.5 rounded-full text-xs border border-white/10">
-                  {deadlineStatus.text}
+    <!-- Premium Cover Layout (Matching Universities Profile) -->
+    <div class="h-[500px] relative bg-slate-900 overflow-hidden">
+       <!-- Dynamic background pattern instead of an image since scholarships don't have hero images -->
+       <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.15) 1px, transparent 0); background-size: 32px 32px;"></div>
+       <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent"></div>
+       <div class="absolute top-0 right-0 w-[800px] h-[800px] bg-orange-500/10 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/3"></div>
+       
+       <div class="absolute bottom-0 left-0 right-0">
+          <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 relative z-10">
+             <div class="inline-flex items-center gap-2 px-3 py-1 bg-orange-500/20 border border-orange-500/50 text-orange-400 rounded text-sm font-bold uppercase tracking-wide mb-6 shadow-lg shadow-orange-500/10">
+               {scholarship.funding_category || 'Scholarship'}
+             </div>
+             
+             <h1 class="text-4xl md:text-6xl font-extrabold text-white mb-6 leading-tight tracking-tight" style="font-family: 'Outfit', sans-serif;">{decodeHtmlEntities(scholarship.title)}</h1>
+             
+             <div class="flex flex-wrap items-center gap-8 text-slate-300 text-lg font-medium">
+                <span class="flex items-center gap-2">
+                  <svg class="w-6 h-6 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+                  {decodeHtmlEntities(scholarship.provider)}
                 </span>
-              </span>
-            {/if}
-            
-            <span class="bg-white/15 px-3 py-1 rounded-full text-sm border border-white/15">
-              {scholarship.location}
-            </span>
+                <span class="flex items-center gap-2">
+                  <svg class="w-6 h-6 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.242-4.243a8 8 0 1111.314 0z" /></svg>
+                  {scholarship.location}
+                </span>
+                <span class="flex items-center gap-2">
+                  <svg class="w-6 h-6 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z" /></svg>
+                  {scholarship.level}
+                </span>
+             </div>
           </div>
-        </div>
-        
-        <!-- Content -->
-        <div class="p-7">
-          <div class="grid grid-cols-1 gap-8">
-            <!-- Left Column -->
-            <div>
-              <section class="mb-6">
-                <h2 class="text-lg font-semibold text-slate-900 mb-3">About this scholarship</h2>
-                <p class="text-slate-700 mb-4 whitespace-pre-line leading-relaxed">{formatScholarshipText(scholarship.description)}</p>
+       </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+       <!-- Back Link -->
+       <div class="mb-8">
+         <a href="/scholarships" class="text-slate-500 hover:text-orange-500 font-bold inline-flex items-center transition-colors">
+           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2">
+             <path d="M19 12H5"></path>
+             <path d="M12 19l-7-7 7-7"></path>
+           </svg>
+           Back to Discover Scholarships
+         </a>
+       </div>
+
+       <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
+          <!-- Left Column: Main Content -->
+          <div class="lg:col-span-2 space-y-8">
+             
+             <!-- About Block -->
+             <div class="bg-white rounded-3xl p-10 border border-slate-200 shadow-sm">
+                <h2 class="text-3xl font-bold text-slate-900 mb-6 flex items-center gap-3">
+                  <svg class="w-8 h-8 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  About this Scholarship
+                </h2>
+                <div class="mb-8">
+                  <p class="text-slate-700 text-lg leading-relaxed whitespace-pre-line">{formatScholarshipText(scholarship.description)}</p>
+                </div>
                 
-                <div class="grid grid-cols-2 gap-4 text-sm mb-4">
-                  <div>
-                    <span class="text-slate-500 block">Field of study</span>
-                    <span class="font-medium text-slate-900">{scholarship.field}</span>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-6 border-t border-slate-100">
+                  <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100">
+                    <span class="text-slate-400 text-xs font-bold tracking-wider uppercase block mb-1">Field of Study</span>
+                    <span class="font-bold text-slate-900">{scholarship.field}</span>
                   </div>
-                  <div>
-                    <span class="text-slate-500 block">Degree level</span>
-                    <span class="font-medium text-slate-900">
-                      {#if scholarship.levels && scholarship.levels.length > 1}
-                        {scholarship.levels.join(', ')}
-                      {:else}
-                        {scholarship.level}
-                      {/if}
+                  <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100">
+                    <span class="text-slate-400 text-xs font-bold tracking-wider uppercase block mb-1">Degree Level</span>
+                    <span class="font-bold text-slate-900">
+                      {scholarship.levels && scholarship.levels.length > 1 ? scholarship.levels.join(', ') : scholarship.level}
                     </span>
                   </div>
-                  <div>
-                    <span class="text-slate-500 block">Type</span>
-                    <span class="font-medium text-slate-900">{scholarship.type}</span>
+                </div>
+             </div>
+
+             <!-- Scholarship Value Block -->
+             <div class="bg-white rounded-3xl p-10 border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div>
+                  <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Scholarship Value</h2>
+                  <div class="text-2xl md:text-3xl font-extrabold text-emerald-500 mb-2">
+                    {formatCurrencyAmount(scholarship.amount) || 'Fully Funded / Stipend'}
                   </div>
-                  {#if scholarship.funding_category === 'Graduate Program Funding' || scholarship.funding_category === 'Advertised Position'}
-                    <div>
-                      <span class="text-slate-500 block">Funding type</span>
-                      <span class="font-medium text-slate-900">{scholarship.funding_type || 'Not specified'}</span>
+                  {#if scholarship.funding_category}
+                    <div class="inline-block px-3 py-1 bg-emerald-50 text-emerald-600 rounded-lg text-xs font-bold uppercase tracking-wider border border-emerald-100">
+                      {scholarship.funding_category}
                     </div>
                   {/if}
                 </div>
-              </section>
-              
-              {#if scholarship.requirements && scholarship.requirements.length > 0}
-                <section class="mb-6">
-                  <h2 class="text-lg font-semibold text-slate-900 mb-3">Requirements</h2>
-                  <ul class="list-disc list-inside text-slate-700 space-y-1">
+                <div class="h-16 w-16 rounded-2xl bg-emerald-50 flex items-center justify-center flex-shrink-0">
+                  <svg class="w-8 h-8 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                </div>
+             </div>
+             
+             <!-- Requirements Block -->
+             {#if scholarship.requirements && scholarship.requirements.length > 0}
+               <div class="bg-white rounded-3xl p-10 border border-slate-200 shadow-sm">
+                  <h2 class="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-3">
+                    <svg class="w-7 h-7 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    Requirements
+                  </h2>
+                  <ul class="space-y-3">
                     {#each scholarship.requirements as requirement}
-                      <li>{requirement}</li>
+                      <li class="flex items-start gap-3">
+                        <svg class="w-6 h-6 text-emerald-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                        <span class="text-slate-700 text-lg leading-relaxed">{requirement}</span>
+                      </li>
                     {/each}
                   </ul>
-                </section>
-              {/if}
-            </div>
-            
-            <!-- Right Column -->
-            <div>
-              {#if scholarship.funding_category === 'Graduate Program Funding'}
-                <section class="mb-6">
-                  <h2 class="text-lg font-semibold text-slate-900 mb-3">Program details</h2>
-                  <div class="space-y-3 text-slate-700">
-                    <div>
-                      <span class="text-slate-500 block">University</span>
-                      <span class="font-medium text-slate-900">{scholarship.university_name}</span>
-                    </div>
-                    <div>
-                      <span class="text-slate-500 block">Program</span>
-                      <span class="font-medium text-slate-900">{scholarship.program_name}</span>
-                    </div>
-                    {#if scholarship.department}
-                      <div>
-                        <span class="text-slate-500 block">Department</span>
-                        <span class="font-medium text-slate-900">{scholarship.department}</span>
-                      </div>
-                    {/if}
-                    <div>
-                      <span class="text-slate-500 block">Application method</span>
-                      <span class="font-medium text-slate-900">{scholarship.application_method || 'Direct Application'}</span>
-                    </div>
-                    {#if scholarship.has_automatic_funding}
-                      <div class="bg-emerald-50 border border-emerald-100 rounded-lg p-3 mt-3">
-                        <span class="font-medium text-emerald-700 flex items-center">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1">
-                            <path d="M20 6L9 17l-5-5"></path>
-                          </svg>
-                          Automatic Funding Consideration
-                        </span>
-                        <p class="text-sm text-emerald-600 mt-1">All applicants are automatically considered for funding.</p>
-                      </div>
-                    {/if}
-                  </div>
-                </section>
-              {/if}
-              
-              {#if scholarship.funding_category === 'Advertised Position'}
-                <section class="mb-6">
-                  <h2 class="text-lg font-semibold text-slate-900 mb-3">Position details</h2>
-                  <div class="space-y-3 text-slate-700">
-                    <div>
-                      <span class="text-slate-500 block">University</span>
-                      <span class="font-medium text-slate-900">{scholarship.university_name}</span>
-                    </div>
-                    <div>
-                      <span class="text-slate-500 block">Professor</span>
-                      <span class="font-medium text-slate-900">{scholarship.professor_name}</span>
-                    </div>
-                    {#if scholarship.professor_email}
-                      <div>
-                        <span class="text-slate-500 block">Contact email</span>
-                        <a href="mailto:{scholarship.professor_email}" class="font-medium text-indigo-700 hover:underline">{scholarship.professor_email}</a>
-                      </div>
-                    {/if}
-                    {#if scholarship.position_details}
-                      <div class="mt-2">
-                        <span class="text-slate-500 block mb-1">Position description</span>
-                        <p class="bg-slate-50 p-3 rounded-lg border border-slate-200 text-slate-700">{scholarship.position_details}</p>
-                      </div>
-                    {/if}
-                  </div>
-                </section>
-              {/if}
-              
-              {#if scholarship.min_gpa || scholarship.min_ielts || scholarship.min_toefl || scholarship.age_limit || (scholarship.nationality_restrictions && scholarship.nationality_restrictions.length > 0)}
-                <section class="mb-6">
-                  <h2 class="text-lg font-semibold text-slate-900 mb-3">Eligibility criteria</h2>
-                  <div class="space-y-2 text-slate-700">
+               </div>
+             {/if}
+
+             <!-- Eligibility Criteria Stats (Merged) -->
+             {#if scholarship.min_gpa || scholarship.min_ielts || scholarship.min_toefl || scholarship.age_limit || (scholarship.nationality_restrictions && scholarship.nationality_restrictions.length > 0)}
+               <div class="bg-white rounded-3xl p-10 border border-slate-200 shadow-sm">
+                  <h2 class="text-2xl font-bold text-slate-900 mb-6">Eligibility Criteria</h2>
+                  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
                     {#if scholarship.min_gpa}
-                      <div>
-                        <span class="text-slate-500 block">Minimum GPA</span>
-                        <span class="font-medium text-slate-900">{scholarship.min_gpa}</span>
+                      <div class="text-center p-4 bg-slate-50 rounded-xl border border-slate-100">
+                        <div class="text-3xl font-bold text-slate-900 mb-1">{scholarship.min_gpa}</div>
+                        <div class="text-[10px] font-bold tracking-wider text-slate-500 uppercase">Min GPA</div>
                       </div>
                     {/if}
                     {#if scholarship.min_ielts}
-                      <div>
-                        <span class="text-slate-500 block">Minimum IELTS</span>
-                        <span class="font-medium text-slate-900">{scholarship.min_ielts}</span>
+                      <div class="text-center p-4 bg-slate-50 rounded-xl border border-slate-100">
+                        <div class="text-3xl font-bold text-slate-900 mb-1">{scholarship.min_ielts}</div>
+                        <div class="text-[10px] font-bold tracking-wider text-slate-500 uppercase">Min IELTS</div>
                       </div>
                     {/if}
                     {#if scholarship.min_toefl}
-                      <div>
-                        <span class="text-slate-500 block">Minimum TOEFL</span>
-                        <span class="font-medium text-slate-900">{scholarship.min_toefl}</span>
+                      <div class="text-center p-4 bg-slate-50 rounded-xl border border-slate-100">
+                        <div class="text-3xl font-bold text-slate-900 mb-1">{scholarship.min_toefl}</div>
+                        <div class="text-[10px] font-bold tracking-wider text-slate-500 uppercase">Min TOEFL</div>
                       </div>
                     {/if}
                     {#if scholarship.age_limit}
-                      <div>
-                        <span class="text-slate-500 block">Age limit</span>
-                        <span class="font-medium text-slate-900">{scholarship.age_limit} years</span>
-                      </div>
-                    {/if}
-                    {#if scholarship.nationality_restrictions && scholarship.nationality_restrictions.length > 0}
-                      <div>
-                        <span class="text-slate-500 block">Nationality restrictions</span>
-                        <span class="font-medium text-slate-900">{scholarship.nationality_restrictions.join(', ')}</span>
+                      <div class="text-center p-4 bg-slate-50 rounded-xl border border-slate-100">
+                        <div class="text-3xl font-bold text-slate-900 mb-1">{scholarship.age_limit}</div>
+                        <div class="text-[10px] font-bold tracking-wider text-slate-500 uppercase">Age Limit</div>
                       </div>
                     {/if}
                   </div>
-                </section>
-              {/if}
-
-              <!-- Application Playbook (How to apply) -->
-              <section class="mb-6">
-                <h2 class="text-lg font-semibold text-gray-900 mb-3">How to apply (step-by-step)</h2>
-                <div class="rounded-xl border bg-white p-4">
-                  <div class="flex items-start justify-between gap-3">
-                    <div class="text-sm text-gray-700">
-                      <div class="text-xs text-gray-500 mb-1">Application route</div>
-                      <div class="font-medium">{playbookRouteType}</div>
+                  {#if scholarship.nationality_restrictions && scholarship.nationality_restrictions.length > 0}
+                    <div class="mt-6 p-4 bg-orange-50 rounded-xl border border-orange-100">
+                      <span class="block text-xs font-bold text-orange-800 uppercase tracking-wider mb-2">Targeted Nationalities</span>
+                      <span class="font-medium text-orange-900">{scholarship.nationality_restrictions.join(', ')}</span>
                     </div>
-                    <button
-                      onclick={() => goto('/plan')}
-                      class="px-3 py-2 text-sm font-semibold rounded-lg bg-[#2C3580] text-white hover:bg-[#3c4d9c] transition"
-                    >
-                      Go to your Plan →
-                    </button>
-                  </div>
+                  {/if}
+               </div>
+             {/if}
 
-                  <ol class="mt-4 space-y-3">
-                    {#each playbookSteps as step, idx}
-                      <li class="flex gap-3">
-                        <div class="mt-0.5 h-7 w-7 flex items-center justify-center rounded-full bg-indigo-50 text-indigo-700 font-semibold text-sm border border-indigo-100">
-                          {idx + 1}
-                        </div>
-                        <div>
-                          <div class="font-semibold text-gray-900">{step.title}</div>
-                          <div class="text-sm text-gray-700">{step.description}</div>
-                          {#if idx === 0 && scholarship.deadline}
-                            <div class="text-xs text-gray-500 mt-1">Tip: set a personal deadline 7 days before {formatDeadline(scholarship.deadline)}.</div>
-                          {/if}
-                        </div>
-                      </li>
-                    {/each}
-                  </ol>
 
-                  <div class="mt-4 flex flex-col sm:flex-row gap-2">
-                    <button
-                      onclick={toggleSaved}
-                      class="flex-1 px-4 py-2 rounded-lg border border-gray-200 bg-white text-gray-900 hover:bg-gray-50 transition font-semibold"
-                    >
-                      {isSaved ? 'Saved' : 'Save'} scholarship
-                    </button>
-                    <button
-                      onclick={handleApplicationTracker}
-                      class="flex-1 px-4 py-2 rounded-lg border border-gray-200 bg-white text-gray-900 hover:bg-gray-50 transition font-semibold"
-                    >
-                      Track in Applications
-                    </button>
-                  </div>
-                </div>
-              </section>
 
-              <!-- WIN STRATEGY (Paid Intelligence) -->
-              <section class="mb-6">
-                <div class="flex items-start justify-between gap-3 mb-3">
-                  <h2 class="text-lg font-semibold text-gray-900">Win Strategy (Preferred Candidate Plan)</h2>
-                  <span class="text-xs font-semibold px-2 py-1 rounded-full border {isPremium ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-indigo-50 text-indigo-700 border-indigo-200'}">
-                    {isPremium ? 'Paid intelligence' : 'Preview'}
-                  </span>
-                </div>
+             <!-- WIN STRATEGY (Copilot Intelligence) -->
+             <ScholarshipStrategy
+               bind:aiWinStrategy
+               {aiStrategyLoading}
+               {aiStrategyError}
+               {generationPhase}
+               bind:strategyActiveTab
+               {winEligibility}
+               {winRubric}
+               {winPlan}
+               onReveal={initiateStrategyGeneration}
+             />
+          </div>
+          
+          <!-- Right Column: Sticky Sidebar CTA -->
+          <div>
+            <div class="bg-slate-900 rounded-3xl p-8 text-white shadow-xl sticky top-28 border border-slate-800">
+               <h3 class="text-xl font-bold mb-8 text-slate-300 uppercase tracking-widest pt-1">
+                 Funding Details
+               </h3>
+               
+               <div class="space-y-6 mb-8">
 
-                {#if !isPremium}
-                  <div class="rounded-xl border border-indigo-200 bg-indigo-50 p-4">
-                    <p class="text-sm text-indigo-900 font-medium mb-2">
-                      Unlock the full win strategy for this scholarship
-                    </p>
-                    <ul class="text-sm text-indigo-900 space-y-1 mb-3">
-                      <li>✓ Eligibility gate (pass/fail) using your profile</li>
-                      <li>✓ What this scholarship rewards (rubric)</li>
-                      <li>✓ A personalized “increase your odds” action plan</li>
-                    </ul>
-                    <div class="flex flex-col sm:flex-row gap-2">
-                      <a href="/pricing" class="flex-1 px-4 py-2 rounded-lg bg-[#2C3580] text-white font-semibold text-center hover:bg-[#3c4d9c] transition">
-                        Unlock win strategy
-                      </a>
-                      <button onclick={() => goto('/plan')} class="flex-1 px-4 py-2 rounded-lg border border-indigo-200 bg-white text-indigo-700 font-semibold hover:bg-slate-50 transition">
-                        Open Strategy Pack →
-                      </button>
+                  
+                  {#if scholarship.deadline}
+                    {@const status = getDeadlineStatus(scholarship.deadline)}
+                    <div class="bg-slate-800/50 p-6 rounded-2xl border border-slate-700/50">
+                       <div class="text-slate-400 text-sm mb-2 font-medium uppercase tracking-wider">Application Deadline</div>
+                       <div class="text-2xl font-bold text-white">
+                          {formatDeadline(scholarship.deadline)}
+                       </div>
+                       <div class="inline-block mt-3 px-3 py-1 bg-slate-700 font-bold rounded-lg text-xs tracking-wider uppercase border border-slate-600 {status.class.includes('red') ? 'text-red-400 border-red-400/30 bg-red-400/10' : 'text-orange-400'}">
+                         {status.text}
+                       </div>
                     </div>
-                  </div>
-                {:else}
-                  <div class="rounded-xl border bg-white p-4">
-                    {#if aiWinStrategy}
-                      <div class="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
-                        <div class="text-sm font-semibold text-emerald-900">AI win strategy generated</div>
-                        <div class="text-sm text-emerald-800 mt-1">{aiWinStrategy.summary || 'Use this plan to improve your odds.'}</div>
-                      </div>
-                    {:else}
-                      <div class="mb-4 rounded-xl border border-indigo-200 bg-indigo-50 p-4">
-                        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                          <div class="text-sm text-indigo-900">
-                            <span class="font-semibold">Generate AI win strategy:</span> get scholarship-specific rubric + actions.
-                          </div>
-                          <button
-                            type="button"
-                            onclick={generateAIWinStrategy}
-                            disabled={aiStrategyLoading}
-                            class="rounded-lg bg-[#2C3580] px-4 py-2 text-sm font-semibold text-white hover:bg-[#3c4d9c] transition disabled:opacity-60"
-                          >
-                            {aiStrategyLoading ? 'Generating…' : 'Generate now'}
-                          </button>
-                        </div>
-                        {#if aiStrategyError}
-                          <div class="mt-2 text-sm text-red-700">{aiStrategyError}</div>
-                        {/if}
-                      </div>
-                    {/if}
+                  {/if}
+               </div>
 
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                      <!-- Eligibility gate -->
-                      <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                        <div class="text-sm font-semibold text-slate-900 mb-2">Eligibility gate (fast check)</div>
-                        <div class="space-y-2">
-                          {#each winEligibility as c (c.label)}
-                            <div class="flex items-start justify-between gap-3">
-                              <div class="text-sm text-slate-800">{c.label}</div>
-                              <div class="text-right">
-                                <div class="text-xs font-semibold rounded-full px-2 py-0.5 inline-block {c.status === 'pass' ? 'bg-emerald-100 text-emerald-800' : c.status === 'fail' ? 'bg-red-100 text-red-800' : 'bg-slate-200 text-slate-700'}">
-                                  {c.status === 'pass' ? 'Pass' : c.status === 'fail' ? 'Fail' : 'Unknown'}
-                                </div>
-                                {#if c.detail}
-                                  <div class="text-[11px] text-slate-500 mt-1">{c.detail}</div>
-                                {/if}
-                              </div>
-                            </div>
-                          {/each}
-                        </div>
-                        {#if !quickProfile}
-                          <div class="mt-3 text-xs text-slate-600">
-                            Tip: add your quick profile in your Strategy Pack to make this check precise.
-                          </div>
-                        {/if}
-                      </div>
-
-                      <!-- Selection profile -->
-                      <div class="rounded-xl border border-slate-200 bg-white p-4">
-                        <div class="text-sm font-semibold text-slate-900 mb-2">What they likely reward</div>
-                        <div class="space-y-3">
-                          {#each (aiWinStrategy?.rubric || winRubric) as r (r.key)}
-                            <div>
-                              <div class="flex items-center justify-between gap-3">
-                                <div class="text-sm font-medium text-slate-800">{r.label}</div>
-                                <div class="text-xs text-slate-600">{weightToLabel(r.weight)}</div>
-                              </div>
-                              <div class="mt-1 h-2 rounded-full bg-slate-100 overflow-hidden">
-                                <div class="h-2 rounded-full bg-indigo-500" style={`width: ${weightToWidth(r.weight)}`}></div>
-                              </div>
-                              <div class="mt-1 text-[11px] text-slate-500">{r.reason}</div>
-                            </div>
-                          {/each}
-                        </div>
-                      </div>
-                    </div>
-
-                    <!-- Action plan -->
-                    <div class="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
-                      <div class="rounded-xl border border-slate-200 bg-white p-4">
-                        <div class="text-sm font-semibold text-slate-900 mb-2">Top actions to increase odds</div>
-                        <ol class="text-sm text-slate-700 space-y-2 list-decimal pl-5">
-                          {#each (aiWinStrategy?.top_actions || winPlan.topActions) as a (a)}
-                            <li>{a}</li>
-                          {/each}
-                        </ol>
-                      </div>
-                      <div class="rounded-xl border border-slate-200 bg-white p-4">
-                        <div class="text-sm font-semibold text-slate-900 mb-2">Evidence to prepare</div>
-                        <ul class="text-sm text-slate-700 space-y-2 list-disc pl-5">
-                          {#each (aiWinStrategy?.evidence || winPlan.evidence) as e (e)}
-                            <li>{e}</li>
-                          {/each}
-                        </ul>
-                      </div>
-                      <div class="rounded-xl border border-slate-200 bg-white p-4">
-                        <div class="text-sm font-semibold text-slate-900 mb-2">Red flags to avoid</div>
-                        <ul class="text-sm text-slate-700 space-y-2 list-disc pl-5">
-                          {#each (aiWinStrategy?.red_flags || winPlan.redFlags) as rf (rf)}
-                            <li>{rf}</li>
-                          {/each}
-                        </ul>
-                      </div>
-                    </div>
-
-                    {#if aiWinStrategy?.narrative_angles?.length}
-                      <div class="mt-4 rounded-xl border border-slate-200 bg-white p-4">
-                        <div class="text-sm font-semibold text-slate-900 mb-2">Suggested narrative angles</div>
-                        <ul class="text-sm text-slate-700 space-y-2 list-disc pl-5">
-                          {#each aiWinStrategy.narrative_angles as angle (angle)}
-                            <li>{angle}</li>
-                          {/each}
-                        </ul>
-                      </div>
-                    {/if}
-
-                    <div class="mt-4 rounded-xl border border-indigo-200 bg-indigo-50 p-4">
-                      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                        <div class="text-sm text-indigo-900">
-                          <span class="font-semibold">Next:</span> open your Strategy Pack to build a timeline + track this scholarship.
-                        </div>
-                        <button onclick={() => goto('/plan')} class="rounded-lg bg-[#2C3580] px-4 py-2 text-sm font-semibold text-white hover:bg-[#3c4d9c] transition">
-                          Open Strategy Pack →
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                {/if}
-              </section>
-              
-              {#if scholarship.website}
-                <section class="mb-6">
-                  <h2 class="text-lg font-semibold text-slate-900 mb-3">Application</h2>
-                  <a href={scholarship.website} target="_blank" rel="noopener noreferrer" class="inline-flex items-center px-4 py-2 bg-[#2C3580] text-white rounded-lg hover:bg-[#3c4d9c] transition-colors mb-3">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2">
-                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                      <polyline points="15 3 21 3 21 9"></polyline>
-                      <line x1="10" y1="14" x2="21" y2="3"></line>
-                    </svg>
+               {#if scholarship.website}
+                 <a href={scholarship.website} target="_blank" rel="noopener noreferrer" class="w-full flex items-center justify-center gap-2 py-5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 rounded-xl font-bold text-lg text-white transition-all shadow-lg shadow-orange-500/20 mb-4 transform hover:-translate-y-1">
                     Apply on Official Website
-                  </a>
-                  <p class="text-sm text-slate-600">
-                    Visit the official scholarship website for complete application instructions and to submit your application.
-                  </p>
-                </section>
-              {/if}
-              
-              <div class="flex flex-col gap-3">
-                <div class="flex justify-between items-center">
-                  <span class="font-medium text-gray-700">Save this scholarship to your list</span>
-                  <button
-                    onclick={toggleSaved}
-                    class={`flex items-center justify-center px-4 py-2 rounded-lg font-medium transition duration-200 ${
-                      isSaved 
-                        ? 'bg-amber-100 text-amber-800 hover:bg-amber-200 border border-amber-200'
-                        : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
-                    }`}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill={isSaved ? 'currentColor' : 'none'} stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2">
-                      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-                    </svg>
-                    {isSaved ? 'Saved to Your List' : 'Save to Your List'}
-                  </button>
-                </div>
-                
-                <div class="mt-6 p-4 bg-blue-50 border border-blue-100 rounded-lg">
-                  <p class="text-sm text-gray-700 mb-3 font-medium">💾 <strong>Quick Save:</strong> Click 'Save' to add this scholarship to your <a href="/scholarships/my-applications" class="text-blue-600 hover:text-blue-700 underline">Saved Scholarships</a> list for easy access later.</p>
-                  <p class="text-sm text-gray-600 mb-2">📊 <strong>Full Tracking:</strong> Use our <button
-  class="text-blue-600 hover:text-blue-700 underline font-medium bg-transparent border-none p-0 cursor-pointer"
-  onclick={handleApplicationTracker}
->
-  Application Tracker →
-</button> to manually track ALL your applications (including from other platforms) with deadlines, documents, and status updates.</p>
-                </div>
-                
-                <div class="mt-4 p-4 bg-gray-50 border border-gray-100 rounded-lg text-center">
-                  <p class="text-sm text-gray-600 mb-2">Looking for other opportunities?</p>
-                  <a href="/scholarships" class="text-indigo-700 hover:text-indigo-800 font-medium">Explore more scholarships →</a>
+                 </a>
+               {/if}
+               
+               <button onclick={toggleSaved} class="w-full flex items-center justify-center gap-2 py-4 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl font-bold text-slate-300 transition-all mb-6">
+                 <svg class="w-5 h-5 {isSaved ? 'fill-orange-500 text-orange-500' : ''}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                 </svg>
+                 {isSaved ? 'Saved to Applications' : 'Save to Applications'}
+               </button>
+               
+               <div class="text-center">
+                 <button onclick={handleApplicationTracker} class="text-orange-400 hover:text-orange-300 text-sm font-bold border-b border-orange-400/30 hover:border-orange-300 pb-0.5 transition-colors">
+                   Open Application Tracker →
+                 </button>
+               </div>
+            </div>
+            
+            {#if scholarship.program_name && scholarship.university_name}
+              <!-- Supplementary sticky block for grad program info if applicable -->
+              <div class="bg-white rounded-3xl p-8 border border-slate-200 mt-8 shadow-sm">
+                <h3 class="font-bold text-slate-900 mb-4 flex items-center gap-2">
+                  <svg class="w-5 h-5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+                  Program Details
+                </h3>
+                <div class="space-y-3 text-sm">
+                   <div>
+                     <span class="block text-slate-500 font-medium">University</span>
+                     <span class="font-bold text-slate-900">{scholarship.university_name}</span>
+                   </div>
+                   <div>
+                     <span class="block text-slate-500 font-medium">Program</span>
+                     <span class="font-bold text-slate-900">{scholarship.program_name}</span>
+                   </div>
+                   {#if scholarship.department}
+                     <div>
+                       <span class="block text-slate-500 font-medium">Department</span>
+                       <span class="font-bold text-slate-900">{scholarship.department}</span>
+                     </div>
+                   {/if}
                 </div>
               </div>
-            </div>
+            {/if}
           </div>
-        </div>
-      </div>
+       </div>
       
       <!-- Related Scholarships -->
       {#if relatedScholarships && relatedScholarships.length > 0}
@@ -1173,24 +1008,7 @@
         </div>
       {/if}
       
-      <!-- Call to Action Section -->
-      <div class="mt-12 bg-gradient-to-r from-[#2C3580] to-indigo-600 rounded-2xl p-8 text-center text-white border border-indigo-200/20">
-        <h3 class="text-2xl font-bold mb-4">Need Help with Your Applications?</h3>
-        <p class="text-indigo-100 mb-6">
-          Use our AI-powered tools to create compelling scholarship essays and application documents.
-        </p>
-        <div class="flex flex-col sm:flex-row gap-4 justify-center">
-          <a href="/sop" class="bg-white text-[#2C3580] px-6 py-3 rounded-lg font-medium hover:bg-gray-100 transition duration-200">
-            📝 Generate Statement of Purpose
-          </a>
-          <a href="/cover-letters" class="border-2 border-white text-white px-6 py-3 rounded-lg font-medium hover:bg-white hover:text-[#2C3580] transition duration-200">
-            ✉️ Create Cover Letter
-          </a>
-          <a href="/plan" class="border-2 border-white text-white px-6 py-3 rounded-lg font-medium hover:bg-white hover:text-[#2C3580] transition duration-200">
-            🎯 Open Plan
-          </a>
-        </div>
-      </div>
+
     </div>
   {/if}
   <AuthenticationFlow 
@@ -1199,5 +1017,16 @@
     mode={authMode} 
     returnUrl={$page.url.pathname}
     on:success={handleAuthSuccess}
+  />
+  <CompactUpgradeModal
+    isOpen={showBillingModal}
+    on:close={() => showBillingModal = false}
+    on:upgrade={() => goto('/pricing')}
+  />
+  <StrategyDocumentLinker 
+    bind:show={showStrategyLinker} 
+    {userDocuments} 
+    scholarshipTitle={decodeHtmlEntities(scholarship.title)} 
+    onProcessGeneration={processStrategyGeneration} 
   />
 </div> 

@@ -22,30 +22,14 @@
       // Log for debugging
       console.log('SvelteKit session user:', session.user);
       
-      // TEMPORARY SUPER ADMIN BYPASS - Restore your access immediately
-      if (session.user.email === 'solakolawole62@gmail.com' || session.user.email === 'admin@abroaducate.com') {
-        console.log('🚨 SUPER ADMIN BYPASS: Granting full access to', session.user.email);
-        isAdmin = true;
-        adminRole = 'super-admin';
-        permissions = {
-          canManageScholarships: true,
-          canManageAdmins: true,
-          canAccessAnalytics: true,
-          canManageContent: true,
-          canAccessSecurity: true
-        };
-        isLoading = false;
-        return;
-      }
-      
       try {
         // Check all permissions using nuclear functions
         const [
-          { data: canManage, error: scholarshipError },
-          { data: canManageAdmins, error: adminError },
-          { data: canAccessAnalytics, error: analyticsError },
-          { data: canManageContent, error: contentError },
-          { data: canAccessSecurity, error: securityError }
+          { data: canManage },
+          { data: canManageAdmins },
+          { data: canAccessAnalytics },
+          { data: canManageContent },
+          { data: canAccessSecurity }
         ] = await Promise.all([
           supabase.rpc('can_manage_scholarships'),
           supabase.rpc('can_manage_admins_nuclear'),
@@ -61,7 +45,7 @@
           canAccessAnalytics: !!canAccessAnalytics,
           canManageContent: !!canManageContent,
           canAccessSecurity: !!canAccessSecurity
-        } as any;
+        };
         
         // Any permission grants admin access
         isAdmin = Object.values(permissions).some(Boolean);
@@ -179,12 +163,34 @@
               <span class="mr-2">🎓</span>
               <span>Scholarships</span>
             </a>
+            <a href="/admin/programs" class="flex items-center px-4 py-2 hover:bg-gray-700 {$page.url.pathname === '/admin/programs' ? 'bg-gray-700' : ''}">
+              <span class="mr-2">🏛️</span>
+              <span>Programs</span>
+            </a>
+            <a href="/admin/programs/import" class="flex items-center px-4 py-2 pl-8 hover:bg-gray-700 {$page.url.pathname === '/admin/programs/import' ? 'bg-yellow-700' : ''} text-sm">
+              <span class="mr-2">⬆️</span>
+              <span class="text-gray-300">Bulk Import</span>
+            </a>
+          {/if}
+          
+          {#if permissions.canManageScholarships}
+            <a href="/admin/universities" class="flex items-center px-4 py-2 hover:bg-gray-700 {$page.url.pathname === '/admin/universities' ? 'bg-gray-700' : ''}">
+              <span class="mr-2">🌍</span>
+              <span>Universities</span>
+            </a>
           {/if}
           
           {#if permissions.canAccessAnalytics}
             <a href="/admin/analytics" class="flex items-center px-4 py-2 hover:bg-gray-700 {$page.url.pathname === '/admin/analytics' ? 'bg-gray-700' : ''}">
               <span class="mr-2">📈</span>
               <span>Analytics</span>
+            </a>
+          {/if}
+
+          {#if permissions.canManageScholarships}
+            <a href="/admin/match-health" class="flex items-center px-4 py-2 hover:bg-gray-700 {$page.url.pathname === '/admin/match-health' ? 'bg-gray-700' : ''}">
+              <span class="mr-2">🩺</span>
+              <span>Match Health</span>
             </a>
           {/if}
           

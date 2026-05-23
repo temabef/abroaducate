@@ -1,0 +1,609 @@
+﻿
+> sop-new-build@0.0.1 build
+> vite build
+
+[36mvite v6.3.5 [32mbuilding SSR bundle for production...[36m[39m
+transforming...
+npm : 4:13:57 PM [vite-plugin-svelte] src/routes/admin/calculator-data/+page.svelte:224:10 A form label must be 
+associated with a control
+At line:2 char:1
++ npm run build 2>&1 | Out-File -FilePath final-build.log -Encoding utf ...
++ ~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (4:13:57 PM [vit... with a control:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+https://svelte.dev/e/a11y_label_has_associated_control
+222:       <div class="form-grid">
+223:         <div class="form-group">
+224:           <label>City Name</label>
+                                       ^
+225:           <input type="text" bind:value={newCity.city} placeholder="e.g., San Francisco" />
+226:         </div>
+4:13:57 PM [vite-plugin-svelte] src/routes/admin/calculator-data/+page.svelte:228:10 A form label must be associated 
+with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+226:         </div>
+227:         <div class="form-group">
+228:           <label>State</label>
+                                   ^
+229:           <input type="text" bind:value={newCity.state} placeholder="e.g., California" />
+230:         </div>
+4:13:57 PM [vite-plugin-svelte] src/routes/admin/calculator-data/+page.svelte:232:10 A form label must be associated 
+with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+230:         </div>
+231:         <div class="form-group">
+232:           <label>State Code</label>
+                                        ^
+233:           <input type="text" bind:value={newCity.state_code} placeholder="e.g., CA" maxlength="2" />
+234:         </div>
+4:13:57 PM [vite-plugin-svelte] src/routes/admin/calculator-data/+page.svelte:236:10 A form label must be associated 
+with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+234:         </div>
+235:         <div class="form-group">
+236:           <label>Population</label>
+                                        ^
+237:           <input type="number" bind:value={newCity.population} />
+238:         </div>
+4:13:57 PM [vite-plugin-svelte] src/routes/admin/calculator-data/+page.svelte:244:12 A form label must be associated 
+with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+242:           <h4>Housing Costs (Monthly)</h4>
+243:           <div class="cost-pair">
+244:             <label>Dorm Cost Range</label>
+                                               ^
+245:             <input type="number" bind:value={newCity.dorm_cost_min} placeholder="Min" />
+246:             <input type="number" bind:value={newCity.dorm_cost_max} placeholder="Max" />
+4:13:57 PM [vite-plugin-svelte] src/routes/admin/calculator-data/+page.svelte:249:12 A form label must be associated 
+with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+247:           </div>
+248:           <div class="cost-pair">
+249:             <label>Shared Apartment Range</label>
+                                                      ^
+250:             <input type="number" bind:value={newCity.shared_apt_min} placeholder="Min" />
+251:             <input type="number" bind:value={newCity.shared_apt_max} placeholder="Max" />
+4:13:57 PM [vite-plugin-svelte] src/routes/admin/calculator-data/+page.svelte:254:12 A form label must be associated 
+with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+252:           </div>
+253:           <div class="cost-pair">
+254:             <label>Studio Apartment Range</label>
+                                                      ^
+255:             <input type="number" bind:value={newCity.studio_apt_min} placeholder="Min" />
+256:             <input type="number" bind:value={newCity.studio_apt_max} placeholder="Max" />
+4:13:57 PM [vite-plugin-svelte] src/routes/admin/calculator-data/+page.svelte:264:12 A form label must be associated 
+with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+262:           <h4>Living Costs (Monthly)</h4>
+263:           <div class="form-group">
+264:             <label>Food - Budget</label>
+                                             ^
+265:             <input type="number" bind:value={newCity.food_budget} />
+266:           </div>
+4:13:57 PM [vite-plugin-svelte] src/routes/admin/calculator-data/+page.svelte:268:12 A form label must be associated 
+with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+266:           </div>
+267:           <div class="form-group">
+268:             <label>Food - Average</label>
+                                              ^
+269:             <input type="number" bind:value={newCity.food_average} />
+270:           </div>
+4:13:57 PM [vite-plugin-svelte] src/routes/admin/calculator-data/+page.svelte:272:12 A form label must be associated 
+with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+270:           </div>
+271:           <div class="form-group">
+272:             <label>Food - Comfortable</label>
+                                                  ^
+273:             <input type="number" bind:value={newCity.food_comfortable} />
+274:           </div>
+4:13:57 PM [vite-plugin-svelte] src/routes/admin/calculator-data/+page.svelte:276:12 A form label must be associated 
+with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+274:           </div>
+275:           <div class="form-group">
+276:             <label>Transportation</label>
+                                              ^
+277:             <input type="number" bind:value={newCity.transportation} />
+278:           </div>
+4:13:57 PM [vite-plugin-svelte] src/routes/admin/calculator-data/+page.svelte:280:12 A form label must be associated 
+with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+278:           </div>
+279:           <div class="form-group">
+280:             <label>Utilities</label>
+                                         ^
+281:             <input type="number" bind:value={newCity.utilities} />
+282:           </div>
+4:13:57 PM [vite-plugin-svelte] src/routes/admin/calculator-data/+page.svelte:284:12 A form label must be associated 
+with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+282:           </div>
+283:           <div class="form-group">
+284:             <label>Personal Expenses</label>
+                                                 ^
+285:             <input type="number" bind:value={newCity.personal_expenses} />
+286:           </div>
+4:13:57 PM [vite-plugin-svelte] src/routes/admin/calculator-data/+page.svelte:293:12 A form label must be associated 
+with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+291:           <h4>Tuition Costs (Annual)</h4>
+292:           <div class="cost-pair">
+293:             <label>Public University Range</label>
+                                                       ^
+294:             <input type="number" bind:value={newCity.public_tuition_min} placeholder="Min" />
+295:             <input type="number" bind:value={newCity.public_tuition_max} placeholder="Max" />
+4:13:57 PM [vite-plugin-svelte] src/routes/admin/calculator-data/+page.svelte:298:12 A form label must be associated 
+with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+296:           </div>
+297:           <div class="cost-pair">
+298:             <label>Private University Range</label>
+                                                        ^
+299:             <input type="number" bind:value={newCity.private_tuition_min} placeholder="Min" />
+300:             <input type="number" bind:value={newCity.private_tuition_max} placeholder="Max" />
+4:13:57 PM [vite-plugin-svelte] src/routes/admin/calculator-data/+page.svelte:303:12 A form label must be associated 
+with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+301:           </div>
+302:           <div class="cost-pair">
+303:             <label>Community College Range</label>
+                                                       ^
+304:             <input type="number" bind:value={newCity.community_tuition_min} placeholder="Min" />
+305:             <input type="number" bind:value={newCity.community_tuition_max} placeholder="Max" />
+4:13:57 PM [vite-plugin-svelte] src/routes/admin/calculator-data/+page.svelte:313:12 A form label must be associated 
+with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+311:           <h4>Additional Costs (Annual)</h4>
+312:           <div class="form-group">
+313:             <label>Health Insurance</label>
+                                                ^
+314:             <input type="number" bind:value={newCity.health_insurance} />
+315:           </div>
+4:13:57 PM [vite-plugin-svelte] src/routes/admin/calculator-data/+page.svelte:317:12 A form label must be associated 
+with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+315:           </div>
+316:           <div class="form-group">
+317:             <label>Books & Supplies</label>
+                                                ^
+318:             <input type="number" bind:value={newCity.books_supplies} />
+319:           </div>
+4:13:57 PM [vite-plugin-svelte] src/routes/admin/calculator-data/+page.svelte:321:12 A form label must be associated 
+with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+319:           </div>
+320:           <div class="form-group">
+321:             <label>Cost of Living Index</label>
+                                                    ^
+322:             <input type="number" step="0.1" bind:value={newCity.cost_of_living_index} />
+323:           </div>
+4:13:57 PM [vite-plugin-svelte] src/routes/admin/calculator-data/+page.svelte:552:21 Unused CSS selector ".form-group 
+textarea"
+https://svelte.dev/e/css_unused_selector
+550:   }
+551: 
+552:   .form-group input, .form-group textarea {
+                                              ^
+553:     padding: 0.5rem;
+554:     border: 1px solid #d1d5db;
+4:13:57 PM [vite-plugin-svelte] src/routes/admin/calculator-data/+page.svelte:559:27 Unused CSS selector ".form-group 
+textarea:focus"
+https://svelte.dev/e/css_unused_selector
+557:   }
+558: 
+559:   .form-group input:focus, .form-group textarea:focus {
+                                                          ^
+560:     outline: none;
+561:     border-color: #3b82f6;
+4:13:58 PM [vite-plugin-svelte] src/routes/admin/programs/+page.svelte:213:8 A form label must be associated with a 
+control
+https://svelte.dev/e/a11y_label_has_associated_control
+211:             {#if !isEditing}
+212:               <div>
+213:                 <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Program ID / Slug</label>
+                                                                                                                      ^
+214:                 <input type="text" bind:value={currentProgram.id} placeholder="e.g. rwth-software-engineering" 
+class="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:border-yellow-500" />
+215:               </div>
+4:13:58 PM [vite-plugin-svelte] src/routes/admin/programs/+page.svelte:218:7 A form label must be associated with a 
+control
+https://svelte.dev/e/a11y_label_has_associated_control
+216:             {/if}
+217:             <div>
+218:               <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Program Name</label>
+                                                                                                               ^
+219:               <input type="text" bind:value={currentProgram.program_name} class="w-full border rounded-lg px-3 
+py-2 text-sm outline-none focus:border-yellow-500" />
+220:             </div>
+4:13:58 PM [vite-plugin-svelte] src/routes/admin/programs/+page.svelte:222:7 A form label must be associated with a 
+control
+https://svelte.dev/e/a11y_label_has_associated_control
+220:             </div>
+221:             <div>
+222:               <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">University Name 
+(Legacy/Fallback)</label>
+                                                                                                                       
+             ^
+223:               <input type="text" bind:value={currentProgram.university_name} class="w-full border rounded-lg px-3 
+py-2 text-sm outline-none focus:border-yellow-500" />
+224:             </div>
+4:13:58 PM [vite-plugin-svelte] src/routes/admin/programs/+page.svelte:226:7 A form label must be associated with a 
+control
+https://svelte.dev/e/a11y_label_has_associated_control
+224:             </div>
+225:             <div>
+226:               <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Linked University 
+(Catalog)</label>
+                                                                                                                       
+       ^
+227:               <select bind:value={currentProgram.university_id} class="w-full border rounded-lg px-3 py-2 text-sm 
+outline-none focus:border-yellow-500">
+228:                 <option value={null}>-- Select University --</option>
+4:13:58 PM [vite-plugin-svelte] src/routes/admin/programs/+page.svelte:241:8 A form label must be associated with a 
+control
+https://svelte.dev/e/a11y_label_has_associated_control
+239:             <div class="grid grid-cols-2 gap-4">
+240:               <div>
+241:                 <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Country</label>
+                                                                                                            ^
+242:                 <input type="text" bind:value={currentProgram.country} class="w-full border rounded-lg px-3 py-2 
+text-sm outline-none focus:border-yellow-500" />
+243:               </div>
+4:13:58 PM [vite-plugin-svelte] src/routes/admin/programs/+page.svelte:245:8 A form label must be associated with a 
+control
+https://svelte.dev/e/a11y_label_has_associated_control
+243:               </div>
+244:               <div>
+245:                 <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">City</label>
+                                                                                                         ^
+246:                 <input type="text" bind:value={currentProgram.city} class="w-full border rounded-lg px-3 py-2 
+text-sm outline-none focus:border-yellow-500" />
+247:               </div>
+4:13:58 PM [vite-plugin-svelte] src/routes/admin/programs/+page.svelte:251:8 A form label must be associated with a 
+control
+https://svelte.dev/e/a11y_label_has_associated_control
+249:             <div class="grid grid-cols-2 gap-4 mt-4">
+250:               <div>
+251:                 <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Tuition (€ / Sem)</label>
+                                                                                                                      ^
+252:                 <input type="number" bind:value={currentProgram.tuition_per_semester} class="w-full border 
+rounded-lg px-3 py-2 text-sm outline-none focus:border-yellow-500" />
+253:               </div>
+4:13:58 PM [vite-plugin-svelte] src/routes/admin/programs/+page.svelte:255:8 A form label must be associated with a 
+control
+https://svelte.dev/e/a11y_label_has_associated_control
+253:               </div>
+254:               <div>
+255:                 <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Semester Fee (€ / 
+Sem)</label>
+                                                                                                                       
+    ^
+256:                 <input type="number" bind:value={currentProgram.semester_fee} class="w-full border rounded-lg 
+px-3 py-2 text-sm outline-none focus:border-yellow-500" />
+257:               </div>
+4:13:58 PM [vite-plugin-svelte] src/routes/admin/programs/+page.svelte:259:8 A form label must be associated with a 
+control
+https://svelte.dev/e/a11y_label_has_associated_control
+257:               </div>
+258:               <div>
+259:                 <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Application Fee 
+(€)</label>
+                                                                                                                       
+ ^
+260:                 <input type="number" bind:value={currentProgram.application_fee} class="w-full border rounded-lg 
+px-3 py-2 text-sm outline-none focus:border-yellow-500" />
+261:               </div>
+4:13:58 PM [vite-plugin-svelte] src/routes/admin/programs/+page.svelte:263:8 A form label must be associated with a 
+control
+https://svelte.dev/e/a11y_label_has_associated_control
+261:               </div>
+262:               <div>
+263:                 <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Est. Living Cost (€ / 
+Mo)</label>
+                                                                                                                       
+       ^
+264:                 <input type="number" bind:value={currentProgram.living_cost_per_month} class="w-full border 
+rounded-lg px-3 py-2 text-sm outline-none focus:border-yellow-500" />
+265:               </div>
+4:13:58 PM [vite-plugin-svelte] src/routes/admin/programs/+page.svelte:274:8 A form label must be associated with a 
+control
+https://svelte.dev/e/a11y_label_has_associated_control
+272:             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+273:               <div>
+274:                 <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Funding Pathway</label>
+                                                                                                                    ^
+275:                 <select bind:value={currentProgram.funding_pathway} class="w-full border rounded-lg px-3 py-2 
+text-sm outline-none focus:border-yellow-500">
+276:                   <option value="">-- Select Pathway --</option>
+4:13:58 PM [vite-plugin-svelte] src/routes/admin/programs/+page.svelte:283:8 A form label must be associated with a 
+control
+https://svelte.dev/e/a11y_label_has_associated_control
+281:               </div>
+282:               <div>
+283:                 <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Pathway 
+Explanation</label>
+                                                                                                                       
+ ^
+284:                 <textarea bind:value={currentProgram.funding_pathway_explanation} placeholder="Explain the 
+strategy..." class="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:border-yellow-500 h-10"></textarea>
+285:               </div>
+4:13:58 PM [vite-plugin-svelte] src/routes/admin/programs/+page.svelte:289:8 A form label must be associated with a 
+control
+https://svelte.dev/e/a11y_label_has_associated_control
+287:             <div class="grid grid-cols-3 gap-4 pt-4 border-t border-slate-100">
+288:               <div>
+289:                 <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Min GPA (German 
+Scale)</label>
+                                                                                                                       
+    ^
+290:                 <input type="number" step="0.1" bind:value={currentProgram.rubric_criteria.min_gpa} class="w-full 
+border rounded-lg px-3 py-2 text-sm outline-none focus:border-yellow-500" />
+291:               </div>
+4:13:59 PM [vite-plugin-svelte] src/routes/admin/programs/import/+page.svelte:193:3 Visible, non-interactive elements 
+with a click event must be accompanied by a keyboard event handler. Consider whether an interactive element such as 
+`<button type="button">` or `<a>` might be more appropriate
+https://svelte.dev/e/a11y_click_events_have_key_events
+191:     <div class="flex items-center gap-4">
+192:       <!-- AI Toggle -->
+193:       <div class="flex items-center gap-3 p-4 rounded-xl border-2 {useAI ? 'border-yellow-400 bg-yellow-50' : 
+'border-gray-200 bg-gray-50'} cursor-pointer flex-1" onclick={() => useAI = !useAI}>
+                 ^
+194:         <div class="w-10 h-10 rounded-xl {useAI ? 'bg-yellow-400' : 'bg-gray-300'} flex items-center 
+justify-center flex-shrink-0 transition-colors">
+195:           <Sparkles size={20} class="text-white" />
+4:13:59 PM [vite-plugin-svelte] src/routes/admin/programs/import/+page.svelte:193:3 `<div>` with a click handler must 
+have an ARIA role
+https://svelte.dev/e/a11y_no_static_element_interactions
+191:     <div class="flex items-center gap-4">
+192:       <!-- AI Toggle -->
+193:       <div class="flex items-center gap-3 p-4 rounded-xl border-2 {useAI ? 'border-yellow-400 bg-yellow-50' : 
+'border-gray-200 bg-gray-50'} cursor-pointer flex-1" onclick={() => useAI = !useAI}>
+                 ^
+194:         <div class="w-10 h-10 rounded-xl {useAI ? 'bg-yellow-400' : 'bg-gray-300'} flex items-center 
+justify-center flex-shrink-0 transition-colors">
+195:           <Sparkles size={20} class="text-white" />
+4:13:59 PM [vite-plugin-svelte] src/routes/admin/programs/import/+page.svelte:212:4 A form label must be associated 
+with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+210:     <div>
+211:       <div class="flex justify-between items-center mb-2">
+212:         <label class="text-sm font-bold text-gray-700">Paste CSV Data</label>
+                                                                                  ^
+213:         <button onclick={loadSample} class="text-xs text-yellow-600 hover:text-yellow-800 font-semibold 
+underline">Load Sample Data</button>
+214:       </div>
+4:13:59 PM [vite-plugin-svelte] src/routes/admin/scholarships/+page.svelte:903:15 A form label must be associated with 
+a control
+https://svelte.dev/e/a11y_label_has_associated_control
+901:              <!-- Import Type Selection -->
+902:              <div class="bg-blue-50 p-4 rounded-lg">
+903:                <label class="block text-sm font-medium text-gray-700 mb-2">
+                            ^
+904:                  Select Import Type
+905:                </label>
+4:13:59 PM [vite-plugin-svelte] src/routes/admin/scholarships/+page.svelte:937:15 A form label must be associated with 
+a control
+https://svelte.dev/e/a11y_label_has_associated_control
+935:             
+936:                          <div>
+937:                <label class="block text-sm font-medium text-gray-700 mb-2">
+                            ^
+938:                  CSV Data (paste scraped data or upload file above)
+939:                </label>
+4:13:59 PM [vite-plugin-svelte] src/routes/admin/scholarships/+page.svelte:1539:20 Buttons and links should either 
+contain text or have an `aria-label` or `aria-labelledby` attribute
+https://svelte.dev/e/a11y_consider_explicit_label
+1537:                   <nav class="flex items-center space-x-2">
+1538:                     <!-- First Page -->
+1539:                     <button
+                                  ^
+1540:                       onclick={() => goToPage(1)}
+1541:                       disabled={currentPage === 1}
+4:13:59 PM [vite-plugin-svelte] src/routes/admin/scholarships/+page.svelte:1583:20 Buttons and links should either 
+contain text or have an `aria-label` or `aria-labelledby` attribute
+https://svelte.dev/e/a11y_consider_explicit_label
+1581:                     
+1582:                     <!-- Last Page -->
+1583:                     <button
+                                  ^
+1584:                       onclick={() => goToPage(totalPages)}
+1585:                       disabled={currentPage === totalPages}
+4:13:59 PM [vite-plugin-svelte] src/routes/admin/test-prep/+page.svelte:282:20 `<svelte:component>` is deprecated in 
+runes mode — components are dynamic by default
+https://svelte.dev/e/svelte_component_deprecated
+280:                 <td>
+281:                   <span class="section-badge {getSectionColor(set.section)}">
+282:                     <svelte:component this={sectionIcons[set.section as keyof typeof sectionIcons]} size={16} />
+                                                                                                                     ^
+283:                     {set.section.charAt(0).toUpperCase() + set.section.slice(1)}
+284:                   </span>
+4:13:59 PM [vite-plugin-svelte] src/routes/admin/test-prep/edit/[setId]/+page.svelte:420:20 A form label must be 
+associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+418:                 <div class="choices-section">
+419:                   <div class="choices-header">
+420:                     <label id="choices-label-{question.id}">Answer Choices</label>
+                                                                                       ^
+421:                     <button 
+422:                       onclick={() => addChoice(question.id)}
+4:13:59 PM [vite-plugin-svelte] src/routes/admin/universities/+page.svelte:207:7 A form label must be associated with 
+a control
+https://svelte.dev/e/a11y_label_has_associated_control
+205:             <h4 class="font-bold text-gray-900 mb-2 border-b pb-2">Core Details</h4>
+206:             <div>
+207:               <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">University Name</label>
+                                                                                                                  ^
+208:               <input type="text" bind:value={currentUniv.name} class="w-full border rounded-lg px-3 py-2 text-sm 
+outline-none focus:border-yellow-500" />
+209:             </div>
+4:13:59 PM [vite-plugin-svelte] src/routes/admin/universities/+page.svelte:212:8 A form label must be associated with 
+a control
+https://svelte.dev/e/a11y_label_has_associated_control
+210:             <div class="grid grid-cols-2 gap-4">
+211:               <div>
+212:                 <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Country</label>
+                                                                                                            ^
+213:                 <input type="text" bind:value={currentUniv.country} class="w-full border rounded-lg px-3 py-2 
+text-sm outline-none focus:border-yellow-500" />
+214:               </div>
+4:13:59 PM [vite-plugin-svelte] src/routes/admin/universities/+page.svelte:216:8 A form label must be associated with 
+a control
+https://svelte.dev/e/a11y_label_has_associated_control
+214:               </div>
+215:               <div>
+216:                 <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">City</label>
+                                                                                                         ^
+217:                 <input type="text" bind:value={currentUniv.city} class="w-full border rounded-lg px-3 py-2 
+text-sm outline-none focus:border-yellow-500" />
+218:               </div>
+4:13:59 PM [vite-plugin-svelte] src/routes/admin/universities/+page.svelte:221:7 A form label must be associated with 
+a control
+https://svelte.dev/e/a11y_label_has_associated_control
+219:             </div>
+220:             <div>
+221:               <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Description</label>
+                                                                                                              ^
+222:               <textarea bind:value={currentUniv.description} class="w-full border rounded-lg px-3 py-2 text-sm 
+outline-none focus:border-yellow-500 h-24"></textarea>
+223:             </div>
+4:13:59 PM [vite-plugin-svelte] src/routes/admin/universities/+page.svelte:231:8 A form label must be associated with 
+a control
+https://svelte.dev/e/a11y_label_has_associated_control
+229:             <div class="grid grid-cols-2 gap-4">
+230:               <div>
+231:                 <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Type</label>
+                                                                                                         ^
+232:                 <select bind:value={currentUniv.type} class="w-full border rounded-lg px-3 py-2 text-sm 
+outline-none focus:border-yellow-500">
+233:                   <option value="Public Research">Public Research</option>
+4:13:59 PM [vite-plugin-svelte] src/routes/admin/universities/+page.svelte:240:8 A form label must be associated with 
+a control
+https://svelte.dev/e/a11y_label_has_associated_control
+238:               </div>
+239:               <div>
+240:                 <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Tuition Type</label>
+                                                                                                                 ^
+241:                 <select bind:value={currentUniv.tuition_type} class="w-full border rounded-lg px-3 py-2 text-sm 
+outline-none focus:border-yellow-500">
+242:                   <option value="Zero Tuition">Zero Tuition</option>
+4:13:59 PM [vite-plugin-svelte] src/routes/admin/universities/+page.svelte:250:8 A form label must be associated with 
+a control
+https://svelte.dev/e/a11y_label_has_associated_control
+248:             <div class="grid grid-cols-2 gap-4">
+249:               <div>
+250:                 <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Acceptance Rate</label>
+                                                                                                                    ^
+251:                 <input type="text" bind:value={currentUniv.acceptance_rate} placeholder="e.g. 15%" class="w-full 
+border rounded-lg px-3 py-2 text-sm outline-none focus:border-yellow-500" />
+252:               </div>
+4:13:59 PM [vite-plugin-svelte] src/routes/admin/universities/+page.svelte:254:8 A form label must be associated with 
+a control
+https://svelte.dev/e/a11y_label_has_associated_control
+252:               </div>
+253:               <div>
+254:                 <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Global Rank</label>
+                                                                                                                ^
+255:                 <input type="text" bind:value={currentUniv.global_rank} placeholder="e.g. #106" class="w-full 
+border rounded-lg px-3 py-2 text-sm outline-none focus:border-yellow-500" />
+256:               </div>
+4:13:59 PM [vite-plugin-svelte] src/routes/admin/universities/+page.svelte:259:7 A form label must be associated with 
+a control
+https://svelte.dev/e/a11y_label_has_associated_control
+257:             </div>
+258:             <div>
+259:               <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Living Cost Estimate</label>
+                                                                                                                       
+^
+260:               <input type="text" bind:value={currentUniv.living_cost_estimate} placeholder="e.g. €950 / month" 
+class="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:border-yellow-500" />
+261:             </div>
+4:13:59 PM [vite-plugin-svelte] src/routes/admin/universities/+page.svelte:272:7 A form label must be associated with 
+a control
+https://svelte.dev/e/a11y_label_has_associated_control
+270:           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+271:             <div>
+272:               <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Logo URL</label>
+                                                                                                           ^
+273:               <input type="url" bind:value={currentUniv.logo_url} placeholder="https://..." class="w-full border 
+rounded-lg px-3 py-2 text-sm outline-none focus:border-yellow-500" />
+274:             </div>
+4:13:59 PM [vite-plugin-svelte] src/routes/admin/universities/+page.svelte:276:7 A form label must be associated with 
+a control
+https://svelte.dev/e/a11y_label_has_associated_control
+274:             </div>
+275:             <div>
+276:               <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Hero Image URL</label>
+                                                                                                                 ^
+277:               <input type="url" bind:value={currentUniv.hero_image_url} placeholder="https://..." class="w-full 
+border rounded-lg px-3 py-2 text-sm outline-none focus:border-yellow-500" />
+278:             </div>
+4:14:06 PM [vite-plugin-svelte] src/routes/admin/newsletter/campaign-manager.svelte:359:8 A form label must be 
+associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+357: 
+358:       <div class="form-group">
+359:         <label>Target Segments</label>
+                                           ^
+360:         <div class="checkbox-group">
+361:           {#each segments as segment}
+[32m✓[39m 285 modules transformed.
+Browserslist: browsers data (caniuse-lite) is 11 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+
+PWA v1.0.1
+mode      generateSW
+precache  1 entries (0.00 KiB)
+files generated
+  .svelte-kit/output/server/sw.js
+  .svelte-kit/output/server/workbox-84318d21.js
+warnings
+  One of the glob patterns doesn't match any files. Please remove or fix the following: {
+  "globDirectory": "C:/Users/HP ENVY X360/abroaducate/.svelte-kit/output",
+  "globPattern": "**/*.{js,css,html,ico,png,svg,webp}",
+  "globIgnores": [
+    "server/**",
+    "server/sw.js",
+    "server/workbox-*.js"
+  ]
+}
+  One of the glob patterns doesn't match any files. Please remove or fix the following: {
+  "globDirectory": "C:/Users/HP ENVY X360/abroaducate/.svelte-kit/output",
+  "globPattern": "prerendered/**/*.{html,json}",
+  "globIgnores": [
+    "server/**",
+    "server/sw.js",
+    "server/workbox-*.js"
+  ]
+}
+  One of the glob patterns doesn't match any files. Please remove or fix the following: {
+  "globDirectory": "C:/Users/HP ENVY X360/abroaducate/.svelte-kit/output",
+  "globPattern": "client/**/*.{js,css,ico,png,svg,webp,webmanifest}",
+  "globIgnores": [
+    "server/**",
+    "server/sw.js",
+    "server/workbox-*.js"
+  ]
+}
+
+[31m✗[39m Build failed in 48.44s
+[31merror during build:
+[31m[vite-plugin-svelte] [plugin vite-plugin-svelte] src/lib/components/FundingGuidance.svelte (377:5): 
+src/lib/components/FundingGuidance.svelte:377:5 `{@const}` must be the immediate child of `{#snippet}`, `{#if}`, 
+`{:else if}`, `{:else}`, `{#each}`, `{:then}`, `{:catch}`, `<svelte:fragment>`, `<svelte:boundary` or `<Component>`
+https://svelte.dev/e/const_tag_invalid_placement[31m
+file: [36msrc/lib/components/FundingGuidance.svelte:377:5 (C:/Users/HP ENVY 
+X360/abroaducate/src/lib/components/FundingGuidance.svelte)[31m
+[33m
+ 375 |        <div class="fg-tip">
+ 376 |          <div class="fg-tip-icon">
+ 377 |            {@const TipIcon = tip.icon}
+                                             ^
+ 378 |            <TipIcon size={16} />
+ 379 |          </div>
+[31m
+[39m

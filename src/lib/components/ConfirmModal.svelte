@@ -48,18 +48,22 @@
 {#if show}
   <!-- Modal backdrop -->
   <div 
-    class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
-    on:click={handleCancel}
+    class="fixed inset-0 z-50 flex items-center justify-center p-4"
     on:keydown={handleKeydown}
     role="dialog"
     aria-modal="true"
     aria-labelledby="modal-title"
     tabindex="-1"
   >
+    <button
+      type="button"
+      class="absolute inset-0 bg-black bg-opacity-50"
+      on:click={handleCancel}
+      aria-label="Close modal"
+    ></button>
     <!-- Modal content -->
     <div 
-      class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 transform transition-all"
-      on:click|stopPropagation
+      class="relative z-10 bg-white rounded-lg shadow-xl max-w-md w-full mx-4 transform transition-all"
       role="document"
     >
       <!-- Header -->

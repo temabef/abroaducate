@@ -1,0 +1,76 @@
+id,program_name,university_name,inferred_format,format_rule,inferred_pace,pace_rule
+poland-military-university-of-aviation-aerospace-engineering-and-astronautics-deblin-bachelor,Aerospace engineering and astronautics,Military University of Aviation,On Campus,default,Full-time,keyword
+poland-polish-air-force-academy-aerospace-engineering-and-astronautics-deblin-master,Aerospace engineering and astronautics,Polish Air Force Academy,On Campus,default,Part-time,keyword
+poland-wroc-aw-university-of-science-and-technology-applied-mathematics-wroc-aw-master,Applied mathematics,Wrocław University of Science and Technology,Online,keyword,Full-time,default
+poland-university-college-of-enterprise-and-administration-in-lublin-architecture-lublin-bachelor,Architecture,University College of Enterprise and Administration in Lublin,On Campus,default,Full-time,keyword
+poland-polish-japanese-academy-of-information-technology-art-and-design-warsaw-bachelor,Art and design,Polish-Japanese Academy of Information Technology,Hybrid,keyword,Full-time,keyword
+poland-polish-japanese-academy-of-information-technology-art-and-design-warsaw-master,Art and design,Polish-Japanese Academy of Information Technology,Hybrid,keyword,Full-time,keyword
+poland-jan-dlugosz-university-in-czestochowa-chemistry-czestochowa-phd,Chemistry,Jan Dlugosz University in Czestochowa,On Campus,default,Full-time,keyword
+poland-the-karol-szymanowski-academy-of-music-in-katowice-composition-and-musical-theory-katowice-master,Composition and musical theory,The Karol Szymanowski Academy of Music in Katowice,On Campus,default,Part-time,keyword
+poland-agh-university-of-krakow-computer-science-krakow-bachelor,Computer science,AGH University of Krakow,On Campus,default,Full-time,keyword
+poland-polish-japanese-academy-of-information-technology-computer-science-program-studiow-warsaw-bachelor,Computer science - Program Studiow,Polish-Japanese Academy of Information Technology,On Campus,default,Part-time,keyword
+poland-polish-japanese-academy-of-information-technology-computer-science-polish-japanese-academy-information-,Computer science - Polish Japanese Academy Information Technology,Polish-Japanese Academy of Information Technology,Online,keyword,Part-time,keyword
+poland-university-college-of-enterprise-and-administration-in-lublin-computer-science-lublin-bachelor,Computer science,University College of Enterprise and Administration in Lublin,On Campus,default,Full-time,keyword
+poland-university-of-humanities-and-economics-in-lodz-computer-science-odz-bachelor,Computer science,University of Humanities and Economics in Lodz,Online,keyword,Part-time,keyword
+poland-university-of-lodz-computer-science-odz-bachelor,Computer science,University of Lodz,On Campus,default,Full-time,keyword
+poland-kielce-university-of-technology-computer-science-kielce-bachelor,Computer science,Kielce University of Technology,On Campus,default,Full-time,keyword
+poland-university-of-gdansk-criminal-justice-gdansk-bachelor,Criminal Justice,University of Gdansk,On Campus,default,Full-time,keyword
+poland-wroc-aw-medical-university-dentistry-wroc-aw-master,Dentistry,Wrocław Medical University,On Campus,default,Part-time,keyword
+poland-polish-japanese-academy-of-information-technology-economics-and-it-applications-warsaw-bachelor,Economics and IT Applications,Polish-Japanese Academy of Information Technology,On Campus,default,Part-time,keyword
+poland-jan-dlugosz-university-in-czestochowa-education-czestochowa-phd,Education,Jan Dlugosz University in Czestochowa,On Campus,default,Full-time,keyword
+poland-bialystok-university-of-technology-electronics-bia-ystok-phd,Electronics,Bialystok University of Technology,On Campus,default,Full-time,keyword
+poland-agh-university-of-krakow-electronics-and-telecommunications-krakow-bachelor,Electronics and telecommunications,AGH University of Krakow,On Campus,default,Full-time,keyword
+poland-vistula-university-finance-and-accounting-warsaw-master,Finance and accounting,Vistula University,Online,keyword,Part-time,keyword
+poland-university-of-gdansk-finance-and-accounting-gdansk-master,Finance and accounting,University of Gdansk,On Campus,default,Full-time,keyword
+poland-university-of-gdansk-finance-and-accounting-gdansk-bachelor,Finance and accounting,University of Gdansk,On Campus,default,Full-time,keyword
+poland-university-college-of-enterprise-and-administration-in-lublin-finance-and-accounting-lublin-bachelor,Finance and accounting,University College of Enterprise and Administration in Lublin,On Campus,default,Full-time,keyword
+poland-university-of-warsaw-finance-investments-and-accounting-warsaw-master,"Finance, investments and accounting",University of Warsaw,On Campus,default,Full-time,keyword
+poland-jan-dlugosz-university-in-czestochowa-fine-art-czestochowa-phd,Fine art.,Jan Dlugosz University in Czestochowa,On Campus,default,Full-time,keyword
+poland-wroc-aw-university-of-science-and-technology-geoinformation-science-earth-observation-and-spatial-manag,"Geoinformation Science, Earth Observation and Spatial Management",Wrocław University of Science and Technology,Online,keyword,Full-time,default
+poland-sgh-warsaw-school-of-economics-global-business-finance-and-governance-warsaw-master,"Global business, finance and governance",SGH Warsaw School of Economics,On Campus,default,Full-time,keyword
+poland-sgh-warsaw-school-of-economics-global-business-finance-and-governance-warsaw-bachelor,"Global business, finance and governance",SGH Warsaw School of Economics,On Campus,default,Part-time,keyword
+poland-university-of-humanities-and-economics-in-lodz-graphics-odz-bachelor,Graphics,University of Humanities and Economics in Lodz,Online,keyword,Part-time,keyword
+poland-jan-dlugosz-university-in-czestochowa-health-science-czestochowa-phd,Health science,Jan Dlugosz University in Czestochowa,On Campus,default,Full-time,keyword
+poland-jan-dlugosz-university-in-czestochowa-history-czestochowa-phd,History,Jan Dlugosz University in Czestochowa,On Campus,default,Full-time,keyword
+poland-wroc-aw-university-of-economics-and-business-information-science-wroc-aw-bachelor,Information science,Wrocław University of Economics and Business,On Campus,default,Full-time,keyword
+poland-university-of-gdansk-intercultural-communication-gdansk-bachelor,Intercultural Communication,University of Gdansk,On Campus,default,Full-time,keyword
+poland-sgh-warsaw-school-of-economics-international-business-warsaw-master,International Business,SGH Warsaw School of Economics,On Campus,default,Full-time,keyword
+poland-lazarski-university-international-business-warsaw-bachelor,International Business,Lazarski University,On Campus,default,Full-time,keyword
+poland-university-of-gdansk-international-economic-relations-gdansk-master,International economic relations,University of Gdansk,On Campus,default,Full-time,keyword
+poland-university-of-gdansk-international-economic-relations-gdansk-bachelor,International economic relations,University of Gdansk,On Campus,default,Full-time,keyword
+poland-sgh-warsaw-school-of-economics-international-economics-warsaw-bachelor,International economics,SGH Warsaw School of Economics,On Campus,default,Full-time,keyword
+poland-university-college-of-enterprise-and-administration-in-lublin-international-relations-lublin-bachelor,International relations,University College of Enterprise and Administration in Lublin,On Campus,default,Full-time,keyword
+poland-the-john-paul-ii-catholic-university-of-lublin-journalism-and-social-communication-lublin-bachelor,Journalism and social communication,The John Paul II Catholic University of Lublin,Online,keyword,Full-time,default
+poland-university-college-of-enterprise-and-administration-in-lublin-journalism-and-social-communication-lubli,Journalism and social communication,University College of Enterprise and Administration in Lublin,On Campus,default,Full-time,keyword
+poland-jan-dlugosz-university-in-czestochowa-law-czestochowa-phd,Law,Jan Dlugosz University in Czestochowa,On Campus,default,Full-time,keyword
+poland-jan-dlugosz-university-in-czestochowa-linguistics-czestochowa-phd,Linguistics,Jan Dlugosz University in Czestochowa,On Campus,default,Full-time,keyword
+poland-jan-dlugosz-university-in-czestochowa-literary-studies-czestochowa-phd,Literary studies,Jan Dlugosz University in Czestochowa,On Campus,default,Full-time,keyword
+poland-silesian-university-of-technology-logistics-gliwice-master,Logistics,Silesian University of Technology,On Campus,default,Part-time,keyword
+poland-kozminski-university-management-warsaw-phd,Management,Kozminski University,On Campus,default,Full-time,keyword
+poland-kielce-university-of-technology-management-and-production-engineering-kielce-bachelor,Management and production engineering,Kielce University of Technology,On Campus,default,Full-time,keyword
+poland-lodz-university-of-technology-management-and-production-engineering-odz-master,Management and production engineering,Lodz University of Technology,Online,keyword,Full-time,default
+poland-rzeszow-university-of-technology-mathematics-rzeszow-master,Mathematics,Rzeszow University of Technology,On Campus,default,Full-time,keyword
+poland-czestochowa-university-of-technology-msc-in-mechanical-engineering-specialisation-modelling-and-simulat,"MSc in Mechanical Engineering, specialisation Modelling and Simulation in Mechanics",Czestochowa University of Technology,On Campus,default,Full-time,keyword
+poland-warsaw-university-of-technology-mechanical-engineering-warsaw-master,Mechanical engineering,Warsaw University of Technology,Hybrid,keyword,Full-time,default
+poland-warsaw-university-of-technology-mechatronic-systems-and-materials-warsaw-bachelor,Mechatronic systems and materials,Warsaw University of Technology,Hybrid,keyword,Full-time,default
+poland-warsaw-university-of-technology-mechatronics-warsaw-bachelor,Mechatronics,Warsaw University of Technology,On Campus,default,Full-time,keyword
+poland-the-pontifical-university-of-john-paul-ii-in-krakow-communication-and-media-studies-john-paul-ii-in-kra,Communication and Media Studies,The Pontifical University of John Paul II in Krakow,Online,keyword,Full-time,default
+poland-medical-university-of-gdansk-medicine-gdansk-master,Medicine,Medical University of Gdańsk,Online,keyword,Full-time,default
+poland-jagiellonian-university-in-krakow-molecular-biotechnology-krakow-master,Molecular Biotechnology,Jagiellonian University in Kraków,On Campus,default,Full-time,keyword
+poland-jan-dlugosz-university-in-czestochowa-musical-instruments-czestochowa-phd,Musical instruments,Jan Dlugosz University in Czestochowa,On Campus,default,Full-time,keyword
+poland-polish-air-force-academy-navigation-deblin-bachelor,Navigation,Polish Air Force Academy,On Campus,default,Part-time,keyword
+poland-jan-dlugosz-university-in-czestochowa-philosophy-czestochowa-phd,Philosophy,Jan Dlugosz University in Czestochowa,On Campus,default,Full-time,keyword
+poland-university-of-silesia-in-katowice-physics-msc-silesia-in-katowice-master,Physics (MSc),University of Silesia in Katowice,Hybrid,keyword,Full-time,default
+poland-university-of-warsaw-physics-warsaw-phd,Physics,University of Warsaw,Online,keyword,Full-time,default
+poland-jan-dlugosz-university-in-czestochowa-physics-czestochowa-phd,Physics,Jan Dlugosz University in Czestochowa,On Campus,default,Full-time,keyword
+poland-university-of-warsaw-physics-and-astronomy-warsaw-phd,Physics and astronomy,University of Warsaw,Online,keyword,Full-time,default
+poland-nicolaus-copernicus-university-physics-and-astronomy-torun-master,Physics and astronomy,Nicolaus Copernicus University,On Campus,default,Full-time,keyword
+poland-university-of-humanities-and-economics-in-lodz-political-science-odz-bachelor,Political science,University of Humanities and Economics in Lodz,Online,keyword,Part-time,keyword
+poland-university-of-humanities-and-economics-in-lodz-political-science-odz-master,Political science,University of Humanities and Economics in Lodz,Online,keyword,Full-time,keyword
+poland-adam-mickiewicz-university-poznan-public-management-poznan-master,Public management,"Adam Mickiewicz University, Poznań",Online,keyword,Full-time,default
+poland-university-of-silesia-in-katowice-creative-management-in-new-media-ma-silesia-in-katowice-master,Creative management in new media (MA),University of Silesia in Katowice,Online,keyword,Full-time,default
+poland-jan-dlugosz-university-in-czestochowa-security-studies-czestochowa-phd,Security studies,Jan Dlugosz University in Czestochowa,On Campus,default,Full-time,keyword
+poland-university-of-warsaw-security-studies-warsaw-master,Security studies,University of Warsaw,On Campus,default,Full-time,keyword
+poland-university-college-of-enterprise-and-administration-in-lublin-sociology-lublin-master,Sociology,University College of Enterprise and Administration in Lublin,On Campus,default,Full-time,keyword
+poland-university-of-humanities-and-economics-in-lodz-tourism-and-recreation-odz-bachelor,Tourism and recreation,University of Humanities and Economics in Lodz,Online,keyword,Full-time,keyword
+poland-university-college-of-enterprise-and-administration-in-lublin-transport-lublin-bachelor,Transport,University College of Enterprise and Administration in Lublin,On Campus,default,Full-time,keyword

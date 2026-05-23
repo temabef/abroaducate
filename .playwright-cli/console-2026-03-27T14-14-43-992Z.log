@@ -1,0 +1,5 @@
+[    2936ms] [ERROR] Failed to load resource: the server responded with a status of 401 () @ https://api.studee.com/v1/auth/me:0
+[  507005ms] [ERROR] Attestation check for Attribution Reporting on https://www.facebook.com failed. @ https://studee.com/find-programs:0
+[ 1036399ms] [ERROR] Failed to load resource: the server responded with a status of 401 () @ https://api.studee.com/v1/auth/me:0
+[ 1132418ms] [ERROR] Attestation check for Attribution Reporting on https://www.facebook.com failed. @ https://studee.com/apply/options:0
+[ 1132444ms] [ERROR] Failed to load resource: the server responded with a status of 401 () @ https://api.studee.com/v1/auth/me:0

@@ -320,3 +320,11 @@ When user returns:
 ---
 
 *This approach gives you the best of both worlds: quick wins + long-term quality.*
+
+
+input sanitization and bounds checking 
+
+
+
+prelaunch check 
+The only thing left before you're ready to launch is the pre-launch checklist we mentioned — final data audit, removing legacy fallback code paths, and the deployment flip. But that's a separate session when you're ready.

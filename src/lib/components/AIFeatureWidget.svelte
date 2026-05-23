@@ -301,8 +301,9 @@
         <!-- Options -->
         {#if featureType === 'text_enhancement'}
             <div class="mt-3">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Enhancement Type:</label>
+                <label for="ai-feature-enhancement-type" class="block text-sm font-medium text-gray-700 mb-2">Enhancement Type:</label>
                 <select 
+                    id="ai-feature-enhancement-type"
                     bind:value={options.enhancementType}
                     class="border border-gray-300 rounded px-3 py-2 text-sm"
                 >
@@ -316,8 +317,9 @@
         
         {#if featureType === 'word_optimization'}
             <div class="mt-3">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Target Word Count:</label>
+                <label for="ai-feature-target-word-count" class="block text-sm font-medium text-gray-700 mb-2">Target Word Count:</label>
                 <input 
+                    id="ai-feature-target-word-count"
                     type="number" 
                     bind:value={options.targetWordCount}
                     placeholder="e.g., 500"

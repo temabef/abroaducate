@@ -1,0 +1,1018 @@
+﻿
+> sop-new-build@0.0.1 check
+> svelte-kit sync && svelte-check --tsconfig ./tsconfig.json
+
+
+====================================
+Loading svelte-check in workspace: c:\Users\HP ENVY X360\abroaducate
+Getting Svelte diagnostics...
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\test-prep\edit\[setId]\+page.server.ts[39m:40:32
+[31mError[39m: Parameter 'a' implicitly has an 'any' type. 
+[36m  // Sort questions and choices by sort_order if it exists
+  set.practice_questions.sort(([35ma[36m, b) => (a.sort_order || 0) - (b.sort_order || 0));
+  set.practice_questions.forEach(q => {
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\test-prep\edit\[setId]\+page.server.ts[39m:40:35
+[31mError[39m: Parameter 'b' implicitly has an 'any' type. 
+[36m  // Sort questions and choices by sort_order if it exists
+  set.practice_questions.sort((a, [35mb[36m) => (a.sort_order || 0) - (b.sort_order || 0));
+  set.practice_questions.forEach(q => {
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\test-prep\edit\[setId]\+page.server.ts[39m:41:34
+[31mError[39m: Parameter 'q' implicitly has an 'any' type. 
+[36m  set.practice_questions.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+  set.practice_questions.forEach([35mq[36m => {
+    if (q.practice_choices) {
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\test-prep\edit\[setId]\+page.server.ts[39m:43:32
+[31mError[39m: Parameter 'a' implicitly has an 'any' type. 
+[36m    if (q.practice_choices) {
+      q.practice_choices.sort(([35ma[36m, b) => (a.sort_order || 0) - (b.sort_order || 0));
+    }
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\test-prep\edit\[setId]\+page.server.ts[39m:43:35
+[31mError[39m: Parameter 'b' implicitly has an 'any' type. 
+[36m    if (q.practice_choices) {
+      q.practice_choices.sort((a, [35mb[36m) => (a.sort_order || 0) - (b.sort_order || 0));
+    }
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\test-prep\edit\[setId]\+page.server.ts[39m:91:19
+[31mError[39m: Property 'passage' does not exist on type '{ id: any; title: any; section: any; sort_order: any; test_id: any; }'. 
+[36m      if (setData.section === 'reading' && setData.passage) {
+        setToSave.[35mpassage[36m = setData.passage;
+      }
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\test-prep\edit\[setId]\+page.server.ts[39m:120:14
+[31mError[39m: Parameter 'q' implicitly has an 'any' type. 
+[36m      const submittedQuestionIds = setData.practice_questions
+        .map([35mq[36m => q.id.startsWith('new-') ? undefined : q.id)
+        .filter(Boolean);
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\test-prep\edit\[setId]\+page.server.ts[39m:177:18
+[31mError[39m: Parameter 'c' implicitly has an 'any' type. 
+[36m          const submittedChoiceIds = question.practice_choices
+            .map([35mc[36m => c.id.startsWith('new-') ? undefined : c.id)
+            .filter(Boolean);
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\test-prep\edit\[setId]\+page.server.ts[39m:196:66
+[31mError[39m: Parameter 'choice' implicitly has an 'any' type. 
+[36m          if (question.practice_choices.length > 0) {
+            const choicesToSave = question.practice_choices.map(([35mchoice[36m, index) => ({
+              id: choice.id.startsWith('new-') ? undefined : choice.id,
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\test-prep\edit\[setId]\+page.server.ts[39m:196:74
+[31mError[39m: Parameter 'index' implicitly has an 'any' type. 
+[36m          if (question.practice_choices.length > 0) {
+            const choicesToSave = question.practice_choices.map((choice, [35mindex[36m) => ({
+              id: choice.id.startsWith('new-') ? undefined : choice.id,
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\test-prep\edit\[setId]\+page.server.ts[39m:222:16
+[31mError[39m: Property 'status' does not exist on type '{}'. 
+[36m    } catch (err) {
+      if (err?.[35mstatus[36m === 303) {
+        // This is a redirect, re-throw it
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\api\admin\add-admin-user\+server.ts[39m:61:42
+[31mError[39m: 'e' is of type 'unknown'. 
+[36m    console.error('Exception adding admin:', e);
+    return json({ success: false, error: [35me[36m.message }, { status: 500 });
+  }
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\api\ai-features\+server.ts[39m:36:4
+[31mError[39m: Type 'string' is not assignable to type 'AIFeatureType'. 
+[36m		const aiRequest: AIFeatureRequest = {
+			[35mtype[36m: data.type.trim(),
+			userId: session.user.id,
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\api\ai-features\+server.ts[39m:88:19
+[31mError[39m: Property 'data' does not exist on type 'AIFeatureResponse'. 
+[36m			success: true,
+			result: result.[35mdata[36m,
+			usage: {
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\api\applications\create\+server.ts[39m:66:13
+[31mError[39m: 'existingCount' is possibly 'null'. 
+[36m
+        if ([35mexistingCount[36m >= userLimit) {
+            return json({ 
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\api\bbc-learning-english\+server.ts[39m:32:17
+[31mError[39m: Expected 0 type arguments, but got 1. 
+[36m    // Return fallback data since BBC API might not be reliable
+    return json<[35mBBCLearningEnglishResponse[36m>({
+      success: true,
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\api\bbc-learning-english\+server.ts[39m:41:17
+[31mError[39m: Expected 0 type arguments, but got 1. 
+[36m    // Return fallback data if API fails
+    return json<[35mBBCLearningEnglishResponse[36m>({
+      success: true,
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\api\generate-cold-email\+server.ts[39m:94:11
+[31mError[39m: Element implicitly has an 'any' type because expression of type '"professional" | "friendly" | "formal"' can't be used to index type '{ formal: string; 'semi-formal': string; enthusiastic: string; }'.
+  Property 'professional' does not exist on type '{ formal: string; 'semi-formal': string; enthusiastic: string; }'. 
+[36m- Additional Information: ${data.additionalInfo || 'None'}
+- Tone: ${[35mtoneInstructions[data.emailTone][36m || toneInstructions.formal}
+
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\api\generate-sop\+server.ts[39m:244:27
+[31mError[39m: Cannot find name 'generatedSopText'. 
+[36m        // Calculate word count
+        const wordCount = [35mgeneratedSopText[36m.split(/\s+/).length;
+        
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\api\generate-sop\+server.ts[39m:247:47
+[31mError[39m: Cannot find name 'generatedSopText'. 
+[36m        console.log('SOP generated successfully, attempting database save...');
+        console.log('Generated text length:', [35mgeneratedSopText[36m.length);
+        console.log('Word count:', wordCount);
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\api\generate-sop\+server.ts[39m:279:30
+[31mError[39m: Cannot find name 'generatedSopText'. 
+[36m                    status: 'draft',
+                    content: [35mgeneratedSopText[36m,
+                    original_content: generatedSopText
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\api\generate-sop\+server.ts[39m:280:39
+[31mError[39m: Cannot find name 'generatedSopText'. 
+[36m                    content: generatedSopText,
+                    original_content: [35mgeneratedSopText[36m
+                }
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\api\generate-sop\+server.ts[39m:290:36
+[31mError[39m: Cannot find name 'generatedSopText'. 
+[36m                    program: data.universityData.program.trim(),
+                    generated_sop: [35mgeneratedSopText[36m,
+                    form_data: data
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\api\generate-sop\+server.ts[39m:299:30
+[31mError[39m: Cannot find name 'generatedSopText'. 
+[36m                    user_id: session.user.id,
+                    content: [35mgeneratedSopText[36m
+                }
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\api\generate-sop\+server.ts[39m:330:66
+[31mError[39m: Property 'message' does not exist on type '{}'. 
+[36m            console.error('All database insert strategies failed:', insertError);
+            throw new Error(`Database save failed: ${insertError.[35mmessage[36m || JSON.stringify(insertError)}`);
+        }
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\api\generate-sop\+server.ts[39m:337:18
+[31mError[39m: Cannot find name 'generatedSopText'. 
+[36m            success: true,
+            sop: [35mgeneratedSopText[36m,
+            sopId: insertData?.id,
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\api\generate-sop\+server.ts[39m:345:22
+[31mError[39m: 'error' is of type 'unknown'. 
+[36m        console.error('Error details:', {
+            message: [35merror[36m.message,
+            stack: error.stack,
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\api\generate-sop\+server.ts[39m:346:20
+[31mError[39m: 'error' is of type 'unknown'. 
+[36m            message: error.message,
+            stack: [35merror[36m.stack,
+            name: error.name
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\api\generate-sop\+server.ts[39m:347:19
+[31mError[39m: 'error' is of type 'unknown'. 
+[36m            stack: error.stack,
+            name: [35merror[36m.name
+        });
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\api\generate-sop\+server.ts[39m:351:22
+[31mError[39m: 'error' is of type 'unknown'. 
+[36m            error: 'Failed to generate SOP',
+            details: [35merror[36m.message || 'Unknown error occurred'
+        }, { status: 500, headers: securityHeaders });
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\api\newsletter\settings\+server.ts[39m:313:29
+[31mError[39m: Argument of type 'string | number | boolean' is not assignable to parameter of type 'string'.
+  Type 'number' is not assignable to type 'string'. 
+[36m      for (const [key, value] of defaultSettings) {
+        await updateSetting([35mkey[36m, value);
+      }
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\api\optimize-word-count\+server.ts[39m:408:40
+[31mError[39m: Cannot find name 'OPENAI_API_KEY'. 
+[36m            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${[35mOPENAI_API_KEY[36m}`
+        },
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\api\save-preferences\+server.ts[39m:55:36
+[31mError[39m: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ scholarship_digest_weekly?: boolean | undefined; scholarship_digest_daily?: boolean | undefined; email_deadlines?: boolean | undefined; email_enabled?: boolean | undefined; subscription_alerts?: boolean | undefined; }'.
+  No index signature with a parameter of type 'string' was found on type '{ scholarship_digest_weekly?: boolean | undefined; scholarship_digest_daily?: boolean | undefined; email_deadlines?: boolean | undefined; email_enabled?: boolean | undefined; subscription_alerts?: boolean | undefined; }'. 
+[36m      if (data.preferences.hasOwnProperty(key)) {
+        filteredPreferences[key] = [35mdata.preferences[key][36m;
+      }
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\api\test-ocr\+server.ts[39m:31:43
+[31mError[39m: Argument of type 'string' is not assignable to parameter of type 'never'. 
+[36m        if (fs.existsSync(filePath)) {
+          environmentInfo.filesInCwd.push([35m`✅ Found: ${filePath}`[36m);
+        } else {
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\api\test-ocr\+server.ts[39m:33:43
+[31mError[39m: Argument of type 'string' is not assignable to parameter of type 'never'. 
+[36m        } else {
+          environmentInfo.filesInCwd.push([35m`❌ Missing: ${filePath}`[36m);
+        }
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\api\test-ocr\+server.ts[39m:36:41
+[31mError[39m: Argument of type 'string' is not assignable to parameter of type 'never'. 
+[36m      } catch (error) {
+        environmentInfo.filesInCwd.push([35m`❌ Error checking ${filePath}: ${error}`[36m);
+      }
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\api\test-ocr\+server.ts[39m:43:39
+[31mError[39m: Argument of type 'string' is not assignable to parameter of type 'never'. 
+[36m      const files = fs.readdirSync(process.cwd());
+      environmentInfo.filesInCwd.push([35m`📁 Files in ${process.cwd()}: ${files.slice(0, 10).join(', ')}...`[36m);
+    } catch (error) {
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\api\test-ocr\+server.ts[39m:45:39
+[31mError[39m: Argument of type 'string' is not assignable to parameter of type 'never'. 
+[36m    } catch (error) {
+      environmentInfo.filesInCwd.push([35m`❌ Error reading directory: ${error}`[36m);
+    }
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\api\test-ocr\+server.ts[39m:49:37
+[31mError[39m: Argument of type 'string' is not assignable to parameter of type 'never'. 
+[36m  } catch (error) {
+    environmentInfo.filesInCwd.push([35m`❌ File system error: ${error}`[36m);
+  }
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\api\test-sop-generation\+server.ts[39m:137:22
+[31mError[39m: 'error' is of type 'unknown'. 
+[36m            error: 'Test failed', 
+            details: [35merror[36m.message || 'Unknown error' 
+        }, { status: 500 });
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\scholarships\[slug]\+page.server.ts[39m:38:7
+[31mError[39m: Variable 'relatedScholarships' implicitly has type 'any[]' in some locations where its type cannot be determined. 
+[36m  // Fetch related scholarships (same field and level)
+  let [35mrelatedScholarships[36m = [];
+  try {
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\scholarships\[slug]\+page.server.ts[39m:92:5
+[31mError[39m: Variable 'relatedScholarships' implicitly has an 'any[]' type. 
+[36m    savedStatus,
+    [35mrelatedScholarships[36m,
+    userStrategy,
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\lib\components\AcademicProfileAnalyzer.svelte[39m:254:61
+[31mError[39m: Argument of type 'unknown' is not assignable to parameter of type 'number'. (ts)
+[36m                    {#each Object.entries(academicProfile.gradeDistribution.byGPARange) as [range, count]}
+                      {@const percentage = formatPercentage([35mcount[36m, academicProfile.totalCourses)}
+                      <div class="flex items-center justify-between">
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\lib\components\AcademicProfileAnalyzer.svelte[39m:282:26
+[31mError[39m: 'data' is of type 'unknown'. (ts)
+[36m                  {#each Object.entries(academicProfile.coursesBySubject) as [subject, data]}
+                    {#if [35mdata[36m.courseCount > 0}
+                      <div class="bg-gray-50 rounded-lg p-4">
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\lib\components\AcademicProfileAnalyzer.svelte[39m:286:64
+[31mError[39m: 'data' is of type 'unknown'. (ts)
+[36m                          <h4 class="font-medium text-gray-900 text-sm">{subject}</h4>
+                          <span class="text-xs text-gray-500">{[35mdata[36m.courseCount} courses</span>
+                        </div>
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\lib\components\AcademicProfileAnalyzer.svelte[39m:289:82
+[31mError[39m: 'data' is of type 'unknown'. (ts)
+[36m                        <div class="flex items-center justify-between">
+                          <span class="text-lg font-bold {getGPAColor(parseFloat([35mdata[36m.gpa))}">{data.gpa}</span>
+                          <span class="text-xs text-gray-500">{data.totalCredits} credits</span>
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\lib\components\AcademicProfileAnalyzer.svelte[39m:289:96
+[31mError[39m: 'data' is of type 'unknown'. (ts)
+[36m                        <div class="flex items-center justify-between">
+                          <span class="text-lg font-bold {getGPAColor(parseFloat(data.gpa))}">{[35mdata[36m.gpa}</span>
+                          <span class="text-xs text-gray-500">{data.totalCredits} credits</span>
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\lib\components\AcademicProfileAnalyzer.svelte[39m:290:64
+[31mError[39m: 'data' is of type 'unknown'. (ts)
+[36m                          <span class="text-lg font-bold {getGPAColor(parseFloat(data.gpa))}">{data.gpa}</span>
+                          <span class="text-xs text-gray-500">{[35mdata[36m.totalCredits} credits</span>
+                        </div>
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\lib\components\BasicReminders.svelte[39m:76:16
+[31mError[39m: Parameter 'app' implicitly has an 'any' type. (ts)
+[36m        const applicationReminders = (applicationsResponse.data || [])
+          .map([35mapp[36m => {
+            const deadline = new Date(app.application_deadline);
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\lib\components\BasicReminders.svelte[39m:97:19
+[31mError[39m: Parameter 'scholarship' implicitly has an 'any' type. (ts)
+[36m        const scholarshipReminders = (scholarshipsResponse.data || [])
+          .filter([35mscholarship[36m => scholarship && (scholarship.is_saved || scholarship.is_applied))
+          .map(scholarship => scholarship ? ({
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\lib\components\BasicReminders.svelte[39m:98:16
+[31mError[39m: Parameter 'scholarship' implicitly has an 'any' type. (ts)
+[36m          .filter(scholarship => scholarship && (scholarship.is_saved || scholarship.is_applied))
+          .map([35mscholarship[36m => scholarship ? ({
+            id: scholarship.scholarship_id,
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\lib\components\BasicReminders.svelte[39m:231:47
+[31mError[39m: Parameter 'i' implicitly has an 'any' type. (ts)
+[36m
+      const scholarshipIds = interactions.map([35mi[36m => i.scholarship_id);
+      const { data: scholarships, error: scholarshipsError } = await $page.data.supabase
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\lib\components\BasicReminders.svelte[39m:244:48
+[31mError[39m: Parameter 'scholarship' implicitly has an 'any' type. (ts)
+[36m      // Calculate days until deadline and urgency
+      const calculatedData = scholarships?.map([35mscholarship[36m => {
+        const interaction = interactions.find((i: any) => i.scholarship_id === scholarship.id);
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\lib\components\CompactUpgradeModal.svelte[39m:29:18
+[31mError[39m: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ documents: { sop: { icon: string; title: string; subtitle: string; }; cover_letter: { icon: string; title: string; subtitle: string; }; personal_statement: { icon: string; title: string; subtitle: string; }; academic_cv: { ...; }; }; ai_features: { ...; }; }'.
+  No index signature with a parameter of type 'string' was found on type '{ documents: { sop: { icon: string; title: string; subtitle: string; }; cover_letter: { icon: string; title: string; subtitle: string; }; personal_statement: { icon: string; title: string; subtitle: string; }; academic_cv: { ...; }; }; ai_features: { ...; }; }'. (js)
+[36m    
+    $: content = [35mlimitContent[limitType][36m?.[featureType] || {
+        icon: '🚀',
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\lib\components\DocumentChecklist.svelte[39m:296:101
+[31mError[39m: Argument of type 'string' is not assignable to parameter of type '"in_progress" | "not_started" | "completed" | "uploaded"'. (ts)
+[36m                                                value={document.status}
+                                                on:change={(e) => updateDocumentStatus(document.id, [35m(e.target as HTMLSelectElement).value[36m)}
+                                                class="text-xs px-2 py-1 rounded border focus:outline-none focus:ring-2 focus:ring-blue-500 {getStatusColor(document.status)}"
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\lib\components\FormSection.svelte[39m:219:21
+[33mWarn[39m: Using `on:click` to listen to the click event is deprecated. Use the event attribute `onclick` instead
+https://svelte.dev/e/event_directive_deprecated (svelte)
+[36m                <button
+                    [35mon:click={() => goToStep(step.number)}[36m
+                    disabled={step.number > $formStore.currentStep}
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\lib\components\FormSection.svelte[39m:260:17
+[33mWarn[39m: Using `on:click` to listen to the click event is deprecated. Use the event attribute `onclick` instead
+https://svelte.dev/e/event_directive_deprecated (svelte)
+[36m    <div class="flex justify-between items-center mt-8 pt-6 border-t">
+        <button [35mon:click={prevStep}[36m class="btn btn-secondary" disabled={$formStore.currentStep === 1}>Back</button>
+
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\lib\components\FormSection.svelte[39m:263:21
+[33mWarn[39m: Using `on:click` to listen to the click event is deprecated. Use the event attribute `onclick` instead
+https://svelte.dev/e/event_directive_deprecated (svelte)
+[36m        {#if $formStore.currentStep < totalSteps}
+            <button [35mon:click={nextStep}[36m class="btn btn-primary">Next</button>
+        {/if}
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\lib\components\FormSection.svelte[39m:266:21
+[33mWarn[39m: Using `on:click` to listen to the click event is deprecated. Use the event attribute `onclick` instead
+https://svelte.dev/e/event_directive_deprecated (svelte)
+[36m        {#if $formStore.currentStep === totalSteps}
+            <button [35mon:click={handleFinalSubmit}[36m class="btn btn-primary bg-green-600 hover:bg-green-700">Generate SOP</button>
+        {/if}
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\lib\components\FormSection.svelte[39m:15:9
+[33mWarn[39m: `errors` is updated, but is not declared with `$state(...)`. Changing its value will not correctly trigger updates
+https://svelte.dev/e/non_reactive_update (svelte)
+[36m
+    let [35merrors: string[][36m = [];
+
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\lib\components\FormSection.svelte[39m:36:71
+[31mError[39m: Property 'name' does not exist on type 'string'. (ts)
+[36m                                ...s.universityData,
+                                university: prefillProgram.university.[35mname[36m,
+                                country: prefillProgram.country,
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\lib\components\FormSection.svelte[39m:38:57
+[31mError[39m: Property 'title' does not exist on type 'ProgramProfile'. (ts)
+[36m                                country: prefillProgram.country,
+                                program: prefillProgram.[35mtitle[36m
+                            }
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\lib\components\GlobalUpgradeHandler.svelte[39m:57:5
+[31mError[39m: Type 'string' is not assignable to type '"free"'. (ts)
+[36m    limit={modalData.limit}
+    [35mplanType[36m={modalData.currentPlan}
+    on:upgrade={onUpgrade}
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\lib\components\ScholarshipDeadlineWidget.svelte[39m:80:12
+[31mError[39m: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ critical: string; urgent: string; important: string; moderate: string; low: string; }'.
+  No index signature with a parameter of type 'string' was found on type '{ critical: string; urgent: string; important: string; moderate: string; low: string; }'. (ts)
+[36m    };
+    return [35mcolors[urgency][36m || colors.low;
+  }
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\lib\components\ScholarshipDeadlineWidget.svelte[39m:101:12
+[31mError[39m: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ interested: string; researching: string; preparing: string; applying: string; submitted: string; accepted: string; rejected: string; waitlisted: string; }'.
+  No index signature with a parameter of type 'string' was found on type '{ interested: string; researching: string; preparing: string; applying: string; submitted: string; accepted: string; rejected: string; waitlisted: string; }'. (ts)
+[36m    };
+    return [35mcolors[status][36m || 'bg-gray-100 text-gray-800';
+  }
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\lib\components\dashboard\ProfileCompletionWidget.svelte[39m:28:11
+[31mError[39m: Argument of type '() => Promise<() => void>' is not assignable to parameter of type '() => Promise<never> | (() => any)'.
+  Type 'Promise<() => void>' is not assignable to type 'Promise<never> | (() => any)'.
+    Type 'Promise<() => void>' is not assignable to type 'Promise<never>'.
+      Type '() => void' is not assignable to type 'never'. (ts)
+[36m
+  onMount([35masync () => {[36m
+    await loadProfileCompletion();
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\blog\[id]\+page.svelte[39m:123:34
+[31mError[39m: 'e.target' is possibly 'null'. (ts)
+[36m          <img src={cover_image_url} alt="Cover preview" class="w-32 h-20 object-cover rounded border" 
+               onerror={(e) => { [35me.target[36m.style.display = 'none'; }} />
+        </div>
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\blog\[id]\+page.svelte[39m:123:43
+[31mError[39m: Property 'style' does not exist on type 'EventTarget'. (ts)
+[36m          <img src={cover_image_url} alt="Cover preview" class="w-32 h-20 object-cover rounded border" 
+               onerror={(e) => { e.target.[35mstyle[36m.display = 'none'; }} />
+        </div>
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\blog\new\+page.svelte[39m:124:34
+[31mError[39m: 'e.target' is possibly 'null'. (ts)
+[36m          <img src={cover_image_url} alt="Cover preview" class="w-32 h-20 object-cover rounded border" 
+               onerror={(e) => { [35me.target[36m.style.display = 'none'; }} />
+        </div>
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\blog\new\+page.svelte[39m:124:43
+[31mError[39m: Property 'style' does not exist on type 'EventTarget'. (ts)
+[36m          <img src={cover_image_url} alt="Cover preview" class="w-32 h-20 object-cover rounded border" 
+               onerror={(e) => { e.target.[35mstyle[36m.display = 'none'; }} />
+        </div>
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\calculator-data\+page.svelte[39m:224:11
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m        <div class="form-group">
+          [35m<label>City Name</label>[36m
+          <input type="text" bind:value={newCity.city} placeholder="e.g., San Francisco" />
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\calculator-data\+page.svelte[39m:228:11
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m        <div class="form-group">
+          [35m<label>State</label>[36m
+          <input type="text" bind:value={newCity.state} placeholder="e.g., California" />
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\calculator-data\+page.svelte[39m:232:11
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m        <div class="form-group">
+          [35m<label>State Code</label>[36m
+          <input type="text" bind:value={newCity.state_code} placeholder="e.g., CA" maxlength="2" />
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\calculator-data\+page.svelte[39m:236:11
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m        <div class="form-group">
+          [35m<label>Population</label>[36m
+          <input type="number" bind:value={newCity.population} />
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\calculator-data\+page.svelte[39m:244:13
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m          <div class="cost-pair">
+            [35m<label>Dorm Cost Range</label>[36m
+            <input type="number" bind:value={newCity.dorm_cost_min} placeholder="Min" />
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\calculator-data\+page.svelte[39m:249:13
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m          <div class="cost-pair">
+            [35m<label>Shared Apartment Range</label>[36m
+            <input type="number" bind:value={newCity.shared_apt_min} placeholder="Min" />
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\calculator-data\+page.svelte[39m:254:13
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m          <div class="cost-pair">
+            [35m<label>Studio Apartment Range</label>[36m
+            <input type="number" bind:value={newCity.studio_apt_min} placeholder="Min" />
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\calculator-data\+page.svelte[39m:264:13
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m          <div class="form-group">
+            [35m<label>Food - Budget</label>[36m
+            <input type="number" bind:value={newCity.food_budget} />
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\calculator-data\+page.svelte[39m:268:13
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m          <div class="form-group">
+            [35m<label>Food - Average</label>[36m
+            <input type="number" bind:value={newCity.food_average} />
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\calculator-data\+page.svelte[39m:272:13
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m          <div class="form-group">
+            [35m<label>Food - Comfortable</label>[36m
+            <input type="number" bind:value={newCity.food_comfortable} />
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\calculator-data\+page.svelte[39m:276:13
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m          <div class="form-group">
+            [35m<label>Transportation</label>[36m
+            <input type="number" bind:value={newCity.transportation} />
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\calculator-data\+page.svelte[39m:280:13
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m          <div class="form-group">
+            [35m<label>Utilities</label>[36m
+            <input type="number" bind:value={newCity.utilities} />
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\calculator-data\+page.svelte[39m:284:13
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m          <div class="form-group">
+            [35m<label>Personal Expenses</label>[36m
+            <input type="number" bind:value={newCity.personal_expenses} />
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\calculator-data\+page.svelte[39m:293:13
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m          <div class="cost-pair">
+            [35m<label>Public University Range</label>[36m
+            <input type="number" bind:value={newCity.public_tuition_min} placeholder="Min" />
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\calculator-data\+page.svelte[39m:298:13
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m          <div class="cost-pair">
+            [35m<label>Private University Range</label>[36m
+            <input type="number" bind:value={newCity.private_tuition_min} placeholder="Min" />
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\calculator-data\+page.svelte[39m:303:13
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m          <div class="cost-pair">
+            [35m<label>Community College Range</label>[36m
+            <input type="number" bind:value={newCity.community_tuition_min} placeholder="Min" />
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\calculator-data\+page.svelte[39m:313:13
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m          <div class="form-group">
+            [35m<label>Health Insurance</label>[36m
+            <input type="number" bind:value={newCity.health_insurance} />
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\calculator-data\+page.svelte[39m:317:13
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m          <div class="form-group">
+            [35m<label>Books & Supplies</label>[36m
+            <input type="number" bind:value={newCity.books_supplies} />
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\calculator-data\+page.svelte[39m:321:13
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m          <div class="form-group">
+            [35m<label>Cost of Living Index</label>[36m
+            <input type="number" step="0.1" bind:value={newCity.cost_of_living_index} />
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\calculator-data\+page.svelte[39m:552:22
+[33mWarn[39m: Unused CSS selector ".form-group textarea"
+https://svelte.dev/e/css_unused_selector (svelte)
+[36m
+  .form-group input, [35m.form-group textarea[36m {
+    padding: 0.5rem;
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\calculator-data\+page.svelte[39m:559:28
+[33mWarn[39m: Unused CSS selector ".form-group textarea:focus"
+https://svelte.dev/e/css_unused_selector (svelte)
+[36m
+  .form-group input:focus, [35m.form-group textarea:focus[36m {
+    outline: none;
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\newsletter\campaign-manager.svelte[39m:359:9
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m      <div class="form-group">
+        [35m<label>Target Segments</label>[36m
+        <div class="checkbox-group">
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\newsletter\campaign-manager.svelte[39m:228:26
+[31mError[39m: Parameter 'campaignId' implicitly has an 'any' type. (ts)
+[36m
+  function openTestModal([35mcampaignId[36m) {
+    testCampaignId = campaignId;
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\programs\+page.svelte[39m:213:9
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m							<div>
+								[35m<label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Program ID / Slug</label>[36m
+								<input type="text" bind:value={currentProgram.id} placeholder="e.g. rwth-software-engineering" class="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:border-yellow-500" />
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\programs\+page.svelte[39m:218:8
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m						<div>
+							[35m<label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Program Name</label>[36m
+							<input type="text" bind:value={currentProgram.program_name} class="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:border-yellow-500" />
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\programs\+page.svelte[39m:222:8
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m						<div>
+							[35m<label class="block text-xs font-semibold text-gray-500 uppercase mb-1">University Name (Legacy/Fallback)</label>[36m
+							<input type="text" bind:value={currentProgram.university_name} class="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:border-yellow-500" />
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\programs\+page.svelte[39m:226:8
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m						<div>
+							[35m<label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Linked University (Catalog)</label>[36m
+							<select bind:value={currentProgram.university_id} class="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:border-yellow-500">
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\programs\+page.svelte[39m:241:9
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m							<div>
+								[35m<label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Country</label>[36m
+								<input type="text" bind:value={currentProgram.country} class="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:border-yellow-500" />
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\programs\+page.svelte[39m:245:9
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m							<div>
+								[35m<label class="block text-xs font-semibold text-gray-500 uppercase mb-1">City</label>[36m
+								<input type="text" bind:value={currentProgram.city} class="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:border-yellow-500" />
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\programs\+page.svelte[39m:251:9
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m							<div>
+								[35m<label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Tuition (€ / Sem)</label>[36m
+								<input type="number" bind:value={currentProgram.tuition_per_semester} class="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:border-yellow-500" />
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\programs\+page.svelte[39m:255:9
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m							<div>
+								[35m<label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Semester Fee (€ / Sem)</label>[36m
+								<input type="number" bind:value={currentProgram.semester_fee} class="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:border-yellow-500" />
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\programs\+page.svelte[39m:259:9
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m							<div>
+								[35m<label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Application Fee (€)</label>[36m
+								<input type="number" bind:value={currentProgram.application_fee} class="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:border-yellow-500" />
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\programs\+page.svelte[39m:263:9
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m							<div>
+								[35m<label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Est. Living Cost (€ / Mo)</label>[36m
+								<input type="number" bind:value={currentProgram.living_cost_per_month} class="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:border-yellow-500" />
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\programs\+page.svelte[39m:274:9
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m							<div>
+								[35m<label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Funding Pathway</label>[36m
+								<select bind:value={currentProgram.funding_pathway} class="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:border-yellow-500">
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\programs\+page.svelte[39m:283:9
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m							<div>
+								[35m<label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Pathway Explanation</label>[36m
+								<textarea bind:value={currentProgram.funding_pathway_explanation} placeholder="Explain the strategy..." class="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:border-yellow-500 h-10"></textarea>
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\programs\+page.svelte[39m:289:9
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m							<div>
+								[35m<label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Min GPA (German Scale)</label>[36m
+								<input type="number" step="0.1" bind:value={currentProgram.rubric_criteria.min_gpa} class="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:border-yellow-500" />
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\programs\import\+page.svelte[39m:193:4
+[33mWarn[39m: Visible, non-interactive elements with a click event must be accompanied by a keyboard event handler. Consider whether an interactive element such as `<button type="button">` or `<a>` might be more appropriate
+https://svelte.dev/e/a11y_click_events_have_key_events (svelte)
+[36m			<!-- AI Toggle -->
+			[35m<div class="flex items-center gap-3 p-4 rounded-xl border-2 {useAI ? 'border-yellow-400 bg-yellow-50' : 'border-gray-200 bg-gray-50'} cursor-pointer flex-1" onclick={() => useAI = !useAI}>
+				<div class="w-10 h-10 rounded-xl {useAI ? 'bg-yellow-400' : 'bg-gray-300'} flex items-center justify-center flex-shrink-0 transition-colors">
+					<Sparkles size={20} class="text-white" />
+				</div>
+				<div>
+					<div class="font-bold text-gray-900 text-sm">AI Enrichment {useAI ? 'ON' : 'OFF'}</div>
+					<div class="text-xs text-gray-500">Auto-generate descriptions, timelines & funding strategy via GPT-4o-mini (~$0.02/program)</div>
+				</div>
+				<div class="ml-auto">
+					<div class="w-12 h-6 rounded-full {useAI ? 'bg-yellow-400' : 'bg-gray-300'} relative transition-colors">
+						<div class="absolute top-1 {useAI ? 'left-7' : 'left-1'} w-4 h-4 bg-white rounded-full shadow transition-all"></div>
+					</div>
+				</div>
+			</div>[36m
+		</div>
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\programs\import\+page.svelte[39m:193:4
+[33mWarn[39m: `<div>` with a click handler must have an ARIA role
+https://svelte.dev/e/a11y_no_static_element_interactions (svelte)
+[36m			<!-- AI Toggle -->
+			[35m<div class="flex items-center gap-3 p-4 rounded-xl border-2 {useAI ? 'border-yellow-400 bg-yellow-50' : 'border-gray-200 bg-gray-50'} cursor-pointer flex-1" onclick={() => useAI = !useAI}>
+				<div class="w-10 h-10 rounded-xl {useAI ? 'bg-yellow-400' : 'bg-gray-300'} flex items-center justify-center flex-shrink-0 transition-colors">
+					<Sparkles size={20} class="text-white" />
+				</div>
+				<div>
+					<div class="font-bold text-gray-900 text-sm">AI Enrichment {useAI ? 'ON' : 'OFF'}</div>
+					<div class="text-xs text-gray-500">Auto-generate descriptions, timelines & funding strategy via GPT-4o-mini (~$0.02/program)</div>
+				</div>
+				<div class="ml-auto">
+					<div class="w-12 h-6 rounded-full {useAI ? 'bg-yellow-400' : 'bg-gray-300'} relative transition-colors">
+						<div class="absolute top-1 {useAI ? 'left-7' : 'left-1'} w-4 h-4 bg-white rounded-full shadow transition-all"></div>
+					</div>
+				</div>
+			</div>[36m
+		</div>
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\programs\import\+page.svelte[39m:212:5
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m			<div class="flex justify-between items-center mb-2">
+				[35m<label class="text-sm font-bold text-gray-700">Paste CSV Data</label>[36m
+				<button onclick={loadSample} class="text-xs text-yellow-600 hover:text-yellow-800 font-semibold underline">Load Sample Data</button>
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\scholarships\+page.svelte[39m:903:16
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m             <div class="bg-blue-50 p-4 rounded-lg">
+               [35m<label class="block text-sm font-medium text-gray-700 mb-2">
+                 Select Import Type
+               </label>[36m
+               <select
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\scholarships\+page.svelte[39m:937:16
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                         <div>
+               [35m<label class="block text-sm font-medium text-gray-700 mb-2">
+                 CSV Data (paste scraped data or upload file above)
+               </label>[36m
+              <textarea
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\scholarships\+page.svelte[39m:1539:21
+[33mWarn[39m: Buttons and links should either contain text or have an `aria-label` or `aria-labelledby` attribute
+https://svelte.dev/e/a11y_consider_explicit_label (svelte)
+[36m                    <!-- First Page -->
+                    [35m<button
+                      onclick={() => goToPage(1)}
+                      disabled={currentPage === 1}
+                      class="px-3 py-2 text-sm border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition"
+                      title="First page"
+                    >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/>
+                      </svg>
+                    </button>[36m
+                    
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\scholarships\+page.svelte[39m:1583:21
+[33mWarn[39m: Buttons and links should either contain text or have an `aria-label` or `aria-labelledby` attribute
+https://svelte.dev/e/a11y_consider_explicit_label (svelte)
+[36m                    <!-- Last Page -->
+                    [35m<button
+                      onclick={() => goToPage(totalPages)}
+                      disabled={currentPage === totalPages}
+                      class="px-3 py-2 text-sm border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition"
+                      title="Last page"
+                    >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/>
+                      </svg>
+                    </button>[36m
+                  </nav>
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\test-prep\+page.svelte[39m:282:21
+[33mWarn[39m: `<svelte:component>` is deprecated in runes mode — components are dynamic by default
+https://svelte.dev/e/svelte_component_deprecated (svelte)
+[36m                  <span class="section-badge {getSectionColor(set.section)}">
+                    [35m<svelte:component this={sectionIcons[set.section as keyof typeof sectionIcons]} size={16} />[36m
+                    {set.section.charAt(0).toUpperCase() + set.section.slice(1)}
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\test-prep\edit\[setId]\+page.svelte[39m:420:21
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m                  <div class="choices-header">
+                    [35m<label id="choices-label-{question.id}">Answer Choices</label>[36m
+                    <button 
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\universities\+page.svelte[39m:207:8
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m						<div>
+							[35m<label class="block text-xs font-semibold text-gray-500 uppercase mb-1">University Name</label>[36m
+							<input type="text" bind:value={currentUniv.name} class="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:border-yellow-500" />
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\universities\+page.svelte[39m:212:9
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m							<div>
+								[35m<label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Country</label>[36m
+								<input type="text" bind:value={currentUniv.country} class="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:border-yellow-500" />
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\universities\+page.svelte[39m:216:9
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m							<div>
+								[35m<label class="block text-xs font-semibold text-gray-500 uppercase mb-1">City</label>[36m
+								<input type="text" bind:value={currentUniv.city} class="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:border-yellow-500" />
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\universities\+page.svelte[39m:221:8
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m						<div>
+							[35m<label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Description</label>[36m
+							<textarea bind:value={currentUniv.description} class="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:border-yellow-500 h-24"></textarea>
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\universities\+page.svelte[39m:231:9
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m							<div>
+								[35m<label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Type</label>[36m
+								<select bind:value={currentUniv.type} class="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:border-yellow-500">
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\universities\+page.svelte[39m:240:9
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m							<div>
+								[35m<label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Tuition Type</label>[36m
+								<select bind:value={currentUniv.tuition_type} class="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:border-yellow-500">
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\universities\+page.svelte[39m:250:9
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m							<div>
+								[35m<label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Acceptance Rate</label>[36m
+								<input type="text" bind:value={currentUniv.acceptance_rate} placeholder="e.g. 15%" class="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:border-yellow-500" />
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\universities\+page.svelte[39m:254:9
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m							<div>
+								[35m<label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Global Rank</label>[36m
+								<input type="text" bind:value={currentUniv.global_rank} placeholder="e.g. #106" class="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:border-yellow-500" />
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\universities\+page.svelte[39m:259:8
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m						<div>
+							[35m<label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Living Cost Estimate</label>[36m
+							<input type="text" bind:value={currentUniv.living_cost_estimate} placeholder="e.g. €950 / month" class="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:border-yellow-500" />
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\universities\+page.svelte[39m:272:8
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m						<div>
+							[35m<label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Logo URL</label>[36m
+							<input type="url" bind:value={currentUniv.logo_url} placeholder="https://..." class="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:border-yellow-500" />
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\universities\+page.svelte[39m:276:8
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m						<div>
+							[35m<label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Hero Image URL</label>[36m
+							<input type="url" bind:value={currentUniv.hero_image_url} placeholder="https://..." class="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:border-yellow-500" />
+[39m
+
+c:\Users\HP ENVY X360\abroaducate\[32msrc\routes\admin\universities\+page.svelte[39m:164:133
+[31mError[39m: Property 'style' does not exist on type 'EventTarget & Element'. (ts)
+[36m								{#if univ.logo_url}
+									<img src={univ.logo_url} alt="logo" class="w-8 h-8 object-contain rounded border bg-white" onerror={(e) => e.currentTarget.[35mstyle[36m.display='none'} />
+								{:else}
+[39m
+
+====================================
+[31msvelte-check found 67 errors and 60 warnings in 31 files
+[39m

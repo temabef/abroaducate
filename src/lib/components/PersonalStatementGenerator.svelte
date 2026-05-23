@@ -4,10 +4,10 @@
     import { handleUpgradeRequired } from '$lib/services/upgradeService';
     import { personalStatementFormStore, savePersonalStatementStateToSessionStorage, personalStatementPendingGeneration } from '$lib/stores/personalStatementStore';
     import { get } from 'svelte/store';
+    import { GraduationCap, Trophy, Scale, Stethoscope, Globe, Briefcase, PenLine, Sparkles, Clipboard, Save, RefreshCw, AlertTriangle } from 'lucide-svelte';
     
     export let existingUserData: any = null;
     export let existingSOPData: any = null;
-    
     const dispatch = createEventDispatcher();
     
     interface PersonalStatementData {
@@ -273,48 +273,12 @@
     
     // Application type options
     const applicationTypes = [
-        {
-            value: 'undergraduate',
-            label: '🎓 Undergraduate Application',
-            description: 'College admissions, university applications',
-            color: 'from-blue-500 to-[#2C3580]',
-            wordLimits: [250, 500, 650, 1000]
-        },
-        {
-            value: 'scholarship',
-            label: '🏆 Scholarship Application', 
-            description: 'Merit-based, need-based, specialty scholarships',
-            color: 'from-yellow-500 to-orange-600',
-            wordLimits: [250, 500, 750, 1000]
-        },
-        {
-            value: 'law_school',
-            label: '⚖️ Law School Application',
-            description: 'JD programs, legal studies',
-            color: 'from-gray-600 to-gray-800',
-            wordLimits: [500, 750, 1000, 1500]
-        },
-        {
-            value: 'medical_school',
-            label: '🏥 Medical School Application',
-            description: 'MD, DO, medical programs',
-            color: 'from-red-500 to-pink-600',
-            wordLimits: [500, 750, 1000, 1500]
-        },
-        {
-            value: 'study_abroad',
-            label: '🌍 Study Abroad Application',
-            description: 'Exchange programs, international study',
-            color: 'from-green-500 to-teal-600',
-            wordLimits: [250, 500, 750, 1000]
-        },
-        {
-            value: 'professional',
-            label: '💼 Professional Program',
-            description: 'MBA, specialized degrees, professional certificates',
-            color: 'from-purple-500 to-violet-600',
-            wordLimits: [500, 750, 1000, 1500]
-        }
+        { value: 'undergraduate', label: 'Undergraduate Application', description: 'College admissions, university applications', color: 'from-blue-500 to-[#2C3580]', wordLimits: [250, 500, 650, 1000], icon: GraduationCap },
+        { value: 'scholarship', label: 'Scholarship Application', description: 'Merit-based, need-based, specialty scholarships', color: 'from-yellow-500 to-orange-600', wordLimits: [250, 500, 750, 1000], icon: Trophy },
+        { value: 'law_school', label: 'Law School Application', description: 'JD programs, legal studies', color: 'from-gray-600 to-gray-800', wordLimits: [500, 750, 1000, 1500], icon: Scale },
+        { value: 'medical_school', label: 'Medical School Application', description: 'MD, DO, medical programs', color: 'from-red-500 to-pink-600', wordLimits: [500, 750, 1000, 1500], icon: Stethoscope },
+        { value: 'study_abroad', label: 'Study Abroad Application', description: 'Exchange programs, international study', color: 'from-green-500 to-teal-600', wordLimits: [250, 500, 750, 1000], icon: Globe },
+        { value: 'professional', label: 'Professional Program', description: 'MBA, specialized degrees, professional certificates', color: 'from-purple-500 to-violet-600', wordLimits: [500, 750, 1000, 1500], icon: Briefcase }
     ];
     
     // Pre-populate from existing data
@@ -488,7 +452,7 @@
 <div class="personal-statement-generator">
     <!-- Header -->
     <div class="bg-gradient-to-r from-[#2C3580] to-[#2C3580] text-white p-6 rounded-t-lg">
-        <h2 class="text-2xl font-bold mb-2">💭 Personal Statement Generator</h2>
+        <h2 class="text-2xl font-bold mb-2 flex items-center gap-2"><PenLine size={22} /> Personal Statement Generator</h2>
         <p class="opacity-90">Create compelling personal statements that tell your unique story</p>
         
         {#if currentStep <= totalSteps}
@@ -530,7 +494,10 @@
                                 class="sr-only"
                             />
                             <div class={`bg-gradient-to-r ${applicationType.color} p-4 text-white`}>
-                                <div class="font-bold text-lg">{applicationType.label}</div>
+                                <div class="flex items-center gap-2 font-bold text-lg mb-1">
+                                    <svelte:component this={applicationType.icon} size={18} />
+                                    {applicationType.label}
+                                </div>
                                 <div class="text-sm opacity-90">{applicationType.description}</div>
                             </div>
                         </label>
@@ -768,7 +735,7 @@
                             placeholder="What are your aspirations and how will this opportunity help?"
                         ></textarea>
                         {#if existingSOPData}
-                            <p class="text-xs text-gray-500 mt-1">✨ Pre-filled from your SOP. Feel free to edit.</p>
+                            <p class="text-xs text-gray-500 mt-1 flex items-center gap-1"><Sparkles size={12} /> Pre-filled from your SOP. Feel free to edit.</p>
                         {/if}
                     </div>
                     
@@ -828,7 +795,7 @@
                 <!-- AI Usage Disclaimer -->
                 <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
                     <div class="flex items-start gap-3">
-                        <span class="text-xl">⚠️</span>
+                        <AlertTriangle size={18} class="text-amber-600 flex-shrink-0 mt-0.5" />
                         <div class="text-sm text-amber-800">
                             <div class="font-semibold mb-1">Important Disclaimer</div>
                             <p class="leading-relaxed">
@@ -846,7 +813,7 @@
                     disabled={!personalStatementData.institutionName || !personalStatementData.personalDetails.formativeExperience}
                     class="w-full bg-gradient-to-r from-[#2C3580] to-[#2C3580] text-white py-3 px-6 rounded-lg font-semibold hover:from-purple-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
                 >
-                    ✨ Generate Personal Statement
+                    <Sparkles size={16} /> Generate Personal Statement
                 </button>
             </div>
             
@@ -858,9 +825,9 @@
                     <div class="flex gap-2">
                         <button
                             onclick={copyPersonalStatement}
-                            class="px-6 py-3 bg-[#2C3580] text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
+                            class="px-6 py-3 bg-[#2C3580] text-white rounded-lg hover:bg-purple-700 transition-colors font-medium flex items-center gap-2"
                         >
-                            📋 Copy to Clipboard
+                            <Clipboard size={16} /> Copy to Clipboard
                         </button>
                     </div>
                 </div>
@@ -876,17 +843,11 @@
                 </div>
                 
                 <div class="flex gap-3">
-                    <button
-                        onclick={savePersonalStatement}
-                        class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
-                    >
-                        💾 Save & Edit
+                    <button onclick={savePersonalStatement} class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center gap-2">
+                        <Save size={16} /> Save & Edit
                     </button>
-                    <button
-                        onclick={startOver}
-                        class="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-                    >
-                        🔄 Create Another Personal Statement
+                    <button onclick={startOver} class="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors flex items-center gap-2">
+                        <RefreshCw size={16} /> Create Another
                     </button>
                 </div>
             </div>

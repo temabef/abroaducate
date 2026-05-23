@@ -68,6 +68,13 @@
   function formatPercentage(value: number, total: number): number {
     return total > 0 ? Math.round((value / total) * 100) : 0;
   }
+
+  $: gradeDistributionEntries = Object.entries(
+    (academicProfile?.gradeDistribution?.byGPARange ?? {}) as Record<string, number>
+  );
+  $: subjectEntries = Object.entries(
+    (academicProfile?.coursesBySubject ?? {}) as Record<string, { courseCount: number; gpa: string; totalCredits?: number }>
+  );
 </script>
 
 <div class="max-w-7xl mx-auto p-6">
@@ -250,7 +257,7 @@
                 <div class="bg-white border rounded-lg p-6">
                   <h3 class="font-semibold text-gray-900 mb-4">📊 Grade Distribution</h3>
                   <div class="space-y-3">
-                    {#each Object.entries(academicProfile.gradeDistribution.byGPARange) as [range, count]}
+                    {#each gradeDistributionEntries as [range, count]}
                       {@const percentage = formatPercentage(count, academicProfile.totalCourses)}
                       <div class="flex items-center justify-between">
                         <span class="text-sm text-gray-600">{range}</span>
@@ -278,7 +285,7 @@
               <div class="bg-white border rounded-lg p-6">
                 <h3 class="font-semibold text-gray-900 mb-4">📚 Subject Area Performance</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {#each Object.entries(academicProfile.coursesBySubject) as [subject, data]}
+                  {#each subjectEntries as [subject, data]}
                     {#if data.courseCount > 0}
                       <div class="bg-gray-50 rounded-lg p-4">
                         <div class="flex items-center justify-between mb-2">

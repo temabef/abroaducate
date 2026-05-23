@@ -470,44 +470,44 @@
 </div>
 
 <style>
-  .prose h1, .prose h2, .prose h3 {
+  :global(.prose h1), :global(.prose h2), :global(.prose h3) {
     font-weight: bold;
     margin: 1rem 0 0.5rem 0;
   }
   
-  .prose h1 {
+  :global(.prose h1) {
     font-size: 1.5rem;
   }
   
-  .prose h2 {
+  :global(.prose h2) {
     font-size: 1.25rem;
   }
   
-  .prose h3 {
+  :global(.prose h3) {
     font-size: 1.125rem;
   }
   
-  .prose p {
+  :global(.prose p) {
     margin: 0.5rem 0;
     line-height: 1.6;
   }
   
-  .prose img {
+  :global(.prose img) {
     max-width: 100%;
     height: auto;
     border-radius: 0.5rem;
     margin: 1rem 0;
   }
   
-  .prose strong {
+  :global(.prose strong) {
     font-weight: bold;
   }
   
-  .prose em {
+  :global(.prose em) {
     font-style: italic;
   }
   
-  .prose a {
+  :global(.prose a) {
     color: #2563eb;
     text-decoration: underline;
   }

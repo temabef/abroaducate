@@ -1,80 +1,51 @@
 import { json } from '@sveltejs/kit';
-import { createClient } from '@supabase/supabase-js';
-import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
+import type { RequestHandler } from './$types';
 
-const supabase = createClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY);
+export const GET: RequestHandler = async ({ locals }) => {
+	try {
+		const session = await locals.getSession();
+		if (!session?.user) {
+			return json({ error: 'Unauthorized' }, { status: 401 });
+		}
 
-export async function GET({ url, locals }) {
-    try {
-        console.log('Getting users list...');
+		const supabase = locals.supabase;
 
-        // Get users with their profile information
-        const { data: users, error } = await supabase
-            .from('profiles')
-            .select(`
-                id,
-                email,
-                full_name,
-                created_at,
-                last_sign_in_at,
-                subscription_status,
-                newsletter_subscribed
-            `)
-            .order('created_at', { ascending: false })
-            .limit(100); // Limit to 100 users for performance
+		// Use DB role checks, then fall back to profile role.
+		const [{ data: roleData }, { data: canManageAdmins }] = await Promise.all([
+			supabase.rpc('get_current_user_admin_role'),
+			supabase.rpc('can_manage_admins_nuclear')
+		]);
 
-        if (error) {
-            console.log('Users query failed, returning sample data');
-            
-            // Return sample users for development
-            const sampleUsers = [
-                {
-                    id: '1',
-                    email: 'john.doe@example.com',
-                    full_name: 'John Doe',
-                    created_at: new Date().toISOString(),
-                    last_sign_in_at: new Date().toISOString(),
-                    subscription_status: 'active',
-                    newsletter_subscribed: true
-                },
-                {
-                    id: '2',
-                    email: 'jane.smith@example.com',
-                    full_name: 'Jane Smith',
-                    created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-                    last_sign_in_at: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
-                    subscription_status: null,
-                    newsletter_subscribed: false
-                },
-                {
-                    id: '3',
-                    email: 'alex.johnson@example.com',
-                    full_name: 'Alex Johnson',
-                    created_at: new Date(Date.now() - 72 * 60 * 60 * 1000).toISOString(),
-                    last_sign_in_at: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(),
-                    subscription_status: 'active',
-                    newsletter_subscribed: true
-                }
-            ];
+		const { data: profile } = await supabase
+			.from('profiles')
+			.select('role')
+			.eq('id', session.user.id)
+			.maybeSingle();
 
-            return json({
-                users: sampleUsers,
-                note: 'Sample data - real users will be available after deployment'
-            });
-        }
+		const profileRole = (profile?.role as string | null) ?? null;
+		const hasAdminRole = ['admin', 'super-admin'].includes(profileRole ?? '');
+		const isAdmin = Boolean(roleData) || Boolean(canManageAdmins) || hasAdminRole;
 
-        return json({
-            users: users || [],
-            note: 'Real user data from database'
-        });
+		if (!isAdmin) {
+			return json({ error: 'Admin access required' }, { status: 403 });
+		}
 
-    } catch (error) {
-        console.error('Error getting users list:', error);
-        
-        // Return empty array on error
-        return json({
-            users: [],
-            note: 'Error loading users - data will be available after deployment'
-        });
-    }
-} 
+		const { data: users, error } = await supabase
+			.from('profiles')
+			.select(
+				'id, email, full_name, created_at, updated_at, role, subscription_status, newsletter_subscribed'
+			)
+			.order('created_at', { ascending: false })
+			.limit(100);
+
+		if (error) {
+			console.error('Error fetching users list:', error);
+			return json({ error: 'Failed to fetch users' }, { status: 500 });
+		}
+
+		return json({ users: users ?? [] });
+	} catch (error) {
+		console.error('Error in users-list API:', error);
+		return json({ error: 'Internal server error' }, { status: 500 });
+	}
+};

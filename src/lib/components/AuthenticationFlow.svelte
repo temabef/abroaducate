@@ -307,7 +307,10 @@
 
             // Check if email confirmation is required
             if (data.user.email_confirmed_at) {
-                // User is already confirmed, auto-login
+                // User is already confirmed (email confirmation disabled) — auto-login
+                // Fire welcome email in the background before redirecting
+                fetch('/api/send-welcome-email', { method: 'POST' }).catch(() => {});
+
                 success = 'Account created successfully! Redirecting...';
                 setTimeout(async () => {
                     close();
@@ -516,6 +519,7 @@
                         </p>
                     </div>
                 {:else}
+
                     <!-- Email Authentication -->
                     <form class="email-form" on:submit|preventDefault={handleEmailAuth}>
                         {#if mode === 'signup'}

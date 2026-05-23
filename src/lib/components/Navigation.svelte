@@ -36,7 +36,7 @@
                 .select('plan_type')
                 .eq('user_id', userId)
                 .in('status', ['active','trialing'])
-                .single();
+                .maybeSingle();
             
             return data?.plan_type || 'free';
         } catch (error) {
@@ -215,10 +215,6 @@
         color: white;
         font-weight: 700;
         font-size: 1.2rem;
-    }
-    
-    .brand-icon {
-        font-size: 1.5rem;
     }
     
     .brand-icon-svg {

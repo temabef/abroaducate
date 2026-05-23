@@ -2,11 +2,10 @@
     import { onMount } from 'svelte';
     import { goto } from '$app/navigation';
     import { page } from '$app/stores';
-    import type { PageData } from './$types';
     import { formatDistanceToNow, parseISO, format } from 'date-fns';
 
-    const { data }: { data: PageData } = $props();
-    let { supabase, session } = data;
+    const { data }: { data: any } = $props();
+    let { supabase, session } = $derived(data);
 
     const applicationId = $page.params.id;
 
@@ -37,7 +36,7 @@
         application_fee: number | null;
     };
 
-    let application: Application | null = $state(null);
+    let application = $state<Application | null>(null);
     let loading = $state(true);
     let saving = $state(false);
     let error = $state('');
@@ -470,9 +469,22 @@
 
 <!-- Edit Modal -->
 {#if showEditModal}
-    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick={() => showEditModal = false}>
-        <div class="bg-white rounded-lg shadow-xl p-8 max-w-lg w-full" onclick={(e) => e.stopPropagation()}>
-            <h2 class="text-2xl font-bold mb-6 text-gray-900">Edit Application</h2>
+    <div
+        class="fixed inset-0 flex items-center justify-center z-50"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="edit-application-title"
+        onkeydown={(event) => event.key === 'Escape' && (showEditModal = false)}
+        tabindex="-1"
+    >
+        <button
+            type="button"
+            class="absolute inset-0 bg-black bg-opacity-50"
+            onclick={() => showEditModal = false}
+            aria-label="Close edit application modal"
+        ></button>
+        <div class="relative z-10 bg-white rounded-lg shadow-xl p-8 max-w-lg w-full">
+            <h2 id="edit-application-title" class="text-2xl font-bold mb-6 text-gray-900">Edit Application</h2>
             <form onsubmit={(e) => { e.preventDefault(); saveEdit(); }} class="space-y-4">
                 <div>
                     <label for="university_name" class="block text-sm font-medium text-gray-700">University Name</label>
@@ -511,9 +523,22 @@
 
 <!-- Delete Confirmation Modal -->
 {#if showDeleteConfirm}
-    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick={() => showDeleteConfirm = false}>
-        <div class="bg-white rounded-lg shadow-xl p-8 max-w-md w-full" onclick={(e) => e.stopPropagation()}>
-            <h2 class="text-xl font-bold mb-4 text-gray-900">Confirm Deletion</h2>
+    <div
+        class="fixed inset-0 flex items-center justify-center z-50"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="delete-application-title"
+        onkeydown={(event) => event.key === 'Escape' && (showDeleteConfirm = false)}
+        tabindex="-1"
+    >
+        <button
+            type="button"
+            class="absolute inset-0 bg-black bg-opacity-50"
+            onclick={() => showDeleteConfirm = false}
+            aria-label="Close delete confirmation modal"
+        ></button>
+        <div class="relative z-10 bg-white rounded-lg shadow-xl p-8 max-w-md w-full">
+            <h2 id="delete-application-title" class="text-xl font-bold mb-4 text-gray-900">Confirm Deletion</h2>
             <p class="text-gray-600 mb-6">Are you sure you want to delete this application? This action cannot be undone.</p>
             <div class="flex justify-end gap-3">
                 <button type="button" onclick={() => showDeleteConfirm = false} class="px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200">Cancel</button>

@@ -4,9 +4,9 @@
 	import '../app.css';
 	import Navbar from '$lib/components/Navbar.svelte';
 	import GlobalUpgradeHandler from '$lib/components/GlobalUpgradeHandler.svelte';
-// Removed light footer per request
+	import SiteFooter from '$lib/components/SiteFooter.svelte';
+	import SupportChat from '$lib/components/SupportChat.svelte';
     import { analytics } from '$lib/utils/posthog';
-    import AdBootstrap from '$lib/components/AdBootstrap.svelte';
     import { subscriptionState } from '$lib/stores/subscription';
 
 	let { data, children } = $props();
@@ -52,7 +52,7 @@
                         .select('plan_type, status, admin_override')
                         .eq('user_id', session.user.id)
                         .in('status', ['active','trialing','past_due'])
-                        .single();
+                        .maybeSingle();
                     const isPremium = computeIsPremium(sub);
                     subscriptionState.set({
                         loaded: true,
@@ -90,7 +90,7 @@
                             .select('plan_type, status, admin_override')
                             .eq('user_id', newSession.user.id)
                             .in('status', ['active','trialing','past_due'])
-                            .single();
+                            .maybeSingle();
                         if (!error) subRow = sub;
                     } catch {}
 
@@ -127,9 +127,13 @@
 </script>
 
 <Navbar {data} />
-<AdBootstrap />
 
 {@render children()}
 
+<SiteFooter />
+
 <!-- Global upgrade handler - works everywhere -->
-<GlobalUpgradeHandler /> 
+<GlobalUpgradeHandler />
+
+<!-- AI Support Chat — floating bottom-right -->
+<SupportChat {supabase} {session} />

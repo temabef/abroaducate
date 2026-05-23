@@ -1,0 +1,473 @@
+id,program_name,university_name,original_deadline,action_taken
+poland-jan-kochanowski-university-of-kielce-administration-kielce-bachelor,Administration,Jan Kochanowski University of Kielce,2020-08-17,Cleared stale deadline
+poland-sgh-warsaw-school-of-economics-advanced-analytics-big-data-warsaw-master,Advanced analytics – big data,SGH Warsaw School of Economics,2024-07-24,Cleared stale deadline
+poland-lodz-university-of-technology-advanced-materials-and-nanotechnology-odz-bachelor,Advanced Materials and Nanotechnology,Lodz University of Technology,2025-07-10,Cleared stale deadline
+poland-warsaw-university-of-technology-aerospace-engineering-and-astronautics-warsaw-master,Aerospace engineering and astronautics,Warsaw University of Technology,2025-07-21,Cleared stale deadline
+poland-warsaw-university-of-technology-aerospace-engineering-and-astronautics-warsaw-bachelor,Aerospace engineering and astronautics,Warsaw University of Technology,2024-07-17,Cleared stale deadline
+poland-rzeszow-university-of-technology-aerospace-engineering-and-astronautics-rzeszow-master,Aerospace engineering and astronautics,Rzeszow University of Technology,2015-07-20,Cleared stale deadline
+poland-military-university-of-aviation-aerospace-engineering-and-astronautics-deblin-bachelor,Aerospace engineering and astronautics,Military University of Aviation,2020-06-30,Cleared stale deadline
+poland-military-university-of-technology-aerospace-engineering-and-astronautics-warsaw-bachelor,Aerospace engineering and astronautics,Military University of Technology,2025-07-14,Cleared stale deadline
+poland-polish-air-force-academy-aerospace-engineering-and-astronautics-deblin-master,Aerospace engineering and astronautics,Polish Air Force Academy,2016-08-31,Cleared stale deadline
+poland-silesian-university-of-technology-aerospace-engineering-and-astronautics-gliwice-master,Aerospace engineering and astronautics,Silesian University of Technology,2026-02-09,Cleared stale deadline
+poland-university-of-agriculture-in-krakow-agricultural-engineering-agriculture-in-krakow-bachelor,Agricultural engineering,University of Agriculture in Krakow,2020-07-31,Cleared stale deadline
+poland-university-of-warmia-and-mazury-in-olsztyn-agricultural-engineering-olsztyn-master,Agricultural engineering,University of Warmia and Mazury in Olsztyn,2020-07-07,Cleared stale deadline
+poland-university-of-agriculture-in-krakow-agricultural-engineering-krakow-bachelor,Agricultural engineering,University of Agriculture in Krakow,2024-07-14,Cleared stale deadline
+poland-wroc-aw-university-of-environmental-and-life-sciences-agronomy-wroc-aw-phd,Agronomy,Wrocław University of Environmental and Life Sciences,2022-05-30,Cleared stale deadline
+poland-university-of-agriculture-in-krakow-agronomy-krakow-master,Agronomy,University of Agriculture in Krakow,2025-06-30,Cleared stale deadline
+poland-university-of-warsaw-american-studies-warsaw-bachelor,American studies,University of Warsaw,2016-07-08,Cleared stale deadline
+poland-university-of-warsaw-american-studies-warsaw-master,American studies,University of Warsaw,2016-06-24,Cleared stale deadline
+poland-university-of-silesia-in-katowice-american-and-canadian-studies-for-intercultural-communications-and-di,American and Canadian Studies for Intercultural Communications and Diplomacy (MA),University of Silesia in Katowice,2024-09-22,Cleared stale deadline
+poland-wroc-aw-university-of-environmental-and-life-sciences-animal-husbandry-wroc-aw-phd,Animal husbandry,Wrocław University of Environmental and Life Sciences,2022-05-30,Cleared stale deadline
+poland-university-of-life-sciences-in-lublin-animal-husbandry-lublin-bachelor,Animal husbandry,University of Life Sciences in Lublin,2017-09-15,Cleared stale deadline
+poland-university-of-opole-applied-gender-studies-opole-master,Applied gender studies,University of Opole,2020-09-25,Cleared stale deadline
+poland-wroc-aw-university-of-science-and-technology-applied-mathematics-wroc-aw-master,Applied mathematics,Wrocław University of Science and Technology,2021-11-30,Cleared stale deadline
+poland-university-of-warsaw-archeology-warsaw-master,Archeology,University of Warsaw,2016-07-08,Cleared stale deadline
+poland-university-of-warsaw-archeology-warsaw-bachelor,Archeology,University of Warsaw,2016-07-08,Cleared stale deadline
+poland-cracow-university-of-technology-architecture-krakow-master,Architecture,Cracow University of Technology,2021-02-05,Cleared stale deadline
+poland-cracow-university-of-technology-architecture-krakow-bachelor,Architecture,Cracow University of Technology,2020-07-31,Cleared stale deadline
+poland-university-college-of-enterprise-and-administration-in-lublin-architecture-lublin-bachelor,Architecture,University College of Enterprise and Administration in Lublin,2016-08-31,Cleared stale deadline
+poland-warsaw-university-of-technology-architecture-warsaw-bachelor,Architecture,Warsaw University of Technology,2025-05-23,Cleared stale deadline
+poland-wroc-aw-university-of-science-and-technology-architecture-wroc-aw-master,Architecture,Wrocław University of Science and Technology,2021-11-30,Cleared stale deadline
+poland-lodz-university-of-technology-architecture-odz-master,Architecture,Lodz University of Technology,2025-07-10,Cleared stale deadline
+poland-lodz-university-of-technology-architecture-odz-bachelor,Architecture,Lodz University of Technology,2025-07-10,Cleared stale deadline
+poland-gdansk-university-of-technology-architecture-gdansk-bachelor,Architecture,Gdańsk University of Technology,2024-07-10,Cleared stale deadline
+poland-silesian-university-of-technology-architecture-gliwice-master,Architecture,Silesian University of Technology,2020-09-15,Cleared stale deadline
+poland-wroc-aw-university-of-science-and-technology-architecture-and-urban-planning-wroc-aw-master,Architecture and urban planning,Wrocław University of Science and Technology,2021-11-30,Cleared stale deadline
+poland-bialystok-university-of-technology-architecture-and-urban-planning-bia-ystok-master,Architecture and urban planning,Bialystok University of Technology,2017-01-15,Cleared stale deadline
+poland-warsaw-university-of-technology-architecture-for-society-of-knowledge-warsaw-master,Architecture for society of knowledge,Warsaw University of Technology,2025-05-23,Cleared stale deadline
+poland-polish-japanese-academy-of-information-technology-art-and-design-warsaw-bachelor,Art and design,Polish-Japanese Academy of Information Technology,2025-09-30,Cleared stale deadline
+poland-the-eugeniusz-geppert-academy-of-art-and-design-in-wroc-aw-art-and-design-wroc-aw-master,Art and design,The Eugeniusz Geppert Academy of Art and Design in Wrocław,2024-03-15,Cleared stale deadline
+poland-the-eugeniusz-geppert-academy-of-art-and-design-in-wroc-aw-art-and-design-wroc-aw-phd,Art and design,The Eugeniusz Geppert Academy of Art and Design in Wrocław,2024-06-24,Cleared stale deadline
+poland-lodz-university-of-technology-art-and-design-odz-master,Art and design,Lodz University of Technology,2025-07-10,Cleared stale deadline
+poland-university-of-arts-in-poznan-art-and-design-poznan-bachelor,Art and design,University of Arts In Poznan,2016-06-30,Cleared stale deadline
+poland-university-of-arts-in-poznan-art-and-design-poznan-master,Art and design,University of Arts In Poznan,2016-06-30,Cleared stale deadline
+poland-polish-japanese-academy-of-information-technology-art-and-design-warsaw-master,Art and design,Polish-Japanese Academy of Information Technology,2025-09-30,Cleared stale deadline
+poland-jan-kochanowski-university-of-kielce-arts-kielce-bachelor,Arts,Jan Kochanowski University of Kielce,2020-10-04,Cleared stale deadline
+poland-jan-kochanowski-university-of-kielce-arts-kielce-master,Arts,Jan Kochanowski University of Kielce,2020-10-04,Cleared stale deadline
+poland-university-of-arts-in-poznan-arts-arts-in-poznan-bachelor,Arts,University of Arts in Poznan,2016-06-30,Cleared stale deadline
+poland-university-of-arts-in-poznan-arts-poznan-master,Arts,University of Arts In Poznan,2016-06-30,Cleared stale deadline
+poland-agh-university-of-krakow-astronomy-krakow-master,Astronomy,AGH University of Krakow,2025-02-06,Cleared stale deadline
+poland-university-of-zielona-gora-astronomy-zielona-gora-bachelor,Astronomy,University of Zielona Gora,2024-10-01,Cleared stale deadline
+poland-warsaw-university-of-technology-automatic-control-and-robotics-warsaw-master,Automatic control and robotics,Warsaw University of Technology,2025-07-21,Cleared stale deadline
+poland-wroc-aw-university-of-science-and-technology-automatic-control-and-robotics-wroc-aw-master,Automatic control and robotics,Wrocław University of Science and Technology,2021-11-30,Cleared stale deadline
+poland-silesian-university-of-technology-silesian-univeristy-of-technology-msc-automation-and-robotics-integra,Silesian Univeristy of Technology - Msc Automation And Robotics Integrated Manufacturing Systems Under Patronage Balluff Company?Search=670,Silesian University of Technology,2020-12-18,Cleared stale deadline
+poland-silesian-university-of-technology-silesian-univeristy-of-technology-msc-mechanics-and-machine-design-li,Silesian Univeristy of Technology - Msc Mechanics And Machine Design Lightweight Structures Under Patronage Silesian Aviation Cluster?Search=682,Silesian University of Technology,2020-12-19,Cleared stale deadline
+poland-gdansk-university-of-technology-automation-cybernetics-and-robotics-gdansk-master,"Automation, Cybernetics and Robotics",Gdańsk University of Technology,2024-02-05,Cleared stale deadline
+poland-lazarski-university-aviation-management-warsaw-bachelor,Aviation management,Lazarski University,2024-08-30,Cleared stale deadline
+poland-university-of-information-technology-and-management-aviation-management-rzeszow-bachelor,Aviation management,University of Information Technology and Management,2016-09-30,Cleared stale deadline
+poland-adam-mickiewicz-university-poznan-balkan-studies-poznan-bachelor,Balkan studies,"Adam Mickiewicz University, Poznań",2023-07-11,Cleared stale deadline
+poland-university-of-szczecin-baltic-sea-region-studies-szczecin-bachelor,Baltic Sea region studies,University of Szczecin,2024-09-10,Cleared stale deadline
+poland-nicolaus-copernicus-university-biological-sciences-torun-master,Biological Sciences,Nicolaus Copernicus University,2024-08-04,Cleared stale deadline
+poland-university-of-szczecin-biological-sciences-szczecin-bachelor,Biological Sciences,University of Szczecin,2024-09-10,Cleared stale deadline
+poland-university-of-warmia-and-mazury-in-olsztyn-biology-olsztyn-bachelor,Biology,University of Warmia and Mazury in Olsztyn,2020-07-07,Cleared stale deadline
+poland-wroc-aw-university-of-environmental-and-life-sciences-biology-wroc-aw-phd,Biology,Wrocław University of Environmental and Life Sciences,2022-05-30,Cleared stale deadline
+poland-university-of-warsaw-biology-warsaw-phd,Biology,University of Warsaw,2014-06-30,Cleared stale deadline
+poland-silesian-university-of-technology-biomedical-engineering-gliwice-bachelor,Biomedical engineering,Silesian University of Technology,2020-09-15,Cleared stale deadline
+poland-lodz-university-of-technology-biomedical-engineering-odz-bachelor,Biomedical engineering,Lodz University of Technology,2025-07-10,Cleared stale deadline
+poland-silesian-university-of-technology-biotechnology-gliwice-bachelor,Biotechnology,Silesian University of Technology,2020-09-15,Cleared stale deadline
+poland-silesian-university-of-technology-biotechnology-gliwice-master,Biotechnology,Silesian University of Technology,2020-12-18,Cleared stale deadline
+poland-adam-mickiewicz-university-poznan-biotechnology-poznan-master,Biotechnology,"Adam Mickiewicz University, Poznań",2023-09-05,Cleared stale deadline
+poland-wroc-aw-university-of-science-and-technology-biotechnology-wroc-aw-master,Biotechnology,Wrocław University of Science and Technology,2021-08-14,Cleared stale deadline
+poland-university-of-silesia-in-katowice-biotechnology-msc-silesia-in-katowice-master,Biotechnology (MSc),University of Silesia in Katowice,2024-07-21,Cleared stale deadline
+poland-poznan-university-of-life-sciences-biotechnology-poznan-master,Biotechnology,Poznań University of Life Sciences,2025-06-30,Cleared stale deadline
+poland-warsaw-university-of-life-sciences-sggw-biotechnology-warsaw-bachelor,Biotechnology,Warsaw University of Life Sciences - SGGW,2025-07-09,Cleared stale deadline
+poland-the-john-paul-ii-catholic-university-of-lublin-biotechnology-lublin-master,Biotechnology,The John Paul II Catholic University of Lublin,2024-03-01,Cleared stale deadline
+poland-warsaw-university-of-technology-biotechnology-warsaw-master,Biotechnology,Warsaw University of Technology,2025-12-10,Cleared stale deadline
+poland-university-of-warmia-and-mazury-in-olsztyn-biotechnology-olsztyn-master,Biotechnology,University of Warmia and Mazury in Olsztyn,2021-02-12,Cleared stale deadline
+poland-the-john-paul-ii-catholic-university-of-lublin-biotechnology-lublin-bachelor,Biotechnology,The John Paul II Catholic University of Lublin,2024-03-01,Cleared stale deadline
+poland-university-of-agriculture-in-krakow-biotechnology-krakow-master,Biotechnology,University of Agriculture in Krakow,2024-07-14,Cleared stale deadline
+poland-the-university-of-dabrowa-gornicza-business-administration-dabrowa-gornicza-short-course,Business administration,The University of Dąbrowa Górnicza,2017-08-01,Cleared stale deadline
+poland-wroc-aw-university-of-economics-and-business-business-administration-wroc-aw-master,Business administration,Wrocław University of Economics and Business,2024-07-08,Cleared stale deadline
+poland-jagiellonian-university-in-krakow-business-and-finance-management-krakow-master,Business and Finance Management,Jagiellonian University in Kraków,2024-08-28,Cleared stale deadline
+poland-lodz-university-of-technology-business-information-science-odz-bachelor,Business information science,Lodz University of Technology,2025-07-10,Cleared stale deadline
+poland-lodz-university-of-technology-business-management-odz-bachelor,Business management,Lodz University of Technology,2025-07-10,Cleared stale deadline
+poland-university-of-szczecin-business-management-szczecin-master,Business management,University of Szczecin,2024-09-10,Cleared stale deadline
+poland-university-of-szczecin-business-management-szczecin-bachelor,Business management,University of Szczecin,2024-09-10,Cleared stale deadline
+poland-wroc-aw-university-of-economics-and-business-business-management-wroc-aw-master,Business management,Wrocław University of Economics and Business,2024-08-01,Cleared stale deadline
+poland-lodz-university-of-technology-business-management-odz-master,Business management,Lodz University of Technology,2025-07-10,Cleared stale deadline
+poland-wroc-aw-university-of-economics-and-business-business-management-wroc-aw-bachelor,Business management,Wrocław University of Economics and Business,2024-08-01,Cleared stale deadline
+poland-warsaw-university-of-technology-chemical-engineering-warsaw-master,Chemical engineering,Warsaw University of Technology,2025-12-10,Cleared stale deadline
+poland-rzeszow-university-of-technology-chemical-engineering-rzeszow-master,Chemical engineering,Rzeszow University of Technology,2015-07-20,Cleared stale deadline
+poland-wroc-aw-university-of-science-and-technology-chemical-engineering-wroc-aw-master,Chemical engineering,Wrocław University of Science and Technology,2021-08-14,Cleared stale deadline
+poland-agh-university-of-krakow-chemical-technology-krakow-master,Chemical technology,AGH University of Krakow,2025-09-03,Cleared stale deadline
+poland-cracow-university-of-technology-chemical-technology-krakow-master,Chemical technology,Cracow University of Technology,2021-02-05,Cleared stale deadline
+poland-wroc-aw-university-of-science-and-technology-chemical-technology-wroc-aw-master,Chemical technology,Wrocław University of Science and Technology,2021-11-30,Cleared stale deadline
+poland-wroc-aw-university-of-science-and-technology-chemistry-wroc-aw-master,Chemistry,Wrocław University of Science and Technology,2021-08-14,Cleared stale deadline
+poland-nicolaus-copernicus-university-chemistry-torun-bachelor,Chemistry,Nicolaus Copernicus University,2024-08-04,Cleared stale deadline
+poland-jan-dlugosz-university-in-czestochowa-chemistry-czestochowa-phd,Chemistry,Jan Dlugosz University in Czestochowa,2024-07-31,Cleared stale deadline
+poland-university-of-warsaw-chemistry-warsaw-master,Chemistry,University of Warsaw,2016-06-21,Cleared stale deadline
+poland-military-university-of-technology-chemistry-warsaw-phd,Chemistry,Military University of Technology,2016-08-31,Cleared stale deadline
+poland-silesian-university-of-technology-circular-economy-gliwice-bachelor,Circular Economy,Silesian University of Technology,2020-09-15,Cleared stale deadline
+poland-wroc-aw-university-of-environmental-and-life-sciences-circular-economy-wroc-aw-bachelor,Circular Economy,Wrocław University of Environmental and Life Sciences,2024-09-12,Cleared stale deadline
+poland-kielce-university-of-technology-civil-engineering-kielce-bachelor,Civil engineering,Kielce University of Technology,2024-08-31,Cleared stale deadline
+poland-bialystok-university-of-technology-civil-engineering-bia-ystok-bachelor,Civil engineering,Bialystok University of Technology,2016-08-15,Cleared stale deadline
+poland-bialystok-university-of-technology-civil-engineering-bia-ystok-master,Civil engineering,Bialystok University of Technology,2017-01-15,Cleared stale deadline
+poland-warsaw-university-of-technology-civil-engineering-warsaw-bachelor,Civil engineering,Warsaw University of Technology,2025-07-21,Cleared stale deadline
+poland-rzeszow-university-of-technology-civil-engineering-rzeszow-bachelor,Civil engineering,Rzeszow University of Technology,2015-07-20,Cleared stale deadline
+poland-warsaw-university-of-technology-civil-engineering-warsaw-master,Civil engineering,Warsaw University of Technology,2025-07-21,Cleared stale deadline
+poland-cracow-university-of-technology-civil-engineering-krakow-master,Civil engineering,Cracow University of Technology,2021-02-05,Cleared stale deadline
+poland-cracow-university-of-technology-civil-engineering-krakow-bachelor,Civil engineering,Cracow University of Technology,2020-07-31,Cleared stale deadline
+poland-wroc-aw-university-of-science-and-technology-civil-engineering-wroc-aw-master,Civil engineering,Wrocław University of Science and Technology,2021-08-14,Cleared stale deadline
+poland-wroc-aw-university-of-environmental-and-life-sciences-civil-engineering-wroc-aw-phd,Civil engineering,Wrocław University of Environmental and Life Sciences,2022-05-30,Cleared stale deadline
+poland-silesian-university-of-technology-civil-engineering-gliwice-bachelor,Civil engineering,Silesian University of Technology,2020-09-15,Cleared stale deadline
+poland-gdansk-university-of-technology-civil-engineering-gdansk-master,Civil engineering,Gdańsk University of Technology,2024-02-05,Cleared stale deadline
+poland-nicolaus-copernicus-university-cognitive-science-torun-master,Cognitive science,Nicolaus Copernicus University,2024-08-04,Cleared stale deadline
+poland-the-karol-szymanowski-academy-of-music-in-katowice-composition-and-musical-theory-katowice-bachelor,Composition and musical theory,The Karol Szymanowski Academy of Music in Katowice,2016-09-05,Cleared stale deadline
+poland-the-karol-szymanowski-academy-of-music-in-katowice-composition-and-musical-theory-katowice-master,Composition and musical theory,The Karol Szymanowski Academy of Music in Katowice,2016-09-05,Cleared stale deadline
+poland-wroc-aw-university-of-science-and-technology-computer-aided-engineering-wroc-aw-master,Computer aided engineering,Wrocław University of Science and Technology,2021-11-30,Cleared stale deadline
+poland-warsaw-university-of-technology-computer-science-computer-science-information-systems-warsaw-bachelor,Computer science - Computer Science Information Systems,Warsaw University of Technology,2025-07-21,Cleared stale deadline
+poland-warsaw-university-of-technology-computer-science-b-sc-20computer-20systems-20and-20networks-warsaw-bach,Computer science - B.Sc.%20Computer%20Systems%20And%20Networks,Warsaw University of Technology,2025-07-21,Cleared stale deadline
+poland-wroc-aw-university-of-science-and-technology-computer-science-wroc-aw-master,Computer science,Wrocław University of Science and Technology,2021-11-30,Cleared stale deadline
+poland-warsaw-university-of-technology-computer-science-warsaw-master,Computer science,Warsaw University of Technology,2025-07-21,Cleared stale deadline
+poland-agh-university-of-krakow-computer-science-krakow-bachelor,Computer science,AGH University of Krakow,2025-09-04,Cleared stale deadline
+poland-polish-japanese-academy-of-information-technology-computer-science-program-studiow-warsaw-bachelor,Computer science - Program Studiow,Polish-Japanese Academy of Information Technology,2025-09-30,Cleared stale deadline
+poland-polish-japanese-academy-of-information-technology-computer-science-polish-japanese-academy-information-,Computer science - Polish Japanese Academy Information Technology,Polish-Japanese Academy of Information Technology,2025-09-30,Cleared stale deadline
+poland-czestochowa-university-of-technology-artificial-intelligence-and-data-science-czestochowa-master,Artificial Intelligence and Data Science,Czestochowa University of Technology,2025-11-30,Cleared stale deadline
+poland-university-of-silesia-in-katowice-computer-science-msc-silesia-in-katowice-master,Computer Science (MSc),University of Silesia in Katowice,2024-02-04,Cleared stale deadline
+poland-university-college-of-enterprise-and-administration-in-lublin-computer-science-lublin-bachelor,Computer science,University College of Enterprise and Administration in Lublin,2016-08-31,Cleared stale deadline
+poland-university-of-humanities-and-economics-in-lodz-computer-science-odz-bachelor,Computer science,University of Humanities and Economics in Lodz,2020-08-31,Cleared stale deadline
+poland-university-of-information-technology-and-management-computer-science-rzeszow-master,Computer science,University of Information Technology and Management,2016-09-30,Cleared stale deadline
+poland-vistula-university-computer-science-warsaw-master,Computer science,Vistula University,2024-05-31,Cleared stale deadline
+poland-lodz-university-of-technology-computer-science-odz-bachelor,Computer science,Lodz University of Technology,2025-07-10,Cleared stale deadline
+poland-the-university-of-dabrowa-gornicza-computer-science-dabrowa-gornicza-bachelor,Computer science,The University of Dąbrowa Górnicza,2017-09-30,Cleared stale deadline
+poland-kielce-university-of-technology-computer-science-kielce-bachelor,Computer science,Kielce University of Technology,2024-08-31,Cleared stale deadline
+poland-wroc-aw-university-of-science-and-technology-computer-science-wroc-aw-bachelor,Computer science,Wrocław University of Science and Technology,2021-08-14,Cleared stale deadline
+poland-university-of-zielona-gora-computer-science-and-econometrics-zielona-gora-bachelor,Computer science and econometrics,University of Zielona Góra,2025-10-01,Cleared stale deadline
+poland-university-of-zielona-gora-computer-science-and-econometrics-zielona-gora-master,Computer science and econometrics,University of Zielona Góra,2025-10-01,Cleared stale deadline
+poland-the-karol-szymanowski-academy-of-music-in-katowice-conducting-katowice-bachelor,Conducting,The Karol Szymanowski Academy of Music in Katowice,2016-09-05,Cleared stale deadline
+poland-the-karol-szymanowski-academy-of-music-in-katowice-conducting-katowice-master,Conducting,The Karol Szymanowski Academy of Music in Katowice,2016-09-05,Cleared stale deadline
+poland-wroc-aw-university-of-science-and-technology-control-engineering-and-robotics-wroc-aw-master,Control engineering and robotics,Wrocław University of Science and Technology,2021-11-30,Cleared stale deadline
+poland-silesian-university-of-technology-control-electronics-and-information-engineering-ceie-gliwice-master,"Control, Electronics, and Information Engineering (CEIE)",Silesian University of Technology,2020-12-18,Cleared stale deadline
+poland-cracow-university-of-economics-corporate-finance-and-accounting-krakow-master,Corporate finance and accounting,Cracow University of Economics,2016-06-26,Cleared stale deadline
+poland-university-of-gdansk-criminal-justice-gdansk-bachelor,Criminal Justice,University of Gdansk,2020-08-17,Cleared stale deadline
+poland-poznan-university-of-life-sciences-crop-plant-biology-and-production-poznan-bachelor,Crop Plant Biology and Production,Poznań University of Life Sciences,2025-05-30,Cleared stale deadline
+poland-adam-mickiewicz-university-poznan-cultural-studies-poznan-master,Cultural studies,"Adam Mickiewicz University, Poznań",2023-09-13,Cleared stale deadline
+poland-lazarski-university-data-analytics-big-data-and-coding-warsaw-bachelor,"Data Analytics, Big Data and Coding",Lazarski University,2024-08-30,Cleared stale deadline
+poland-military-university-of-technology-data-engineering-warsaw-master,Data Engineering,Military University of Technology,2025-02-03,Cleared stale deadline
+poland-university-of-zielona-gora-data-engineering-zielona-gora-master,Data Engineering,University of Zielona Gora,2024-02-15,Cleared stale deadline
+poland-university-of-zielona-gora-data-engineering-zielona-gora-bachelor,Data Engineering,University of Zielona Góra,2025-10-01,Cleared stale deadline
+poland-gdansk-university-of-technology-data-engineering-gdansk-bachelor,Data Engineering,Gdańsk University of Technology,2024-07-10,Cleared stale deadline
+poland-medical-university-of-silesia-dentistry-silesia-master,Dentistry,Medical University of Silesia,2020-08-21,Cleared stale deadline
+poland-medical-university-of-warsaw-dentistry-warsaw-master,Dentistry,Medical University of Warsaw,2021-06-25,Cleared stale deadline
+poland-wroc-aw-medical-university-dentistry-wroc-aw-master,Dentistry,Wrocław Medical University,2017-07-23,Cleared stale deadline
+poland-poznan-university-of-medical-sciences-dentistry-poznan-master,Dentistry,Poznan University of Medical Sciences,2022-07-31,Cleared stale deadline
+poland-jagiellonian-university-in-krakow-drug-discovery-and-development-krakow-master,Drug Discovery and Development,Jagiellonian University in Kraków,2024-08-28,Cleared stale deadline
+poland-jagiellonian-university-in-krakow-earth-sciences-in-a-changing-world-krakow-bachelor,Earth Sciences in a Changing World,Jagiellonian University in Kraków,2024-08-28,Cleared stale deadline
+poland-bialystok-university-of-technology-eco-engineering-bia-ystok-master,Eco-engineering,Bialystok University of Technology,2017-01-15,Cleared stale deadline
+poland-bialystok-university-of-technology-eco-engineering-bia-ystok-bachelor,Eco-engineering,Bialystok University of Technology,2016-08-15,Cleared stale deadline
+poland-gdansk-university-of-technology-economic-analytics-gdansk-master,Economic Analytics,Gdańsk University of Technology,2024-02-05,Cleared stale deadline
+poland-lazarski-university-economics-warsaw-master,Economics,Lazarski University,2024-08-30,Cleared stale deadline
+poland-university-of-warsaw-economics-warsaw-master,Economics,University of Warsaw,2016-07-11,Cleared stale deadline
+poland-university-of-warsaw-economics-warsaw-phd,Economics,University of Warsaw,2015-04-15,Cleared stale deadline
+poland-poznan-university-of-life-sciences-economics-and-finance-management-in-agri-food-sector-poznan-bachelor,Economics and Finance Management in Agri-Food Sector,Poznań University of Life Sciences,2025-06-30,Cleared stale deadline
+poland-poznan-university-of-economics-and-business-economics-and-it-applications-poznan-master,Economics and IT Applications,Poznań University of Economics and Business,2017-06-01,Cleared stale deadline
+poland-university-of-szczecin-economics-and-it-applications-szczecin-bachelor,Economics and IT Applications,University of Szczecin,2024-09-10,Cleared stale deadline
+poland-polish-japanese-academy-of-information-technology-economics-and-it-applications-warsaw-bachelor,Economics and IT Applications,Polish-Japanese Academy of Information Technology,2025-09-30,Cleared stale deadline
+poland-warsaw-university-of-life-sciences-sggw-economy-warsaw-master,Economy,Warsaw University of Life Sciences - SGGW,2017-06-01,Cleared stale deadline
+poland-jan-dlugosz-university-in-czestochowa-education-czestochowa-phd,Education,Jan Dlugosz University in Czestochowa,2024-07-31,Cleared stale deadline
+poland-military-university-of-technology-electrical-engineering-warsaw-master,Electrical engineering,Military University of Technology,2025-12-31,Cleared stale deadline
+poland-warsaw-university-of-technology-electrical-engineering-warsaw-master,Electrical engineering,Warsaw University of Technology,2025-07-21,Cleared stale deadline
+poland-warsaw-university-of-technology-electrical-engineering-warsaw-bachelor,Electrical engineering,Warsaw University of Technology,2025-07-21,Cleared stale deadline
+poland-silesian-university-of-technology-silesian-univeristy-of-technology-gliwice-bachelor,Silesian Univeristy of Technology,Silesian University of Technology,2020-09-15,Cleared stale deadline
+poland-wroc-aw-university-of-science-and-technology-electrical-engineering-wroc-aw-master,Electrical engineering,Wrocław University of Science and Technology,2021-06-14,Cleared stale deadline
+poland-silesian-university-of-technology-electrical-engineering-gliwice-master,Electrical engineering,Silesian University of Technology,2020-12-18,Cleared stale deadline
+poland-lodz-university-of-technology-electronics-odz-master,Electronics,Lodz University of Technology,2025-07-10,Cleared stale deadline
+poland-bialystok-university-of-technology-electronics-bia-ystok-phd,Electronics,Bialystok University of Technology,2016-08-15,Cleared stale deadline
+poland-wroc-aw-university-of-science-and-technology-electronics-wroc-aw-master,Electronics,Wrocław University of Science and Technology,2021-11-30,Cleared stale deadline
+poland-bialystok-university-of-technology-electronics-and-telecommunications-bia-ystok-master,Electronics and telecommunications,Bialystok University of Technology,2017-01-15,Cleared stale deadline
+poland-agh-university-of-krakow-electronics-and-telecommunications-krakow-bachelor,Electronics and telecommunications,AGH University of Krakow,2025-09-04,Cleared stale deadline
+poland-gdansk-university-of-technology-electronics-and-telecommunications-gdansk-master,Electronics and telecommunications,Gdańsk University of Technology,2024-02-05,Cleared stale deadline
+poland-military-university-of-technology-electronics-and-telecommunications-warsaw-phd,Electronics and telecommunications,Military University of Technology,2016-08-31,Cleared stale deadline
+poland-military-university-of-technology-electronics-and-telecommunications-warsaw-master,Electronics and telecommunications,Military University of Technology,2025-12-31,Cleared stale deadline
+poland-lodz-university-of-technology-energy-technologies-odz-master,Energy Technologies,Lodz University of Technology,2025-03-03,Cleared stale deadline
+poland-university-of-opole-english-in-public-communication-opole-bachelor,English in public communication,University of Opole,2020-09-25,Cleared stale deadline
+poland-lazarski-university-english-module-warsaw-short-course,English module,Lazarski University,2024-09-30,Cleared stale deadline
+poland-university-of-warsaw-english-studies-warsaw-bachelor,English studies,University of Warsaw,2016-07-08,Cleared stale deadline
+poland-university-of-opole-english-studies-opole-bachelor,English studies,University of Opole,2020-09-25,Cleared stale deadline
+poland-university-of-zielona-gora-english-studies-zielona-gora-master,English studies,University of Zielona Góra,2025-10-01,Cleared stale deadline
+poland-university-of-warsaw-english-studies-warsaw-master,English studies,University of Warsaw,2016-06-06,Cleared stale deadline
+poland-university-of-opole-english-studies-opole-master,English studies,University of Opole,2020-09-25,Cleared stale deadline
+poland-university-of-zielona-gora-english-studies-zielona-gora-bachelor,English studies,University of Zielona Góra,2025-10-01,Cleared stale deadline
+poland-state-higher-vocational-school-in-walcz-english-studies-wa-cz-bachelor,English studies,State Higher Vocational School in Walcz,2014-07-10,Cleared stale deadline
+poland-nicolaus-copernicus-university-english-studies-torun-master,English studies,Nicolaus Copernicus University,2024-08-04,Cleared stale deadline
+poland-nicolaus-copernicus-university-english-studies-torun-bachelor,English studies,Nicolaus Copernicus University,2024-08-04,Cleared stale deadline
+poland-wroc-aw-university-of-science-and-technology-environmental-engineering-wroc-aw-master,Environmental engineering,Wrocław University of Science and Technology,2021-11-30,Cleared stale deadline
+poland-university-of-warmia-and-mazury-in-olsztyn-environmental-engineering-olsztyn-bachelor,Environmental engineering,University of Warmia and Mazury in Olsztyn,2020-07-07,Cleared stale deadline
+poland-warsaw-university-of-technology-environmental-engineering-warsaw-master,Environmental engineering,Warsaw University of Technology,2025-07-21,Cleared stale deadline
+poland-university-of-warmia-and-mazury-in-olsztyn-environmental-engineering-olsztyn-master,Environmental engineering,University of Warmia and Mazury in Olsztyn,2021-02-12,Cleared stale deadline
+poland-warsaw-university-of-technology-environmental-engineering-warsaw-bachelor,Environmental engineering,Warsaw University of Technology,2025-07-21,Cleared stale deadline
+poland-kielce-university-of-technology-environmental-engineering-kielce-bachelor,Environmental engineering,Kielce University of Technology,2024-08-31,Cleared stale deadline
+poland-gdansk-university-of-technology-environmental-engineering-gdansk-master,Environmental engineering,Gdańsk University of Technology,2024-02-05,Cleared stale deadline
+poland-rzeszow-university-of-technology-environmental-engineering-rzeszow-bachelor,Environmental engineering,Rzeszow University of Technology,2015-07-20,Cleared stale deadline
+poland-bialystok-university-of-technology-environmental-engineering-bia-ystok-bachelor,Environmental engineering,Bialystok University of Technology,2016-08-15,Cleared stale deadline
+poland-bialystok-university-of-technology-environmental-engineering-bia-ystok-master,Environmental engineering,Bialystok University of Technology,2017-01-15,Cleared stale deadline
+poland-silesian-university-of-technology-environmental-engineering-gliwice-bachelor,Environmental engineering,Silesian University of Technology,2020-09-15,Cleared stale deadline
+poland-poznan-university-of-life-sciences-environmental-engineering-and-protection-poznan-master,Environmental Engineering and Protection,Poznań University of Life Sciences,2025-06-30,Cleared stale deadline
+poland-wroc-aw-university-of-science-and-technology-environmental-management-wroc-aw-master,Environmental management,Wrocław University of Science and Technology,2021-08-14,Cleared stale deadline
+poland-university-of-warsaw-environmental-management-warsaw-master,Environmental management,University of Warsaw,2016-09-04,Cleared stale deadline
+poland-adam-mickiewicz-university-poznan-environmental-protection-poznan-master,Environmental protection,"Adam Mickiewicz University, Poznań",2023-07-21,Cleared stale deadline
+poland-university-of-agriculture-in-krakow-environmental-protection-agriculture-in-krakow-master,Environmental protection,University of Agriculture in Krakow,2017-02-12,Cleared stale deadline
+poland-jagiellonian-university-in-krakow-environmental-protection-and-management-krakow-master,Environmental Protection and Management,Jagiellonian University in Kraków,2024-05-28,Cleared stale deadline
+poland-jagiellonian-university-in-krakow-erasmus-mundus-international-master-in-central-and-east-european-russ,"Erasmus Mundus International Master in Central and East European, Russian and Eurasian Studies",Jagiellonian University in Kraków,2024-05-01,Cleared stale deadline
+poland-jagiellonian-university-in-krakow-erasmus-mundus-joint-master-degree-in-european-politics-and-society-e,Erasmus Mundus Joint Master Degree in European Politics and Society (EPS): Vaclav Havel,Jagiellonian University in Kraków,2024-08-28,Cleared stale deadline
+poland-adam-mickiewicz-university-poznan-ethnology-poznan-master,Ethnology,"Adam Mickiewicz University, Poznań",2023-10-16,Cleared stale deadline
+poland-jagiellonian-university-in-krakow-european-studies-krakow-bachelor,European studies,Jagiellonian University in Kraków,2024-08-28,Cleared stale deadline
+poland-the-john-paul-ii-catholic-university-of-lublin-european-studies-lublin-bachelor,European Studies,The John Paul II Catholic University of Lublin,2024-03-01,Cleared stale deadline
+poland-jagiellonian-university-in-krakow-european-studies-krakow-master,European Studies,Jagiellonian University in Kraków,2024-08-28,Cleared stale deadline
+poland-the-john-paul-ii-catholic-university-of-lublin-european-union-law-lublin-master,European Union Law,The John Paul II Catholic University of Lublin,2024-03-01,Cleared stale deadline
+poland-wroc-aw-university-of-economics-and-business-finance-wroc-aw-bachelor,Finance,Wrocław University of Economics and Business,2024-08-01,Cleared stale deadline
+poland-vistula-university-finance-and-accounting-warsaw-master,Finance and accounting,Vistula University,2024-05-31,Cleared stale deadline
+poland-sgh-warsaw-school-of-economics-finance-and-accounting-warsaw-master,Finance and accounting,SGH Warsaw School of Economics,2024-07-24,Cleared stale deadline
+poland-vistula-university-finance-and-accounting-warsaw-bachelor,Finance and accounting,Vistula University,2024-05-31,Cleared stale deadline
+poland-university-of-zielona-gora-finance-and-accounting-zielona-gora-master,Finance and accounting,University of Zielona Góra,2025-10-01,Cleared stale deadline
+poland-poznan-university-of-economics-and-business-finance-and-accounting-poznan-bachelor,Finance and accounting,Poznań University of Economics and Business,2017-06-01,Cleared stale deadline
+poland-university-of-zielona-gora-finance-and-accounting-zielona-gora-bachelor,Finance and accounting,University of Zielona Góra,2025-10-01,Cleared stale deadline
+poland-university-of-gdansk-finance-and-accounting-gdansk-master,Finance and accounting,University of Gdansk,2020-08-31,Cleared stale deadline
+poland-university-of-gdansk-finance-and-accounting-gdansk-bachelor,Finance and accounting,University of Gdansk,2020-08-24,Cleared stale deadline
+poland-university-college-of-enterprise-and-administration-in-lublin-finance-and-accounting-lublin-bachelor,Finance and accounting,University College of Enterprise and Administration in Lublin,2016-08-31,Cleared stale deadline
+poland-university-of-warsaw-finance-investments-and-accounting-warsaw-bachelor,"Finance, investments and accounting",University of Warsaw,2016-07-08,Cleared stale deadline
+poland-university-of-warsaw-finance-investments-and-accounting-warsaw-master,"Finance, investments and accounting",University of Warsaw,2016-07-11,Cleared stale deadline
+poland-jan-dlugosz-university-in-czestochowa-fine-art-czestochowa-phd,Fine art.,Jan Dlugosz University in Czestochowa,2024-07-31,Cleared stale deadline
+poland-university-of-warmia-and-mazury-in-olsztyn-fisheries-sciences-olsztyn-bachelor,Fisheries sciences,University of Warmia and Mazury in Olsztyn,2020-07-07,Cleared stale deadline
+poland-university-of-warmia-and-mazury-in-olsztyn-fisheries-sciences-olsztyn-master,Fisheries sciences,University of Warmia and Mazury in Olsztyn,2020-07-07,Cleared stale deadline
+poland-university-of-agriculture-in-krakow-food-science-krakow-master,Food science,University of Agriculture in Krakow,2024-07-14,Cleared stale deadline
+poland-wroc-aw-university-of-environmental-and-life-sciences-food-technology-and-human-nutrition-wroc-aw-phd,Food technology and human nutrition,Wrocław University of Environmental and Life Sciences,2022-05-30,Cleared stale deadline
+poland-university-of-agriculture-in-krakow-food-technology-and-human-nutrition-krakow-master,Food technology and human nutrition,University of Agriculture in Krakow,2024-07-14,Cleared stale deadline
+poland-university-of-agriculture-in-krakow-food-technology-and-human-nutrition-krakow-bachelor,Food technology and human nutrition,University of Agriculture in Krakow,2024-07-14,Cleared stale deadline
+poland-wroc-aw-university-of-environmental-and-life-sciences-food-technology-and-human-nutrition-wroc-aw-maste,Food technology and human nutrition,Wrocław University of Environmental and Life Sciences,2025-02-01,Cleared stale deadline
+poland-university-of-warmia-and-mazury-in-olsztyn-general-informatics-olsztyn-bachelor,General informatics,University of Warmia and Mazury in Olsztyn,2020-07-07,Cleared stale deadline
+poland-university-of-warmia-and-mazury-in-olsztyn-geodesy-and-cartography-olsztyn-bachelor,Geodesy and cartography,University of Warmia and Mazury in Olsztyn,2020-07-07,Cleared stale deadline
+poland-university-of-warmia-and-mazury-in-olsztyn-geodesy-and-cartography-olsztyn-master,Geodesy and cartography,University of Warmia and Mazury in Olsztyn,2020-07-07,Cleared stale deadline
+poland-university-of-silesia-in-katowice-geografia-specjalnosc-geographic-information-systems-silesia-in-katow,Geografia specjalność: Geographic Information Systems,University of Silesia in Katowice,2024-09-22,Cleared stale deadline
+poland-wroc-aw-university-of-environmental-and-life-sciences-geoinformation-science-earth-observation-and-spat,"Geoinformation Science, Earth Observation and Spatial Management",Wrocław University of Environmental and Life Sciences,2022-05-30,Cleared stale deadline
+poland-wroc-aw-university-of-science-and-technology-geoinformation-science-earth-observation-and-spatial-manag,"Geoinformation Science, Earth Observation and Spatial Management",Wrocław University of Science and Technology,2021-11-30,Cleared stale deadline
+poland-university-of-warsaw-geology-warsaw-master,Geology,University of Warsaw,2016-07-08,Cleared stale deadline
+poland-jagiellonian-university-in-krakow-global-and-development-studies-krakow-bachelor,Global and Development Studies,Jagiellonian University in Kraków,2024-08-28,Cleared stale deadline
+poland-sgh-warsaw-school-of-economics-global-business-finance-and-governance-warsaw-master,"Global business, finance and governance",SGH Warsaw School of Economics,2024-07-24,Cleared stale deadline
+poland-sgh-warsaw-school-of-economics-global-business-finance-and-governance-warsaw-bachelor,"Global business, finance and governance",SGH Warsaw School of Economics,2024-07-24,Cleared stale deadline
+poland-university-of-szczecin-global-communication-szczecin-bachelor,Global communication,University of Szczecin,2024-09-10,Cleared stale deadline
+poland-university-of-humanities-and-economics-in-lodz-graphics-odz-bachelor,Graphics,University of Humanities and Economics in Lodz,2020-08-31,Cleared stale deadline
+poland-gdansk-university-of-technology-green-technologies-and-monitoring-gdansk-master,Green technologies and monitoring,Gdańsk University of Technology,2024-02-05,Cleared stale deadline
+poland-gdansk-university-of-technology-green-technologies-and-monitoring-gdansk-bachelor,Green technologies and monitoring,Gdańsk University of Technology,2024-07-10,Cleared stale deadline
+poland-jan-dlugosz-university-in-czestochowa-health-science-czestochowa-phd,Health science,Jan Dlugosz University in Czestochowa,2024-07-31,Cleared stale deadline
+poland-medical-university-of-silesia-health-science-silesia-bachelor,Health science,Medical University of Silesia,2020-08-03,Cleared stale deadline
+poland-jan-dlugosz-university-in-czestochowa-history-czestochowa-phd,History,Jan Dlugosz University in Czestochowa,2024-07-31,Cleared stale deadline
+poland-warsaw-university-of-life-sciences-sggw-horticulture-warsaw-master,Horticulture,Warsaw University of Life Sciences - SGGW,2017-01-15,Cleared stale deadline
+poland-silesian-university-of-technology-industrial-and-engineering-chemistry-gliwice-bachelor,Industrial and Engineering Chemistry,Silesian University of Technology,2020-09-15,Cleared stale deadline
+poland-silesian-university-of-technology-industrial-and-engineering-chemistry-gliwice-master,Industrial and Engineering Chemistry,Silesian University of Technology,2020-12-18,Cleared stale deadline
+poland-university-of-warmia-and-mazury-in-olsztyn-informatics-olsztyn-bachelor,Informatics,University of Warmia and Mazury in Olsztyn,2020-07-07,Cleared stale deadline
+poland-the-john-paul-ii-catholic-university-of-lublin-informatics-lublin-bachelor,Informatics,The John Paul II Catholic University of Lublin,2024-03-01,Cleared stale deadline
+poland-silesian-university-of-technology-informatics-gliwice-master,Informatics,Silesian University of Technology,2020-12-18,Cleared stale deadline
+poland-gdansk-university-of-technology-informatics-gdansk-master,Informatics,Gdańsk University of Technology,2024-02-05,Cleared stale deadline
+poland-silesian-university-of-technology-informatics-gliwice-bachelor,Informatics,Silesian University of Technology,2020-09-15,Cleared stale deadline
+poland-rzeszow-university-of-technology-informatics-control-engineering-and-robotics-rzeszow-master,"Informatics, control engineering and robotics",Rzeszow University of Technology,2015-07-20,Cleared stale deadline
+poland-lodz-university-of-technology-information-science-odz-master,Information science,Lodz University of Technology,2025-07-10,Cleared stale deadline
+poland-wroc-aw-university-of-economics-and-business-information-science-wroc-aw-bachelor,Information science,Wrocław University of Economics and Business,2024-08-01,Cleared stale deadline
+poland-adam-mickiewicz-university-poznan-intercultural-communication-poznan-bachelor,Intercultural Communication,"Adam Mickiewicz University, Poznań",2023-07-11,Cleared stale deadline
+poland-university-of-gdansk-intercultural-communication-gdansk-bachelor,Intercultural Communication,University of Gdansk,2020-09-07,Cleared stale deadline
+poland-sgh-warsaw-school-of-economics-international-business-warsaw-master,International Business,SGH Warsaw School of Economics,2024-07-24,Cleared stale deadline
+poland-wroc-aw-university-of-economics-and-business-international-business-wroc-aw-bachelor,International Business,Wrocław University of Economics and Business,2024-08-01,Cleared stale deadline
+poland-cracow-university-of-economics-international-business-krakow-master,International Business,Cracow University of Economics,2016-06-26,Cleared stale deadline
+poland-poznan-university-of-economics-and-business-international-business-poznan-bachelor,International Business,Poznań University of Economics and Business,2017-06-01,Cleared stale deadline
+poland-poznan-university-of-economics-and-business-international-business-poznan-master,International Business,Poznań University of Economics and Business,2017-06-01,Cleared stale deadline
+poland-university-of-warsaw-international-business-warsaw-master,International Business,University of Warsaw,2016-07-18,Cleared stale deadline
+poland-andrzej-frycz-modrzewski-krakow-university-international-business-krakow-bachelor,International Business,Andrzej Frycz Modrzewski Kraków University,2015-09-25,Cleared stale deadline
+poland-lazarski-university-international-business-warsaw-bachelor,International Business,Lazarski University,2024-08-30,Cleared stale deadline
+poland-university-of-opole-international-business-opole-bachelor,International Business,University of Opole,2020-09-25,Cleared stale deadline
+poland-university-of-information-technology-and-management-international-business-management-rzeszow-bachelor,International Business Management,University of Information Technology and Management,2016-09-30,Cleared stale deadline
+poland-university-of-information-technology-and-management-international-business-management-rzeszow-master,International Business Management,University of Information Technology and Management,2016-09-30,Cleared stale deadline
+poland-university-of-gdansk-international-economic-relations-gdansk-master,International economic relations,University of Gdansk,2020-08-10,Cleared stale deadline
+poland-university-of-gdansk-international-economic-relations-gdansk-bachelor,International economic relations,University of Gdansk,2020-08-18,Cleared stale deadline
+poland-sgh-warsaw-school-of-economics-international-economics-warsaw-bachelor,International economics,SGH Warsaw School of Economics,2024-07-24,Cleared stale deadline
+poland-university-of-szczecin-international-economics-szczecin-master,International economics,University of Szczecin,2024-09-10,Cleared stale deadline
+poland-lazarski-university-international-relations-warsaw-bachelor,International relations,Lazarski University,2024-08-30,Cleared stale deadline
+poland-adam-mickiewicz-university-poznan-international-relations-poznan-bachelor,International relations,"Adam Mickiewicz University, Poznań",2023-07-11,Cleared stale deadline
+poland-the-university-of-dabrowa-gornicza-international-relations-dabrowa-gornicza-bachelor,International relations,The University of Dąbrowa Górnicza,2017-09-30,Cleared stale deadline
+poland-andrzej-frycz-modrzewski-krakow-university-international-relations-krakow-bachelor,International relations,Andrzej Frycz Modrzewski Kraków University,2015-09-25,Cleared stale deadline
+poland-lazarski-university-international-relations-warsaw-master,International relations,Lazarski University,2024-08-30,Cleared stale deadline
+poland-university-of-silesia-in-katowice-international-studies-of-political-science-and-diplomacy-silesia-in-k,International Studies of Political Science and Diplomacy,University of Silesia in Katowice,2024-07-21,Cleared stale deadline
+poland-andrzej-frycz-modrzewski-krakow-university-international-relations-krakow-master,International relations,Andrzej Frycz Modrzewski Kraków University,2015-09-25,Cleared stale deadline
+poland-university-college-of-enterprise-and-administration-in-lublin-international-relations-lublin-bachelor,International relations,University College of Enterprise and Administration in Lublin,2016-08-31,Cleared stale deadline
+poland-university-of-silesia-in-katowice-international-studies-in-political-science-and-diplomacy-leadership-i,International Studies in Political Science and Diplomacy: Leadership in International Relations,University of Silesia in Katowice,2024-07-10,Cleared stale deadline
+poland-university-of-warmia-and-mazury-in-olsztyn-international-relations-olsztyn-master,International relations,University of Warmia and Mazury in Olsztyn,2020-07-07,Cleared stale deadline
+poland-jagiellonian-university-in-krakow-international-relations-and-area-studies-krakow-bachelor,International Relations and Area Studies,Jagiellonian University in Kraków,2024-05-28,Cleared stale deadline
+poland-jagiellonian-university-in-krakow-international-relations-and-public-diplomacy-krakow-master,International Relations and Public Diplomacy,Jagiellonian University in Kraków,2024-07-26,Cleared stale deadline
+poland-jagiellonian-university-in-krakow-international-security-and-development-krakow-master,International Security and Development,Jagiellonian University in Kraków,2024-08-28,Cleared stale deadline
+poland-andrzej-frycz-modrzewski-krakow-university-international-tourism-hotel-industry-and-leisure-services-kr,"International tourism, hotel industry and leisure services",Andrzej Frycz Modrzewski Kraków University,2015-09-25,Cleared stale deadline
+poland-the-karol-szymanowski-academy-of-music-in-katowice-jazz-and-stage-music-katowice-bachelor,Jazz and stage music,The Karol Szymanowski Academy of Music in Katowice,2016-09-05,Cleared stale deadline
+poland-the-karol-szymanowski-academy-of-music-in-katowice-jazz-and-stage-music-katowice-master,Jazz and stage music,The Karol Szymanowski Academy of Music in Katowice,2016-09-05,Cleared stale deadline
+poland-the-karol-lipinski-academy-of-music-in-wroc-aw-jazz-and-stage-music-wroc-aw-bachelor,Jazz and stage music,The Karol Lipiński Academy of Music in Wrocław,2016-08-16,Cleared stale deadline
+poland-the-john-paul-ii-catholic-university-of-lublin-journalism-and-social-communication-lublin-bachelor,Journalism and social communication,The John Paul II Catholic University of Lublin,2024-03-01,Cleared stale deadline
+poland-university-college-of-enterprise-and-administration-in-lublin-journalism-and-social-communication-lubli,Journalism and social communication,University College of Enterprise and Administration in Lublin,2016-08-31,Cleared stale deadline
+poland-poznan-university-of-life-sciences-land-resource-management-poznan-bachelor,Land Resource Management,Poznań University of Life Sciences,2025-06-30,Cleared stale deadline
+poland-bialystok-university-of-technology-landscape-architecture-bia-ystok-bachelor,Landscape architecture,Bialystok University of Technology,2016-08-15,Cleared stale deadline
+poland-bialystok-university-of-technology-landscape-architecture-bia-ystok-master,Landscape architecture,Bialystok University of Technology,2017-01-15,Cleared stale deadline
+poland-state-university-of-applied-sciences-in-konin-language-and-literature-studies-english-konin-master,Language and literature studies (English),State University of Applied Sciences in Konin,2016-08-31,Cleared stale deadline
+poland-the-university-of-dabrowa-gornicza-language-and-literature-studies-english-dabrowa-gornicza-bachelor,Language and literature studies (English),The University of Dąbrowa Górnicza,2017-09-30,Cleared stale deadline
+poland-jan-dlugosz-university-in-czestochowa-law-czestochowa-phd,Law,Jan Dlugosz University in Czestochowa,2024-07-31,Cleared stale deadline
+poland-university-of-silesia-in-katowice-international-business-law-and-arbitration-ma-silesia-in-katowice-mas,International Business Law and Arbitration (MA),University of Silesia in Katowice,2024-09-22,Cleared stale deadline
+poland-lazarski-university-law-warsaw-bachelor,Law,Lazarski University,2024-08-30,Cleared stale deadline
+poland-adam-mickiewicz-university-poznan-linguistics-poznan-bachelor,Linguistics,"Adam Mickiewicz University, Poznań",2023-07-11,Cleared stale deadline
+poland-krosno-state-college-linguistics-krosno-bachelor,Linguistics,Krosno State College,2016-09-15,Cleared stale deadline
+poland-warsaw-university-of-technology-linguistics-warsaw-short-course,Linguistics,Warsaw University of Technology,2025-07-10,Cleared stale deadline
+poland-jan-dlugosz-university-in-czestochowa-linguistics-czestochowa-phd,Linguistics,Jan Dlugosz University in Czestochowa,2024-07-31,Cleared stale deadline
+poland-adam-mickiewicz-university-poznan-literary-studies-poznan-bachelor,Literary studies,"Adam Mickiewicz University, Poznań",2023-07-11,Cleared stale deadline
+poland-jan-dlugosz-university-in-czestochowa-literary-studies-czestochowa-phd,Literary studies,Jan Dlugosz University in Czestochowa,2024-07-31,Cleared stale deadline
+poland-university-of-warmia-and-mazury-in-olsztyn-logistics-olsztyn-master,Logistics,University of Warmia and Mazury in Olsztyn,2020-07-07,Cleared stale deadline
+poland-czestochowa-university-of-technology-logistics-czestochowa-master,Logistics,Czestochowa University of Technology,2025-11-30,Cleared stale deadline
+poland-university-of-information-technology-and-management-logistics-rzeszow-master,Logistics,University of Information Technology and Management,2016-09-30,Cleared stale deadline
+poland-silesian-university-of-technology-logistics-gliwice-master,Logistics,Silesian University of Technology,2020-12-18,Cleared stale deadline
+poland-uniwersytet-wsb-merito-opole-management-opole-master,Management,Uniwersytet WSB Merito Opole,2025-10-01,Cleared stale deadline
+poland-lazarski-university-management-warsaw-master,Management,Lazarski University,2024-08-30,Cleared stale deadline
+poland-rzeszow-university-of-technology-management-rzeszow-bachelor,Management,Rzeszow University of Technology,2015-07-20,Cleared stale deadline
+poland-the-university-of-dabrowa-gornicza-management-dabrowa-gornicza-master,Management,The University of Dąbrowa Górnicza,2017-09-30,Cleared stale deadline
+poland-university-of-warsaw-management-warsaw-phd,Management,University of Warsaw,2014-09-15,Cleared stale deadline
+poland-wroc-aw-university-of-science-and-technology-management-wroc-aw-master,Management,Wrocław University of Science and Technology,2021-11-30,Cleared stale deadline
+poland-wroc-aw-university-of-science-and-technology-management-wroc-aw-bachelor,Management,Wrocław University of Science and Technology,2021-08-14,Cleared stale deadline
+poland-kozminski-university-management-warsaw-phd,Management,Kozminski University,2016-09-30,Cleared stale deadline
+poland-bialystok-university-of-technology-management-bia-ystok-master,Management,Bialystok University of Technology,2016-08-15,Cleared stale deadline
+poland-kozminski-university-management-warsaw-bachelor,Management,Kozminski University,2024-09-30,Cleared stale deadline
+poland-silesian-university-of-technology-management-gliwice-master,Management,Silesian University of Technology,2020-09-15,Cleared stale deadline
+poland-poznan-university-of-economics-and-business-management-poznan-master,Management,Poznań University of Economics and Business,2017-06-01,Cleared stale deadline
+poland-czestochowa-university-of-technology-quality-and-production-management-czestochowa-master,Quality and Production Management,Czestochowa University of Technology,2025-10-30,Cleared stale deadline
+poland-lazarski-university-management-warsaw-bachelor,Management,Lazarski University,2024-08-30,Cleared stale deadline
+poland-university-of-zielona-gora-management-zielona-gora-master,Management,University of Zielona Gora,2023-10-01,Cleared stale deadline
+poland-kielce-university-of-technology-management-and-production-engineering-kielce-bachelor,Management and production engineering,Kielce University of Technology,2024-08-31,Cleared stale deadline
+poland-university-of-zielona-gora-management-and-production-engineering-zielona-gora-bachelor,Management and production engineering,University of Zielona Gora,2023-10-01,Cleared stale deadline
+poland-university-of-zielona-gora-management-and-production-engineering-zielona-gora-master,Management and production engineering,University of Zielona Gora,2024-02-15,Cleared stale deadline
+poland-czestochowa-university-of-technology-management-and-production-engineering-czestochowa-master,Management and production engineering,Czestochowa University of Technology,2025-11-30,Cleared stale deadline
+poland-lodz-university-of-technology-management-and-production-engineering-odz-master,Management and production engineering,Lodz University of Technology,2025-07-10,Cleared stale deadline
+poland-maritime-university-of-szczecin-marine-engineering-szczecin-bachelor,Marine Engineering,Maritime University of Szczecin,2025-07-15,Cleared stale deadline
+poland-maritime-university-of-szczecin-marine-engineering-szczecin-master,Marine Engineering,Maritime University of Szczecin,2025-07-15,Cleared stale deadline
+poland-silesian-university-of-technology-materials-engineering-gliwice-master,Materials engineering,Silesian University of Technology,2020-12-18,Cleared stale deadline
+poland-military-university-of-technology-materials-engineering-warsaw-master,Materials engineering,Military University of Technology,2025-02-03,Cleared stale deadline
+poland-warsaw-university-of-technology-materials-engineering-warsaw-master,Materials engineering,Warsaw University of Technology,2025-12-10,Cleared stale deadline
+poland-university-of-silesia-in-katowice-materials-science-and-engineering-beng-silesia-in-katowice-bachelor,Materials Science and Engineering (BEng),University of Silesia in Katowice,2024-09-11,Cleared stale deadline
+poland-wroc-aw-university-of-science-and-technology-materials-engineering-wroc-aw-master,Materials engineering,Wrocław University of Science and Technology,2021-08-14,Cleared stale deadline
+poland-agh-university-of-krakow-materials-engineering-krakow-master,Materials engineering,AGH University of Krakow,2025-02-17,Cleared stale deadline
+poland-university-of-zielona-gora-mathematics-zielona-gora-master,Mathematics,University of Zielona Góra,2025-10-01,Cleared stale deadline
+poland-university-of-zielona-gora-mathematics-zielona-gora-bachelor,Mathematics,University of Zielona Góra,2025-10-01,Cleared stale deadline
+poland-rzeszow-university-of-technology-mathematics-rzeszow-master,Mathematics,Rzeszow University of Technology,2015-07-20,Cleared stale deadline
+poland-bialystok-university-of-technology-mathematics-bia-ystok-bachelor,Mathematics,Bialystok University of Technology,2016-08-15,Cleared stale deadline
+poland-bialystok-university-of-technology-mathematics-bia-ystok-master,Mathematics,Bialystok University of Technology,2016-08-15,Cleared stale deadline
+poland-military-university-of-technology-mechanical-engineering-warsaw-master,Mechanical engineering,Military University of Technology,2025-12-31,Cleared stale deadline
+poland-kielce-university-of-technology-mechanical-engineering-kielce-bachelor,Mechanical engineering,Kielce University of Technology,2024-08-31,Cleared stale deadline
+poland-gdansk-university-of-technology-mechanical-engineering-gdansk-master,Mechanical engineering,Gdańsk University of Technology,2024-02-05,Cleared stale deadline
+poland-czestochowa-university-of-technology-msc-in-mechanical-engineering-specialisation-modelling-and-simulat,"MSc in Mechanical Engineering, specialisation Modelling and Simulation in Mechanics",Czestochowa University of Technology,2025-11-30,Cleared stale deadline
+poland-lodz-university-of-technology-mechanical-engineering-odz-bachelor,Mechanical engineering,Lodz University of Technology,2025-07-10,Cleared stale deadline
+poland-gdansk-university-of-technology-mechanical-engineering-gdansk-bachelor,Mechanical engineering,Gdańsk University of Technology,2024-07-10,Cleared stale deadline
+poland-kielce-university-of-technology-mechanical-engineering-kielce-master,Mechanical engineering,Kielce University of Technology,2025-03-06,Cleared stale deadline
+poland-agh-university-of-krakow-mechanical-engineering-krakow-bachelor,Mechanical engineering,AGH University of Krakow,2025-09-04,Cleared stale deadline
+poland-rzeszow-university-of-technology-mechanical-engineering-rzeszow-master,Mechanical engineering,Rzeszow University of Technology,2015-07-20,Cleared stale deadline
+poland-lodz-university-of-technology-mechanical-engineering-odz-master,Mechanical engineering,Lodz University of Technology,2025-07-10,Cleared stale deadline
+poland-warsaw-university-of-technology-mechanical-engineering-warsaw-master,Mechanical engineering,Warsaw University of Technology,2025-07-21,Cleared stale deadline
+poland-maritime-university-of-szczecin-mechanics-and-machine-building-szczecin-bachelor,Mechanics and machine building,Maritime University of Szczecin,2019-07-10,Cleared stale deadline
+poland-wroc-aw-university-of-science-and-technology-wroc-aw-univeristy-of-science-and-technology-wroc-aw-bache,Wrocław Univeristy of Science and Technology,Wrocław University of Science and Technology,2021-08-14,Cleared stale deadline
+poland-cracow-university-of-technology-mechanics-and-machine-design-krakow-master,Mechanics and machine design,Cracow University of Technology,2021-02-05,Cleared stale deadline
+poland-cracow-university-of-technology-mechanics-and-machine-design-krakow-bachelor,Mechanics and machine design,Cracow University of Technology,2020-07-31,Cleared stale deadline
+poland-silesian-university-of-technology-mechanics-and-machine-design-gliwice-bachelor,Mechanics and machine design,Silesian University of Technology,2020-09-15,Cleared stale deadline
+poland-silesian-university-of-technology-mechanics-and-machine-design-gliwice-master,Mechanics and machine design,Silesian University of Technology,2020-12-18,Cleared stale deadline
+poland-warsaw-university-of-technology-mechatronic-systems-and-materials-warsaw-bachelor,Mechatronic systems and materials,Warsaw University of Technology,2025-07-21,Cleared stale deadline
+poland-bialystok-university-of-technology-mechatronic-systems-and-materials-bia-ystok-bachelor,Mechatronic systems and materials,Bialystok University of Technology,2016-08-15,Cleared stale deadline
+poland-agh-university-of-krakow-mechatronics-krakow-bachelor,Mechatronics,AGH University of Krakow,2025-09-04,Cleared stale deadline
+poland-warsaw-university-of-technology-mechatronics-warsaw-bachelor,Mechatronics,Warsaw University of Technology,2025-07-21,Cleared stale deadline
+poland-silesian-university-of-technology-mechatronics-gliwice-master,Mechatronics,Silesian University of Technology,2020-12-18,Cleared stale deadline
+poland-military-university-of-technology-mechatronics-warsaw-bachelor,Mechatronics,Military University of Technology,2025-07-14,Cleared stale deadline
+poland-agh-university-of-krakow-mechatronics-krakow-master,Mechatronics,AGH University of Krakow,2025-09-04,Cleared stale deadline
+poland-the-pontifical-university-of-john-paul-ii-in-krakow-communication-and-media-studies-john-paul-ii-in-kra,Communication and Media Studies,The Pontifical University of John Paul II in Krakow,2025-09-30,Cleared stale deadline
+poland-jagiellonian-university-in-krakow-medical-doctor-program-in-english-krakow-master,Medical Doctor program in English,Jagiellonian University in Kraków,2024-05-08,Cleared stale deadline
+poland-medical-university-of-warsaw-medical-doctor-program-in-english-warsaw-master,Medical Doctor program in English,Medical University of Warsaw,2021-06-25,Cleared stale deadline
+poland-poznan-university-of-medical-sciences-medicine-poznan-master,Medicine,Poznan University of Medical Sciences,2022-07-15,Cleared stale deadline
+poland-nicolaus-copernicus-university-collegium-medicum-medicine-bydgoszcz-master,Medicine,Nicolaus Copernicus University Collegium Medicum,2022-07-31,Cleared stale deadline
+poland-medical-university-of-gdansk-medicine-gdansk-phd,Medicine,Medical University of Gdańsk,2016-09-30,Cleared stale deadline
+poland-medical-university-of-gdansk-medicine-gdansk-master,Medicine,Medical University of Gdańsk,2023-03-06,Cleared stale deadline
+poland-university-of-rzeszow-medicine-rzeszow-master,Medicine,University of Rzeszów,2025-09-15,Cleared stale deadline
+poland-adam-mickiewicz-university-poznan-mediterranean-studies-poznan-master,Mediterranean studies,"Adam Mickiewicz University, Poznań",2023-07-19,Cleared stale deadline
+poland-wroc-aw-university-of-science-and-technology-mining-and-engineering-geology-wroc-aw-master,Mining and engineering geology,Wrocław University of Science and Technology,2021-11-30,Cleared stale deadline
+poland-silesian-university-of-technology-mining-and-geology-gliwice-bachelor,Mining and Geology,Silesian University of Technology,2020-09-15,Cleared stale deadline
+poland-silesian-university-of-technology-mining-and-geology-gliwice-master,Mining and Geology,Silesian University of Technology,2020-12-18,Cleared stale deadline
+poland-jagiellonian-university-in-krakow-molecular-biotechnology-krakow-master,Molecular Biotechnology,Jagiellonian University in Kraków,2024-05-04,Cleared stale deadline
+poland-the-karol-szymanowski-academy-of-music-in-katowice-musical-instruments-katowice-bachelor,Musical instruments,The Karol Szymanowski Academy of Music in Katowice,2016-09-05,Cleared stale deadline
+poland-the-karol-szymanowski-academy-of-music-in-katowice-musical-instruments-katowice-master,Musical instruments,The Karol Szymanowski Academy of Music in Katowice,2016-09-05,Cleared stale deadline
+poland-jan-dlugosz-university-in-czestochowa-musical-instruments-czestochowa-phd,Musical instruments,Jan Dlugosz University in Czestochowa,2024-07-31,Cleared stale deadline
+poland-lodz-university-of-technology-nanotechnology-odz-master,Nanotechnology,Lodz University of Technology,2025-07-10,Cleared stale deadline
+poland-gdansk-university-of-technology-nanotechnology-gdansk-master,Nanotechnology,Gdańsk University of Technology,2024-02-05,Cleared stale deadline
+poland-maritime-university-of-szczecin-navigation-szczecin-master,Navigation,Maritime University of Szczecin,2025-07-15,Cleared stale deadline
+poland-maritime-university-of-szczecin-navigation-szczecin-bachelor,Navigation,Maritime University of Szczecin,2025-07-15,Cleared stale deadline
+poland-warsaw-university-of-technology-navigation-warsaw-master,Navigation,Warsaw University of Technology,2025-07-21,Cleared stale deadline
+poland-polish-air-force-academy-navigation-deblin-bachelor,Navigation,Polish Air Force Academy,2016-08-31,Cleared stale deadline
+poland-warsaw-university-of-technology-nuclear-power-engineering-warsaw-master,Nuclear power engineering,Warsaw University of Technology,2025-07-21,Cleared stale deadline
+poland-wroc-aw-university-of-science-and-technology-nuclear-power-engineering-wroc-aw-master,Nuclear power engineering,Wrocław University of Science and Technology,2021-11-30,Cleared stale deadline
+poland-medical-university-of-silesia-nursing-silesia-bachelor,Nursing,Medical University of Silesia,2020-08-03,Cleared stale deadline
+poland-nicolaus-copernicus-university-collegium-medicum-nursing-bydgoszcz-bachelor,Nursing,Nicolaus Copernicus University Collegium Medicum,2022-07-31,Cleared stale deadline
+poland-medical-university-of-gdansk-nursing-gdansk-bachelor,Nursing,Medical University of Gdańsk,2023-07-31,Cleared stale deadline
+poland-gdansk-university-of-technology-ocean-engineering-gdansk-master,Ocean engineering,Gdańsk University of Technology,2024-02-05,Cleared stale deadline
+poland-university-of-opole-paleobiology-opole-master,Paleobiology,University of Opole,2020-09-25,Cleared stale deadline
+poland-medical-university-of-gdansk-pharmaceutical-science-gdansk-phd,Pharmaceutical science,Medical University of Gdańsk,2016-09-30,Cleared stale deadline
+poland-medical-university-of-silesia-pharmaceutical-science-silesia-master,Pharmaceutical science,Medical University of Silesia,2020-08-03,Cleared stale deadline
+poland-medical-university-of-gdansk-pharmaceutical-science-gdansk-master,Pharmaceutical science,Medical University of Gdańsk,2023-07-31,Cleared stale deadline
+poland-university-of-warsaw-philosophy-warsaw-bachelor,Philosophy,University of Warsaw,2016-07-08,Cleared stale deadline
+poland-jan-dlugosz-university-in-czestochowa-philosophy-czestochowa-phd,Philosophy,Jan Dlugosz University in Czestochowa,2024-07-31,Cleared stale deadline
+poland-the-john-paul-ii-catholic-university-of-lublin-philosophy-lublin-master,Philosophy,The John Paul II Catholic University of Lublin,2024-03-01,Cleared stale deadline
+poland-the-john-paul-ii-catholic-university-of-lublin-philosophy-lublin-bachelor,Philosophy,The John Paul II Catholic University of Lublin,2024-03-01,Cleared stale deadline
+poland-the-pontifical-university-oh-john-paul-ii-in-krakow-philosophy-ethics-and-religion-ma-krakow-master,"Philosophy, Ethics and Religion (MA)",The Pontifical University oh John Paul II in Krakow,2025-09-30,Cleared stale deadline
+poland-university-of-silesia-in-katowice-physics-msc-silesia-in-katowice-master,Physics (MSc),University of Silesia in Katowice,2024-09-22,Cleared stale deadline
+poland-university-of-zielona-gora-physics-zielona-gora-master,Physics,University of Zielona Góra,2025-10-01,Cleared stale deadline
+poland-warsaw-university-of-technology-physics-warsaw-master,Physics,Warsaw University of Technology,2025-12-10,Cleared stale deadline
+poland-kazimierz-wielki-university-physics-bydgoszcz-master,Physics,Kazimierz Wielki University,2016-09-15,Cleared stale deadline
+poland-university-of-warsaw-physics-warsaw-phd,Physics,University of Warsaw,2015-06-12,Cleared stale deadline
+poland-adam-mickiewicz-university-poznan-physics-poznan-master,Physics,"Adam Mickiewicz University, Poznań",2023-07-12,Cleared stale deadline
+poland-university-of-zielona-gora-physics-zielona-gora-bachelor,Physics,University of Zielona Góra,2025-10-01,Cleared stale deadline
+poland-agh-university-of-krakow-physics-krakow-bachelor,Physics,AGH University of Krakow,2025-09-04,Cleared stale deadline
+poland-jan-dlugosz-university-in-czestochowa-physics-czestochowa-phd,Physics,Jan Dlugosz University in Czestochowa,2024-07-31,Cleared stale deadline
+poland-university-of-warsaw-physics-and-astronomy-warsaw-phd,Physics and astronomy,University of Warsaw,2015-06-25,Cleared stale deadline
+poland-nicolaus-copernicus-university-physics-and-astronomy-torun-master,Physics and astronomy,Nicolaus Copernicus University,2024-08-04,Cleared stale deadline
+poland-kazimierz-wielki-university-physics-with-it-bydgoszcz-bachelor,Physics with IT,Kazimierz Wielki University,2016-09-15,Cleared stale deadline
+poland-university-of-rzeszow-physiotherapy-rzeszow-master,Physiotherapy,University of Rzeszów,2025-09-18,Cleared stale deadline
+poland-katowice-school-of-economics-physiotherapy-katowice-bachelor,Physiotherapy,Katowice School of Economics,2017-06-30,Cleared stale deadline
+poland-medical-university-of-silesia-physiotherapy-silesia-bachelor,Physiotherapy,Medical University of Silesia,2020-08-03,Cleared stale deadline
+poland-nicolaus-copernicus-university-collegium-medicum-physiotherapy-bydgoszcz-master,Physiotherapy,Nicolaus Copernicus University Collegium Medicum,2022-07-31,Cleared stale deadline
+poland-lazarski-university-polish-module-warsaw-short-course,Polish module,Lazarski University,2024-09-30,Cleared stale deadline
+poland-university-of-opole-polish-studies-opole-bachelor,Polish studies,University of Opole,2018-09-18,Cleared stale deadline
+poland-university-of-zielona-gora-political-science-zielona-gora-master,Political science,University of Zielona Góra,2025-10-01,Cleared stale deadline
+poland-graduate-school-for-social-research-institute-of-philosophy-sociology-polish-academy-of-sciences-gssr-w,GSSR,"Graduate School for Social Research, Institute of Philosophy & Sociology, Polish Academy of Sciences",2022-07-11,Cleared stale deadline
+poland-university-of-humanities-and-economics-in-lodz-political-science-odz-bachelor,Political science,University of Humanities and Economics in Lodz,2020-08-31,Cleared stale deadline
+poland-university-of-warsaw-political-science-warsaw-master,Political science,University of Warsaw,2016-09-19,Cleared stale deadline
+poland-university-of-humanities-and-economics-in-lodz-political-science-odz-master,Political science,University of Humanities and Economics in Lodz,2020-08-31,Cleared stale deadline
+poland-warsaw-university-of-technology-power-engineering-warsaw-master,Power engineering,Warsaw University of Technology,2025-07-21,Cleared stale deadline
+poland-warsaw-university-of-technology-power-engineering-warsaw-bachelor,Power engineering,Warsaw University of Technology,2025-07-21,Cleared stale deadline
+poland-silesian-university-of-technology-power-engineering-gliwice-bachelor,Power engineering,Silesian University of Technology,2020-09-15,Cleared stale deadline
+poland-gdansk-university-of-technology-power-engineering-gdansk-bachelor,Power engineering,Gdańsk University of Technology,2024-07-10,Cleared stale deadline
+poland-wroc-aw-university-of-science-and-technology-power-engineering-wroc-aw-master,Power engineering,Wrocław University of Science and Technology,2021-11-30,Cleared stale deadline
+poland-silesian-university-of-technology-power-engineering-gliwice-master,Power engineering,Silesian University of Technology,2020-12-18,Cleared stale deadline
+poland-poznan-university-of-economics-and-business-product-manager-poznan-bachelor,Product manager,Poznań University of Economics and Business,2017-06-01,Cleared stale deadline
+poland-warsaw-university-of-technology-production-engineering-warsaw-master,Production engineering,Warsaw University of Technology,2025-07-21,Cleared stale deadline
+poland-university-of-warsaw-psychology-warsaw-master,Psychology,University of Warsaw,2016-07-08,Cleared stale deadline
+poland-kazimierz-wielki-university-psychology-bydgoszcz-master,Psychology,Kazimierz Wielki University,2016-07-10,Cleared stale deadline
+poland-adam-mickiewicz-university-poznan-public-management-poznan-master,Public management,"Adam Mickiewicz University, Poznań",2023-09-20,Cleared stale deadline
+poland-university-of-silesia-in-katowice-creative-management-in-new-media-ma-silesia-in-katowice-master,Creative management in new media (MA),University of Silesia in Katowice,2024-08-31,Cleared stale deadline
+poland-sgh-warsaw-school-of-economics-quantitative-methods-in-economics-and-information-systems-warsaw-bachelo,Quantitative methods in economics and information systems,SGH Warsaw School of Economics,2024-07-24,Cleared stale deadline
+poland-lodz-university-of-technology-science-and-technology-odz-bachelor,Science and technology,Lodz University of Technology,2025-07-10,Cleared stale deadline
+poland-jan-dlugosz-university-in-czestochowa-security-studies-czestochowa-phd,Security studies,Jan Dlugosz University in Czestochowa,2024-07-31,Cleared stale deadline
+poland-military-university-of-technology-security-studies-warsaw-master,Security studies,Military University of Technology,2025-12-31,Cleared stale deadline
+poland-university-of-warsaw-security-studies-warsaw-master,Security studies,University of Warsaw,2016-09-19,Cleared stale deadline
+poland-university-of-szczecin-social-sciences-szczecin-bachelor,Social sciences,University of Szczecin,2024-09-10,Cleared stale deadline
+poland-university-college-of-enterprise-and-administration-in-lublin-sociology-lublin-master,Sociology,University College of Enterprise and Administration in Lublin,2016-08-31,Cleared stale deadline
+poland-university-of-zielona-gora-sociology-zielona-gora-master,Sociology,University of Zielona Gora,2023-10-01,Cleared stale deadline
+poland-gdansk-university-of-technology-spatial-development-gdansk-master,Spatial development,Gdańsk University of Technology,2024-02-05,Cleared stale deadline
+poland-warsaw-university-of-technology-spatial-development-warsaw-master,Spatial development,Warsaw University of Technology,2025-07-21,Cleared stale deadline
+poland-university-of-opole-sustainable-development-opole-master,Sustainable Development,University of Opole,2020-09-25,Cleared stale deadline
+poland-university-of-warsaw-teaching-english-to-young-learners-warsaw-master,Teaching English to Young Learners,University of Warsaw,2016-07-15,Cleared stale deadline
+poland-lodz-university-of-technology-telecommunications-odz-bachelor,Telecommunications,Lodz University of Technology,2025-07-10,Cleared stale deadline
+poland-lodz-university-of-technology-textile-studies-odz-master,Textile studies,Lodz University of Technology,2025-06-10,Cleared stale deadline
+poland-lodz-university-of-technology-textile-studies-odz-bachelor,Textile studies,Lodz University of Technology,2025-07-10,Cleared stale deadline
+poland-the-john-paul-ii-catholic-university-of-lublin-theology-lublin-master,Theology,The John Paul II Catholic University of Lublin,2024-03-01,Cleared stale deadline
+poland-university-of-humanities-and-economics-in-lodz-tourism-and-recreation-odz-bachelor,Tourism and recreation,University of Humanities and Economics in Lodz,2020-08-31,Cleared stale deadline
+poland-university-college-of-enterprise-and-administration-in-lublin-transport-lublin-bachelor,Transport,University College of Enterprise and Administration in Lublin,2016-08-31,Cleared stale deadline
+poland-silesian-university-of-technology-transport-gliwice-master,Transport,Silesian University of Technology,2020-12-18,Cleared stale deadline
+poland-silesian-university-of-technology-transport-gliwice-bachelor,Transport,Silesian University of Technology,2020-09-15,Cleared stale deadline
+poland-warsaw-university-of-technology-transport-warsaw-master,Transport,Warsaw University of Technology,2025-07-21,Cleared stale deadline
+poland-university-of-warmia-and-mazury-in-olsztyn-veterinary-science-olsztyn-master,Veterinary science,University of Warmia and Mazury in Olsztyn,2017-07-07,Cleared stale deadline
+poland-wroc-aw-university-of-environmental-and-life-sciences-veterinary-science-wroc-aw-phd,Veterinary science,Wrocław University of Environmental and Life Sciences,2022-05-30,Cleared stale deadline
+poland-university-of-life-sciences-in-lublin-veterinary-science-lublin-master,Veterinary science,University of Life Sciences in Lublin,2017-09-15,Cleared stale deadline
+poland-the-karol-lipinski-academy-of-music-in-wroc-aw-voice-studies-wroc-aw-bachelor,Voice studies,The Karol Lipiński Academy of Music in Wrocław,2016-08-16,Cleared stale deadline

@@ -1,0 +1,3199 @@
+﻿diff --git a/src/routes/dashboard/+page.svelte b/src/routes/dashboard/+page.svelte
+index 4acb597..f6f2a7e 100644
+--- a/src/routes/dashboard/+page.svelte
++++ b/src/routes/dashboard/+page.svelte
+@@ -1,641 +1,2557 @@
+ <script lang="ts">
+-    import { onMount } from 'svelte';
+-    import { goto } from '$app/navigation';
+-    import { browser } from '$app/environment';
+-    import type { PageData } from './$types';
+-    import DocumentCard from '$lib/components/DocumentCard.svelte';
+-    import ActivityFeed from '$lib/components/ActivityFeed.svelte';
+-    import BasicReminders from '$lib/components/BasicReminders.svelte';
+-    import EmailStatusWidget from '$lib/components/EmailStatusWidget.svelte';
+-    import { analytics } from '$lib/utils/posthog';
+-    import QuickActionsHub from '$lib/components/dashboard/QuickActionsHub.svelte';
+-    import NewMatchesWidget from '$lib/components/dashboard/NewMatchesWidget.svelte';
+-    import ApplicationTrackerWidget from '$lib/components/dashboard/ApplicationTrackerWidget.svelte';
+-    import RoadmapChecklistWidget from '$lib/components/dashboard/RoadmapChecklistWidget.svelte';
+-    import { loadUnifiedProfile, saveUnifiedProfile, type OnboardingData } from '$lib/services/unifiedProfile';
+-
+-    let { data }: { data: PageData } = $props();
+-    let { supabase, session } = data;
+-
+-    let loading = $state(true);
+-  let dashboardData: any = $state(null);
+-  let error: string | null = $state(null);
+-  let unifiedProfile = $state<any>(null);
+-
+-  type DashboardTab = 'roadmap' | 'documents' | 'applications' | 'tools';
+-  let activeTab = $state<DashboardTab>('roadmap');
+-
+-  function setTab(tab: DashboardTab) {
+-    activeTab = tab;
+-    if (!browser) return;
+-    try {
+-      const url = new URL(window.location.href);
+-      url.searchParams.set('tab', tab);
+-      window.history.replaceState({}, '', url.toString());
+-    } catch {
+-      // ignore
+-    }
+-  }
+-
+-  function mapBudgetRange(raw: string | null | undefined): OnboardingData['budget_range'] {
+-    const v = String(raw || '').toLowerCase();
+-    if (!v) return '';
+-    if (v.includes('nothing') || v.includes('$0') || v.includes('0')) return '0-20k';
+-    if (v.includes('500') || v.includes('1.5') || v.includes('2k') || v.includes('3k') || v.includes('5k')) return '0-20k';
+-    if (v.includes('10k') || v.includes('15k') || v.includes('20k')) return '0-20k';
+-    if (v.includes('30k') || v.includes('40k') || v.includes('50k')) return '20k-50k';
+-    if (v.includes('60k') || v.includes('70k') || v.includes('80k') || v.includes('90k') || v.includes('100k')) return '50k-100k';
+-    if (v.includes('100k+') || v.includes('unlimited')) return '100k+';
+-    return '';
+-  }
+-
+-  function estimateGpaRange(gpaValue?: number, gpaScale?: string): OnboardingData['gpa_range'] {
+-    if (!gpaValue || !gpaScale) return '3.0-3.5';
+-    const scale = String(gpaScale);
+-    let gpa4 = gpaValue;
+-    if (scale === '5.0') gpa4 = (gpaValue / 5) * 4;
+-    else if (scale === '7.0') gpa4 = (gpaValue / 7) * 4;
+-    else if (scale === '10.0') gpa4 = (gpaValue / 10) * 4;
+-    else if (scale === '100') {
+-      if (gpaValue >= 90) gpa4 = 4.0;
+-      else if (gpaValue >= 80) gpa4 = 3.5;
+-      else if (gpaValue >= 70) gpa4 = 3.0;
+-      else if (gpaValue >= 60) gpa4 = 2.5;
+-      else gpa4 = 2.0;
+-    }
+-    if (gpa4 < 2.5) return '<2.5';
+-    if (gpa4 < 3.0) return '2.5-3.0';
+-    if (gpa4 < 3.5) return '3.0-3.5';
+-    return '3.5-4.0';
+-  }
+-
+-  async function autosaveProfileFromRoadmapIfPresent() {
+-    if (!browser) return;
+-    if (!session?.user || !supabase) return;
+-
+-    try {
+-      const raw = sessionStorage.getItem('diagnosticData');
+-      if (!raw) return;
+-      const d = JSON.parse(raw);
+-
+-      const preferred_countries: string[] = Array.isArray(d.targetCountries) ? d.targetCountries : [];
+-      const field_of_study: string = typeof d.fieldOfStudy === 'string' ? d.fieldOfStudy : '';
+-      const degree_level: any = typeof d.degreeLevel === 'string' ? d.degreeLevel : '';
+-
+-      // Only save if roadmap has something meaningful
+-      if (!preferred_countries.length && !field_of_study && !degree_level) return;
+-
+-      const partial: any = {
+-        preferred_countries,
+-        field_of_study,
+-        degree_level: degree_level || undefined,
+-        current_gpa_value: typeof d.gpaValue === 'number' ? d.gpaValue : undefined,
+-        current_gpa_scale: typeof d.gpaScale === 'string' ? d.gpaScale : undefined,
+-        gpa_range: typeof d.gpaRange === 'string' && d.gpaRange ? d.gpaRange : estimateGpaRange(d.gpaValue, d.gpaScale),
+-        budget_range: mapBudgetRange(d.budget),
+-        // Roadmap flow should not force onboarding again
+-        onboarding_completed: true
+-      };
+-
+-      await saveUnifiedProfile(supabase, session, partial);
+-
+-      // Update local profile state and notify widgets to refresh
+-      const { profile } = await loadUnifiedProfile(supabase, session);
+-      unifiedProfile = profile;
+-      window.dispatchEvent(new Event('abroaducate:profile-updated'));
+-
+-      // Optional: keep results page working, but avoid repeated saves
+-      sessionStorage.removeItem('diagnosticData');
+-      // Keep diagnosticResults for results page until user navigates away; don't delete here.
+-    } catch (e) {
+-      console.warn('Failed to autosave roadmap profile:', e);
+-    }
+-  }
+-
+-  // Pagination state for each section
+-  let sopPage = $state(1);
+-  let coverLetterPage = $state(1);
+-  let personalStatementPage = $state(1);
+-  const itemsPerPage = 4;
+-
+-    onMount(async () => {
+-        if (!session?.user) {
+-            goto('/');
+-            return;
+-        }
+-
+-        if (browser) {
+-          const sp = new URL(window.location.href).searchParams;
+-          const tab = sp.get('tab');
+-          const from = sp.get('from');
+-
+-          // If coming from diagnostic ΓåÆ auth ΓåÆ dashboard, always show the Roadmap checklist first
+-          if (from === 'roadmap') {
+-            activeTab = 'roadmap';
+-          }
+-          if (tab === 'roadmap' || tab === 'documents' || tab === 'applications' || tab === 'tools') {
+-            activeTab = tab;
+-          }
+-        }
+-        
+-        // Track dashboard page view
+-        analytics.trackPageView('Dashboard', {
+-            user_id: session.user.id,
+-            has_documents: dashboardData?.summary?.total_documents > 0
+-        });
+-        
+-        // If user just came from Roadmap ΓåÆ Auth, save their answers automatically
+-        await autosaveProfileFromRoadmapIfPresent();
+-        await loadDashboardData();
+-    });
+-
+-    async function loadDashboardData() {
+-        try {
+-            loading = true;
+-            error = null;
+-            
+-            const response = await fetch('/api/dashboard-data');
+-            const result = await response.json();
+-            
+-            if (!response.ok) {
+-                throw new Error(result.error || 'Failed to load dashboard data');
+-            }
+-            
+-            dashboardData = result;
+-            
+-        } catch (err) {
+-            console.error('Error loading dashboard:', err);
+-            error = err instanceof Error ? err.message : 'Unknown error occurred';
+-        } finally {
+-            loading = false;
+-        }
+-    }
+-    
+-    function formatDocumentMetadata(document: any, type: string) {
+-        switch (type) {
+-            case 'sop':
+-                return `${document.university_name || 'University'} ΓÇó ${document.program_name || 'Program'}`;
+-            case 'cover_letter':
+-                return `${document.job_title || 'Position'} ΓÇó ${document.company_name || 'Company'}`;
+-            case 'personal_statement':
+-                return `${document.program_name || 'Program'} ΓÇó ${document.institution_name || 'Institution'}`;
+-            default:
+-                return 'Document';
+-        }
+-    }
+-
+-    function getDocumentTitle(document: any, type: string) {
+-        switch (type) {
+-            case 'sop':
+-                return document.sop_title || `${document.university_name} - ${document.program_name}` || 'Untitled SOP';
+-            case 'cover_letter':
+-                return `${document.job_title} - ${document.company_name}`;
+-            case 'personal_statement':
+-                return `${document.program_name} Personal Statement`;
+-            default:
+-                return 'Untitled Document';
+-        }
+-    }
+-
+-    function getEditUrl(document: any, type: string) {
+-        switch (type) {
+-            case 'sop':
+-                return `/sop/${document.id}`;
+-            case 'cover_letter':
+-                return `/cover-letters/${document.id}`;
+-            case 'personal_statement':
+-                return `/personal-statements/${document.id}`;
+-            default:
+-                return '#';
+-        }
+-    }
+-
+-    function formatLastActivity(date: string | null) {
+-        if (!date) return null;
+-        
+-        const activityDate = new Date(date);
+-        const now = new Date();
+-        const diffTime = Math.abs(now.getTime() - activityDate.getTime());
+-        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+-        const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
+-        
+-        if (diffHours < 1) return 'Active now';
+-        if (diffHours < 24) return `Active ${diffHours}h ago`;
+-        if (diffDays === 1) return 'Active yesterday';
+-        if (diffDays < 7) return `Active ${diffDays}d ago`;
+-        return `Active ${activityDate.toLocaleDateString()}`;
+-    }
+-
+-    // Pagination helper functions
+-    function getPaginatedItems(items: any[], page: number) {
+-        const startIndex = (page - 1) * itemsPerPage;
+-        const endIndex = startIndex + itemsPerPage;
+-        return items.slice(startIndex, endIndex);
+-    }
+-
+-    function getTotalPages(totalItems: number) {
+-        return Math.ceil(totalItems / itemsPerPage);
+-    }
+-
+-    function changePage(section: 'sop' | 'coverLetter' | 'personalStatement', page: number) {
+-        if (section === 'sop') {
+-            sopPage = page;
+-        } else if (section === 'coverLetter') {
+-            coverLetterPage = page;
+-        } else if (section === 'personalStatement') {
+-            personalStatementPage = page;
+-        }
+-    }
+-
+-    // Reactive statements for paginated data
+-    let paginatedSOPs = $derived(dashboardData ? getPaginatedItems(dashboardData.documents.sops, sopPage) : []);
+-    let paginatedCoverLetters = $derived(dashboardData ? getPaginatedItems(dashboardData.documents.coverLetters, coverLetterPage) : []);
+-    let paginatedPersonalStatements = $derived(dashboardData ? getPaginatedItems(dashboardData.documents.personalStatements, personalStatementPage) : []);
+-    
+-    let sopTotalPages = $derived(dashboardData ? getTotalPages(dashboardData.documents.sops.length) : 0);
+-    let coverLetterTotalPages = $derived(dashboardData ? getTotalPages(dashboardData.documents.coverLetters.length) : 0);
+-    let personalStatementTotalPages = $derived(dashboardData ? getTotalPages(dashboardData.documents.personalStatements.length) : 0);
++	import { onMount } from 'svelte';
++	import { browser } from '$app/environment';
++	import { goto } from '$app/navigation';
++	import {
++		Target,
++		Calendar,
++		Rocket,
++		Check,
++		ArrowRight,
++		PlusCircle,
++		CheckCircle2,
++		FileText,
++		MoreHorizontal,
++		ExternalLink,
++		Zap,
++		Award,
++		Briefcase,
++		BookOpen,
++		BarChart2,
++		Lock,
++		CreditCard,
++		Settings,
++		LogOut,
++		Trash2,
++		ChevronDown,
++		ChevronUp,
++		Radio,
++		GraduationCap,
++		ChevronLeft,
++		FolderOpen,
++		Clock,
++		Edit3
++	} from 'lucide-svelte';
++	import type { PageData } from './$types';
++	import { createDefaultDocumentSlots, computePhase } from '$lib/copilot/handoff-packet';
++	import {
++		setProgramStatus,
++		getTrackedPrograms,
++		removeTrackedProgram
++	} from '$lib/services/programService';
++	import { calculateScholarshipMatch } from '$lib/services/scholarshipMatching';
++	import type { DocumentSlot, DocumentPhase } from '$lib/copilot/handoff-packet';
++
++	let { data }: { data: any } = $props();
++	let session = $derived(data.session);
++	let supabase = $derived(data.supabase);
++	let profile = $derived(data.profile);
++	let savedScholarships = $derived(data.savedScholarships || []);
++	let unlockedScholarshipMeta = $derived(data.unlockedScholarshipMeta || []);
++	let userDocuments = $derived(data.userDocuments || []);
++	let isProfileComplete = $derived(
++		Boolean(profile && (profile.current_level || profile.current_education_level) && profile.gpa)
++	);
++	let localProfileUnlocked = $state(
++		Boolean(
++			(data.profile?.current_level || data.profile?.current_education_level) && data.profile?.gpa
++		)
++	);
++	let isProfileReady = $derived(localProfileUnlocked || isProfileComplete);
++	let trackedProgramsData = $state<any[]>([]);
++	let manuallyUnlockedStrategies = $state<Record<string, any>>(data.profile?.workspace_data?.scholarship_strategies || {});
++	let serverSelectedId = $derived(data.initialSelectedProgramId);
++
++	// ΓöÇΓöÇ Dashboard View System ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
++	type DashboardView = 'hub' | 'program-detail' | 'scholarship-detail';
++	let currentView = $state<DashboardView>('hub');
++	let detailScholarshipId = $state<string | null>(null);
++
++	const detailScholarship = $derived.by(() => {
++		if (!detailScholarshipId) return null;
++		const saved = savedScholarships.find((s: any) => s.id === detailScholarshipId);
++		const meta = unlockedScholarshipMeta.find((m: any) => m.id === detailScholarshipId);
++		return saved || meta || { id: detailScholarshipId, title: 'Scholarship', provider: '' };
++	});
++	const detailScholarshipStrategy = $derived(
++		detailScholarshipId ? (manuallyUnlockedStrategies[detailScholarshipId] || profile?.workspace_data?.scholarship_strategies?.[detailScholarshipId] || null) : null
++	);
++
++	// All scholarships for the hub (merged saved + unlocked, deduplicated)
++	const allHubScholarships = $derived.by(() => {
++		const map = new Map<string, any>();
++		for (const s of savedScholarships) {
++			map.set(s.id, { ...s, hasStrategy: !!(manuallyUnlockedStrategies[s.id] || profile?.workspace_data?.scholarship_strategies?.[s.id]) });
++		}
++		const stratKeys = Object.keys({ ...(profile?.workspace_data?.scholarship_strategies || {}), ...manuallyUnlockedStrategies });
++		for (const id of stratKeys) {
++			if (!map.has(id)) {
++				const meta = unlockedScholarshipMeta.find((m: any) => m.id === id);
++				map.set(id, { id, title: meta?.title || 'Scholarship', provider: meta?.provider || '', amount: meta?.amount || '', hasStrategy: true });
++			}
++		}
++		return Array.from(map.values());
++	});
++
++	function goToHub() {
++		currentView = 'hub';
++		selectedProgramId = null;
++		detailScholarshipId = null;
++	}
++	function goToProgramDetail(programId: string) {
++		const tracked = trackedPrograms.find((p: any) => p.program?.id === programId);
++		if (tracked) {
++			selectProgram(programId, tracked.workspaceData);
++			currentView = 'program-detail';
++		}
++	}
++	function goToScholarshipDetail(scholarshipId: string) {
++		detailScholarshipId = scholarshipId;
++		currentView = 'scholarship-detail';
++	}
++	function timeAgo(dateStr: string) {
++		const d = new Date(dateStr);
++		const now = new Date();
++		const diffMs = now.getTime() - d.getTime();
++		const diffH = Math.floor(diffMs / 3600000);
++		if (diffH < 1) return 'just now';
++		if (diffH < 24) return `${diffH}h ago`;
++		const diffD = Math.floor(diffH / 24);
++		return `${diffD}d ago`;
++	}
++
++	// ΓöÇΓöÇ Persistence Sync ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
++	$effect(() => {
++		if (profile && !isSavingProfile) {
++			inlineGpa = String(profile.gpa ?? '');
++			inlineLevel = profile.current_education_level ?? profile.current_level ?? '';
++			inlineField = profile.field_of_study ?? '';
++			inlineNationality = profile.nationality ?? '';
++			inlineTargetLevel = profile.target_level ?? '';
++			inlineIelts = String(profile.ielts_score ?? '');
++		}
++	});
++
++	function scrollToFootprint() {
++		const el = document.getElementById('academic-footprint-box');
++		if (el) {
++			el.scrollIntoView({ behavior: 'smooth', block: 'center' });
++			el.classList.add('ring-2', 'ring-orange-500', 'ring-offset-2');
++			setTimeout(() => {
++				el.classList.remove('ring-2', 'ring-orange-500', 'ring-offset-2');
++			}, 2000);
++		}
++	}
++
++	// ΓöÇΓöÇ Inline Profile Form ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
++	let inlineGpa = $state<string>(String(profile?.gpa ?? ''));
++	let inlineLevel = $state<string>(
++		profile?.current_education_level ?? profile?.current_level ?? ''
++	);
++	let inlineField = $state<string>(profile?.field_of_study ?? '');
++	let inlineNationality = $state<string>(profile?.nationality ?? '');
++	let inlineTargetLevel = $state<string>(profile?.target_level ?? '');
++	let inlineIelts = $state<string>(String(profile?.ielts_score ?? ''));
++	let isSavingProfile = $state(false);
++	let profileSaveSuccess = $state(false);
++	let isEditingFootprint = $state(false);
++
++	async function saveInlineProfile() {
++		if (!session?.user?.id || !supabase) return;
++		isSavingProfile = true;
++		profileSaveSuccess = false;
++		const updates = {
++			user_id: session.user.id,
++			gpa: parseFloat(inlineGpa) || null,
++			current_level: inlineLevel || null,
++			field_of_study: inlineField || null,
++			nationality: inlineNationality || null,
++			target_level: inlineTargetLevel || null,
++			ielts_score: parseFloat(inlineIelts) || null,
++			updated_at: new Date().toISOString()
++		};
++		const { error } = await supabase
++			.from('user_profiles')
++			.upsert(updates, { onConflict: 'user_id' });
++		if (!error) {
++			localProfileUnlocked = true; // ├óΓÇá┬É Flips isProfileReady immediately
++			profileSaveSuccess = true;
++			isEditingFootprint = false;
++			if (selectedProgram) fetchMatchingScholarships(selectedProgram);
++
++			// If we were trying to generate a specific scholarship, resume it
++			if (activeScholarshipId) {
++				const s = matchingScholarships.find((m) => m.id === activeScholarshipId);
++				if (s) generateScholarshipStrategy(s);
++			}
++		}
++		isSavingProfile = false;
++	}
++
++	// ├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼ State ├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼
++	let selectedProgramId = $state<string | null>(null);
++	let documents = $state<DocumentSlot[]>([]);
++	let isSavingWorkspace = $state(false);
++	let matchingScholarships = $state<any[]>([]);
++	let isLoadingScholarships = $state(false);
++
++	// Tracked programs (from server)
++	const trackedPrograms = $derived(trackedProgramsData || []);
++
++	// The currently-selected full program object from DB
++	const selectedProgram = $derived(
++		selectedProgramId
++			? (trackedPrograms.find((p: any) => p.program?.id === selectedProgramId)?.program ?? null)
++			: null
++	);
++
++	// Old program-level strategy (kept for backwards compat, not displayed)
++	const _legacyProgramStrategy = $derived(
++		selectedProgramId
++			? (trackedPrograms.find((p: any) => p.program?.id === selectedProgramId)?.workspaceData
++					?.funding_strategy ?? null)
++			: null
++	);
++
++	// ΓöÇΓöÇ Scholarship Strategy State ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
++	let activeScholarshipStrategy = $state<any>(null);
++	let activeScholarshipName = $state<string>('');
++	let activeScholarshipId = $state<string | null>(null);
++	let isGeneratingScholarshipStrategy = $state<Record<string, boolean>>({});
++	let scholarshipStrategyError = $state<string | null>(null);
++	let showBillingModal = $state(false);
++	let generationPhase = $state<string>('');
++
++	const LOADING_PHASES = [
++		'Analyzing your academic footprint...',
++		'Identifying targeted narrative angles...',
++		'Finalizing your personal Clarity Report...'
++	];
++
++	function cyclePhases(scholarshipId: string) {
++		let i = 0;
++		generationPhase = LOADING_PHASES[0];
++		const interval = setInterval(() => {
++			if (!isGeneratingScholarshipStrategy[scholarshipId]) {
++				clearInterval(interval);
++				return;
++			}
++			i = (i + 1) % LOADING_PHASES.length;
++			generationPhase = LOADING_PHASES[i];
++		}, 2000);
++	}
++
++	const unlockedScholarships = $derived.by(() => {
++		const strategies = {
++			...(profile?.workspace_data?.scholarship_strategies || {}),
++			...manuallyUnlockedStrategies
++		};
++		return Object.keys(strategies).map((id) => {
++			// Try to find full data in current matches, otherwise return minimal bit
++			const match = matchingScholarships.find((m) => m.id === id);
++			return {
++				id,
++				title: match?.title || 'Saved Strategy',
++				provider: match?.provider || 'Scholarship Report',
++				amount: match?.amount || ''
++			};
++		});
++	});
++
++	async function generateScholarshipStrategy(scholarship: any) {
++		if (!session?.user?.id) return;
++
++		activeScholarshipId = scholarship.id;
++		activeScholarshipName = scholarship.title;
++
++		// 1. Check if we already have it in the local cache or manual state
++		const cached =
++			manuallyUnlockedStrategies[scholarship.id] ||
++			profile?.workspace_data?.scholarship_strategies?.[scholarship.id];
++		if (cached) {
++			activeScholarshipStrategy = cached;
++			return; // Exit early, no loading needed
++		}
++
++		// 2. Wait for profile if not ready
++		if (!isProfileReady) {
++			activeScholarshipStrategy = null;
++			scrollToFootprint();
++			return;
++		}
++
++		// 3. Start remote generation
++		isGeneratingScholarshipStrategy = {
++			...isGeneratingScholarshipStrategy,
++			[scholarship.id]: true
++		};
++		scholarshipStrategyError = null;
++		activeScholarshipStrategy = null;
++		cyclePhases(scholarship.id);
++
++		try {
++			const res = await fetch('/api/scholarship-strategy', {
++				method: 'POST',
++				headers: { 'Content-Type': 'application/json' },
++				body: JSON.stringify({
++					scholarshipId: scholarship.id,
++					programId: selectedProgramId
++				})
++			});
++			const result = await res.json();
++			if (result.error) {
++				if (result.error.includes('credit') || result.error.includes('Credit')) {
++					showBillingModal = true;
++				} else {
++					scholarshipStrategyError = result.error;
++				}
++			} else {
++				activeScholarshipStrategy = result.strategy;
++				// Add to local state for instant reactivity
++				manuallyUnlockedStrategies[scholarship.id] = result.strategy;
++			}
++		} catch (e: any) {
++			scholarshipStrategyError = e.message || 'Failed to generate strategy';
++		} finally {
++			isGeneratingScholarshipStrategy = {
++				...isGeneratingScholarshipStrategy,
++				[scholarship.id]: false
++			};
++		}
++	}
++
++	function toggleBookmark(sId: string) {
++		// Mock toggle for now or emit event - user wants to see specifically what's saved
++		console.log('Toggling bookmark for:', sId);
++	}
++
++	const integratedTimeline = $derived.by(() => {
++		if (!selectedProgram) return [];
++
++		// 1. Sort program steps strictly by step_number
++		let programSteps = [...(selectedProgram.application_steps || [])].map((s, i) => ({
++			...s,
++			originalIndex: i
++		}));
++
++		programSteps.sort((a, b) => {
++			const numA = typeof a.step_number === 'number' ? a.step_number : a.originalIndex;
++			const numB = typeof b.step_number === 'number' ? b.step_number : b.originalIndex;
++			return numA - numB;
++		});
++
++		// 2. Prepare scholarship steps
++		let scholarshipSteps: any[] = [];
++		if (matchingScholarships && matchingScholarships.length > 0) {
++			matchingScholarships.forEach((s: any) => {
++				if (s.deadline) {
++					scholarshipSteps.push({
++						is_mandatory: false,
++						step_number: '$$',
++						title: `Apply for ${s.title}`,
++						description: `Matched scholarship from ${s.provider}. Maximize your funding (${s.amount}).`,
++						deadline: s.deadline,
++						estimated_month: new Date(s.deadline).toLocaleDateString('en-US', {
++							month: 'short',
++							year: 'numeric'
++						}),
++						is_scholarship: true,
++						scholarship_id: s.id
++					});
++				}
++			});
++		}
++
++		// Sort scholarships by date natively
++		scholarshipSteps.sort(
++			(a: any, b: any) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime()
++		);
++
++		// 3. Interleave them using an Academic Year approach (Sept = month 1, Aug = month 12)
++		function getAcademicMonth(textData: string) {
++			const t = textData.toLowerCase();
++			if (t.includes('sep')) return 1;
++			if (t.includes('oct')) return 2;
++			if (t.includes('nov')) return 3;
++			if (t.includes('dec')) return 4;
++			if (t.includes('jan')) return 5;
++			if (t.includes('feb')) return 6;
++			if (t.includes('mar')) return 7;
++			if (t.includes('apr')) return 8;
++			if (t.includes('may')) return 9;
++			if (t.includes('jun')) return 10;
++			if (t.includes('jul')) return 11;
++			if (t.includes('aug')) return 12;
++			return 999;
++		}
++
++		let finalTimeline: any[] = [];
++		let pIndex = 0;
++		let sIndex = 0;
++
++		while (pIndex < programSteps.length && sIndex < scholarshipSteps.length) {
++			const pText =
++				(programSteps[pIndex].estimated_month || '') + ' ' + (programSteps[pIndex].deadline || '');
++			const pMonth = getAcademicMonth(pText);
++
++			const sDateRaw = new Date(scholarshipSteps[sIndex].deadline).getMonth(); // 0 = Jan, 8 = Sept
++			const sMonth = sDateRaw >= 8 ? sDateRaw - 7 : sDateRaw + 5; // Convert strictly to Academic cycle mapping
++
++			if (sMonth <= pMonth) {
++				finalTimeline.push(scholarshipSteps[sIndex]);
++				sIndex++;
++			} else {
++				finalTimeline.push(programSteps[pIndex]);
++				pIndex++;
++			}
++		}
++
++		// Push remaining
++		while (sIndex < scholarshipSteps.length) finalTimeline.push(scholarshipSteps[sIndex++]);
++		while (pIndex < programSteps.length) finalTimeline.push(programSteps[pIndex++]);
++
++		return finalTimeline;
++	});
++
++	// Auto-select program based on server hint ΓÇö handled entirely in onMount below
++
++	function buildDocuments(prog: any, savedWorkspace?: any) {
++		if (savedWorkspace?.documents?.length) {
++			documents = savedWorkspace.documents;
++			return;
++		}
++		const slots = createDefaultDocumentSlots();
++		if (prog?.rubric_criteria?.english_level_required) {
++			slots.push({
++				id: 'ielts',
++				name: 'English Certificate',
++				phase: 'not_started',
++				guidance: '',
++				actionSteps: [],
++				selfCheckItems: [],
++				tips: [],
++				notes: ''
++			});
++		}
++		if (prog?.rubric_criteria?.german_level_required) {
++			slots.push({
++				id: 'german',
++				name: 'German Certificate',
++				phase: 'not_started',
++				guidance: '',
++				actionSteps: [],
++				selfCheckItems: [],
++				tips: [],
++				notes: ''
++			});
++		}
++		documents = slots;
++	}
++
++	function selectProgram(programId: string, workspaceData?: any) {
++		selectedProgramId = programId;
++		const prog = trackedPrograms.find((p: any) => p.program?.id === programId)?.program;
++		buildDocuments(prog, workspaceData);
++		if (prog) fetchMatchingScholarships(prog);
++	}
++
++	async function fetchMatchingScholarships(prog: any) {
++		if (!supabase) return;
++		isLoadingScholarships = true;
++
++		// 1. Fetch scholarships in the same country
++		const { data: scholarships } = await supabase
++			.from('scholarships')
++			.select('*')
++			.or(`location.ilike.%${prog.country}%,location.eq.Global,location.eq.All`)
++			.eq('is_active', true)
++			.limit(10);
++
++		if (!scholarships) {
++			matchingScholarships = [];
++			isLoadingScholarships = false;
++			return;
++		}
++
++		// 2. Calculate scores
++		const withScores = scholarships.map((s) => ({
++			...s,
++			matchScore: profile ? calculateScholarshipMatch(profile, s) : 0
++		}));
++
++		// 3. Sort and pick top 3
++		matchingScholarships = withScores.sort((a, b) => b.matchScore - a.matchScore).slice(0, 3);
++
++		isLoadingScholarships = false;
++	}
++
++	async function syncWorkspace() {
++		if (!session?.user?.id || !selectedProgramId || !selectedProgram) return;
++		isSavingWorkspace = true;
++		await setProgramStatus(supabase, session.user.id, selectedProgramId, 'strategy', undefined, {
++			documents
++		});
++		isSavingWorkspace = false;
++	}
++
++	async function markDocument(docId: string, status: string) {
++		const idx = documents.findIndex((d) => d.id === docId);
++		if (idx !== -1) {
++			documents[idx].phase = status as DocumentPhase;
++			await syncWorkspace();
++		}
++	}
++
++	async function handleSignOut() {
++		await supabase.auth.signOut();
++		window.location.href = '/';
++	}
++
++	// ├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼ Delete Program ├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼
++	let confirmDeleteId = $state<string | null>(null);
++	let docsExpanded = $state(true);
++
++	async function deleteProgram(programId: string) {
++		if (!session?.user?.id) return;
++		const success = await removeTrackedProgram(supabase, session.user.id, programId);
++		if (success) {
++			// Reload the page to reflect changes (server re-fetches data)
++			window.location.href = '/dashboard';
++		}
++		confirmDeleteId = null;
++	}
++
++	// ├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼ Derived doc lists ├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼├â┬ó├óΓé¼┬¥Γé¼
++	const todoDocs = $derived(documents.filter((d) => d.phase === 'not_started'));
++	const readyDocs = $derived(documents.filter((d) => d.phase === 'ready'));
++	const progressPct = $derived(
++		documents.length ? Math.round((readyDocs.length / documents.length) * 100) : 0
++	);
++
++	// Fetch all data client-side ΓÇö bypasses the SSR invalidation issue
++	onMount(async () => {
++		const urlProgramId = new URLSearchParams(window.location.search).get('programId');
++		const urlScholarshipId = new URLSearchParams(window.location.search).get('scholarshipId');
++		const userId = session?.user?.id;
++		if (!userId || !supabase) return;
++
++		// 1. Upsert the incoming program so it's tracked
++		if (urlProgramId) {
++			await supabase
++				.from('user_program_interactions')
++				.upsert(
++					{ user_id: userId, program_id: urlProgramId, status: 'saved' },
++					{ onConflict: 'user_id,program_id' }
++				);
++		}
++
++		// 2. Fetch all tracked interactions for this user
++		const { data: interactions } = await supabase
++			.from('user_program_interactions')
++			.select('*')
++			.eq('user_id', userId)
++			.order('updated_at', { ascending: false });
++
++		const interactionList = interactions ?? [];
++		const programIds: string[] = interactionList.map((i: any) => i.program_id);
++		if (urlProgramId && !programIds.includes(urlProgramId)) programIds.unshift(urlProgramId);
++
++		// 3. Fetch program details for all IDs in one query
++		if (programIds.length === 0) return;
++		const { data: progData } = await supabase.from('programs').select('*').in('id', programIds);
++		const dbPrograms: any[] = progData ?? [];
++
++		// 4. Build the trackedProgramsData array
++		const built: any[] = interactionList
++			.map((interaction: any) => {
++				const p = dbPrograms.find((p: any) => p.id === interaction.program_id);
++				if (!p) return null;
++				return {
++					id: interaction.id,
++					status: interaction.status,
++					matchScore: interaction.match_score ?? null,
++					workspaceData: interaction.workspace_data ?? null,
++					addedAt: new Date(interaction.created_at).toLocaleDateString(),
++					program: p
++				};
++			})
++			.filter(Boolean);
++
++		// 5. If incoming program isn't tracked yet, prepend as a preview entry
++		if (urlProgramId && !built.some((t: any) => t.program?.id === urlProgramId)) {
++			const prog = dbPrograms.find((p: any) => p.id === urlProgramId);
++			if (prog)
++				built.unshift({
++					id: null,
++					status: 'saved',
++					matchScore: null,
++					workspaceData: null,
++					addedAt: new Date().toLocaleDateString(),
++					program: prog
++				});
++		}
++
++		// 6. Set state (triggers reactive update across the whole component)
++		trackedProgramsData = built;
++
++		// 7. If programId in URL, go directly to program detail
++		if (urlProgramId) {
++			const match = built.find((p: any) => p.program?.id === urlProgramId);
++			if (match) {
++				selectProgram(urlProgramId, match.workspaceData);
++				currentView = 'program-detail';
++			}
++		}
++		// If scholarshipId in URL, go to scholarship detail
++		if (urlScholarshipId) {
++			detailScholarshipId = urlScholarshipId;
++			currentView = 'scholarship-detail';
++		}
++	});
++
++	const statsReady = $derived(
++		trackedPrograms.filter((p: any) => p.status === 'ready' || p.status === 'submitted').length
++	);
+ </script>
+ 
+ <svelte:head>
+-    <title>Dashboard - Abroaducate</title>
++	<title>Dashboard | Abroaducate</title>
+ </svelte:head>
+ 
+-<!-- Add top spacing to separate from navbar -->
+-<div class="pt-8 min-h-screen bg-gradient-to-b from-slate-50 via-white to-white">
+-    {#if loading}
+-        <div class="container mx-auto px-4 py-8">
+-            <div class="flex items-center justify-center py-20">
+-                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+-                <span class="ml-3 text-gray-600">Loading your dashboard...</span>
+-            </div>
+-                </div>
+-    {:else if error}
+-        <div class="container mx-auto px-4 py-8">
+-            <div class="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+-                <h2 class="text-lg font-semibold text-red-800 mb-2">Error Loading Dashboard</h2>
+-                <p class="text-red-600 mb-4">{error}</p>
+-                    <button
+-                    onclick={loadDashboardData}
+-                    class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+-                >
+-                    Try Again
+-                    </button>
+-            </div>
+-        </div>
+-    {:else if dashboardData}
+-        <div class="min-h-screen">
+-            <!-- Header -->
+-            <div class="mt-4">
+-                <div class="max-w-7xl mx-auto px-4 py-8">
+-                    <h1 class="text-3xl font-bold text-slate-900 mb-2">Dashboard</h1>
+-                    <p class="text-slate-600">
+-                        Your roadmap, matches, tools, and documents ΓÇö in one place.
+-                        {#if dashboardData.summary.last_activity}
+-                            <span class="ml-2 text-slate-500">{formatLastActivity(dashboardData.summary.last_activity)}</span>
+-                        {/if}
+-                    </p>
+-                </div>
+-            </div>
+-
+-            <div class="max-w-7xl mx-auto px-4 pb-12">
+-                <!-- Tabs -->
+-                <div class="mb-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+-                    <div class="inline-flex flex-wrap items-center gap-2 rounded-2xl border border-slate-200 bg-white/70 p-2 backdrop-blur">
+-                        <button
+-                            type="button"
+-                            onclick={() => setTab('roadmap')}
+-                            class="rounded-xl px-4 py-2 text-sm font-semibold transition {activeTab === 'roadmap' ? 'bg-[#2C3580] text-white shadow-sm' : 'text-slate-700 hover:bg-white'}"
+-                            aria-current={activeTab === 'roadmap' ? 'page' : undefined}
+-                        >
+-                            Roadmap
+-                        </button>
+-                        <button
+-                            type="button"
+-                            onclick={() => setTab('documents')}
+-                            class="rounded-xl px-4 py-2 text-sm font-semibold transition {activeTab === 'documents' ? 'bg-[#2C3580] text-white shadow-sm' : 'text-slate-700 hover:bg-white'}"
+-                            aria-current={activeTab === 'documents' ? 'page' : undefined}
+-                        >
+-                            Documents
+-                        </button>
+-                        <button
+-                            type="button"
+-                            onclick={() => setTab('applications')}
+-                            class="rounded-xl px-4 py-2 text-sm font-semibold transition {activeTab === 'applications' ? 'bg-[#2C3580] text-white shadow-sm' : 'text-slate-700 hover:bg-white'}"
+-                            aria-current={activeTab === 'applications' ? 'page' : undefined}
+-                        >
+-                            Applications
+-                        </button>
+-                        <button
+-                            type="button"
+-                            onclick={() => setTab('tools')}
+-                            class="rounded-xl px-4 py-2 text-sm font-semibold transition {activeTab === 'tools' ? 'bg-[#2C3580] text-white shadow-sm' : 'text-slate-700 hover:bg-white'}"
+-                            aria-current={activeTab === 'tools' ? 'page' : undefined}
+-                        >
+-                            Tools
+-                        </button>
+-                    </div>
+-                </div>
+-
+-                {#if activeTab === 'roadmap'}
+-                    <div class="mb-8">
+-                        <RoadmapChecklistWidget
+-                            {supabase}
+-                            {session}
+-                            documentsSummary={dashboardData.summary}
+-                            applicationsCount={dashboardData.applications_count}
+-                        />
+-                    </div>
+-
+-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+-                        <QuickActionsHub {supabase} {session} />
+-                        <NewMatchesWidget {supabase} {session} />
+-                    </div>
+-
+-                    <!-- Manual AdSense block removed (auto ads only) -->
+-                {:else if activeTab === 'applications'}
+-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+-                        <div class="lg:col-span-2">
+-                            <ApplicationTrackerWidget {supabase} {session} />
+-                        </div>
+-                        <div class="lg:col-span-1 space-y-6">
+-                            <BasicReminders userTier={dashboardData.user?.tier ? String(dashboardData.user.tier) : 'free'} />
+-                            <ActivityFeed activities={dashboardData.activity} />
+-                        </div>
+-                    </div>
+-                {:else if activeTab === 'tools'}
+-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+-                        <div class="lg:col-span-2 space-y-6">
+-                            <QuickActionsHub {supabase} {session} />
+-                            <div class="rounded-2xl border border-slate-200 bg-white/80 backdrop-blur p-6 shadow-sm">
+-                                <h2 class="text-xl font-bold text-slate-900">All tools</h2>
+-                                <p class="mt-1 text-sm text-slate-600">Explore everything available on your plan.</p>
+-                                <a
+-                                    href="/tools"
+-                                    class="mt-4 inline-flex items-center justify-center rounded-xl bg-[#2C3580] px-5 py-3 text-sm font-semibold text-white hover:bg-[#3c4d9c] transition"
+-                                >
+-                                    Open tools hub
+-                                </a>
+-                            </div>
+-                        </div>
+-                        <div class="lg:col-span-1 space-y-6">
+-                            <EmailStatusWidget userTier={dashboardData.user?.tier || 'free'} />
+-                            <BasicReminders userTier={dashboardData.user?.tier ? String(dashboardData.user.tier) : 'free'} />
+-                            <ActivityFeed activities={dashboardData.activity} />
+-                        </div>
+-                    </div>
+-                {:else}
+-                    <!-- Documents tab -->
+-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+-                        <div class="bg-white/80 backdrop-blur p-6 rounded-2xl border border-slate-200 shadow-sm">
+-                            <div class="flex items-center">
+-                                <div class="p-3 bg-indigo-50 rounded-xl text-indigo-700 border border-indigo-100">
+-                                    <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 3v18h18" />
+-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M7 14l3-3 4 4 6-7" />
+-                                    </svg>
+-                                </div>
+-                                <div class="ml-4">
+-                                    <p class="text-2xl font-bold text-slate-900">{dashboardData.summary.total_documents}</p>
+-                                    <p class="text-slate-600 text-sm">Total documents</p>
+-                                </div>
+-                            </div>
+-                        </div>
+-
+-                        <div class="bg-white/80 backdrop-blur p-6 rounded-2xl border border-slate-200 shadow-sm">
+-                            <div class="flex items-center">
+-                                <div class="p-3 bg-violet-50 rounded-xl text-violet-700 border border-violet-100">
+-                                    <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M14 2v6h6" />
+-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 13h8" />
+-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 17h6" />
+-                                    </svg>
+-                                </div>
+-                                <div class="ml-4">
+-                                    <p class="text-2xl font-bold text-slate-900">{dashboardData.summary.sop_count}</p>
+-                                    <p class="text-slate-600 text-sm">SOPs</p>
+-                                </div>
+-                            </div>
+-                        </div>
+-
+-                        <div class="bg-white/80 backdrop-blur p-6 rounded-2xl border border-slate-200 shadow-sm">
+-                            <div class="flex items-center">
+-                                <div class="p-3 bg-sky-50 rounded-xl text-sky-700 border border-sky-100">
+-                                    <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 4h16v16H4z" />
+-                                        <path stroke-linecap="round" stroke-linejoin="round" d="m22 6-10 7L2 6" />
+-                                    </svg>
+-                                </div>
+-                                <div class="ml-4">
+-                                    <p class="text-2xl font-bold text-slate-900">{dashboardData.summary.cover_letter_count}</p>
+-                                    <p class="text-slate-600 text-sm">Cover letters</p>
+-                                </div>
+-                            </div>
+-                        </div>
+-
+-                        <div class="bg-white/80 backdrop-blur p-6 rounded-2xl border border-slate-200 shadow-sm">
+-                            <div class="flex items-center">
+-                                <div class="p-3 bg-emerald-50 rounded-xl text-emerald-700 border border-emerald-100">
+-                                    <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" />
+-                                    </svg>
+-                                </div>
+-                                <div class="ml-4">
+-                                    <p class="text-2xl font-bold text-slate-900">{dashboardData.summary.personal_statement_count}</p>
+-                                    <p class="text-slate-600 text-sm">Personal statements</p>
+-                                </div>
+-                            </div>
+-                        </div>
+-                    </div>
+-
+-                    <!-- Manual AdSense block removed (auto ads only) -->
+-
+-                    <!-- Main Content Grid -->
+-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+-                        <!-- Document Portfolio (2/3 width) -->
+-                        <div class="lg:col-span-2">
+-                            <div class="bg-white/80 backdrop-blur border border-slate-200 rounded-2xl shadow-sm">
+-                                <div class="px-6 py-4 border-b border-slate-200">
+-                                    <h2 class="text-xl font-bold text-slate-900">Document portfolio</h2>
+-                                </div>
+-                                
+-                                <div class="p-6">
+-                                    {#if dashboardData.summary.total_documents === 0}
+-                                        <div class="text-center py-12">
+-                                            <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-700 border border-indigo-100">
+-                                                <svg class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M14 2v6h6" />
+-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 13h8" />
+-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 17h6" />
+-                                                </svg>
+-                                            </div>
+-                                            <h3 class="text-lg font-semibold text-slate-800 mb-2">No documents yet</h3>
+-                                            <p class="text-slate-600 mb-6">Create an SOP, cover letter, or CV ΓÇö and keep everything organized here.</p>
+-                                            <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+-                                                <a href="/sop" class="inline-flex items-center justify-center rounded-xl bg-[#2C3580] px-5 py-3 text-sm font-semibold text-white hover:bg-[#3c4d9c] transition">
+-                                                    Create an SOP
+-                                                </a>
+-                                                <a href="/tools" class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-800 hover:bg-slate-50 transition">
+-                                                    Explore tools
+-                                                </a>
+-                                            </div>
+-                                        </div>
+-                                    {:else}
+-                                        <!-- SOPs Section -->
+-                                        {#if dashboardData.documents.sops.length > 0}
+-                                            <div class="mb-8">
+-                                                <div class="flex items-center justify-between mb-4">
+-                                                    <h3 class="text-lg font-semibold text-slate-800">
+-                                                        Statements of Purpose ({dashboardData.documents.sops.length})
+-                                                    </h3>
+-                                                    <a href="/sop" class="text-blue-600 hover:text-blue-800 text-sm font-medium">+ Create New</a>
+-                                                </div>
+-                                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+-                                                    {#each paginatedSOPs as sop}
+-                                                        <DocumentCard
+-                                                            type="sop"
+-                                                            title={getDocumentTitle(sop, 'sop')}
+-                                                            lastEdited={sop.updated_at}
+-                                                            metadata={formatDocumentMetadata(sop, 'sop')}
+-                                                            editUrl={getEditUrl(sop, 'sop')}
+-                                                            wordCount={sop.word_count}
+-                                                        />
+-                                                    {/each}
+-                                                </div>
+-                                                {#if sopTotalPages > 1}
+-                                                    <div class="mt-4 flex justify-center items-center gap-2">
+-                                                        <button 
+-                                                            onclick={() => changePage('sop', sopPage - 1)}
+-                                                            disabled={sopPage === 1}
+-                                                            class="px-3 py-1 text-sm bg-gray-100 text-gray-600 rounded-md hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+-                                                        >
+-                                                            ΓÇ╣ Prev
+-                                                        </button>
+-                                                        <span class="px-3 py-1 text-sm text-gray-600">
+-                                                            Page {sopPage} of {sopTotalPages}
+-                                                        </span>
+-                                                        <button 
+-                                                            onclick={() => changePage('sop', sopPage + 1)}
+-                                                            disabled={sopPage === sopTotalPages}
+-                                                            class="px-3 py-1 text-sm bg-gray-100 text-gray-600 rounded-md hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+-                                                        >
+-                                                            Next ΓÇ║
+-                                                        </button>
+-                                                    </div>
+-                                                {/if}
+-                                            </div>
+-                                        {/if}
+-
+-                                        <!-- Cover Letters Section -->
+-                                        {#if dashboardData.documents.coverLetters.length > 0}
+-                                            <div class="mb-8">
+-                                                <div class="flex items-center justify-between mb-4">
+-                                                    <h3 class="text-lg font-semibold text-slate-800">
+-                                                        Cover Letters ({dashboardData.documents.coverLetters.length})
+-                                                    </h3>
+-                                                    <a href="/cover-letters" class="text-blue-600 hover:text-blue-800 text-sm font-medium">+ Create New</a>
+-                                                </div>
+-                                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+-                                                    {#each paginatedCoverLetters as letter}
+-                                                        <DocumentCard
+-                                                            type="cover_letter"
+-                                                            title={getDocumentTitle(letter, 'cover_letter')}
+-                                                            lastEdited={letter.updated_at}
+-                                                            metadata={formatDocumentMetadata(letter, 'cover_letter')}
+-                                                            editUrl={getEditUrl(letter, 'cover_letter')}
+-                                                            wordCount={null}
+-                                                        />
+-                                                    {/each}
+-                                                </div>
+-                                                {#if coverLetterTotalPages > 1}
+-                                                    <div class="mt-4 flex justify-center items-center gap-2">
+-                                                        <button 
+-                                                            onclick={() => changePage('coverLetter', coverLetterPage - 1)}
+-                                                            disabled={coverLetterPage === 1}
+-                                                            class="px-3 py-1 text-sm bg-gray-100 text-gray-600 rounded-md hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+-                                                        >
+-                                                            ΓÇ╣ Prev
+-                                                        </button>
+-                                                        <span class="px-3 py-1 text-sm text-gray-600">
+-                                                            Page {coverLetterPage} of {coverLetterTotalPages}
+-                                                        </span>
+-                                                        <button 
+-                                                            onclick={() => changePage('coverLetter', coverLetterPage + 1)}
+-                                                            disabled={coverLetterPage === coverLetterTotalPages}
+-                                                            class="px-3 py-1 text-sm bg-gray-100 text-gray-600 rounded-md hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+-                                                        >
+-                                                            Next ΓÇ║
+-                                                        </button>
+-                                                    </div>
+-                                                {/if}
+-                                            </div>
+-                                        {/if}
+-                                        
+-                                        <!-- Personal Statements Section -->
+-                                        {#if dashboardData.documents.personalStatements.length > 0}
+-                                            <div class="mb-8">
+-                                                <div class="flex items-center justify-between mb-4">
+-                                                    <h3 class="text-lg font-semibold text-slate-800">
+-                                                        Personal Statements ({dashboardData.documents.personalStatements.length})
+-                                                    </h3>
+-                                                    <a href="/personal-statements" class="text-blue-600 hover:text-blue-800 text-sm font-medium">+ Create New</a>
+-                                                </div>
+-                                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+-                                                    {#each paginatedPersonalStatements as statement}
+-                                                        <DocumentCard
+-                                                            type="personal_statement"
+-                                                            title={getDocumentTitle(statement, 'personal_statement')}
+-                                                            lastEdited={statement.updated_at}
+-                                                            metadata={formatDocumentMetadata(statement, 'personal_statement')}
+-                                                            editUrl={getEditUrl(statement, 'personal_statement')}
+-                                                            wordCount={statement.word_count}
+-                                                        />
+-                                                    {/each}
+-                                                </div>
+-                                                {#if personalStatementTotalPages > 1}
+-                                                    <div class="mt-4 flex justify-center items-center gap-2">
+-                                                        <button 
+-                                                            onclick={() => changePage('personalStatement', personalStatementPage - 1)}
+-                                                            disabled={personalStatementPage === 1}
+-                                                            class="px-3 py-1 text-sm bg-gray-100 text-gray-600 rounded-md hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+-                                                        >
+-                                                            ΓÇ╣ Prev
+-                                                        </button>
+-                                                        <span class="px-3 py-1 text-sm text-gray-600">
+-                                                            Page {personalStatementPage} of {personalStatementTotalPages}
+-                                                        </span>
+-                                                        <button 
+-                                                            onclick={() => changePage('personalStatement', personalStatementPage + 1)}
+-                                                            disabled={personalStatementPage === personalStatementTotalPages}
+-                                                            class="px-3 py-1 text-sm bg-gray-100 text-gray-600 rounded-md hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+-                                                        >
+-                                                            Next ΓÇ║
+-                                                        </button>
+-                                                    </div>
+-                                                {/if}
+-                                            </div>
+-                                        {/if}
+-                                    {/if}
+-                                </div>
+-                            </div>
+-                        </div>
+-
+-                        <!-- Sidebar (1/3 width) -->
+-                        <div class="lg:col-span-1 space-y-6">
+-                            <!-- Email Status Widget -->
+-                            <EmailStatusWidget userTier={dashboardData.user?.tier || 'free'} />
+-                            
+-                            <!-- Basic Reminders Widget -->
+-                            <BasicReminders userTier={dashboardData.user?.tier ? String(dashboardData.user.tier) : 'free'} />
+-                            
+-                            <!-- Activity Feed -->
+-                            <ActivityFeed activities={dashboardData.activity} />
+-                        </div>
+-                    </div>
+-                {/if}
+-            </div>
+-        </div>
+-    {/if}
+-</div> 
+\ No newline at end of file
++{#if currentView === 'hub'}
++<div class="hub-shell">
++	<div class="hub-header">
++		<div class="hub-header-left"><div class="hub-brand"><div class="hub-brand-icon"><Rocket size={22} /></div><div><h1 class="hub-brand-title">My Study Abroad Hub</h1><p class="hub-brand-sub">Your centralized command center</p></div></div></div>
++		<div class="hub-header-right"><a href="/programs" class="hub-action-btn"><PlusCircle size={14} /> Add Program</a><a href="/scholarships" class="hub-action-btn hub-action-secondary"><Award size={14} /> Find Scholarships</a></div>
++	</div>
++
++				<!-- ΓöÇΓöÇ Scholarship Radar & Clarity Engine ΓöÇΓöÇ -->
++				<div class="clarity-report">
++					<!-- Report Header -->
++					<div class="clarity-header">
++						<div class="clarity-header-left">
++							<div class="clarity-badge">Clarity Engine</div>
++							<h3 class="clarity-title">Scholarship Strategy</h3>
++						</div>
++					</div>
++
++					<!-- 1. ALWAYS SHOW RADAR GRID FIRST -->
++					<div class="clarity-empty">
++						<!-- Scholarship Radar Grid -->
++						<div class="px-2 pb-6">
++							<!-- Academic Footprint Summary/Edit -->
++							<div
++								<Zap size={20} class="text-emerald-500" strokeWidth={2} />
++								<h4 class="text-base font-extrabold text-slate-900">Scholarship Radar</h4>
++							</div>
++							<p class="text-sm text-slate-500 mb-6 text-center max-w-xl mx-auto">
++								We found these matching funds for your {inlineLevel}. Generate a specific Clarity
++								Report to reveal how your profile stacks up.
++							</p>
++
++							{#if scholarshipStrategyError}
++								<p
++									class="text-sm text-red-600 mb-4 text-center font-medium bg-red-50 p-2 rounded-lg"
++								>
++									{scholarshipStrategyError}
++								</p>
++							{/if}
++
++							{#if isLoadingScholarships}
++								<div class="flex items-center justify-center py-8">
++									<div
++										class="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"
++									></div>
++								</div>
++							{:else if matchingScholarships.length > 0}
++								<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
++									{#each matchingScholarships as s}
++										{@const isActive = activeScholarshipId === s.id}
++										{@const isCached = !!profile?.workspace_data?.scholarship_strategies?.[s.id]}
++										<div
++											class="border rounded-2xl p-5 flex flex-col transition-all {isActive
++												? 'border-emerald-500 bg-emerald-50/50 shadow-md shadow-emerald-500/10'
++												: 'border-slate-200 bg-white hover:border-emerald-300 hover:shadow-lg hover:shadow-slate-200/50'}"
++										>
++											<div class="flex justify-between items-start mb-4">
++												<span
++													class="ms-score {s.matchScore >= 70
++														? 'ms-score-high'
++														: s.matchScore >= 40
++															? 'ms-score-mid'
++															: 'ms-score-low'}">{s.matchScore}% Match</span
++												>
++												<span
++													class="text-xs font-bold text-emerald-700 bg-emerald-100/50 px-2.5 py-1 rounded-lg"
++													>{s.amount}</span
++												>
++											</div>
++											<h5 class="text-sm font-bold text-slate-900 mb-1 leading-tight">{s.title}</h5>
++											<p
++												class="text-[11px] font-medium text-slate-400 mb-6 flex-1 uppercase tracking-wider"
++											>
++												{s.provider}
++											</p>
++
++											{#if isActive && activeScholarshipStrategy}
++												<div
++													class="w-full py-3 bg-emerald-600 rounded-xl text-xs font-bold text-white flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20"
++												>
++													<CheckCircle2 size={14} /> Unlocked below
++												</div>
++											{:else}
++												<button
++													class="w-full py-3 bg-white border border-slate-200 hover:border-emerald-500 hover:text-emerald-700 rounded-xl text-xs font-bold text-slate-700 transition-all flex items-center justify-center gap-2 shadow-sm {isActive &&
++													!isProfileReady
++														? 'ring-2 ring-orange-400 border-none bg-orange-50'
++														: ''}"
++													onclick={() => generateScholarshipStrategy(s)}
++													disabled={isGeneratingScholarshipStrategy[s.id]}
++												>
++													{#if isGeneratingScholarshipStrategy[s.id]}
++														<svg
++															class="animate-spin"
++															width="14"
++															height="14"
++															viewBox="0 0 24 24"
++															fill="none"
++															stroke="currentColor"
++															stroke-width="3"><path d="M21 12a9 9 0 1 1-6.219-8.56" /></svg
++														>
++														<span class="animate-pulse">{generationPhase || 'Running...'}</span>
++													{:else}
++														<Zap
++															size={14}
++															fill={isCached ? 'currentColor' : 'none'}
++															strokeWidth={2.5}
++															class="text-emerald-500"
++														/>
++														{isCached ? 'View Unlocked Strategy' : 'Reveal Strategy (1 Credit)'}
++													{/if}
++												</button>
++											{/if}
++										</div>
++									{/each}
++								</div>
++							{:else}
++								<div
++									class="text-center py-10 text-slate-500 text-sm bg-slate-50 rounded-2xl border border-slate-100"
++								>
++									No matching scholarships found for your criteria.
++								</div>
++							{/if}
++						</div>
++					</div>
++
++					<!-- ΓöÇΓöÇ NEW: My Funding Board (Bookmarks & Strategies) ΓöÇΓöÇ -->
++					<div class="s-card">
++						<div class="flex items-center justify-between mb-6">
++							<h3 class="sc-title mb-0">
++								<Award size={20} class="text-indigo-500" />
++								My Funding Board
++							</h3>
++							<div class="flex gap-2">
++								<span
++									class="text-[10px] font-bold px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded-full uppercase tracking-tighter"
++								>
++									{unlockedScholarships.length} Unlocked
++								</span>
++								<span
++									class="text-[10px] font-bold px-2 py-0.5 bg-slate-100 text-slate-500 rounded-full uppercase tracking-tighter"
++								>
++									{savedScholarships.length} Shortlisted
++								</span>
++							</div>
++						</div>
++
++						<div class="space-y-6">
++							<!-- 1. UNLOCKED STRATEGIES (Actionable Now) -->
++							{#if unlockedScholarships.length > 0}
++								<div>
++									<div
++										class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2"
++									>
++										<Zap size={10} fill="currentColor" class="text-amber-500" /> Ready to Apply (Unlocked)
++									</div>
++									<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
++										{#each unlockedScholarships as saved}
++											<button
++												onclick={() => {
++													activeScholarshipId = saved.id;
++													activeScholarshipName = saved.title;
++													activeScholarshipStrategy =
++														manuallyUnlockedStrategies[saved.id] ||
++														profile.workspace_data.scholarship_strategies[saved.id];
++												}}
++												class="flex items-center gap-3 p-3 rounded-xl bg-white border border-slate-200 hover:border-indigo-400 hover:shadow-md transition-all text-left group"
++											>
++												<div
++													class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-500 flex items-center justify-center flex-shrink-0 group-hover:bg-indigo-500 group-hover:text-white transition-colors"
++												>
++													<FileText size={16} />
++												</div>
++												<div class="min-w-0 flex-1">
++													<div class="text-xs font-bold text-slate-900 truncate">{saved.title}</div>
++													<div class="text-[10px] text-slate-400 truncate">{saved.provider}</div>
++												</div>
++												<ArrowRight
++													size={14}
++													class="text-slate-300 group-hover:text-indigo-500 transition-colors"
++												/>
++											</button>
++										{/each}
++									</div>
++								</div>
++							{/if}
++
++							<!-- 2. SHORTLISTED (Saved for Later) -->
++							{#if savedScholarships.length > 0}
++								<div>
++									<div
++										class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2"
++									>
++										<BookOpen size={10} class="text-indigo-400" /> Shortlisted (Saved)
++									</div>
++									<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
++										{#each savedScholarships as saved}
++											{@const isAlreadyUnlocked = unlockedScholarships.some(
++												(u) => u.id === saved.id
++											)}
++											{#if !isAlreadyUnlocked}
++												<div
++													class="flex items-center gap-3 p-3 rounded-xl bg-slate-50/50 border border-slate-100 hover:border-slate-300 transition-all group"
++												>
++													<div
++														class="w-8 h-8 rounded-lg bg-white border border-slate-100 text-slate-400 flex items-center justify-center flex-shrink-0"
++													>
++														<Award size={16} />
++													</div>
++													<div class="min-w-0 flex-1">
++														<div class="text-xs font-bold text-slate-700 truncate">
++															{saved.title}
++														</div>
++														<div class="text-[10px] text-slate-400 truncate">{saved.provider}</div>
++													</div>
++													<button
++														onclick={() => generateScholarshipStrategy(saved)}
++														class="px-2 py-1 bg-white border border-slate-200 rounded-lg text-[10px] font-bold text-indigo-600 hover:bg-indigo-50 hover:border-indigo-200 transition-all"
++													>
++														Unlock
++													</button>
++												</div>
++											{/if}
++										{/each}
++									</div>
++								</div>
++							{/if}
++
++							{#if unlockedScholarships.length === 0 && savedScholarships.length === 0}
++								<div
++									class="py-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200"
++								>
++									<BookOpen size={32} class="mx-auto text-slate-300 mb-2" />
++									<p class="text-xs font-bold text-slate-400">Your Funding Board is empty.</p>
++									<p class="text-[10px] text-slate-300 mt-1">
++										Bookmark scholarships or unlock a strategy to see them here.
++									</p>
++								</div>
++							{/if}
++						</div>
++					</div>
++
++					<!-- 2. IF ACTIVE STRATEGY, SHOW IT EXPLICITLY BELOW RADAR -->
++					{#if activeScholarshipStrategy}
++						<div class="border-t-2 border-emerald-100 bg-white">
++							<!-- Summary Banner -->
++							<div class="clarity-summary">
++								<p>{activeScholarshipStrategy.summary}</p>
++							</div>
++
++							<!-- 3-column grid layout for report sections -->
++							<div class="clarity-grid">
++								<!-- LEFT: Match Analysis (spans 1 col) -->
++								<div class="clarity-section">
++									<div class="flex items-center justify-between mb-4">
++										<div class="clarity-section-title mb-0">Match Analysis</div>
++									</div>
++									<div
++										class="text-xs font-bold text-slate-800 mb-3 bg-slate-100 px-2 py-1 object-fit rounded truncate"
++									>
++										{activeScholarshipName}
++									</div>
++									{#if activeScholarshipStrategy.rubric?.length > 0}
++										<div class="clarity-rubric">
++											{#each activeScholarshipStrategy.rubric as item}
++												<div class="rubric-row">
++													<div class="rubric-bars">
++														{#each [1, 2, 3] as w}
++															<div
++																class="rubric-bar {item.weight >= w
++																	? item.weight === 3
++																		? 'bar-high'
++																		: item.weight === 2
++																			? 'bar-mid'
++																			: 'bar-low'
++																	: 'bar-empty'}"
++															></div>
++														{/each}
++													</div>
++													<div class="rubric-text">
++														<div class="rubric-label">{item.label}</div>
++														<div class="rubric-reason">{item.reason}</div>
++													</div>
++												</div>
++											{/each}
++										</div>
++									{/if}
++								</div>
++
++								<!-- MIDDLE: Action Plan -->
++								<div class="clarity-section">
++									<div class="clarity-section-title">Your Action Plan</div>
++									{#if activeScholarshipStrategy.top_actions?.length > 0}
++										<ol class="clarity-actions">
++											{#each activeScholarshipStrategy.top_actions as action, i}
++												<li class="clarity-action-item">
++													<span class="clarity-action-num">{i + 1}</span>
++													<span>{action}</span>
++												</li>
++											{/each}
++										</ol>
++									{/if}
++								</div>
++
++								<!-- RIGHT: Risk + SOP -->
++								<div class="clarity-section">
++									{#if activeScholarshipStrategy.red_flags?.length > 0}
++										<div class="clarity-section-title" style="color: #dc2626">Risk Factors</div>
++										<ul class="clarity-risks">
++											{#each activeScholarshipStrategy.red_flags as flag}
++												<li class="clarity-risk-item">
++													<svg
++														width="12"
++														height="12"
++														viewBox="0 0 24 24"
++														fill="none"
++														stroke="currentColor"
++														stroke-width="2"
++														class="shrink-0 mt-0.5"
++														><circle cx="12" cy="12" r="10" /><line
++															x1="12"
++															y1="8"
++															x2="12"
++															y2="12"
++														/><line x1="12" y1="16" x2="12.01" y2="16" /></svg
++													>
++													{flag}
++												</li>
++											{/each}
++										</ul>
++									{/if}
++
++									{#if activeScholarshipStrategy.narrative_angles?.length > 0}
++										<div class="clarity-section-title mt-5" style="color: #4f46e5">
++											SOP Story Angles
++										</div>
++										<ul class="clarity-sop">
++											{#each activeScholarshipStrategy.narrative_angles as angle}
++												<li class="clarity-sop-item">"{angle}"</li>
++											{/each}
++										</ul>
++									{/if}
++								</div>
++							</div>
++						</div>
++					{/if}
++				</div>
++
++				<!-- CARD 2: Timeline -->
++				<div class="s-card timeline-card">
++					<h3 class="sc-title">
++						<svg
++							class="sc-icon"
++							viewBox="0 0 24 24"
++							fill="none"
++							stroke="currentColor"
++							stroke-width="2"
++							stroke-linecap="round"
++							stroke-linejoin="round"
++							><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg
++						>
++						Chronological Strategy
++					</h3>
++					<div class="timeline">
++						{#if integratedTimeline.length > 0}
++							{#each integratedTimeline as step, index}
++								<div class="tl-step {step.is_scholarship ? 'tl-step-scholarship' : ''}">
++									<div
++										class="tl-dot {step.is_scholarship
++											? 'tl-dot-scholarship'
++											: step.is_mandatory
++												? 'tl-dot-required'
++												: 'tl-dot-optional'}"
++									>
++										{#if step.is_scholarship}
++											<svg
++												width="12"
++												height="12"
++												viewBox="0 0 24 24"
++												fill="none"
++												stroke="currentColor"
++												stroke-width="2"><circle cx="12" cy="12" r="10" /></svg
++											>
++										{:else}
++											<span>{step.step_number || index + 1}</span>
++										{/if}
++									</div>
++									<div class="tl-content">
++										<div class="tl-meta">
++											{#if step.is_scholarship}
++												<span class="text-orange-500 font-bold uppercase tracking-wider text-[10px]"
++													>Funding Radar</span
++												>
++												&middot; {step.estimated_month || 'Flexible'}
++											{:else}
++												Step {step.step_number || index + 1} &middot; {step.estimated_month ||
++													'Flexible'}
++											{/if}
++										</div>
++										<h4 class="tl-title {step.is_scholarship ? 'text-emerald-700' : ''}">
++											{step.title}
++										</h4>
++										<p class="tl-desc">{step.description}</p>
++										{#if step.deadline}
++											<div
++												class="tl-deadline {step.is_scholarship
++													? 'text-orange-600 bg-orange-50 border-orange-100'
++													: ''}"
++											>
++												<svg
++													width="12"
++													height="12"
++													viewBox="0 0 24 24"
++													fill="none"
++													stroke="currentColor"
++													stroke-width="2"
++													style="display:inline-block;vertical-align:middle;margin-right:4px"
++													><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line
++														x1="16"
++														y1="2"
++														x2="16"
++														y2="6"
++													/><line x1="8" y1="2" x2="8" y2="6" /><line
++														x1="3"
++														y1="10"
++														x2="21"
++														y2="10"
++													/></svg
++												>Deadline: {step.deadline}
++											</div>
++										{/if}
++									</div>
++								</div>
++							{/each}
++						{:else}
++							<p class="tl-empty">Timeline steps are being generated for this program.</p>
++						{/if}
++					</div>
++				</div>
++
++				<!-- Document Studio (Collapsible) -->
++				<div class="s-card docs-card">
++					<button class="docs-toggle" onclick={() => (docsExpanded = !docsExpanded)}>
++						<h3 class="sc-title">
++							<svg
++								class="sc-icon indigo"
++								viewBox="0 0 24 24"
++								fill="none"
++								stroke="currentColor"
++								stroke-width="2"
++								stroke-linecap="round"
++								stroke-linejoin="round"
++								><path
++									d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"
++								/><polyline points="14 2 14 8 20 8" /></svg
++							>
++							Document Drafts
++							<span class="docs-badge">Optional</span>
++						</h3>
++						{#if docsExpanded}<ChevronUp size={18} />{:else}<ChevronDown size={18} />{/if}
++					</button>
++					{#if docsExpanded}
++						<p class="docs-desc">Need application documents? Use our built-in generators.</p>
++						<div class="docs-grid">
++							{#each documents as doc}
++								{@const isReady = doc.phase === 'ready'}
++								{@const docRoute =
++									doc.id === 'motivation'
++										? 'sop'
++										: doc.id === 'cv'
++											? 'academic-cv'
++											: doc.id === 'cover-letter'
++												? 'cover-letters'
++												: doc.id === 'cold-email'
++													? 'cold-email'
++													: null}
++								<div class="doc-item {isReady ? 'doc-item-ready' : ''}">
++									<div class="doc-top">
++										<span class="doc-name">{doc.name}</span>
++										{#if isReady}<span class="doc-check"><Check size={12} strokeWidth={3} /></span
++											>{/if}
++									</div>
++									<div class="doc-actions">
++										<button
++											onclick={() => markDocument(doc.id, isReady ? 'not_started' : 'ready')}
++											class="doc-mark-btn"
++										>
++											{isReady ? 'Undo' : 'Mark Ready'}
++										</button>
++										{#if docRoute}
++											<a
++												href="/{docRoute}?programId={selectedProgramId}"
++												class="doc-gen-btn flex items-center gap-1"
++												>Generate <ArrowRight size={14} /></a
++											>
++										{/if}
++									</div>
++								</div>
++							{/each}
++						</div>
++					{/if}
++				</div>
++			</div>
++		{/if}
++	</div>
++</div>
++{/if}
++
++
++<!-- Billing / Out of Credits Modal -->
++{#if showBillingModal}
++	<div
++		class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50"
++	>
++		<div
++			class="bg-white rounded-3xl w-full max-w-md overflow-hidden flex flex-col shadow-2xl transform transition-all"
++		>
++			<div
++				class="bg-gradient-to-r from-orange-500 to-orange-600 p-6 text-center relative overflow-hidden"
++			>
++				<!-- background pattern -->
++				<div class="absolute inset-0 opacity-20">
++					<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
++						<defs>
++							<pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
++								<circle cx="2" cy="2" r="1.5" fill="#fff" />
++							</pattern>
++						</defs>
++						<rect width="100%" height="100%" fill="url(#grid)" />
++					</svg>
++				</div>
++				<div class="relative z-10">
++					<div
++						class="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-4 backdrop-blur-md"
++					>
++						<svg
++							width="32"
++							height="32"
++							viewBox="0 0 24 24"
++							fill="none"
++							stroke="currentColor"
++							stroke-width="2"
++							class="text-white"
++							><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg
++						>
++					</div>
++					<h3 class="text-2xl font-bold text-white mb-2" style="font-family: 'Outfit', sans-serif;">
++						Unlock AI Strategies
++					</h3>
++					<p class="text-orange-100 text-sm">
++						You need Intelligence Credits to generate personalized admission workflows.
++					</p>
++				</div>
++			</div>
++
++			<div class="p-6">
++				<div class="space-y-4 mb-8">
++					<div class="flex items-start gap-3 p-4 bg-slate-50 border border-slate-100 rounded-2xl">
++						<div class="mt-0.5 text-emerald-500">
++							<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
++								><path d="M20 6L9 17l-5-5" /></svg
++							>
++						</div>
++						<div>
++							<div class="font-bold text-slate-800 text-sm">Tailored "Win" Strategy</div>
++							<div class="text-xs text-slate-500">
++								Finds red flags in your profile relative to the exact program rubric.
++							</div>
++						</div>
++					</div>
++					<div class="flex items-start gap-3 p-4 bg-slate-50 border border-slate-100 rounded-2xl">
++						<div class="mt-0.5 text-emerald-500">
++							<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
++								><path d="M20 6L9 17l-5-5" /></svg
++							>
++						</div>
++						<div>
++							<div class="font-bold text-slate-800 text-sm">Document Generation</div>
++							<div class="text-xs text-slate-500">
++								Use credits to generate motivation letters and CVs perfectly aligned with the
++								program.
++							</div>
++						</div>
++					</div>
++				</div>
++
++				<div class="space-y-3">
++					<a
++						href="/pricing"
++						class="block text-center w-full py-4 bg-slate-900 hover:bg-black text-white rounded-xl font-bold transition-colors shadow-lg shadow-slate-900/20"
++					>
++						Get Intelligence Credits
++					</a>
++					<button
++						onclick={() => (showBillingModal = false)}
++						class="w-full py-3 text-slate-500 hover:text-slate-800 font-semibold text-sm transition-colors"
++					>
++						Maybe Later
++					</button>
++				</div>
++			</div>
++		</div>
++	</div>
++{/if}
++
++<style>
++	.dash-shell {
++		display: grid;
++		grid-template-columns: 300px 1fr;
++		height: calc(100vh - 64px);
++		overflow: hidden;
++		margin-top: 64px;
++	}
++	.dash-sidebar {
++		background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
++		display: flex;
++		flex-direction: column;
++		overflow-y: auto;
++		overflow-x: hidden;
++		padding: 1.25rem;
++		gap: 0.75rem;
++	}
++	.sb-top {
++		display: flex;
++		align-items: center;
++		justify-content: space-between;
++		margin-bottom: 0.25rem;
++	}
++	.sb-brand {
++		display: flex;
++		align-items: center;
++		gap: 0.625rem;
++	}
++	.brand-icon {
++		width: 2.25rem;
++		height: 2.25rem;
++		border-radius: 0.625rem;
++		background: linear-gradient(135deg, #f97316, #ea580c);
++		display: flex;
++		align-items: center;
++		justify-content: center;
++		font-size: 1rem;
++	}
++	.brand-title {
++		font-family: 'Outfit', sans-serif;
++		font-size: 0.9375rem;
++		font-weight: 800;
++		color: white;
++	}
++	.brand-sub {
++		font-size: 0.6875rem;
++		color: #64748b;
++		font-weight: 600;
++	}
++	.sb-add-btn {
++		width: 2rem;
++		height: 2rem;
++		border-radius: 0.5rem;
++		background: rgba(255, 255, 255, 0.06);
++		border: 1px solid rgba(255, 255, 255, 0.08);
++		color: #94a3b8;
++		display: flex;
++		align-items: center;
++		justify-content: center;
++		text-decoration: none;
++		transition: all 0.2s;
++	}
++	.sb-add-btn:hover {
++		background: rgba(249, 115, 22, 0.15);
++		color: #f97316;
++		border-color: rgba(249, 115, 22, 0.3);
++	}
++	.sb-label {
++		font-size: 0.625rem;
++		font-weight: 700;
++		letter-spacing: 0.1em;
++		color: #475569;
++		padding: 0.5rem 0 0.25rem;
++	}
++	.sb-empty {
++		text-align: center;
++		padding: 2rem 0.5rem;
++		flex: 1;
++	}
++	.sb-empty-title {
++		font-size: 0.875rem;
++		font-weight: 700;
++		color: #94a3b8;
++		margin: 0.5rem 0 0.25rem;
++	}
++	.sb-empty-sub {
++		font-size: 0.75rem;
++		color: #475569;
++		margin-bottom: 1rem;
++	}
++	.sb-empty-cta {
++		display: inline-block;
++		background: #f97316;
++		color: white;
++		font-size: 0.75rem;
++		font-weight: 700;
++		padding: 0.5rem 1rem;
++		border-radius: 999px;
++		text-decoration: none;
++	}
++	.sb-empty-cta:hover {
++		background: #ea580c;
++	}
++	.sb-programs {
++		display: flex;
++		flex-direction: column;
++		gap: 0.375rem;
++	}
++	.sb-prog-wrap {
++		position: relative;
++	}
++	.sb-prog {
++		width: 100%;
++		text-align: left;
++		cursor: pointer;
++		background: rgba(255, 255, 255, 0.03);
++		border: 1px solid rgba(255, 255, 255, 0.06);
++		border-radius: 0.75rem;
++		padding: 0;
++		display: flex;
++		transition: all 0.2s;
++	}
++	.sb-prog:hover {
++		background: rgba(255, 255, 255, 0.06);
++		border-color: rgba(255, 255, 255, 0.1);
++	}
++	.sb-prog-active {
++		background: rgba(249, 115, 22, 0.08) !important;
++		border-color: rgba(249, 115, 22, 0.25) !important;
++		box-shadow: 0 0 20px rgba(249, 115, 22, 0.06);
++	}
++	.sb-prog-accent {
++		width: 3px;
++		border-radius: 999px 0 0 999px;
++		background: transparent;
++		flex-shrink: 0;
++		transition: background 0.2s;
++	}
++	.sb-prog-accent.active {
++		background: #f97316;
++	}
++	.sb-prog-body {
++		padding: 0.625rem 0.75rem;
++		flex: 1;
++		min-width: 0;
++	}
++	.sb-prog-uni {
++		font-size: 0.625rem;
++		font-weight: 700;
++		color: #64748b;
++		text-transform: uppercase;
++		letter-spacing: 0.06em;
++		margin-bottom: 0.125rem;
++	}
++	.sb-prog-name {
++		font-size: 0.8125rem;
++		font-weight: 700;
++		color: #e2e8f0;
++		line-height: 1.3;
++		margin-bottom: 0.375rem;
++		white-space: nowrap;
++		overflow: hidden;
++		text-overflow: ellipsis;
++	}
++	.sb-prog-tags {
++		display: flex;
++		gap: 0.375rem;
++	}
++	.sb-tag-tuition {
++		font-size: 0.5625rem;
++		font-weight: 700;
++		background: rgba(5, 150, 105, 0.15);
++		color: #34d399;
++		padding: 0.0625rem 0.375rem;
++		border-radius: 999px;
++	}
++	.sb-tag-status {
++		font-size: 0.5625rem;
++		font-weight: 700;
++		background: rgba(255, 255, 255, 0.06);
++		color: #94a3b8;
++		padding: 0.0625rem 0.375rem;
++		border-radius: 999px;
++		text-transform: capitalize;
++	}
++	.sb-del-btn {
++		position: absolute;
++		top: 0.5rem;
++		right: 0.5rem;
++		width: 1.5rem;
++		height: 1.5rem;
++		border-radius: 0.375rem;
++		background: transparent;
++		border: none;
++		cursor: pointer;
++		color: #475569;
++		display: flex;
++		align-items: center;
++		justify-content: center;
++		opacity: 0;
++		transition: all 0.15s;
++	}
++	.sb-prog-wrap:hover .sb-del-btn {
++		opacity: 1;
++	}
++	.sb-del-btn:hover {
++		background: rgba(239, 68, 68, 0.15);
++		color: #f87171;
++	}
++	.sb-delete-confirm {
++		position: absolute;
++		top: 0.375rem;
++		right: 0.375rem;
++		background: #1e293b;
++		border: 1px solid rgba(239, 68, 68, 0.3);
++		border-radius: 0.5rem;
++		padding: 0.25rem 0.5rem;
++		display: flex;
++		align-items: center;
++		gap: 0.375rem;
++		font-size: 0.6875rem;
++		color: #f87171;
++		font-weight: 600;
++		z-index: 10;
++	}
++	.sb-del-yes {
++		background: #ef4444;
++		color: white;
++		border: none;
++		border-radius: 0.25rem;
++		padding: 0.125rem 0.5rem;
++		font-size: 0.625rem;
++		font-weight: 700;
++		cursor: pointer;
++	}
++	.sb-del-no {
++		background: transparent;
++		color: #94a3b8;
++		border: 1px solid rgba(255, 255, 255, 0.1);
++		border-radius: 0.25rem;
++		padding: 0.125rem 0.5rem;
++		font-size: 0.625rem;
++		font-weight: 700;
++		cursor: pointer;
++	}
++	.sb-find-more {
++		display: flex;
++		align-items: center;
++		gap: 0.375rem;
++		color: #64748b;
++		font-size: 0.75rem;
++		font-weight: 600;
++		text-decoration: none;
++		padding: 0.25rem 0;
++		transition: color 0.15s;
++	}
++	.sb-find-more:hover {
++		color: #f97316;
++	}
++	.sb-footer {
++		margin-top: auto;
++		padding-top: 1rem;
++		border-top: 1px solid rgba(255, 255, 255, 0.06);
++		display: flex;
++		flex-direction: column;
++		gap: 0.75rem;
++	}
++	.sb-user {
++		display: flex;
++		align-items: center;
++		gap: 0.625rem;
++	}
++	.sb-avatar {
++		width: 2rem;
++		height: 2rem;
++		border-radius: 999px;
++		background: linear-gradient(135deg, #f97316, #ea580c);
++		color: white;
++		display: flex;
++		align-items: center;
++		justify-content: center;
++		font-weight: 800;
++		font-size: 0.8125rem;
++	}
++	.sb-user-info {
++		min-width: 0;
++	}
++	.sb-user-name {
++		font-size: 0.75rem;
++		font-weight: 700;
++		color: #e2e8f0;
++		white-space: nowrap;
++		overflow: hidden;
++		text-overflow: ellipsis;
++	}
++	.sb-user-plan {
++		font-size: 0.625rem;
++		color: #64748b;
++		font-weight: 600;
++	}
++	.sb-footer-btns {
++		display: grid;
++		grid-template-columns: 1fr 1fr;
++		gap: 0.375rem;
++	}
++	.sb-footer-btn {
++		display: flex;
++		align-items: center;
++		justify-content: center;
++		gap: 0.25rem;
++		padding: 0.375rem;
++		background: rgba(255, 255, 255, 0.04);
++		border: 1px solid rgba(255, 255, 255, 0.06);
++		border-radius: 0.5rem;
++		font-size: 0.625rem;
++		font-weight: 700;
++		color: #94a3b8;
++		text-decoration: none;
++		transition: all 0.15s;
++		cursor: pointer;
++	}
++	.sb-footer-btn:hover {
++		background: rgba(255, 255, 255, 0.08);
++		color: #e2e8f0;
++	}
++	.sb-logout:hover {
++		color: #f87171;
++		background: rgba(239, 68, 68, 0.1);
++		border-color: rgba(239, 68, 68, 0.2);
++	}
++	.dash-main {
++		overflow-y: auto;
++		padding: 1.75rem 2.25rem;
++		background: #f8fafc;
++		display: flex;
++		flex-direction: column;
++		gap: 1.5rem;
++	}
++	.main-empty {
++		flex: 1;
++		display: flex;
++		flex-direction: column;
++		align-items: center;
++		justify-content: center;
++		text-align: center;
++		min-height: 400px;
++	}
++	.main-empty-icon {
++		font-size: 3rem;
++		margin-bottom: 1rem;
++	}
++	.main-empty-title {
++		font-family: 'Outfit', sans-serif;
++		font-size: 1.5rem;
++		font-weight: 800;
++		color: #0f172a;
++		margin-bottom: 0.5rem;
++	}
++	.main-empty-sub {
++		font-size: 0.9375rem;
++		color: #64748b;
++		max-width: 24rem;
++		margin-bottom: 1.5rem;
++	}
++	.main-empty-cta {
++		display: inline-flex;
++		align-items: center;
++		gap: 0.375rem;
++		background: #f97316;
++		color: white;
++		font-weight: 700;
++		font-size: 0.875rem;
++		padding: 0.75rem 1.5rem;
++		border-radius: 999px;
++		text-decoration: none;
++		transition: all 0.2s;
++	}
++	.main-empty-cta:hover {
++		background: #ea580c;
++		transform: translateY(-1px);
++	}
++	.main-header {
++		display: flex;
++		align-items: flex-start;
++		justify-content: space-between;
++		gap: 1rem;
++		padding-bottom: 1.25rem;
++		border-bottom: 1px solid #e2e8f0;
++	}
++	.mh-location {
++		font-size: 0.75rem;
++		font-weight: 700;
++		color: #f97316;
++		text-transform: uppercase;
++		letter-spacing: 0.08em;
++		margin-bottom: 0.25rem;
++	}
++	.mh-title {
++		font-family: 'Outfit', sans-serif;
++		font-size: 1.5rem;
++		font-weight: 800;
++		color: #0f172a;
++		line-height: 1.2;
++	}
++	.mh-uni {
++		font-size: 0.875rem;
++		color: #64748b;
++		margin-top: 0.125rem;
++	}
++	.mh-right {
++		display: flex;
++		align-items: center;
++		gap: 0.75rem;
++		flex-shrink: 0;
++	}
++	.mh-sync {
++		font-size: 0.75rem;
++		font-weight: 600;
++	}
++	.mh-sync.saving {
++		color: #94a3b8;
++	}
++	.mh-sync.synced {
++		color: #059669;
++	}
++	.mh-ext-link {
++		display: inline-flex;
++		align-items: center;
++		gap: 0.25rem;
++		color: #64748b;
++		font-size: 0.75rem;
++		font-weight: 600;
++		padding: 0.375rem 0.75rem;
++		border: 1px solid #e2e8f0;
++		border-radius: 0.5rem;
++		text-decoration: none;
++		transition: all 0.15s;
++	}
++	.mh-ext-link:hover {
++		color: #0f172a;
++		border-color: #94a3b8;
++	}
++	.strategy-content {
++		display: flex;
++		flex-direction: column;
++		gap: 1.25rem;
++	}
++	.s-card {
++		background: white;
++		border: 1px solid #e2e8f0;
++		border-radius: 1rem;
++		padding: 1.5rem;
++		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
++		transition: box-shadow 0.2s;
++	}
++	.s-card:hover {
++		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
++	}
++	.sc-title {
++		font-family: 'Outfit', sans-serif;
++		font-size: 1rem;
++		font-weight: 700;
++		color: #0f172a;
++		display: flex;
++		align-items: center;
++		gap: 0.5rem;
++		margin-bottom: 1rem;
++	}
++	.sc-icon {
++		width: 1.125rem;
++		height: 1.125rem;
++		color: #94a3b8;
++		flex-shrink: 0;
++	}
++	.sc-icon.emerald {
++		color: #059669;
++	}
++	.sc-icon.indigo {
++		color: #6366f1;
++	}
++	.pathway-card {
++		background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
++		border-color: rgba(249, 115, 22, 0.15);
++		display: flex;
++		align-items: flex-start;
++		gap: 1.25rem;
++		color: white;
++	}
++	.pathway-icon {
++		font-size: 2rem;
++		flex-shrink: 0;
++		margin-top: 0.125rem;
++	}
++	.pathway-body {
++		flex: 1;
++	}
++	.pathway-label {
++		font-size: 0.6875rem;
++		font-weight: 700;
++		text-transform: uppercase;
++		letter-spacing: 0.1em;
++		color: #f97316;
++		margin-bottom: 0.375rem;
++	}
++	.pathway-type {
++		font-family: 'Outfit', sans-serif;
++		font-size: 1.25rem;
++		font-weight: 800;
++		text-transform: capitalize;
++		margin-bottom: 0.5rem;
++	}
++	.pathway-desc {
++		font-size: 0.875rem;
++		color: #94a3b8;
++		line-height: 1.6;
++	}
++	.timeline {
++		display: flex;
++		flex-direction: column;
++	}
++	.tl-step {
++		display: flex;
++		gap: 1rem;
++		position: relative;
++		padding-bottom: 1.5rem;
++	}
++	.tl-step:last-child {
++		padding-bottom: 0;
++	}
++	.tl-step:not(:last-child)::after {
++		content: '';
++		position: absolute;
++		left: 1rem;
++		top: 2.25rem;
++		bottom: 0;
++		width: 2px;
++		background: linear-gradient(180deg, #e2e8f0, #f1f5f9);
++	}
++	.tl-dot {
++		width: 2rem;
++		height: 2rem;
++		border-radius: 999px;
++		flex-shrink: 0;
++		display: flex;
++		align-items: center;
++		justify-content: center;
++		font-size: 0.75rem;
++		font-weight: 800;
++		z-index: 1;
++	}
++	.tl-dot-required {
++		background: linear-gradient(135deg, #f97316, #ea580c);
++		color: white;
++	}
++	.tl-dot-optional {
++		background: #f1f5f9;
++		color: #64748b;
++		border: 2px solid #e2e8f0;
++	}
++	.tl-content {
++		flex: 1;
++		padding-top: 0.125rem;
++	}
++	.tl-meta {
++		font-size: 0.6875rem;
++		font-weight: 700;
++		text-transform: uppercase;
++		letter-spacing: 0.08em;
++		color: #94a3b8;
++		margin-bottom: 0.25rem;
++	}
++	.tl-title {
++		font-size: 1rem;
++		font-weight: 700;
++		color: #0f172a;
++		margin-bottom: 0.25rem;
++	}
++	.tl-desc {
++		font-size: 0.875rem;
++		color: #475569;
++		line-height: 1.5;
++		margin-bottom: 0.5rem;
++	}
++	.tl-deadline {
++		display: inline-flex;
++		align-items: center;
++		gap: 0.375rem;
++		font-size: 0.75rem;
++		font-weight: 700;
++		color: #0f172a;
++		background: #fef3c7;
++		padding: 0.25rem 0.625rem;
++		border-radius: 999px;
++	}
++	.tl-empty {
++		font-size: 0.875rem;
++		color: #94a3b8;
++		font-style: italic;
++	}
++	.two-col {
++		display: grid;
++		grid-template-columns: 1fr 1fr;
++		gap: 1.25rem;
++	}
++	.funding-box {
++		background: linear-gradient(135deg, #ecfdf5, #d1fae5);
++		border: 1px solid #a7f3d0;
++		border-radius: 0.75rem;
++		padding: 1rem;
++	}
++	.funding-header {
++		font-size: 0.875rem;
++		font-weight: 800;
++		color: #065f46;
++		margin-bottom: 0.25rem;
++	}
++	.funding-desc {
++		font-size: 0.75rem;
++		color: #047857;
++		margin-bottom: 0.75rem;
++	}
++	.funding-btn {
++		width: 100%;
++		padding: 0.625rem;
++		background: #059669;
++		color: white;
++		font-size: 0.75rem;
++		font-weight: 700;
++		text-transform: uppercase;
++		letter-spacing: 0.06em;
++		border: none;
++		border-radius: 0.5rem;
++		cursor: pointer;
++		transition: background 0.15s;
++	}
++	.funding-btn:hover {
++		background: #047857;
++	}
++	.cost-rows {
++		display: flex;
++		flex-direction: column;
++	}
++	.cost-row {
++		display: flex;
++		justify-content: space-between;
++		font-size: 0.8125rem;
++		color: #475569;
++		padding: 0.5rem 0;
++		border-bottom: 1px solid #f1f5f9;
++	}
++	.cost-val {
++		font-weight: 700;
++		color: #334155;
++	}
++	.emerald-text {
++		color: #059669 !important;
++	}
++	.cost-row-total {
++		border-bottom: none;
++		padding-top: 0.75rem;
++		margin-top: 0.25rem;
++		border-top: 2px solid #e2e8f0;
++	}
++	.cost-val-bold {
++		font-weight: 800;
++		color: #0f172a;
++		font-size: 0.875rem;
++	}
++	.docs-card {
++		border-top: 3px solid #6366f1;
++	}
++	.docs-toggle {
++		width: 100%;
++		display: flex;
++		align-items: center;
++		justify-content: space-between;
++		background: none;
++		border: none;
++		cursor: pointer;
++		padding: 0;
++		color: #94a3b8;
++	}
++	.docs-badge {
++		font-size: 0.5625rem;
++		font-weight: 700;
++		text-transform: uppercase;
++		letter-spacing: 0.06em;
++		background: #eef2ff;
++		color: #6366f1;
++		padding: 0.125rem 0.5rem;
++		border-radius: 999px;
++		margin-left: 0.5rem;
++	}
++	.docs-desc {
++		font-size: 0.8125rem;
++		color: #64748b;
++		margin-bottom: 1rem;
++	}
++	.docs-grid {
++		display: grid;
++		grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
++		gap: 0.75rem;
++	}
++	.doc-item {
++		background: #f8fafc;
++		border: 1.5px solid #e2e8f0;
++		border-radius: 0.75rem;
++		padding: 0.875rem;
++		display: flex;
++		flex-direction: column;
++		gap: 0.5rem;
++		transition: all 0.15s;
++	}
++	.doc-item-ready {
++		background: #f0fdf4 !important;
++		border-color: #86efac !important;
++	}
++	.doc-top {
++		display: flex;
++		align-items: center;
++		justify-content: space-between;
++	}
++	.doc-name {
++		font-size: 0.8125rem;
++		font-weight: 700;
++		color: #0f172a;
++	}
++	.doc-check {
++		width: 1.25rem;
++		height: 1.25rem;
++		border-radius: 999px;
++		background: #059669;
++		color: white;
++		display: flex;
++		align-items: center;
++		justify-content: center;
++		font-size: 0.625rem;
++		font-weight: 800;
++	}
++	.doc-actions {
++		display: flex;
++		align-items: center;
++		justify-content: space-between;
++		margin-top: auto;
++	}
++	.doc-mark-btn {
++		font-size: 0.625rem;
++		font-weight: 700;
++		text-transform: uppercase;
++		letter-spacing: 0.06em;
++		color: #64748b;
++		background: none;
++		border: none;
++		cursor: pointer;
++	}
++	.doc-mark-btn:hover {
++		color: #0f172a;
++	}
++	.doc-gen-btn {
++		font-size: 0.625rem;
++		font-weight: 700;
++		text-transform: uppercase;
++		letter-spacing: 0.06em;
++		color: #6366f1;
++		background: #eef2ff;
++		padding: 0.25rem 0.5rem;
++		border-radius: 0.25rem;
++		text-decoration: none;
++	}
++	.doc-gen-btn:hover {
++		background: #e0e7ff;
++		color: #4f46e5;
++	}
++
++	/* Scholarship Radar Styles */
++	.ms-list {
++		display: flex;
++		flex-direction: column;
++		gap: 0.5rem;
++	}
++	.ms-card {
++		display: block;
++		background: #f8fafc;
++		border: 1px solid #e2e8f0;
++		border-radius: 0.75rem;
++		padding: 0.75rem;
++		text-decoration: none;
++		transition: all 0.2s;
++	}
++	.ms-card:hover {
++		border-color: #f97316;
++		background: white;
++		transform: translateX(2px);
++		box-shadow: 0 4px 6px rgba(0, 0, 0, 0.03);
++	}
++	.ms-card-top {
++		display: flex;
++		justify-content: space-between;
++		align-items: center;
++		margin-bottom: 0.25rem;
++	}
++	.ms-score {
++		font-size: 0.625rem;
++		font-weight: 800;
++		background: #f1f5f9;
++		color: #64748b;
++		padding: 0.125rem 0.375rem;
++		border-radius: 4px;
++	}
++	.ms-score.high-match {
++		background: #ecfdf5;
++		color: #059669;
++	}
++	.ms-value {
++		font-size: 0.625rem;
++		font-weight: 700;
++		color: #059669;
++	}
++	.ms-title {
++		font-size: 0.8125rem;
++		font-weight: 700;
++		color: #0f172a;
++		margin-bottom: 0.125rem;
++		transition: color 0.15s;
++	}
++	.ms-provider {
++		font-size: 0.6875rem;
++		color: #64748b;
++		font-weight: 500;
++	}
++	.ms-view-all {
++		display: flex;
++		align-items: center;
++		justify-content: center;
++		gap: 0.25rem;
++		font-size: 0.6875rem;
++		font-weight: 700;
++		color: #64748b;
++		text-decoration: none;
++		transition: color 0.15s;
++	}
++	.ms-view-all:hover {
++		color: #f97316;
++	}
++
++	@media (max-width: 768px) {
++		.dash-shell {
++			grid-template-columns: 1fr;
++			height: auto;
++			overflow: visible;
++		}
++		.dash-sidebar {
++			border-bottom: 1px solid rgba(255, 255, 255, 0.06);
++			max-height: 35vh;
++		}
++		.two-col {
++			grid-template-columns: 1fr;
++		}
++		.docs-grid {
++			grid-template-columns: 1fr;
++		}
++	}
++	/* Cost Strip */
++	.cost-strip {
++		display: flex;
++		align-items: center;
++		gap: 0;
++		background: #f8fafc;
++		border: 1px solid #e2e8f0;
++		border-radius: 0.875rem;
++		overflow: hidden;
++		margin-bottom: 1.25rem;
++	}
++	.cost-strip-item {
++		flex: 1;
++		display: flex;
++		flex-direction: column;
++		align-items: center;
++		padding: 0.75rem 1rem;
++		gap: 0.25rem;
++	}
++	.cost-strip-label {
++		font-size: 0.625rem;
++		font-weight: 700;
++		text-transform: uppercase;
++		letter-spacing: 0.08em;
++		color: #94a3b8;
++	}
++	.cost-strip-val {
++		font-size: 0.9375rem;
++		font-weight: 800;
++		color: #0f172a;
++	}
++	.cost-strip-divider {
++		width: 1px;
++		height: 2.5rem;
++		background: #e2e8f0;
++		flex-shrink: 0;
++	}
++
++	/* Clarity Report */
++	.clarity-report {
++		background: white;
++		border: 1.5px solid #e2e8f0;
++		border-radius: 1rem;
++		overflow: hidden;
++		margin-bottom: 1.25rem;
++		box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
++	}
++	.clarity-header {
++		display: flex;
++		align-items: center;
++		justify-content: space-between;
++		padding: 1rem 1.5rem;
++		border-bottom: 1px solid #f1f5f9;
++	}
++	.clarity-header-left {
++		display: flex;
++		flex-direction: column;
++		gap: 0.125rem;
++	}
++	.clarity-badge {
++		font-size: 0.5625rem;
++		font-weight: 800;
++		text-transform: uppercase;
++		letter-spacing: 0.12em;
++		color: #059669;
++		background: #ecfdf5;
++		padding: 0.125rem 0.5rem;
++		border-radius: 999px;
++		width: fit-content;
++	}
++	.clarity-title {
++		font-size: 1.0625rem;
++		font-weight: 800;
++		color: #0f172a;
++		font-family: 'Outfit', sans-serif;
++	}
++	.clarity-regen-btn {
++		display: flex;
++		align-items: center;
++		gap: 0.5rem;
++		font-size: 0.75rem;
++		font-weight: 700;
++		color: #64748b;
++		background: #f8fafc;
++		border: 1px solid #e2e8f0;
++		border-radius: 0.5rem;
++		padding: 0.375rem 0.75rem;
++		cursor: pointer;
++		transition: all 0.15s;
++	}
++	.clarity-regen-btn:hover {
++		background: white;
++		border-color: #cbd5e1;
++		color: #0f172a;
++	}
++
++	/* Summary Banner */
++	.clarity-summary {
++		background: linear-gradient(135deg, #ecfdf5, #f0fdf4);
++		border-bottom: 1px solid #a7f3d0;
++		padding: 1rem 1.5rem;
++	}
++	.clarity-summary p {
++		font-size: 0.9375rem;
++		color: #065f46;
++		font-weight: 500;
++		line-height: 1.6;
++	}
++
++	/* 3-col Grid */
++	.clarity-grid {
++		display: grid;
++		grid-template-columns: 1fr 1fr 1fr;
++		gap: 0;
++	}
++	.clarity-section {
++		padding: 1.25rem 1.5rem;
++		border-right: 1px solid #f1f5f9;
++	}
++	.clarity-section:last-child {
++		border-right: none;
++	}
++	.clarity-section-title {
++		font-size: 0.625rem;
++		font-weight: 800;
++		text-transform: uppercase;
++		letter-spacing: 0.1em;
++		color: #94a3b8;
++		margin-bottom: 0.875rem;
++	}
++
++	/* Rubric rows */
++	.clarity-rubric {
++		display: flex;
++		flex-direction: column;
++		gap: 0.875rem;
++	}
++	.rubric-row {
++		display: flex;
++		align-items: flex-start;
++		gap: 0.625rem;
++	}
++	.rubric-bars {
++		display: flex;
++		gap: 3px;
++		flex-shrink: 0;
++		margin-top: 3px;
++	}
++	.rubric-bar {
++		width: 8px;
++		height: 8px;
++		border-radius: 2px;
++	}
++	.bar-high {
++		background: #10b981;
++	}
++	.bar-mid {
++		background: #f59e0b;
++	}
++	.bar-low {
++		background: #cbd5e1;
++	}
++	.bar-empty {
++		background: #f1f5f9;
++	}
++	.rubric-label {
++		font-size: 0.8125rem;
++		font-weight: 700;
++		color: #1e293b;
++		line-height: 1.3;
++	}
++	.rubric-reason {
++		font-size: 0.75rem;
++		color: #64748b;
++		line-height: 1.4;
++		margin-top: 0.125rem;
++	}
++
++	/* Action Plan */
++	.clarity-actions {
++		display: flex;
++		flex-direction: column;
++		gap: 0.75rem;
++		list-style: none;
++		padding: 0;
++		margin: 0;
++	}
++	.clarity-action-item {
++		display: flex;
++		align-items: flex-start;
++		gap: 0.625rem;
++		font-size: 0.8125rem;
++		color: #334155;
++		line-height: 1.5;
++	}
++	.clarity-action-num {
++		flex-shrink: 0;
++		width: 1.375rem;
++		height: 1.375rem;
++		border-radius: 0.375rem;
++		background: linear-gradient(135deg, #059669, #047857);
++		color: white;
++		font-size: 0.625rem;
++		font-weight: 800;
++		display: flex;
++		align-items: center;
++		justify-content: center;
++		margin-top: 1px;
++	}
++
++	/* Risk + SOP */
++	.clarity-risks {
++		display: flex;
++		flex-direction: column;
++		gap: 0.5rem;
++		list-style: none;
++		padding: 0;
++		margin: 0 0 0.5rem;
++	}
++	.clarity-risk-item {
++		display: flex;
++		align-items: flex-start;
++		gap: 0.5rem;
++		font-size: 0.75rem;
++		color: #dc2626;
++		background: #fef2f2;
++		border-radius: 0.5rem;
++		padding: 0.5rem 0.625rem;
++		line-height: 1.4;
++	}
++	.clarity-sop {
++		display: flex;
++		flex-direction: column;
++		gap: 0.5rem;
++		list-style: none;
++		padding: 0;
++		margin: 0;
++	}
++	.clarity-sop-item {
++		font-size: 0.75rem;
++		color: #4f46e5;
++		background: #eef2ff;
++		border-radius: 0.5rem;
++		padding: 0.5rem 0.625rem;
++		font-style: italic;
++		line-height: 1.4;
++	}
++
++	/* Empty States */
++	.clarity-empty {
++		padding: 2rem 1.5rem;
++	}
++	.clarity-cta {
++		display: flex;
++		flex-direction: column;
++		align-items: center;
++		padding: 2rem;
++		text-align: center;
++	}
++
++	/* Inline Profile Form (inside clarity-report) */
++	.clarity-profile-form {
++		max-width: 640px;
++		margin: 0 auto;
++	}
++	.clarity-form-hero {
++		display: flex;
++		align-items: center;
++		gap: 1rem;
++		margin-bottom: 1.5rem;
++		padding-bottom: 1.25rem;
++		border-bottom: 1px solid #f1f5f9;
++	}
++	.clarity-form-grid {
++		display: grid;
++		grid-template-columns: 1fr 1fr 1fr;
++		gap: 1rem;
++		margin-bottom: 1.5rem;
++	}
++	.cf-label {
++		display: block;
++		font-size: 0.6875rem;
++		font-weight: 700;
++		text-transform: uppercase;
++		letter-spacing: 0.07em;
++		color: #64748b;
++		margin-bottom: 0.375rem;
++	}
++	.cf-input {
++		width: 100%;
++		background: #f8fafc;
++		border: 1.5px solid #e2e8f0;
++		border-radius: 0.625rem;
++		padding: 0.5rem 0.75rem;
++		font-size: 0.875rem;
++		font-weight: 500;
++		color: #0f172a;
++		outline: none;
++		transition: border-color 0.15s;
++	}
++	.cf-input:focus {
++		border-color: #059669;
++		background: white;
++	}
++	.cf-save-btn {
++		display: flex;
++		align-items: center;
++		justify-content: center;
++		gap: 0.5rem;
++		width: 100%;
++		padding: 0.875rem;
++		background: linear-gradient(135deg, #059669, #047857);
++		color: white;
++		font-weight: 800;
++		font-size: 0.9375rem;
++		border: none;
++		border-radius: 0.75rem;
++		cursor: pointer;
++		transition: all 0.2s;
++		box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
++	}
++	.cf-save-btn:hover {
++		transform: translateY(-1px);
++		box-shadow: 0 6px 16px rgba(5, 150, 105, 0.3);
++	}
++	.cf-save-btn:disabled {
++		opacity: 0.5;
++		cursor: not-allowed;
++		transform: none;
++	}
++
++	/* Match score badges in Scholarship Radar (inside clarity) */
++	.ms-name {
++		font-size: 0.8125rem;
++		font-weight: 700;
++		color: #0f172a;
++	}
++	.ms-score-high {
++		background: #ecfdf5;
++		color: #059669;
++		font-size: 0.625rem;
++		font-weight: 800;
++		padding: 0.125rem 0.375rem;
++		border-radius: 4px;
++	}
++	.ms-score-mid {
++		background: #fffbeb;
++		color: #d97706;
++		font-size: 0.625rem;
++		font-weight: 800;
++		padding: 0.125rem 0.375rem;
++		border-radius: 4px;
++	}
++	.ms-score-low {
++		background: #f8fafc;
++		color: #64748b;
++		font-size: 0.625rem;
++		font-weight: 800;
++		padding: 0.125rem 0.375rem;
++		border-radius: 4px;
++	}
++	.ms-top {
++		display: flex;
++		justify-content: space-between;
++		align-items: center;
++		margin-bottom: 0.125rem;
++	}
++
++	@media (max-width: 900px) {
++		.clarity-grid {
++			grid-template-columns: 1fr;
++		}
++		.clarity-section {
++			border-right: none;
++			border-bottom: 1px solid #f1f5f9;
++		}
++		.clarity-form-grid {
++			grid-template-columns: 1fr 1fr;
++		}
++		.cost-strip {
++			flex-wrap: wrap;
++		}
++	}
++
++	/* ├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É HUB VIEW STYLES ├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É */
++	.hub-shell { max-width: 1200px; margin: 0 auto; padding: 2rem 2.5rem; margin-top: 64px; min-height: calc(100vh - 64px); background: #f8fafc; }
++	.hub-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
++	.hub-header-left { display: flex; align-items: center; }
++	.hub-brand { display: flex; align-items: center; gap: 0.875rem; }
++	.hub-brand-icon { width: 3rem; height: 3rem; border-radius: 1rem; background: linear-gradient(135deg, #f97316, #ea580c); display: flex; align-items: center; justify-content: center; color: white; box-shadow: 0 4px 12px rgba(249,115,22,0.25); }
++	.hub-brand-title { font-family: 'Outfit', sans-serif; font-size: 1.5rem; font-weight: 800; color: #0f172a; }
++	.hub-brand-sub { font-size: 0.8125rem; color: #64748b; font-weight: 500; }
++	.hub-header-right { display: flex; gap: 0.5rem; }
++	.hub-action-btn { display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.5rem 1rem; font-size: 0.8125rem; font-weight: 700; border-radius: 0.625rem; text-decoration: none; transition: all 0.2s; background: #0f172a; color: white; }
++	.hub-action-btn:hover { background: #1e293b; transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0,0,0,0.15); }
++	.hub-action-secondary { background: white; color: #64748b; border: 1px solid #e2e8f0; }
++	.hub-action-secondary:hover { background: #f8fafc; color: #0f172a; border-color: #94a3b8; }
++
++	/* Footprint Bar */
++	.hub-footprint { background: white; border: 1.5px solid #e2e8f0; border-radius: 1rem; padding: 1.25rem 1.5rem; margin-bottom: 2rem; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
++	.hub-footprint-ready { display: flex; align-items: center; gap: 1rem; }
++	.hub-fp-icon { width: 2.5rem; height: 2.5rem; border-radius: 0.75rem; background: #ecfdf5; color: #059669; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
++	.hub-fp-info { flex: 1; min-width: 0; }
++	.hub-fp-label { font-size: 0.625rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #94a3b8; margin-bottom: 0.125rem; }
++	.hub-fp-values { font-size: 0.875rem; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
++	.hub-fp-dot { width: 4px; height: 4px; border-radius: 50%; background: #cbd5e1; }
++	.hub-fp-edit-btn { display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.5rem 1rem; font-size: 0.75rem; font-weight: 700; color: #64748b; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0.5rem; cursor: pointer; transition: all 0.15s; flex-shrink: 0; }
++	.hub-fp-edit-btn:hover { color: #0f172a; border-color: #94a3b8; background: white; }
++
++	/* Sections */
++	.hub-section { margin-bottom: 2.5rem; }
++	.hub-section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
++	.hub-section-title { font-family: 'Outfit', sans-serif; font-size: 1.125rem; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 0.5rem; }
++	.hub-section-count { font-size: 0.75rem; font-weight: 800; background: #f1f5f9; color: #64748b; padding: 0.125rem 0.625rem; border-radius: 999px; }
++
++	/* Card Grid */
++	.hub-card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
++	.hub-card { background: white; border: 1.5px solid #e2e8f0; border-radius: 1rem; padding: 1.25rem; text-align: left; cursor: pointer; transition: all 0.2s; text-decoration: none; display: flex; flex-direction: column; color: inherit; }
++	.hub-card:hover { border-color: #94a3b8; box-shadow: 0 8px 24px rgba(0,0,0,0.06); transform: translateY(-2px); }
++	.hub-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
++	.hub-card-title { font-size: 0.9375rem; font-weight: 700; color: #0f172a; margin-bottom: 0.25rem; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
++	.hub-card-sub { font-size: 0.75rem; color: #64748b; margin-bottom: 0.75rem; flex: 1; }
++	.hub-card-footer { display: flex; align-items: center; justify-content: space-between; padding-top: 0.75rem; border-top: 1px solid #f1f5f9; }
++	.hub-card-meta { font-size: 0.6875rem; font-weight: 600; color: #94a3b8; }
++	.hub-card-action { font-size: 0.6875rem; font-weight: 700; color: #f97316; display: flex; align-items: center; gap: 0.25rem; }
++	.hub-card-amount { font-size: 0.6875rem; font-weight: 800; color: #059669; background: #ecfdf5; padding: 0.125rem 0.5rem; border-radius: 999px; }
++	.hub-card-status { font-size: 0.5625rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #94a3b8; background: #f1f5f9; padding: 0.125rem 0.375rem; border-radius: 999px; }
++
++	/* Badge variants */
++	.hub-card-badge { font-size: 0.5625rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; padding: 0.1875rem 0.5rem; border-radius: 999px; display: inline-flex; align-items: center; gap: 0.25rem; }
++	.badge-program { background: #fff7ed; color: #ea580c; }
++	.badge-unlocked { background: #fef3c7; color: #b45309; }
++	.badge-saved { background: #eef2ff; color: #6366f1; }
++	.badge-doc { background: #ecfdf5; color: #059669; }
++
++	/* Program card hover accent */
++	.hub-card-program:hover { border-color: #f97316; }
++	.hub-card-scholarship:hover { border-color: #6366f1; }
++	.hub-card-doc:hover { border-color: #059669; }
++
++	/* Add card */
++	.hub-card-add { border-style: dashed; border-color: #e2e8f0; align-items: center; justify-content: center; gap: 0.5rem; min-height: 120px; background: #fafbfc; }
++	.hub-card-add:hover { border-color: #94a3b8; background: white; }
++	.hub-card-add-text { font-size: 0.8125rem; font-weight: 700; color: #94a3b8; }
++
++	/* Empty states */
++	.hub-empty { text-align: center; padding: 2.5rem 1.5rem; background: #fafbfc; border: 1.5px dashed #e2e8f0; border-radius: 1rem; }
++	.hub-empty-title { font-size: 0.9375rem; font-weight: 700; color: #94a3b8; margin-bottom: 0.25rem; }
++	.hub-empty-sub { font-size: 0.8125rem; color: #94a3b8; margin-bottom: 1rem; }
++	.hub-empty-cta { display: inline-flex; align-items: center; gap: 0.375rem; background: #f97316; color: white; font-size: 0.8125rem; font-weight: 700; padding: 0.625rem 1.25rem; border-radius: 999px; text-decoration: none; transition: all 0.2s; }
++	.hub-empty-cta:hover { background: #ea580c; transform: translateY(-1px); }
++
++	/* Back button */
++	.hub-back-btn { display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.8125rem; font-weight: 700; color: #64748b; background: white; border: 1px solid #e2e8f0; border-radius: 0.5rem; padding: 0.5rem 0.875rem; cursor: pointer; transition: all 0.15s; margin-bottom: 1.5rem; }
++	.hub-back-btn:hover { color: #0f172a; border-color: #94a3b8; }
++	.sb-back-btn { display: flex; align-items: center; gap: 0.25rem; font-size: 0.75rem; font-weight: 700; color: #94a3b8; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); border-radius: 0.5rem; padding: 0.375rem 0.625rem; cursor: pointer; transition: all 0.15s; }
++	.sb-back-btn:hover { color: #f97316; background: rgba(249,115,22,0.1); border-color: rgba(249,115,22,0.25); }
++
++	/* Scholarship Detail */
++	.scholarship-detail-header { display: flex; align-items: flex-start; gap: 1.25rem; margin-bottom: 1.5rem; }
++	.sd-icon { width: 3.5rem; height: 3.5rem; border-radius: 1rem; background: linear-gradient(135deg, #6366f1, #4f46e5); color: white; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
++	.sd-title { font-family: 'Outfit', sans-serif; font-size: 1.75rem; font-weight: 800; color: #0f172a; line-height: 1.2; }
++	.sd-provider { font-size: 0.875rem; color: #64748b; margin-top: 0.25rem; }
++	.sd-amount { display: inline-block; font-size: 0.8125rem; font-weight: 800; color: #059669; background: #ecfdf5; padding: 0.25rem 0.75rem; border-radius: 999px; margin-top: 0.5rem; }
++
++	@media (max-width: 768px) {
++		.hub-shell { padding: 1rem; }
++		.hub-card-grid { grid-template-columns: 1fr; }
++		.hub-header { flex-direction: column; align-items: flex-start; }
++	}
++</style>
+\ No newline at end of file

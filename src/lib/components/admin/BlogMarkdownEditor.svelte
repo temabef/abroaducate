@@ -129,7 +129,6 @@
 </div>
 
 <style>
-  .prose img { max-width: 100%; height: auto; border-radius: 0.5rem; }
+  :global(.prose img) { max-width: 100%; height: auto; border-radius: 0.5rem; }
 </style>
-
 

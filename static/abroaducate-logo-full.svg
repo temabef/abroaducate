@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 40" width="1000" height="200">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@700&amp;display=swap');
+      .logo-text {
+        font-family: 'Outfit', sans-serif;
+        font-size: 22px;
+        font-weight: 700;
+        fill: #0f172a;
+        letter-spacing: -0.5px;
+      }
+    </style>
+    <linearGradient id="brandGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f97316" />
+      <stop offset="100%" stop-color="#ea580c" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Icon -->
+  <g transform="translate(2, 2)">
+    <rect width="36" height="36" rx="8" fill="url(#brandGrad)" />
+    <svg x="8" y="8" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 2L12 14M12 2L8 6M12 2L16 6" />
+      <circle cx="12" cy="18" r="3" fill="white" stroke="none" />
+    </svg>
+  </g>
+  
+  <!-- Text -->
+  <text x="48" y="28" class="logo-text">Abroaducate</text>
+</svg>

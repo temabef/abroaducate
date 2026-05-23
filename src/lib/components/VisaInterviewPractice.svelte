@@ -24,7 +24,7 @@
     let pendingAnswer = $state(''); // Store answer during login process
     let isAuthenticated = $state(false);
     let showLimitModal = $state(false);
-    let limitModalMessage = '';
+    let limitModalMessage = $state('');
 
     // Reactive getters
     let currentQuestion = $derived(practiceQuestions[currentQuestionIndex]);

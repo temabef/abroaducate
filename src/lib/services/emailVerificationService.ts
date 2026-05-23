@@ -142,7 +142,7 @@ export class EmailVerificationService {
     /**
      * Analyze an email address for security and verification purposes
      */
-    async analyzeEmail(email: string, supabase: SupabaseClient): Promise<EmailAnalysis> {
+    async analyzeEmail(email: string, supabase?: SupabaseClient): Promise<EmailAnalysis> {
         const domain = email.split('@')[1]?.toLowerCase();
         
         if (!domain) {
@@ -172,7 +172,7 @@ export class EmailVerificationService {
         }
 
         // Check rate limiting
-        const isRateLimited = await this.checkRateLimit(domain, supabase);
+        const isRateLimited = supabase ? await this.checkRateLimit(domain, supabase) : false;
         if (isRateLimited) {
             riskLevel = 'high';
         }

@@ -1,0 +1,13 @@
+{
+  "name": "Lint on Save",
+  "version": "1.0.0",
+  "description": "Runs prettier check + eslint whenever a Svelte or TypeScript file is saved",
+  "when": {
+    "type": "fileEdited",
+    "patterns": ["**/*.svelte", "**/*.ts", "**/*.js"]
+  },
+  "then": {
+    "type": "runCommand",
+    "command": "npm run lint"
+  }
+}

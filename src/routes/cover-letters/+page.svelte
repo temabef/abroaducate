@@ -1,419 +1,219 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
-    import { goto } from '$app/navigation';
-    import CoverLetterGenerator from '$lib/components/CoverLetterGenerator.svelte';
-    import type { PageData } from './$types';
-    import { analytics } from '$lib/utils/posthog';
-    
-    async function signInWithGoogle() {
-        const currentUrl = '/cover-letters';
-        const redirectUrl = `${location.origin}/auth/callback?next=${encodeURIComponent(currentUrl)}`;
-        
-        await supabase.auth.signInWithOAuth({
-            provider: 'google',
-            options: { redirectTo: redirectUrl }
-        });
-    }
-    
-    export let data: PageData;
-    let { supabase, session } = data;
-    
-    let userData: any = null;
-    let existingSOPs: any[] = [];
-    let loading = false;
-    let selectedSOP: any = null;
-    let showGenerator = false;
-    let savedCoverLetters: any[] = [];
-    
-    async function loadUserData() {
-        try {
-            // Load user profile data
-            const { data: profile } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', session?.user?.id)
-                .single();
-                
-            userData = {
-                name: profile?.full_name || session?.user?.user_metadata?.full_name || '',
-                email: session?.user?.email || '',
-                phone: profile?.phone || '',
-                address: profile?.address || ''
-            };
-        } catch (error) {
-            console.error('Error loading user data:', error);
-        }
-    }
-    
-    async function loadExistingSOPs() {
-        try {
-            const { data: sops } = await supabase
-                .from('sops')
-                .select('id, university_name, program_name, content, created_at')
-                .eq('user_id', session?.user?.id)
-                .order('updated_at', { ascending: false });
-                
-            existingSOPs = sops || [];
-        } catch (error) {
-            console.error('Error loading SOPs:', error);
-        }
-    }
-    
-    async function loadSavedCoverLetters() {
-        try {
-            const { data: coverLetters } = await supabase
-                .from('cover_letters')
-                .select('*')
-                .eq('user_id', session?.user?.id)
-                .order('created_at', { ascending: false });
-                
-            savedCoverLetters = coverLetters || [];
-        } catch (error) {
-            console.error('Error loading saved cover letters:', error);
-        }
-    }
-    
-    onMount(async () => {
-        // Track cover letter page view
-        analytics.trackPageView('Cover Letter Generator', {
-            user_id: session?.user?.id,
-            has_saved_letters: savedCoverLetters.length > 0
-        });
-        
-        if (session?.user) {
-            loading = true;
-            await Promise.all([loadUserData(), loadExistingSOPs(), loadSavedCoverLetters()]);
-            loading = false;
-        }
-    });
-    
-    function startGenerator(sopData: any = null) {
-        selectedSOP = sopData;
-        showGenerator = true;
-    }
-    
-    function handleCoverLetterGenerated(event: CustomEvent) {
-        showGenerator = false;
-        // Reload saved cover letters
-        loadSavedCoverLetters();
-    }
-    
-    function viewCoverLetter(coverLetterId: string) {
-        goto(`/cover-letters/${coverLetterId}`);
-    }
-    
-    function editCoverLetter(coverLetterId: string) {
-        goto(`/cover-letters/${coverLetterId}`);
-    }
-    
-    function formatDate(dateString: string) {
-        return new Date(dateString).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
-    }
-    
-    function getPositionTypeIcon(positionType: string): string {
-        const icons = {
-            academic: '🎓',
-            industry: '💼',
-            government: '🏛️',
-            hybrid: '🔬'
-        };
-        return icons[positionType as keyof typeof icons] || '📝';
-    }
-    
-    function getPositionTypeColor(positionType: string): string {
-        const colors = {
-            academic: 'bg-blue-100 text-blue-800',
-            industry: 'bg-green-100 text-green-800',
-            government: 'bg-red-100 text-red-800',
-            hybrid: 'bg-purple-100 text-purple-800'
-        };
-        return colors[positionType as keyof typeof colors] || 'bg-gray-100 text-gray-800';
-    }
+  import { onMount } from 'svelte';
+  import { goto } from '$app/navigation';
+  import CoverLetterGenerator from '$lib/components/CoverLetterGenerator.svelte';
+  import { analytics } from '$lib/utils/posthog';
+  import { Mail, ArrowLeft, ChevronRight, ScrollText, ClipboardList, PenLine, Download, Edit3, GraduationCap, Briefcase, Building2, FlaskConical } from 'lucide-svelte';
 
-    async function exportCoverLetter(coverLetterId: string, jobTitle: string, companyName: string) {
-        try {
-            // Fetch the cover letter content from the API
-            const response = await supabase
-                .from('cover_letters')
-                .select('generated_content')
-                .eq('id', coverLetterId)
-                .single();
-            const content = response.data?.generated_content;
-            if (!content) {
-                alert('Cover letter content not found. Please open and save the cover letter first.');
-                return;
-            }
-            const exportRes = await fetch('/api/export-word', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    content,
-                    title: `${jobTitle} - ${companyName}`,
-                    type: 'cover_letter'
-                })
-            });
-            if (!exportRes.ok) {
-                const errorData = await exportRes.json();
-                throw new Error(errorData.error || 'Export failed');
-            }
-            const blob = await exportRes.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${jobTitle.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_')}_Cover_Letter.docx`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
-        } catch (error) {
-            console.error('Export error:', error);
-            alert(`Export failed: ${error instanceof Error ? error.message : 'Please try again'}`);
-        }
+  let { data } = $props();
+  let { supabase, session } = $derived(data);
+
+  let userData: any = $state(null);
+  let existingSOPs: any[] = $state([]);
+  let loading = $state(false);
+  let selectedSOP: any = $state(null);
+  let showGenerator = $state(false);
+  let savedCoverLetters = $state<any[]>([]);
+
+  async function loadData() {
+    if (!session?.user) return;
+    loading = true;
+    try {
+      const [profileRes, sopsRes, clRes] = await Promise.all([
+        supabase.from('user_profiles').select('*').eq('user_id', session.user.id).maybeSingle(),
+        supabase.from('sops').select('id, university_name, program_name, content').eq('user_id', session.user.id).order('updated_at', { ascending: false }),
+        supabase.from('cover_letters').select('*').eq('user_id', session.user.id).order('created_at', { ascending: false })
+      ]);
+      userData = { name: session.user.user_metadata?.full_name || '', email: session.user.email || '' };
+      existingSOPs = sopsRes.data || [];
+      savedCoverLetters = clRes.data || [];
+    } catch {}
+    loading = false;
+  }
+
+  onMount(async () => {
+    analytics.trackPageView('Cover Letter Generator', { user_id: session?.user?.id });
+    await loadData();
+  });
+
+  function startGenerator(sopData: any = null) {
+    selectedSOP = sopData;
+    showGenerator = true;
+  }
+
+  function handleGenerated() {
+    showGenerator = false;
+    loadData();
+  }
+
+  function formatDate(d: string) {
+    return new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  async function exportCL(id: string, jobTitle: string, company: string) {
+    const { data: cl } = await supabase.from('cover_letters').select('generated_content').eq('id', id).single();
+    if (!cl?.generated_content) return;
+    const res = await fetch('/api/export-word', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content: cl.generated_content, title: `${jobTitle} — ${company}`, type: 'cover-letter' })
+    });
+    if (res.ok) {
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${jobTitle.replace(/[^a-z0-9]/gi, '_')}_Cover_Letter.docx`;
+      a.click();
+      URL.revokeObjectURL(url);
     }
+  }
+
+  const POSITION_ICONS: Record<string, any> = {
+    academic: GraduationCap,
+    industry: Briefcase,
+    government: Building2,
+    hybrid: FlaskConical
+  };
 </script>
 
 <svelte:head>
-    <title>Cover Letter Generator - Smart Professional Applications</title>
-    <meta name="description" content="Generate compelling cover letters for academic and industry positions with AI-powered personalization." />
+  <title>Cover Letter Generator — Abroaducate</title>
+  <meta name="description" content="Generate professional cover letters for academic and industry positions." />
 </svelte:head>
 
-<div class="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 pt-20">
-    <!-- Navigation Breadcrumb -->
-    <div class="bg-white border-b border-gray-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center space-x-2 py-4 text-sm">
-                <a href="/dashboard" class="text-[#2C3580] hover:text-[#3c4d9c] transition-colors">Dashboard</a>
-                <span class="text-gray-400">›</span>
-                <span class="text-gray-600 font-medium">Cover Letters</span>
-            </div>
+<div class="min-h-screen bg-slate-50 pt-20 pb-16">
+  <!-- Page header -->
+  <div class="bg-white border-b border-slate-200">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <a href="/dashboard" class="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-slate-900 transition-colors mb-6">
+        <ArrowLeft size={15} /> Back to Dashboard
+      </a>
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center flex-shrink-0 border border-emerald-100">
+          <Mail size={24} strokeWidth={2} />
         </div>
+        <div>
+          <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Cover Letter Generator</h1>
+          <p class="text-slate-500 mt-1">For academic positions, industry roles, and everything in between.</p>
+        </div>
+      </div>
     </div>
-    
+  </div>
+
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
     {#if loading}
-        <!-- Loading State -->
-        <div class="flex justify-center items-center py-20">
-            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-        </div>
+      <div class="flex justify-center py-20">
+        <div class="w-8 h-8 border-4 border-slate-200 border-t-orange-500 rounded-full animate-spin"></div>
+      </div>
     {:else if showGenerator}
-        <!-- Cover Letter Generator -->
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <CoverLetterGenerator 
-                existingUserData={userData}
-                existingSOPData={selectedSOP}
-                on:coverLetterGenerated={handleCoverLetterGenerated}
-            />
-        </div>
+      <button onclick={() => (showGenerator = false)} class="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-slate-900 transition-colors mb-6">
+        <ArrowLeft size={15} /> Back
+      </button>
+      <CoverLetterGenerator existingUserData={userData} existingSOPData={selectedSOP} on:coverLetterGenerated={handleGenerated} />
     {:else}
-        <!-- Main Content -->
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <!-- Page Header -->
-            <div class="text-center mb-12">
-                <h1 class="text-4xl font-bold text-gray-900 mb-4">
-                    📝 Smart Cover Letter Generator
-                </h1>
-                <p class="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
-                    Create compelling cover letters for academic positions, industry roles, and everything in between. 
-                    Leverage your existing SOP content or start fresh.
-                </p>
-                
+      <!-- Position type cards -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+        {#each [
+          { icon: GraduationCap, label: 'Academic', desc: 'PhD, PostDoc, Research' },
+          { icon: Briefcase, label: 'Industry', desc: 'Corporate, Startup, Tech' },
+          { icon: Building2, label: 'Government', desc: 'Public sector, NGO' },
+          { icon: FlaskConical, label: 'Hybrid', desc: 'Industry R&D, Corporate research' }
+        ] as t}
+          <div class="bg-white border border-slate-200 rounded-xl p-4 text-center shadow-sm">
+            <div class="w-9 h-9 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center mx-auto mb-2">
+              <t.icon size={18} />
+            </div>
+            <div class="text-sm font-bold text-slate-900">{t.label}</div>
+            <div class="text-xs text-slate-500 mt-0.5">{t.desc}</div>
+          </div>
+        {/each}
+      </div>
 
-            </div>
-            
-            <!-- Position Type Overview -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-                <div class="bg-gradient-to-r from-[#2C3580] to-[#3c4d9c] text-white rounded-lg p-6 text-center">
-                    <div class="text-3xl mb-3">🎓</div>
-                    <h3 class="font-semibold mb-2">Academic Positions</h3>
-                    <p class="text-sm opacity-90">PhD, PostDoc, Professor, Research Scientist</p>
+      <!-- Actions -->
+      <div class="flex flex-wrap gap-3 mb-10">
+        <button onclick={() => startGenerator()} class="px-6 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-colors shadow-sm">
+          Create new cover letter
+        </button>
+        {#if existingSOPs.length > 0}
+          <select
+            onchange={(e) => {
+              const id = (e.target as HTMLSelectElement)?.value;
+              if (id) startGenerator(existingSOPs.find(s => s.id === id));
+              (e.target as HTMLSelectElement).value = '';
+            }}
+            class="px-4 py-3 border border-slate-200 rounded-xl text-sm text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+          >
+            <option value="">Use existing SOP as base…</option>
+            {#each existingSOPs as sop}
+              <option value={sop.id}>{sop.university_name} — {sop.program_name}</option>
+            {/each}
+          </select>
+        {/if}
+      </div>
+
+      <!-- Saved cover letters -->
+      {#if savedCoverLetters.length > 0}
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-8">
+          <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+            <h2 class="font-bold text-slate-900">Your cover letters</h2>
+            <span class="text-xs text-slate-500">{savedCoverLetters.length} saved</span>
+          </div>
+          <div class="divide-y divide-slate-100">
+            {#each savedCoverLetters as cl}
+              {@const Icon = POSITION_ICONS[cl.position_type] ?? Mail}
+              <div class="px-6 py-4 flex items-center gap-4 hover:bg-slate-50 transition-colors">
+                <div class="w-9 h-9 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center flex-shrink-0">
+                  <Icon size={16} />
                 </div>
-                
-                <div class="bg-gradient-to-r from-[#2C3580] to-[#3c4d9c] text-white rounded-lg p-6 text-center">
-                    <div class="text-3xl mb-3">💼</div>
-                    <h3 class="font-semibold mb-2">Industry Roles</h3>
-                    <p class="text-sm opacity-90">Corporate, Startup, Consulting, Tech</p>
+                <div class="flex-1 min-w-0">
+                  <div class="font-semibold text-slate-900 text-sm truncate">{cl.job_title}</div>
+                  <div class="text-xs text-slate-500">{cl.company_name} · {cl.word_count || 0} words · {formatDate(cl.created_at)}</div>
                 </div>
-                
-                <div class="bg-gradient-to-r from-[#2C3580] to-[#3c4d9c] text-white rounded-lg p-6 text-center">
-                    <div class="text-3xl mb-3">🏛️</div>
-                    <h3 class="font-semibold mb-2">Government/NGO</h3>
-                    <p class="text-sm opacity-90">Public sector, Policy, International</p>
+                <div class="flex gap-2 flex-shrink-0">
+                  <button onclick={() => goto(`/cover-letters/${cl.id}`)} class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors">
+                    <Edit3 size={12} /> Edit
+                  </button>
+                  <button onclick={() => exportCL(cl.id, cl.job_title, cl.company_name)} class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors">
+                    <Download size={12} /> Export
+                  </button>
                 </div>
-                
-                <div class="bg-gradient-to-r from-[#2C3580] to-[#3c4d9c] text-white rounded-lg p-6 text-center">
-                    <div class="text-3xl mb-3">🔬</div>
-                    <h3 class="font-semibold mb-2">Hybrid Roles</h3>
-                    <p class="text-sm opacity-90">Industry R&D, Corporate Research</p>
-                </div>
-            </div>
-            
-            <!-- Action Buttons -->
-            <div class="text-center mb-12">
-                <div class="inline-flex flex-col sm:flex-row gap-4">
-                    <button
-                        onclick={() => startGenerator()}
-                        class="px-8 py-4 bg-[#2C3580]  text-white rounded-lg hover:bg-[#3c4d9c] transition-all font-semibold text-lg shadow-lg"
-                    >
-                        ✨ Create New Cover Letter
-                    </button>
-                    
-                    {#if session?.user && existingSOPs.length > 0}
-                        <div class="relative">
-                            <select 
-                                onchange={(e) => {
-                                    const sopId = (e.target as HTMLSelectElement)?.value;
-                                    if (sopId) {
-                                        const sop = existingSOPs.find(s => s.id === sopId);
-                                        startGenerator(sop);
-                                    }
-                                }}
-                                class="px-6 py-4 border-2 border-indigo-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-700 bg-white"
-                            >
-                                <option value="">📄 Use Existing SOP Data</option>
-                                {#each existingSOPs as sop}
-                                    <option value={sop.id}>{sop.university_name} - {sop.program_name}</option>
-                                {/each}
-                            </select>
-                        </div>
-                    {/if}
-                </div>
-            </div>
-            
-            <!-- Saved Cover Letters -->
-            {#if session?.user && savedCoverLetters.length > 0}
-                <div class="bg-white rounded-lg shadow-sm border">
-                    <div class="border-b bg-gradient-to-r from-gray-50 to-indigo-50 px-6 py-4">
-                        <h2 class="text-xl font-bold text-gray-900">📋 Your Cover Letters</h2>
-                        <p class="text-gray-600">Manage and view your saved cover letters</p>
-                    </div>
-                    
-                    <div class="divide-y divide-gray-200">
-                        {#each savedCoverLetters as coverLetter}
-                            <div class="p-6 hover:bg-gray-50 transition-colors">
-                                <div class="flex items-center justify-between">
-                                    <div class="flex-1">
-                                        <div class="flex items-center gap-3 mb-2">
-                                            <span class="text-2xl">{getPositionTypeIcon(coverLetter.position_type)}</span>
-                                            <div>
-                                                <h3 class="text-lg font-semibold text-gray-900">{coverLetter.job_title}</h3>
-                                                <p class="text-gray-600">{coverLetter.company_name}</p>
-                                            </div>
-                                            <span class={`px-3 py-1 rounded-full text-xs font-medium ${getPositionTypeColor(coverLetter.position_type)}`}>
-                                                {coverLetter.position_type}
-                                            </span>
-                                        </div>
-                                        
-                                        <div class="flex items-center gap-4 text-sm text-gray-500">
-                                            <span>📝 {coverLetter.word_count} words</span>
-                                            <span>📅 {formatDate(coverLetter.created_at)}</span>
-                                            {#if coverLetter.application_deadline}
-                                                <span>⏰ Deadline: {formatDate(coverLetter.application_deadline)}</span>
-                                            {/if}
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="flex gap-2">
-                                        <button
-                                            onclick={() => viewCoverLetter(coverLetter.id)}
-                                            class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm"
-                                        >
-                                            ✏️ Edit
-                                        </button>
-                                        <button
-                                            onclick={() => exportCoverLetter(coverLetter.id, coverLetter.job_title, coverLetter.company_name)}
-                                            class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm"
-                                        >
-                                            📤 Export
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        {/each}
-                    </div>
-                </div>
-            {:else if session?.user}
-                <!-- Empty State for Logged In Users -->
-                <div class="text-center py-12">
-                    <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <span class="text-4xl">📝</span>
-                    </div>
-                    <h3 class="text-xl font-semibold text-gray-900 mb-2">No Cover Letters Yet</h3>
-                    <p class="text-gray-600 mb-6">Create your first cover letter to get started</p>
-                    <button
-                        onclick={() => startGenerator()}
-                        class="px-6 py-3 bg-[#2C3580] text-white rounded-lg hover:bg-[#3c4d9c] transition-colors font-medium"
-                    >
-                        Create Your First Cover Letter
-                    </button>
-                </div>
-            {/if}
-            
-            <!-- Manual AdSense block removed (auto ads only) -->
-            
-            <!-- Features & Benefits -->
-            <div class=" grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <span class="text-2xl">🎯</span>
-                    </div>
-                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Position-Specific</h3>
-                    <p class="text-gray-600">Tailored content for academic, industry, and government positions</p>
-                </div>
-                
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <span class="text-2xl">⚡</span>
-                    </div>
-                    <h3 class="text-lg font-semibold text-gray-900 mb-2">AI-Powered</h3>
-                    <p class="text-gray-600">Intelligent content generation that adapts to your background</p>
-                </div>
-                
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <span class="text-2xl">🔄</span>
-                    </div>
-                    <h3 class="text-lg font-semibold text-gray-900 mb-2">SOP Integration</h3>
-                    <p class="text-gray-600">Leverage your existing SOP content for consistent applications</p>
-                </div>
-            </div>
-            
-            <!-- Quick Actions (original position at the bottom) -->
-            <div class="mt-12 text-center">
-                <div class="inline-flex gap-4">
-                    <a 
-                        href="/sop-generator" 
-                        class="px-6 py-3 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all font-medium"
-                    >
-                        📝 Generate SOP
-                    </a>
-                    <a 
-                        href="/sop-review" 
-                        class="px-6 py-3 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all font-medium"
-                    >
-                        🔍 Review SOP
-                    </a>
-                    <a 
-                        href="/dashboard" 
-                        class="px-6 py-3 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all font-medium"
-                    >
-                        🏠 Dashboard
-                    </a>
-                </div>
-            </div>
+              </div>
+            {/each}
+          </div>
         </div>
-    {/if}
-</div>
+      {:else}
+        <div class="bg-white rounded-xl border border-dashed border-slate-300 p-10 text-center mb-8">
+          <div class="w-12 h-12 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3">
+            <Mail size={22} />
+          </div>
+          <p class="font-semibold text-slate-700 mb-1">No cover letters yet</p>
+          <p class="text-sm text-slate-500">Create your first one above.</p>
+        </div>
+      {/if}
 
-<style>
-    .animate-spin {
-        animation: spin 1s linear infinite;
-    }
-    
-    @keyframes spin {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
-    }
-</style> 
+      <!-- Other tools -->
+      <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+        <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Other document tools</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {#each [
+            { href: '/sop', icon: ScrollText, label: 'Statement of Purpose', desc: 'SOP / Motivation Letter' },
+            { href: '/personal-statements', icon: PenLine, label: 'Personal Statement', desc: 'Scholarship & admission' },
+            { href: '/academic-cv', icon: ClipboardList, label: 'CV Templates', desc: 'Free European CV templates' }
+          ] as t}
+            <a href={t.href} class="flex items-center gap-3 p-3 rounded-lg border border-slate-200 hover:border-orange-300 hover:bg-orange-50 transition-all group">
+              <div class="w-8 h-8 rounded-md bg-slate-100 text-slate-500 group-hover:bg-orange-100 group-hover:text-orange-600 flex items-center justify-center transition-colors flex-shrink-0">
+                <t.icon size={15} />
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="text-sm font-bold text-slate-900">{t.label}</div>
+                <div class="text-xs text-slate-500">{t.desc}</div>
+              </div>
+              <ChevronRight size={13} class="text-slate-400 group-hover:text-orange-500 transition-colors" />
+            </a>
+          {/each}
+        </div>
+      </div>
+    {/if}
+  </div>
+</div>

@@ -293,7 +293,7 @@
                                             <!-- Status Dropdown -->
                                             <select 
                                                 value={document.status}
-                                                on:change={(e) => updateDocumentStatus(document.id, (e.target as HTMLSelectElement).value)}
+                                                on:change={(e) => updateDocumentStatus(document.id, (e.target as HTMLSelectElement).value as 'in_progress' | 'not_started' | 'completed' | 'uploaded')}
                                                 class="text-xs px-2 py-1 rounded border focus:outline-none focus:ring-2 focus:ring-blue-500 {getStatusColor(document.status)}"
                                             >
                                                 <option value="not_started">Not Started</option>

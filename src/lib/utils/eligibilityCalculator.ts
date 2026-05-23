@@ -255,7 +255,7 @@ function generatePathwayInfo(data: DiagnosticData): PathwayInfo | undefined {
   
   // Get pathway rule for first target country
   const targetCountry = data.targetCountries[0] || 'United States';
-  const rule = getPathwayRule(targetCountry, pathwayType);
+  const rule = getPathwayRule(pathwayType, targetCountry);
   
   if (!rule) {
     return {

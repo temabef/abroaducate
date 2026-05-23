@@ -40,8 +40,8 @@
 			<div class="footer-col">
 				<div class="footer-col-title">Resources</div>
 				<a href="/blog" class="footer-link">Blog</a>
-				<a href="/privacy" class="footer-link">Privacy</a>
-				<a href="/terms" class="footer-link">Terms</a>
+				<a href="/privacy" class="footer-link">Privacy Policy</a>
+				<a href="/terms" class="footer-link">Terms of Service</a>
 				<a href="/refund-policy" class="footer-link">Refund Policy</a>
 			</div>
 			<div class="footer-col">
@@ -83,23 +83,6 @@
 		display: flex;
 		align-items: center;
 		gap: 0.625rem;
-	}
-
-	.footer-logo-icon {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 2rem;
-		height: 2rem;
-		border-radius: 0.5rem;
-		background: linear-gradient(135deg, var(--brand-orange) 0%, var(--brand-orange-hover) 100%);
-	}
-
-	.footer-logo-text {
-		font-family: 'Outfit', sans-serif;
-		font-size: 1rem;
-		font-weight: 700;
-		color: var(--brand-navy);
 	}
 
 	.footer-tagline {

@@ -176,7 +176,7 @@ export class OCRService {
 
   // Utility method to suggest grade mappings for different systems
   suggestGradeMapping(grade: string, country: string): string[] {
-    const suggestions: { [key: string]: string[] } = {
+    const suggestions: Record<string, Record<string, string[]>> = {
       nigeria: {
         'A': ['A', '70-100'],
         'B': ['B', '60-69'],

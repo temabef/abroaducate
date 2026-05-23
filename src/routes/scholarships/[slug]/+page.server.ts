@@ -49,12 +49,49 @@ export const load: PageServerLoad = async ({ params, locals: { getSession, supab
     // Continue even if related scholarships fail
   }
   
+  // Check for user-specific cached strategy in workspace_data
+  let userStrategy: any = null;
+  if (session?.user?.id) {
+    const { data: userProfile } = await supabase
+      .from('user_profiles')
+      .select('workspace_data')
+      .eq('user_id', session.user.id)
+      .order('updated_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    
+    userStrategy = userProfile?.workspace_data?.scholarship_strategies?.[scholarshipId] || null;
+  }
+
+  // Fetch user's generated documents for strategy context
+  let userDocuments: any[] = [];
+  if (session?.user?.id) {
+    try {
+      const [sopsRes, clRes, psRes, cvRes] = await Promise.all([
+        supabase.from('sops').select('id, university_name, program_name, status, word_count, updated_at', { count: 'exact' }).eq('user_id', session.user.id).order('updated_at', { ascending: false }),
+        supabase.from('cover_letters').select('id, university_name, program_name, status, word_count, updated_at', { count: 'exact' }).eq('user_id', session.user.id).order('updated_at', { ascending: false }),
+        supabase.from('personal_statements').select('id, university_name, program_name, status, word_count, updated_at', { count: 'exact' }).eq('user_id', session.user.id).order('updated_at', { ascending: false }),
+        supabase.from('academic_cvs').select('id, university_name, program_name, status, word_count, updated_at').eq('user_id', session.user.id).order('updated_at', { ascending: false })
+      ]);
+      userDocuments = [
+        ...(sopsRes.data || []).map((s: any) => ({ ...s, type: 'sop', typeName: 'Statement of Purpose', icon: '📝' })),
+        ...(clRes.data || []).map((c: any) => ({ ...c, type: 'cover-letter', typeName: 'Cover Letter', icon: '📄' })),
+        ...(psRes.data || []).map((p: any) => ({ ...p, type: 'personal-statement', typeName: 'Personal Statement', icon: '✍️' })),
+        ...(cvRes.data || []).map((v: any) => ({ ...v, type: 'academic-cv', typeName: 'Academic CV', icon: '🎓' }))
+      ].sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
+    } catch (err) {
+      console.error("Error fetching user documents:", err);
+    }
+  }
+
   // Return serializable data
   return {
     session,
     scholarship,
     savedStatus,
     relatedScholarships,
+    userStrategy,
+    userDocuments,
     winStrategy: (async () => {
       // Only return stored AI win strategy to paid users.
       if (!session?.user?.id) return null;

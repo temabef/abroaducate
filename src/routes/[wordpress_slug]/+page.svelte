@@ -6,6 +6,7 @@
 	
 	$: post = data.post;
 	$: seo = data.seo;
+	$: related = data.related ?? [];
 	
 	// Handle image loading errors
 	function handleImageError(event: Event) {
@@ -307,11 +308,6 @@
 							}
 						})()}
 					</div>
-					
-					<!-- In-content Ad -->
-					<div class="my-8 p-4 bg-gray-50 rounded-lg text-center">
-						<!-- Manual AdSense block removed (auto ads only) -->
-					</div>
 				</article>
 
 				<!-- Sidebar -->
@@ -340,6 +336,49 @@
 			</div>
 		</div>
 	</section>
+
+	<!-- Related Posts -->
+	{#if related && related.length > 0}
+		<section class="related-section">
+			<div class="related-inner">
+				<h2 class="related-heading">Related Articles</h2>
+				<div class="related-grid">
+					{#each related as rp}
+						<a href="/{rp.slug}" class="related-card">
+							{#if rp.cover_image_url}
+								<div class="related-thumb">
+									<img
+										src={rp.cover_image_url}
+										alt={rp.title}
+										class="related-thumb-img"
+										onerror={(e) => {
+											const t = e.target as HTMLImageElement;
+											if (t && t.parentElement) {
+												t.style.display = 'none';
+												t.parentElement.classList.add('related-thumb-fallback');
+											}
+										}}
+									/>
+								</div>
+							{:else}
+								<div class="related-thumb related-thumb-fallback"></div>
+							{/if}
+							<div class="related-body">
+								<div class="related-meta">
+									<time>{new Date(rp.published_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</time>
+								</div>
+								<h3 class="related-title">{rp.title}</h3>
+								{#if rp.excerpt}
+									<p class="related-excerpt">{rp.excerpt}</p>
+								{/if}
+								<span class="related-cta">Read more →</span>
+							</div>
+						</a>
+					{/each}
+				</div>
+			</div>
+		</section>
+	{/if}
 </main>
 
 <style>
@@ -581,37 +620,57 @@
 	
 	/* Ensure content doesn't overflow */
 	:global(.blog-content *) {
-		background: transparent !important;
-		max-width: 100% !important;
 		box-sizing: border-box !important;
-		overflow-x: hidden !important;
+	}
+	/* Only wipe background on elements without inline styles */
+	:global(.blog-content *:not([style])) {
+		background: transparent !important;
 	}
 	
-	/* Prevent any elements from causing horizontal scroll */
+	/* Grid and flex containers must NOT have max-width: 100% forced on them */
+	:global(.blog-content div[style*="display:grid"]),
+	:global(.blog-content div[style*="display: grid"]) {
+		max-width: 100% !important;
+		width: 100% !important;
+	}
+	:global(.blog-content div[style*="display:grid"] > div),
+	:global(.blog-content div[style*="display: grid"] > div) {
+		max-width: none !important;
+		min-width: 0 !important;
+	}
+
+	/* Only pre elements scroll horizontally */
 	:global(.blog-content pre) {
 		overflow-x: auto !important;
-		max-width: 100% !important;
-		white-space: pre-wrap !important;
-		word-wrap: break-word !important;
 	}
 	
-	/* Force long words and URLs to break */
-	:global(.blog-content p, .blog-content li, .blog-content div) {
+	/* Everything else: no overflow clipping */
+	:global(.blog-content li),
+	:global(.blog-content p),
+	:global(.blog-content div),
+	:global(.blog-content span) {
+		overflow: visible !important;
+	}
+	
+	/* Force long words and URLs to break — only on text containers */
+	:global(.blog-content p),
+	:global(.blog-content li),
+	:global(.blog-content td),
+	:global(.blog-content th) {
 		word-break: break-word !important;
 		overflow-wrap: break-word !important;
-		hyphens: auto !important;
 	}
 	
 	/* Specific handling for text with asterisks that might not convert */
 	:global(.blog-content) {
-		white-space: normal !important;
-		word-wrap: break-word !important;
+		white-space: normal;
+		word-wrap: break-word;
 	}
 	
-	/* Ensure no element can cause horizontal scroll */
-	:global(.blog-content > *) {
-		max-width: 100% !important;
-		box-sizing: border-box !important;
+	/* Ensure no element can cause horizontal scroll — but don't break grid children */
+	:global(.blog-content > *:not(div)) {
+		max-width: 100%;
+		box-sizing: border-box;
 	}
 	
 	/* Remove any unwanted arrows or interactive elements */
@@ -729,51 +788,13 @@
 		display: none !important;
 	}
 	
-	/* Reset any Tailwind/DaisyUI utility classes on lists */
+	/* Bullets — targeted, not nuclear */
 	:global(.blog-content ul) {
-		@apply !list-none;
+		list-style: none !important;
 	}
-	
 	:global(.blog-content li) {
-		@apply !list-none;
 		position: relative !important;
 	}
-	
-	/* Completely disable any hover effects that might add arrows */
-	:global(.blog-content li:hover::after) {
-		content: none !important;
-		display: none !important;
-	}
-	
-	:global(.blog-content li:hover::before) {
-		content: "•" !important;
-		display: inline-block !important;
-	}
-	
-	/* NUCLEAR OPTION - Override EVERYTHING */
-	:global(.blog-content) * {
-		position: relative !important;
-	}
-	
-	:global(.blog-content) *::after {
-		content: "" !important;
-		display: none !important;
-		visibility: hidden !important;
-		opacity: 0 !important;
-		width: 0 !important;
-		height: 0 !important;
-	}
-	
-	:global(.blog-content) *::before {
-		content: "" !important;
-		display: none !important;
-		visibility: hidden !important;
-		opacity: 0 !important;
-		width: 0 !important;
-		height: 0 !important;
-	}
-	
-	/* Force our bullets back */
 	:global(.blog-content ul li::before) {
 		content: "•" !important;
 		display: inline-block !important;
@@ -785,15 +806,12 @@
 		color: #374151 !important;
 		font-weight: bold !important;
 	}
-	
 	:global(.blog-content ol) {
 		counter-reset: list-counter !important;
 	}
-	
 	:global(.blog-content ol li) {
 		counter-increment: list-counter !important;
 	}
-	
 	:global(.blog-content ol li::before) {
 		content: counter(list-counter) "." !important;
 		display: inline-block !important;
@@ -874,5 +892,104 @@
 	
 	:global(.blog-content > *:last-child) {
 		margin-bottom: 0;
+	}
+
+	/* ── Related Posts ── */
+	.related-section {
+		background: #f8fafc;
+		border-top: 1px solid #e2e8f0;
+		padding: 3.5rem 1.5rem 5rem;
+	}
+	.related-inner {
+		max-width: 72rem;
+		margin: 0 auto;
+	}
+	.related-heading {
+		font-family: 'Outfit', sans-serif;
+		font-size: 1.4rem;
+		font-weight: 800;
+		color: #0f172a;
+		letter-spacing: -0.02em;
+		margin-bottom: 1.75rem;
+	}
+	.related-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+		gap: 1.25rem;
+	}
+	.related-card {
+		background: white;
+		border: 1px solid #e2e8f0;
+		border-radius: 1rem;
+		overflow: hidden;
+		text-decoration: none;
+		display: flex;
+		flex-direction: column;
+		transition: transform 0.2s, box-shadow 0.2s;
+	}
+	.related-card:hover {
+		transform: translateY(-3px);
+		box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+	}
+	.related-thumb {
+		aspect-ratio: 16 / 9;
+		overflow: hidden;
+		background: #f1f5f9;
+		flex-shrink: 0;
+	}
+	.related-thumb-fallback {
+		background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+	}
+	.related-thumb-img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		transition: transform 0.3s;
+		display: block;
+	}
+	.related-card:hover .related-thumb-img {
+		transform: scale(1.04);
+	}
+	.related-body {
+		padding: 1rem 1.1rem 1.25rem;
+		display: flex;
+		flex-direction: column;
+		flex: 1;
+	}
+	.related-meta {
+		font-size: 0.75rem;
+		color: #64748b;
+		margin-bottom: 0.5rem;
+	}
+	.related-title {
+		font-family: 'Outfit', sans-serif;
+		font-size: 0.95rem;
+		font-weight: 700;
+		color: #0f172a;
+		line-height: 1.4;
+		margin-bottom: 0.5rem;
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+	.related-excerpt {
+		font-size: 0.82rem;
+		color: #475569;
+		line-height: 1.6;
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+		flex: 1;
+		margin-bottom: 0.75rem;
+	}
+	.related-cta {
+		font-size: 0.8rem;
+		font-weight: 600;
+		color: #f97316;
+		margin-top: auto;
 	}
 </style>

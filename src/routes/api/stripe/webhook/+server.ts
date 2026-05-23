@@ -4,7 +4,7 @@ import Stripe from 'stripe';
 import { STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET } from '$env/static/private';
 
 const stripe = new Stripe(STRIPE_SECRET_KEY, {
-    apiVersion: '2024-06-20'
+    apiVersion: '2025-05-28.basil'
 });
 import { createClient } from '@supabase/supabase-js';
 import { PUBLIC_SUPABASE_URL } from '$env/static/public';
@@ -58,9 +58,10 @@ export const POST: RequestHandler = async ({ request }) => {
                     console.log(`[WEBHOOK] ✅ Successfully processed checkout.session.completed`);
                     break;
 
+                case 'customer.subscription.created':
                 case 'customer.subscription.updated':
                     await handleSubscriptionUpdated(event.data.object);
-                    console.log(`[WEBHOOK] ✅ Successfully processed customer.subscription.updated`);
+                    console.log(`[WEBHOOK] ✅ Successfully processed ${event.type}`);
                     break;
 
                 case 'customer.subscription.deleted':
@@ -77,12 +78,7 @@ export const POST: RequestHandler = async ({ request }) => {
                     await handlePaymentFailed(event.data.object);
                     console.log(`[WEBHOOK] ✅ Successfully processed invoice.payment_failed`);
                     break;
-                    
-                case 'customer.subscription.updated':
-                    await handleSubscriptionUpdated(event.data.object);
-                    console.log(`[WEBHOOK] ✅ Successfully processed customer.subscription.updated`);
-                    break;
-                    
+
                 case 'checkout.session.async_payment_failed':
                     console.log(`[WEBHOOK] ℹ️  Async payment failed for session`);
                     break;
@@ -128,6 +124,10 @@ async function handleCheckoutCompleted(session: any) {
         
         const userId = session.metadata?.user_id;
         const planType = session.metadata?.plan_type;
+
+        if (session.mode === 'payment' && session.metadata?.pack_type) {
+            return handleCreditCheckoutCompleted(session);
+        }
 
         if (!userId || !planType) {
             console.error(`[CHECKOUT] ❌ Missing metadata - userId: ${userId}, planType: ${planType}`);
@@ -278,6 +278,44 @@ async function handlePaymentSucceeded(invoice: any) {
             } else {
                 try { analytics.trackEvent('invoice_payment_succeeded', { user_id: userId }); } catch {}
             }
+
+            // Top up 500 credits on every successful subscription renewal.
+            // This is the "grandfather" treatment for legacy subscribers who
+            // are still being charged monthly on the old plan.
+            // When they register on the new platform their balance gets topped
+            // up automatically each billing cycle.
+            const SUBSCRIPTION_RENEWAL_CREDITS = 500;
+            const { data: profile } = await supabaseAdmin
+                .from('user_profiles')
+                .select('credits')
+                .eq('user_id', userId)
+                .maybeSingle();
+
+            if (profile !== null) {
+                // User exists on new platform — top up their credits
+                const newCredits = (profile?.credits ?? 0) + SUBSCRIPTION_RENEWAL_CREDITS;
+                const { error: creditErr } = await supabaseAdmin
+                    .from('user_profiles')
+                    .update({ credits: newCredits })
+                    .eq('user_id', userId);
+
+                if (!creditErr) {
+                    // Log the top-up in credit_transactions for audit trail
+                    await supabaseAdmin.from('credit_transactions').insert({
+                        user_id: userId,
+                        amount: SUBSCRIPTION_RENEWAL_CREDITS,
+                        action_type: 'SUBSCRIPTION_RENEWAL_TOPUP'
+                    });
+                    console.log(`[PAYMENT_SUCCEEDED] ✅ Topped up ${SUBSCRIPTION_RENEWAL_CREDITS} credits for subscriber ${userId}. New balance: ${newCredits}`);
+                } else {
+                    console.error('[PAYMENT_SUCCEEDED] ❌ Failed to top up credits:', creditErr);
+                }
+            } else {
+                // User hasn't registered on the new platform yet — nothing to do.
+                // When they sign up, they'll get 3 free credits. Their next renewal
+                // will trigger this handler and top them up to 503.
+                console.log(`[PAYMENT_SUCCEEDED] ℹ️  Subscriber ${userId} not yet on new platform — skipping credit top-up.`);
+            }
         }
 
     } catch (error) {
@@ -345,4 +383,74 @@ async function sendPaymentFailedNotification(customerId: string, invoice: any) {
     } catch (error) {
         console.error('Error sending payment failed notification:', error);
     }
-} 
+}
+
+/**
+ * Handle a completed one-time credit pack purchase via Stripe.
+ * Mirrors the Paystack credit flow exactly:
+ *   1. Re-verify the payment with Stripe (replay-attack protection)
+ *   2. Read credits_to_add from session metadata
+ *   3. Add credits to user_profiles.credits
+ */
+async function handleCreditCheckoutCompleted(session: any) {
+    try {
+        const userId = session.metadata?.user_id;
+        const creditsToAdd = parseInt(session.metadata?.credits_to_add ?? '0', 10);
+        const packType = session.metadata?.pack_type;
+
+        if (!userId || !creditsToAdd || isNaN(creditsToAdd)) {
+            console.error('[STRIPE CREDITS] ❌ Missing or invalid metadata — userId:', userId, 'credits:', creditsToAdd);
+            return;
+        }
+
+        // Re-verify the payment status directly with Stripe (prevents replay attacks)
+        const verifiedSession = await stripe.checkout.sessions.retrieve(session.id);
+        if (verifiedSession.payment_status !== 'paid') {
+            console.error('[STRIPE CREDITS] ❌ Payment not confirmed for session:', session.id, 'status:', verifiedSession.payment_status);
+            return;
+        }
+
+        console.log(`[STRIPE CREDITS] ✅ Payment verified. Adding ${creditsToAdd} credits (pack: ${packType}) to user ${userId}`);
+
+        // Fetch current credits
+        const { data: profile, error: profileErr } = await supabaseAdmin
+            .from('user_profiles')
+            .select('credits')
+            .eq('user_id', userId)
+            .single();
+
+        if (profileErr) {
+            console.error('[STRIPE CREDITS] ❌ Error fetching user profile:', profileErr);
+            throw profileErr;
+        }
+
+        const currentCredits = profile?.credits ?? 0;
+        const newCredits = currentCredits + creditsToAdd;
+
+        const { error: updateErr } = await supabaseAdmin
+            .from('user_profiles')
+            .update({ credits: newCredits })
+            .eq('user_id', userId);
+
+        if (updateErr) {
+            console.error('[STRIPE CREDITS] ❌ Error updating credits:', updateErr);
+            throw updateErr;
+        }
+
+        console.log(`[STRIPE CREDITS] ✅ Credits updated: ${currentCredits} → ${newCredits} for user ${userId}`);
+
+        try {
+            analytics.trackEvent('credit_pack_purchased', {
+                user_id: userId,
+                pack_type: packType,
+                credits_added: creditsToAdd,
+                new_balance: newCredits,
+                payment_provider: 'stripe'
+            });
+        } catch {}
+
+    } catch (error) {
+        console.error('[STRIPE CREDITS] ❌ Error handling credit checkout:', error);
+        throw error;
+    }
+}

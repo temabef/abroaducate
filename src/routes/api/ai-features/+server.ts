@@ -13,7 +13,7 @@ export const POST: RequestHandler = async ({ request, locals: { getSession } }) 
 
 	// Define schema for validation
 	const aiFeatureSchema = z.object({
-		type: z.string().min(1).max(50),
+		type: z.enum(['sop_review', 'text_enhancement', 'word_optimization', 'grammar_check', 'plagiarism_check', 'tone_analysis']),
 		content: z.string().min(1).max(10000),
 		options: z.record(z.any()).optional().default({})
 	});
@@ -33,7 +33,7 @@ export const POST: RequestHandler = async ({ request, locals: { getSession } }) 
 		
 		// Create AI feature request
 		const aiRequest: AIFeatureRequest = {
-			type: data.type.trim(),
+			type: data.type,
 			userId: session.user.id,
 			content: data.content.trim(),
 			options: data.options || {}
@@ -85,7 +85,7 @@ export const POST: RequestHandler = async ({ request, locals: { getSession } }) 
 
 		return json({
 			success: true,
-			result: result.data,
+			result: result.result,
 			usage: {
 				current: usageCheck.currentUsage + 1,
 				limit: usageCheck.limit,

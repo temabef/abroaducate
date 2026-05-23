@@ -10,6 +10,7 @@
     export let featureType = ''; // sop, cover_letter, reviews, etc.
     
     const dispatch = createEventDispatcher();
+    void currentPlan;
     
     // Dynamic content based on limit type
     const limitContent = {
@@ -92,15 +93,24 @@
 {#if isOpen}
     <!-- Backdrop -->
     <div 
-        class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4"
         transition:fade={{ duration: 200 }}
-        on:click={closeModal}
+        on:keydown={(e) => e.key === 'Escape' && closeModal()}
+        role="dialog"
+        aria-modal="true"
+        tabindex="-1"
     >
+        <button
+            type="button"
+            class="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm"
+            on:click={closeModal}
+            aria-label="Close modal"
+        ></button>
         <!-- Modal -->
         <div 
-            class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto relative"
+            class="relative z-10 bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
             transition:scale={{ duration: 300, start: 0.9 }}
-            on:click|stopPropagation
+            role="document"
         >
             <!-- Close Button -->
             <button 
@@ -281,7 +291,4 @@
         50% { border-color: rgb(147 51 234); }
     }
     
-    .animate-pulse-border {
-        animation: pulse-border 2s ease-in-out infinite;
-    }
 </style> 

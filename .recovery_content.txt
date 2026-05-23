@@ -1,0 +1,173 @@
+	<div class="hub-section"><div class="hub-section-header"><h2 class="hub-section-title"><FolderOpen size={18} class="text-orange-500" /> My Programs</h2><span class="hub-section-count">{trackedPrograms.length}</span></div>{#if trackedPrograms.length > 0}<div class="hub-card-grid">{#each trackedPrograms as tp}<button class="hub-card hub-card-program" onclick={() => goToProgramDetail(tp.program.id)}><div class="hub-card-top"><span class="hub-card-badge badge-program">{tp.program.country}</span><span class="hub-card-status">{tp.status}</span></div><h3 class="hub-card-title">{tp.program.program_name}</h3><p class="hub-card-sub">{tp.program.university_name}</p><div class="hub-card-footer"><span class="hub-card-meta">Tuition: €{tp.program.tuition_per_semester || 0}/sem</span><span class="hub-card-action">Open <ArrowRight size={12} /></span></div></button>{/each}<a href="/programs" class="hub-card hub-card-add"><PlusCircle size={24} class="text-slate-300" /><span class="hub-card-add-text">Add Program</span></a></div>{:else}<div class="hub-empty"><FolderOpen size={32} class="text-slate-300 mx-auto mb-2" /><p class="hub-empty-title">No programs tracked yet</p><p class="hub-empty-sub">Find programs to start building your strategy.</p><a href="/programs" class="hub-empty-cta"><PlusCircle size={14} /> Find Programs</a></div>{/if}</div>
+	<div class="hub-section"><div class="hub-section-header"><h2 class="hub-section-title"><Award size={18} class="text-indigo-500" /> My Scholarships</h2><span class="hub-section-count">{allHubScholarships.length}</span></div>{#if allHubScholarships.length > 0}<div class="hub-card-grid">{#each allHubScholarships as s}<button class="hub-card hub-card-scholarship" onclick={() => goToScholarshipDetail(s.id)}><div class="hub-card-top">{#if s.hasStrategy}<span class="hub-card-badge badge-unlocked"><Zap size={10} fill="currentColor" /> Strategy</span>{:else}<span class="hub-card-badge badge-saved"><BookOpen size={10} /> Saved</span>{/if}{#if s.amount}<span class="hub-card-amount">{s.amount}</span>{/if}</div><h3 class="hub-card-title">{s.title}</h3><p class="hub-card-sub">{s.provider}</p><div class="hub-card-footer"><span class="hub-card-action">{s.hasStrategy ? 'View Strategy' : 'Details'} <ArrowRight size={12} /></span></div></button>{/each}<a href="/scholarships" class="hub-card hub-card-add"><Award size={24} class="text-slate-300" /><span class="hub-card-add-text">Find Scholarships</span></a></div>{:else}<div class="hub-empty"><Award size={32} class="text-slate-300 mx-auto mb-2" /><p class="hub-empty-title">No scholarships yet</p><a href="/scholarships" class="hub-empty-cta"><Award size={14} /> Browse Scholarships</a></div>{/if}</div>
+	<div class="hub-section"><div class="hub-section-header"><h2 class="hub-section-title"><FileText size={18} class="text-emerald-500" /> My Documents</h2><span class="hub-section-count">{userDocuments.length}</span></div>{#if userDocuments.length > 0}<div class="hub-card-grid">{#each userDocuments as doc}{@const editUrl = doc.type === 'sop' ? `/sop/${doc.id}` : doc.type === 'cover-letter' ? `/cover-letters/${doc.id}` : `/personal-statements/${doc.id}`}<a href={editUrl} class="hub-card hub-card-doc"><div class="hub-card-top"><span class="hub-card-badge badge-doc">{doc.icon} {doc.typeName}</span><span class="hub-card-status">{doc.status || 'draft'}</span></div><h3 class="hub-card-title">{doc.university_name || 'Untitled'}</h3><p class="hub-card-sub">{doc.program_name || doc.typeName}</p><div class="hub-card-footer"><span class="hub-card-meta">{doc.word_count || 0} words</span><span class="hub-card-action">Edit <ArrowRight size={12} /></span></div></a>{/each}</div>{:else}<div class="hub-empty"><FileText size={32} class="text-slate-300 mx-auto mb-2" /><p class="hub-empty-title">No documents yet</p><a href="/sop" class="hub-empty-cta"><FileText size={14} /> Create SOP</a></div>{/if}</div>
+</div>
+{:else if currentView === 'scholarship-detail'}
+<div class="hub-shell">
+	<button onclick={goToHub} class="hub-back-btn"><ChevronLeft size={16} /> Back to Hub</button>
+	{#if detailScholarship}
+		<div class="scholarship-detail-header"><div class="sd-icon"><Award size={28} /></div><div><h1 class="sd-title">{detailScholarship.title}</h1><p class="sd-provider">{detailScholarship.provider || ''}</p>{#if detailScholarship.amount}<span class="sd-amount">{detailScholarship.amount}</span>{/if}</div></div>
+		{#if detailScholarshipStrategy}
+			<div style="margin-top:1.5rem">
+				<div style="background: linear-gradient(135deg, #ecfdf5, #f0fdf4); padding: 1.5rem; border-radius: 1rem; border: 1px solid #a7f3d0; margin-bottom: 2rem;">
+					<span class="hub-card-badge badge-doc border border-emerald-200 bg-white mb-2 text-emerald-700">Clarity Engine Strategy</span>
+					<h3 class="clarity-title mb-2 text-xl font-extrabold text-emerald-900">Your Funding Strategy Outline</h3>
+					<p class="text-emerald-800 font-medium leading-relaxed">{detailScholarshipStrategy.summary}</p>
+				</div>
+
+				<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+					<!-- Match Analysis Card -->
+					<div class="bg-white border rounded-2xl p-6 shadow-sm border-slate-200">
+						<div class="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 mb-5">Match Analysis</div>
+						{#if detailScholarshipStrategy.rubric?.length > 0}
+							<div class="space-y-5">
+								{#each detailScholarshipStrategy.rubric as item}
+									<div>
+										<div class="flex justify-between items-start mb-1">
+											<div class="font-bold text-sm text-slate-800">{item.label}</div>
+										</div>
+										<div class="text-slate-500 text-[13px] leading-snug mb-2">{item.reason}</div>
+										<div class="flex gap-1">
+											{#each [1,2,3] as w}
+												<div class="h-1.5 flex-1 rounded-full border border-black/5 {item.weight >= w ? item.weight === 3 ? 'bg-emerald-500' : item.weight === 2 ? 'bg-amber-400' : 'bg-rose-400' : 'bg-slate-100'}"></div>
+											{/each}
+										</div>
+									</div>
+								{/each}
+							</div>
+						{/if}
+					</div>
+
+					<!-- Action Plan Card -->
+					<div class="bg-white border rounded-2xl p-6 shadow-sm border-slate-200">
+						<div class="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 mb-5">Action Plan</div>
+						{#if detailScholarshipStrategy.top_actions?.length > 0}
+							<div class="space-y-4">
+								{#each detailScholarshipStrategy.top_actions as action, i}
+									<div class="flex gap-3">
+										<div class="flex-shrink-0 w-6 h-6 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-xs font-bold border border-orange-200 mt-0.5">{i+1}</div>
+										<div class="text-[13px] font-medium text-slate-700 leading-relaxed">{action}</div>
+									</div>
+								{/each}
+							</div>
+						{/if}
+					</div>
+
+					<!-- Risks & Narratives Card -->
+					<div class="bg-white border rounded-2xl p-6 shadow-sm border-slate-200">
+						{#if detailScholarshipStrategy.red_flags?.length > 0}
+							<div class="text-[10px] font-extrabold uppercase tracking-widest text-rose-500 mb-5">Risk Factors</div>
+							<ul class="space-y-3 mb-8">
+								{#each detailScholarshipStrategy.red_flags as flag}
+									<li class="flex items-start gap-2 text-[13px] text-slate-600 bg-rose-50 p-2.5 rounded-lg border border-rose-100/50">
+										<AlertTriangle size={14} class="text-rose-500 mt-0.5 flex-shrink-0" />
+										<span class="leading-snug">{flag}</span>
+									</li>
+								{/each}
+							</ul>
+						{/if}
+
+						{#if detailScholarshipStrategy.narrative_angles?.length > 0}
+							<div class="text-[10px] font-extrabold uppercase tracking-widest text-indigo-500 mb-5">SOP Angles</div>
+							<ul class="space-y-3">
+								{#each detailScholarshipStrategy.narrative_angles as angle}
+									<li class="p-3.5 bg-indigo-50/50 rounded-xl text-[13px] font-medium text-indigo-900 border border-indigo-100 leading-relaxed shadow-sm">
+										"{angle}"
+									</li>
+								{/each}
+							</ul>
+						{/if}
+					</div>
+				</div>
+			</div>
+		{:else}
+			<div class="hub-empty" style="margin-top:2rem"><Lock size={32} class="text-slate-300 mx-auto mb-2" /><p class="hub-empty-title">No strategy generated yet</p><p class="hub-empty-sub">Visit the scholarship page to generate a personalized strategy.</p><a href="/scholarships/{detailScholarship.id}" class="hub-empty-cta"><Zap size={14} /> Go to Scholarship Page</a></div>
+		{/if}
+	{/if}
+</div>
+{:else if currentView === 'program-detail'}
+<div class="hub-shell">
+	<button onclick={goToHub} class="hub-back-btn"><ChevronLeft size={16} /> Back to Hub</button>
+
+	<!-- ── MAIN CONTENT ── -->
+	<div>
+		{#if !selectedProgram}
+			<div class="main-empty">
+				<Plane size={32} class="text-slate-300 mx-auto mb-2" />
+				<h3 class="main-empty-title">Select a Program</h3>
+				<p class="main-empty-sub">
+					Choose a program from your tracked list to view its strategy timeline, tracking, and
+					resources.
+				</p>
+				<a href="/programs" class="main-empty-cta">Find Programs <ArrowRight size={16} /></a>
+			</div>
+		{:else}
+			<!-- Program Header -->
+			<div class="main-header">
+				<div class="mh-left">
+					<div class="mh-location">{selectedProgram.country} &middot; {selectedProgram.city}</div>
+					<h2 class="mh-title">{selectedProgram.program_name}</h2>
+					<div class="mh-uni">{selectedProgram.university_name}</div>
+				</div>
+				<div class="mh-right">
+					{#if isSavingWorkspace}
+						<span class="mh-sync saving">Saving...</span>
+					{:else}
+						<span class="mh-sync synced">Synced</span>
+					{/if}
+					<a
+						href={selectedProgram.official_source_url ||
+							selectedProgram.direct_application_url ||
+							'#'}
+						target="_blank"
+						rel="noopener"
+						class="mh-ext-link"
+					>
+						Official Site <ExternalLink size={12} />
+					</a>
+				</div>
+			</div>
+
+			<!-- Strategy Content -->
+			<div class="strategy-content">
+				<!-- CARD 1: Pathway Hero -->
+				<div class="s-card pathway-card">
+					<div class="pathway-icon"><Target size={24} strokeWidth={2.5} /></div>
+					<div class="pathway-body">
+						<div class="pathway-label">Application Pathway</div>
+						<div class="pathway-type">
+							{selectedProgram.funding_pathway?.replace('_', ' ') || 'Standard'}
+						</div>
+						<p class="pathway-desc">
+							{selectedProgram.funding_pathway_explanation ||
+								'Follow the chronological steps below to maximize your chances.'}
+						</p>
+					</div>
+				</div>
+
+				<!-- Cost Strip (compact, above strategy) -->
+				<div class="cost-strip">
+					<div class="cost-strip-item">
+						<span class="cost-strip-label">Tuition</span>
+						<span class="cost-strip-val emerald-text"
+							>€{selectedProgram.tuition_per_semester || 0}/sem</span
+						>
+					</div>
+					<div class="cost-strip-divider"></div>
+					<div class="cost-strip-item">
+						<span class="cost-strip-label">Semester Fee</span>
+						<span class="cost-strip-val">€{selectedProgram.semester_fee || 0}/sem</span>
+					</div>
+					<div class="cost-strip-divider"></div>
+					<div class="cost-strip-item">
+						<span class="cost-strip-label">Application Fee</span>
+						<span class="cost-strip-val">€{selectedProgram.application_fee || 0}</span>
+					</div>
+					<div class="cost-strip-divider"></div>
+					<div class="cost-strip-item">
+						<span class="cost-strip-label">Est. Living Cost</span>
+						<span class="cost-strip-val font-bold"
+							>€{selectedProgram.living_cost_per_month || 0}/mo</span
+						>
+					</div>
+				</div>

@@ -4,6 +4,26 @@ import { PUBLIC_STRIPE_PUBLISHABLE_KEY } from '$env/static/public';
 // Client-side Stripe instance (safe for client use)
 export const stripePromise = loadStripe(PUBLIC_STRIPE_PUBLISHABLE_KEY);
 
+// PAY-AS-YOU-GO Credit Packs
+// Make sure to replace these placeholder price IDs with real One-Time price IDs from your Stripe Dashboard
+export const CREDIT_PACKS = {
+    starter: {
+        name: 'Starter Pack',
+        credits: 20,
+        priceId: 'price_1TOzjZC5OCrAkph85841ON5j', 
+    },
+    accelerator: {
+        name: 'Accelerator Pack',
+        credits: 50,
+        priceId: 'price_1TOzkZC5OCrAkph8FiIf3ThK', 
+    },
+    unlimited: {
+        name: 'Elite Pack',
+        credits: 130,
+        priceId: 'price_1TOzkuC5OCrAkph8TvCiUo4o', 
+    }
+};
+
 // COMPREHENSIVE production-ready subscription plans configuration
 // Matches SQL configuration and pricing page exactly
 export const SUBSCRIPTION_PLANS = {

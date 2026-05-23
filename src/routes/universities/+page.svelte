@@ -1,268 +1,403 @@
 <script lang="ts">
-  import UniversityMatcher from '$lib/components/UniversityMatcher.svelte';
-  import { page } from '$app/stores';
-  import { onMount } from 'svelte';
-  let { data } = $props();
-  let { supabase, session } = $derived(data);
-  
-  // Check if we're coming from a UK university redirect
-  const isUkUniversityView = $derived($page.url.searchParams.get('source') === 'uk');
+	import { Search, Library, GraduationCap, MapPin, Building2, Filter, Globe, ArrowRight, ShieldCheck, TrendingUp, Users } from 'lucide-svelte';
+
+	let { data } = $props();
+	let universities = $derived(data.universities || []);
+
+	let searchQuery = $state('');
+	let selectedCountries = $state<string[]>([]);
+	let selectedCities = $state<string[]>([]);
+	let selectedTypes = $state<string[]>([]);
+	let selectedTuitionTypes = $state<string[]>([]);
+	let minPrograms = $state(0);
+	let displayLimit = $state(12);
+
+	function programCount(uni: any) {
+		const nested = uni.programs;
+		if (Array.isArray(nested) && nested[0]?.count !== undefined) return Number(nested[0].count || 0);
+		if (typeof nested?.count === 'number') return nested.count;
+		if (typeof uni.program_count === 'number') return uni.program_count;
+		return 0;
+	}
+
+	function hasValue(value: any) {
+		const text = String(value || '').trim();
+		return Boolean(text && text !== '--' && text.toLowerCase() !== 'n/a');
+	}
+
+	const countryOptions = $derived(
+		[...new Set(universities.map((u: any) => u.country).filter(Boolean))].sort()
+	);
+
+	const typeOptions = $derived(
+		[...new Set(universities.map((u: any) => u.type).filter(Boolean))].sort()
+	);
+
+	const cityOptions = $derived(
+		[...new Set(universities.map((u: any) => u.city).filter(Boolean))].sort()
+	);
+
+	const tuitionOptions = $derived(
+		[...new Set(universities.map((u: any) => u.tuition_type).filter(Boolean))].sort()
+	);
+
+	$effect(() => {
+		searchQuery; selectedCountries; selectedCities; selectedTypes; selectedTuitionTypes; minPrograms;
+		displayLimit = 12;
+	});
+
+	const filteredUniversities = $derived(
+		universities.filter((uni: any) => {
+			const query = searchQuery.toLowerCase();
+			const searchMatch =
+				!query ||
+				uni.name?.toLowerCase().includes(query) ||
+				uni.country?.toLowerCase().includes(query) ||
+				uni.city?.toLowerCase().includes(query) ||
+				uni.type?.toLowerCase().includes(query) ||
+				uni.tuition_type?.toLowerCase().includes(query);
+
+			const countryMatch = selectedCountries.length === 0 || selectedCountries.includes(uni.country);
+			const cityMatch = selectedCities.length === 0 || selectedCities.includes(uni.city);
+			const typeMatch = selectedTypes.length === 0 || selectedTypes.includes(uni.type);
+			const tuitionMatch = selectedTuitionTypes.length === 0 || selectedTuitionTypes.includes(uni.tuition_type);
+			const programMatch = programCount(uni) >= minPrograms;
+
+			return searchMatch && countryMatch && cityMatch && typeMatch && tuitionMatch && programMatch;
+		})
+	);
+
+	function clearFilters() {
+		searchQuery = '';
+		selectedCountries = [];
+		selectedCities = [];
+		selectedTypes = [];
+		selectedTuitionTypes = [];
+		minPrograms = 0;
+	}
+
+	function loadMore() {
+		displayLimit += 12;
+	}
 </script>
 
 <svelte:head>
-  <title>Global University Matching - Abroaducate</title>
-  <meta name="description" content="Find universities across USA, UK, Canada & Australia that match your profile. Get scholarship recommendations & financial analysis." />
+	<title>Affordable University Discovery - Abroaducate</title>
+	<meta name="description" content="Discover curated, highly affordable universities worldwide." />
 </svelte:head>
 
-<div class="min-h-screen bg-gray-50 pt-28">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="text-center shadow-lg px-4 py-6 mb-16">
-      <h1 class="text-4xl font-bold text-gray-900 mb-4">
-        Global University Matching
-      </h1>
-      <p class="text-xl text-gray-600 max-w-3xl mx-auto mb-6">
-        Discover universities across 9 major countries that match your academic profile. Get personalized recommendations with scholarship opportunities and financial analysis.
-      </p>
-      
-      <!-- Global Coverage Banner -->
-      <div class="bg-gradient-to-r from-blue-50 to-white p-6 rounded-lg border border-blue-200 max-w-5xl mx-auto mb-8">
-        <div class="flex items-center justify-center space-x-4 mb-4">
-          <span class="text-3xl">🌍</span>
-          <div class="text-center">
-            <h3 class="text-lg font-bold text-gray-900">NEW: Global University Database</h3>
-            <p class="text-sm text-gray-700">Access 7,500+ universities across USA, UK, Canada, Australia, Germany & more!</p>
-          </div>
-          <span class="text-3xl">🎓</span>
-        </div>
-        
-        <!-- Country Coverage Grid - First Row -->
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 mb-3">
-          <div class="bg-white p-3 rounded-lg shadow-sm text-center">
-            <div class="font-bold text-[#2C3580]">🇺🇸 United States</div>
-            <div class="text-sm text-gray-600">7,000+ Universities</div>
-          </div>
-          <div class="bg-white p-3 rounded-lg shadow-sm text-center">
-            <div class="font-bold text-[#2C3580]">🇬🇧 United Kingdom</div>
-            <div class="text-sm text-gray-600">109 Universities</div>
-          </div>
-          <div class="bg-white p-3 rounded-lg shadow-sm text-center">
-            <div class="font-bold text-[#2C3580]">🇨🇦 Canada</div>
-            <div class="text-sm text-gray-600">89 Universities</div>
-          </div>
-          <div class="bg-white p-3 rounded-lg shadow-sm text-center">
-            <div class="font-bold text-[#2C3580]">🇩🇪 Germany</div>
-            <div class="text-sm text-gray-600">89 Universities</div>
-          </div>
-          <div class="bg-white p-3 rounded-lg shadow-sm text-center">
-            <div class="font-bold text-[#2C3580]">🇫🇷 France</div>
-            <div class="text-sm text-gray-600">49 Universities</div>
-          </div>
-        </div>
-        
-        <!-- Country Coverage Grid - Second Row (Centered) -->
-        <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 mb-6 mx-auto max-w-3xl">
-          <div class="bg-white p-3 rounded-lg shadow-sm text-center">
-            <div class="font-bold text-[#2C3580]">🇮🇹 Italy</div>
-            <div class="text-sm text-gray-600">47 Universities</div>
-          </div>
-          <div class="bg-white p-3 rounded-lg shadow-sm text-center">
-            <div class="font-bold text-[#2C3580]">🇯🇵 Japan</div>
-            <div class="text-sm text-gray-600">59 Universities</div>
-          </div>
-          <div class="bg-white p-3 rounded-lg shadow-sm text-center">
-            <div class="font-bold text-[#2C3580]">🇦🇺 Australia</div>
-            <div class="text-sm text-gray-600">48 Universities</div>
-          </div>
-          <div class="bg-white p-3 rounded-lg shadow-sm text-center">
-            <div class="font-bold text-[#2C3580]">🇳🇱 Netherlands</div>
-            <div class="text-sm text-gray-600">29 Universities</div>
-          </div>
-        </div>
+<div class="min-h-screen bg-slate-50">
+	<div class="discovery-header">
+		<div class="header-content">
+			<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 text-orange-300 text-sm font-semibold border border-orange-500/20 mb-5">
+				<GraduationCap size={16} /> Affordable Pathways Curated
+			</div>
+			<h1 class="page-title">University Discovery</h1>
+			<p class="page-subtitle">Browse institutions behind low-tuition and scholarship-friendly programs.</p>
 
-        <!-- Enhanced Features Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
-          <div class="bg-white p-3 rounded text-center">
-            <div class="text-lg font-bold text-[#2C3580]">💰</div>
-            <div class="font-medium">Scholarship Intelligence</div>
-            <div class="text-gray-600">Real funding opportunities</div>
-          </div>
-          <div class="bg-white p-3 rounded text-center">
-            <div class="text-lg font-bold text-[#2C3580]">📊</div>
-            <div class="font-medium">Cost Analysis</div>
-            <div class="text-gray-600">True cost after aid</div>
-          </div>
-          <div class="bg-white p-3 rounded text-center">
-            <div class="text-lg font-bold text-[#2C3580]">🎯</div>
-            <div class="font-medium">Smart Matching</div>
-            <div class="text-gray-600">AI-powered recommendations</div>
-          </div>
-          <div class="bg-white p-3 rounded text-center">
-            <div class="text-lg font-bold text-yellow-600">🔄</div>
-            <div class="font-medium">Live Data</div>
-            <div class="text-gray-600">Real-time updates</div>
-          </div>
-        </div>
-      </div>
-    </div>
+			<div class="search-bar">
+				<Search size={20} class="text-slate-400 ml-4" />
+				<input
+					type="text"
+					bind:value={searchQuery}
+					placeholder="Search by university, country, city, or type..."
+					class="search-input"
+				/>
+			</div>
+		</div>
+	</div>
 
-    <!-- Manual AdSense blocks removed (auto ads only) -->
+	<div class="max-w-7xl mx-auto px-6 py-8 flex gap-8">
+		<aside class="w-64 flex-shrink-0 hidden lg:block space-y-8">
+			<div>
+				<h3 class="font-bold text-slate-800 mb-4 flex items-center gap-2">
+					<Filter size={18} /> Filters
+				</h3>
 
-    {#if isUkUniversityView}
-      <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
-        <h2 class="text-2xl font-bold text-blue-800 mb-4 flex items-center gap-2">
-          <span class="text-3xl">🇬🇧</span> UK Universities
-        </h2>
-        
-        <p class="mb-4">
-          We have a comprehensive database of UK universities. Some specialized institutions or newer campuses 
-          might not be fully integrated yet, but we're constantly expanding our coverage.
-        </p>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
-          <a href="/universities/oxford" class="p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow">
-            <h3 class="font-bold">University of Oxford</h3>
-            <p class="text-sm text-gray-600">Oxford, South East England</p>
-          </a>
-          <a href="/universities/cambridge" class="p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow">
-            <h3 class="font-bold">University of Cambridge</h3>
-            <p class="text-sm text-gray-600">Cambridge, East of England</p>
-          </a>
-          <a href="/universities/st-andrews" class="p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow">
-            <h3 class="font-bold">University of St Andrews</h3>
-            <p class="text-sm text-gray-600">St Andrews, Scotland</p>
-          </a>
-          <a href="/universities/lse" class="p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow">
-            <h3 class="font-bold">London School of Economics</h3>
-            <p class="text-sm text-gray-600">London, England</p>
-          </a>
-          <a href="/universities/imperial" class="p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow">
-            <h3 class="font-bold">Imperial College London</h3>
-            <p class="text-sm text-gray-600">London, England</p>
-          </a>
-          <a href="/universities/durham" class="p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow">
-            <h3 class="font-bold">Durham University</h3>
-            <p class="text-sm text-gray-600">Durham, North East England</p>
-          </a>
-        </div>
-        
-        <div class="mt-6 text-center">
-          <a href="/universities/database?selectedSource=uk" class="btn btn-primary">
-            View All UK Universities
-          </a>
-        </div>
-      </div>
-    {/if}
+				<div class="mb-6">
+					<h4 class="filter-title">Country</h4>
+					<div class="space-y-2">
+						{#each countryOptions as country}
+							<label class="filter-row">
+								<input type="checkbox" value={country} bind:group={selectedCountries} class="filter-check" />
+								<span>{country}</span>
+							</label>
+						{/each}
+					</div>
+				</div>
 
-    <!-- Enhanced University Matcher with Global Coverage -->
-    <UniversityMatcher {supabase} {session} />
+				<div class="mb-6">
+					<h4 class="filter-title">University Type</h4>
+					<div class="space-y-2">
+						{#each typeOptions as type}
+							<label class="filter-row">
+								<input type="checkbox" value={type} bind:group={selectedTypes} class="filter-check" />
+								<span>{type}</span>
+							</label>
+						{/each}
+					</div>
+				</div>
 
-    <!-- Additional Features Section -->
-    <div class="mt-16 max-w-6xl mx-auto">
-      <div class="text-center mb-12">
-        <h2 class="text-3xl font-bold text-gray-900 mb-4">Why Choose Our Global Matching?</h2>
-        <p class="text-lg text-gray-600">Advanced features that go beyond simple university lists</p>
-      </div>
+				<div class="mb-6">
+					<h4 class="filter-title">Location</h4>
+					<div class="space-y-2 max-h-56 overflow-y-auto pr-1">
+						{#each cityOptions as city}
+							<label class="filter-row">
+								<input type="checkbox" value={city} bind:group={selectedCities} class="filter-check" />
+								<span>{city}</span>
+							</label>
+						{/each}
+					</div>
+				</div>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <!-- Feature 1: Global Coverage -->
-        <div class="bg-white p-6 rounded-lg shadow-sm border">
-          <div class="text-3xl mb-4">🌐</div>
-          <h3 class="text-xl font-bold text-gray-900 mb-3">Comprehensive Global Coverage</h3>
-          <p class="text-gray-600 mb-4">Access universities from the top 4 English-speaking destinations for international students.</p>
-          <ul class="text-sm text-gray-600 space-y-2">
-            <li class="flex items-center"><span class="text-green-500 mr-2">✓</span>Elite US institutions + API data</li>
-            <li class="flex items-center"><span class="text-green-500 mr-2">✓</span>UK Russell Group universities</li>
-            <li class="flex items-center"><span class="text-green-500 mr-2">✓</span>Canadian research powerhouses</li>
-            <li class="flex items-center"><span class="text-green-500 mr-2">✓</span>Australian Group of Eight</li>
-          </ul>
-        </div>
+				<div class="mb-6">
+					<h4 class="filter-title">Tuition Profile</h4>
+					<div class="space-y-2">
+						{#each tuitionOptions as tuitionType}
+							<label class="filter-row">
+								<input type="checkbox" value={tuitionType} bind:group={selectedTuitionTypes} class="filter-check" />
+								<span>{tuitionType}</span>
+							</label>
+						{/each}
+					</div>
+				</div>
 
-        <!-- Feature 2: Intelligent Matching -->
-        <div class="bg-white p-6 rounded-lg shadow-sm border">
-          <div class="text-3xl mb-4">🧠</div>
-          <h3 class="text-xl font-bold text-gray-900 mb-3">AI-Powered Intelligence</h3>
-          <p class="text-gray-600 mb-4">Our advanced algorithms consider multiple factors for personalized recommendations.</p>
-          <ul class="text-sm text-gray-600 space-y-2">
-            <li class="flex items-center"><span class="text-green-500 mr-2">✓</span>Academic profile matching</li>
-            <li class="flex items-center"><span class="text-green-500 mr-2">✓</span>Financial feasibility analysis</li>
-            <li class="flex items-center"><span class="text-green-500 mr-2">✓</span>Program strength assessment</li>
-            <li class="flex items-center"><span class="text-green-500 mr-2">✓</span>Geographic preference optimization</li>
-          </ul>
-        </div>
+				<div class="mb-6">
+					<h4 class="filter-title">Program Depth</h4>
+					<div class="space-y-3">
+						<div class="flex justify-between text-sm font-bold text-slate-700">
+							<span>Any</span>
+							<span class="text-orange-500">{minPrograms}+ programs</span>
+						</div>
+						<input type="range" min="0" max="40" step="5" bind:value={minPrograms} class="w-full accent-orange-500" />
+					</div>
+				</div>
+			</div>
+		</aside>
 
-        <!-- Feature 3: Integrated Scholarship System -->
-        <div class="bg-white p-6 rounded-lg shadow-sm border">
-          <div class="text-3xl mb-4">💎</div>
-          <h3 class="text-xl font-bold text-gray-900 mb-3">Integrated Scholarship System</h3>
-          <p class="text-gray-600 mb-4">Get scholarship recommendations tailored to each university match.</p>
-          <ul class="text-sm text-gray-600 space-y-2">
-            <li class="flex items-center"><span class="text-green-500 mr-2">✓</span>University-specific scholarships</li>
-            <li class="flex items-center"><span class="text-green-500 mr-2">✓</span>Government funding programs</li>
-            <li class="flex items-center"><span class="text-green-500 mr-2">✓</span>Field-based opportunities</li>
-            <li class="flex items-center"><span class="text-green-500 mr-2">✓</span>Real cost calculations</li>
-          </ul>
-        </div>
-      </div>
-    </div>
+		<main class="flex-1">
+			<div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-6">
+				<div>
+					<p class="text-sm text-slate-500 font-medium tracking-wide uppercase">Explore Universities</p>
+					<p class="text-sm text-slate-400">More institutions unlock as the catalog grows.</p>
+				</div>
+				<button onclick={clearFilters} class="text-sm font-bold text-orange-600 hover:text-orange-700 w-fit">
+					Clear filters
+				</button>
+			</div>
 
-    <!-- Call to Action Section -->
-    <div class="mt-16 bg-gradient-to-r from-[#2C3580] to-[#2C3580] rounded-lg p-8 text-center text-white">
-      <h3 class="text-2xl font-bold mb-4">Ready to Build Your University Application Portfolio?</h3>
-      <p class="text-blue-100 mb-6">
-        Use our comprehensive suite of AI-powered tools to create compelling application documents and secure funding.
-      </p>
-      <div class="flex flex-col sm:flex-row gap-4 justify-center">
-        <a href="/sop" class="bg-white text-[#2C3580] px-6 py-3 rounded-lg font-medium hover:bg-gray-100 transition duration-200">
-          📝 Generate Statement of Purpose
-        </a>
-        <a href="/scholarships" class="border-2 border-white text-white px-6 py-3 rounded-lg font-medium hover:bg-white hover:text-[#2C3580] transition duration-200">
-          💰 Find Scholarships
-        </a>
-        <a href="/cover-letters" class="border-2 border-white text-white px-6 py-3 rounded-lg font-medium hover:bg-white hover:text-[#2C3580] transition duration-200">
-          ✉️ Create Cover Letter
-        </a>
-        <a href="/dashboard" class="border-2 border-white text-white px-6 py-3 rounded-lg font-medium hover:bg-white hover:text-[#2C3580] transition duration-200">
-          📊 View Dashboard
-        </a>
-      </div>
-    </div>
+			{#if filteredUniversities.length > 0}
+				<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+					{#each filteredUniversities.slice(0, displayLimit) as uni}
+						<a href={`/universities/${uni.id}`} class="university-card">
+							<div class="h-44 relative bg-slate-100 overflow-hidden">
+								<img
+									src={uni.hero_image_url || 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=900&q=80'}
+									onerror={(e) => (e.currentTarget as HTMLImageElement).src='https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=900&q=80'}
+									alt={uni.name}
+									class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+								/>
+								<div class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-900/35 to-transparent"></div>
+								<div class="absolute bottom-4 left-4 right-4">
+									<div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-orange-500 text-white text-[10px] font-bold mb-2 uppercase tracking-wide">
+										{uni.tuition_type || 'Affordable pathway'}
+									</div>
+									<h3 class="text-xl font-bold text-white leading-tight">{uni.name}</h3>
+								</div>
+							</div>
 
-    <!-- Success Stories/Stats Section -->
-    <div class="mt-16 bg-gray-100 rounded-lg p-8">
-      <div class="text-center mb-8">
-        <h3 class="text-2xl font-bold text-gray-900 mb-4">Join Thousands of Successful Applicants</h3>
-        <p class="text-gray-600">Students worldwide are using our platform to find their perfect university match</p>
-      </div>
-      
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-        <div>
-          <div class="text-3xl font-bold text-[#2C3580]">7,520+</div>
-          <div class="text-sm text-gray-600">Universities Available</div>
-          <div class="text-xs text-gray-500 mt-1">Smart search shows best matches</div>
-        </div>
-        <div>
-          <div class="text-3xl font-bold text-[#2C3580]">9</div>
-          <div class="text-sm text-gray-600">Countries Covered</div>
-        </div>
-        <div>
-          <div class="text-3xl font-bold text-[#2C3580]">95%</div>
-          <div class="text-sm text-gray-600">Student Satisfaction</div>
-        </div>
-        <div>
-          <div class="text-3xl font-bold text-[#2C3580]">24/7</div>
-          <div class="text-sm text-gray-600">Support Available</div>
-        </div>
-      </div>
-    </div>
+							<div class="p-5 flex flex-col h-full">
+								<p class="text-slate-600 text-sm line-clamp-2 mb-5">
+									{uni.description || `${uni.name} is part of Abroaducate's affordable study catalog.`}
+								</p>
 
-    <!-- Call to Action -->
-    <div class="text-center pb-10 pt-12">
-      <a href="/universities/database" class="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-[#2C3580] hover:bg-[#3c4d9c] ">
-        Explore All Universities
-        <svg class="ml-2 -mr-1 w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-        </svg>
-      </a>
-    </div>
-  </div>
-</div> 
+								<div class="grid grid-cols-2 gap-3 text-sm mb-5">
+									<div>
+										<div class="metric-label"><MapPin size={14}/> Location</div>
+										<div class="metric-value">{uni.city}, {uni.country}</div>
+									</div>
+									<div>
+										<div class="metric-label"><Building2 size={14}/> Type</div>
+										<div class="metric-value">{uni.type || 'Institution'}</div>
+									</div>
+									<div>
+										<div class="metric-label"><Library size={14}/> Catalog Depth</div>
+										<div class="metric-value">{programCount(uni) > 0 ? `${programCount(uni)}+ programs` : 'Programs inside'}</div>
+									</div>
+									<div>
+										<div class="metric-label"><ShieldCheck size={14}/> Pathway</div>
+										<div class="metric-value">{uni.tuition_type || 'Low tuition'}</div>
+									</div>
+									{#if hasValue(uni.global_rank)}
+										<div>
+											<div class="metric-label"><TrendingUp size={14}/> Global Rank</div>
+											<div class="metric-value">{uni.global_rank}</div>
+										</div>
+									{/if}
+									{#if hasValue(uni.acceptance_rate)}
+										<div>
+											<div class="metric-label"><Users size={14}/> Selectivity</div>
+											<div class="metric-value">{uni.acceptance_rate}</div>
+										</div>
+									{/if}
+								</div>
+
+								<div class="mt-auto flex items-center justify-between border-t border-slate-100 pt-4">
+									<span class="text-xs font-bold text-slate-400 uppercase tracking-wide">View pathway</span>
+									<span class="w-9 h-9 rounded-xl bg-slate-50 border border-slate-100 text-orange-500 flex items-center justify-center group-hover:bg-orange-500 group-hover:text-white group-hover:border-orange-500 transition-colors">
+										<ArrowRight size={16} />
+									</span>
+								</div>
+							</div>
+						</a>
+					{/each}
+				</div>
+
+				{#if displayLimit < filteredUniversities.length}
+					<div class="mt-10 flex justify-center">
+						<button onclick={loadMore} class="px-8 py-3 bg-white border border-slate-200 hover:border-orange-500 hover:text-orange-600 shadow-sm text-slate-700 font-bold rounded-full text-sm transition-all active:scale-95">
+							Load More Universities
+						</button>
+					</div>
+				{/if}
+			{:else}
+				<div class="text-center py-20 bg-white rounded-2xl border border-dashed border-slate-300">
+					<Library size={44} class="mx-auto text-slate-300 mb-4" />
+					<p class="text-slate-500 mb-2">No universities match your current filters.</p>
+					<button onclick={clearFilters} class="text-orange-500 font-medium hover:underline">Clear all filters</button>
+				</div>
+			{/if}
+		</main>
+	</div>
+</div>
+
+<style>
+	.discovery-header {
+		background: #0f172a;
+		padding: 7rem 1.5rem 4rem;
+		text-align: center;
+		position: relative;
+		overflow: hidden;
+	}
+
+	.discovery-header::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		background: radial-gradient(circle at 50% -20%, rgba(249, 115, 22, 0.15), transparent 60%);
+		pointer-events: none;
+	}
+
+	.header-content {
+		position: relative;
+		max-width: 48rem;
+		margin: 0 auto;
+		z-index: 10;
+	}
+
+	.page-title {
+		font-family: 'Outfit', sans-serif;
+		font-size: 3rem;
+		font-weight: 800;
+		color: white;
+		margin-bottom: 0.75rem;
+		letter-spacing: -0.02em;
+	}
+
+	.page-subtitle {
+		font-size: 1.125rem;
+		color: rgba(255, 255, 255, 0.72);
+		margin-bottom: 2.5rem;
+	}
+
+	.search-bar {
+		display: flex;
+		align-items: center;
+		background: white;
+		border-radius: 9999px;
+		padding: 0.375rem;
+		box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+	}
+
+	.search-input {
+		flex: 1;
+		border: none;
+		outline: none;
+		padding: 1rem;
+		font-size: 1rem;
+		color: #0f172a;
+		background: transparent;
+	}
+
+	.filter-title {
+		font-size: 0.75rem;
+		font-weight: 700;
+		color: #475569;
+		margin-bottom: 0.75rem;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+
+	.filter-row {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		cursor: pointer;
+		font-size: 0.875rem;
+		color: #334155;
+	}
+
+	.filter-row:hover {
+		color: #ea580c;
+	}
+
+	.filter-check {
+		width: 1rem;
+		height: 1rem;
+		border-radius: 0.25rem;
+		color: #f97316;
+		border-color: #cbd5e1;
+	}
+
+	.university-card {
+		background: white;
+		border: 1px solid #e2e8f0;
+		border-radius: 1.25rem;
+		transition: all 0.2s ease;
+		text-decoration: none;
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+		position: relative;
+	}
+
+	.university-card:hover {
+		border-color: #cbd5e1;
+		transform: translateY(-4px);
+		box-shadow: 0 12px 24px -8px rgba(15, 23, 42, 0.08);
+	}
+
+	.metric-label {
+		color: #94a3b8;
+		margin-bottom: 0.25rem;
+		display: flex;
+		align-items: center;
+		gap: 0.375rem;
+	}
+
+	.metric-value {
+		font-weight: 700;
+		color: #1e293b;
+		line-height: 1.25;
+	}
+
+	@media (max-width: 640px) {
+		.page-title {
+			font-size: 2.25rem;
+		}
+
+		.search-input {
+			font-size: 0.9375rem;
+		}
+	}
+</style>

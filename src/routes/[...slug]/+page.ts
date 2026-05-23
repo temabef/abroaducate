@@ -16,7 +16,7 @@ export async function load({ url }) {
   }
 
   // Handle old page URLs - only include routes that actually exist
-  const pageRedirects = {
+  const pageRedirects: Record<string, string> = {
     '/about-us': '/',
     '/contact-us': '/contact',
     '/privacy-policy': '/privacy',

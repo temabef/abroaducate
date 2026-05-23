@@ -49,14 +49,14 @@ export async function POST({ request, locals }) {
     }
     
     // Parse the result from the function
-    const result = typeof addResult === 'string' ? JSON.parse(addResult) : addResult;
+    const result: any = typeof addResult === 'string' ? JSON.parse(addResult) : addResult;
     
     if (!result.success) {
       return json({ success: false, error: result.message }, { status: 400 });
     }
     
     return json({ success: true, message: result.message });
-  } catch (e) {
+  } catch (e: any) {
     console.error('Exception adding admin:', e);
     return json({ success: false, error: e.message }, { status: 500 });
   }

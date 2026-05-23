@@ -123,7 +123,7 @@ export class DeviceFingerprintService {
     private getWebGLFingerprint(): string {
         try {
             const canvas = document.createElement('canvas');
-            const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+            const gl = (canvas.getContext('webgl') || canvas.getContext('experimental-webgl')) as WebGLRenderingContext | null;
             
             if (!gl) return 'webgl-not-supported';
 
@@ -291,7 +291,7 @@ export class DeviceFingerprintService {
             let riskScore = 0;
 
             // Check device fingerprint matches
-            const fingerprintMatches = recentRegistrations?.filter(r => 
+            const fingerprintMatches = recentRegistrations?.filter((r: any) => 
                 r.device_fingerprint === deviceInfo.fingerprint) || [];
             
             if (fingerprintMatches.length > 3) {
@@ -303,7 +303,7 @@ export class DeviceFingerprintService {
             }
 
             // Check IP matches
-            const ipMatches = recentRegistrations?.filter(r => 
+            const ipMatches = recentRegistrations?.filter((r: any) => 
                 r.ip_address === clientIP) || [];
             
             if (ipMatches.length > 5) {

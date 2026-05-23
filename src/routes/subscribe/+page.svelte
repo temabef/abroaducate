@@ -8,8 +8,8 @@
     let { data }: { data: PageData } = $props();
     
     let { supabase, session } = data;
-    let currentPlan = 'free';
-    let loading = false;
+    let currentPlan = $state('free');
+    let loading = $state(false);
     
     onMount(async () => {
         if (!session?.user) {

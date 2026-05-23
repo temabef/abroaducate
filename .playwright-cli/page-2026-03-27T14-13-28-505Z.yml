@@ -1,0 +1,521 @@
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - banner [ref=e5]:
+      - generic [ref=e7]:
+        - generic [ref=e8]:
+          - link "Studee homepage" [ref=e10] [cursor=pointer]:
+            - /url: /
+          - generic: Close options
+          - generic [ref=e11]:
+            - generic [ref=e14] [cursor=pointer]: Close 
+            - navigation [ref=e15]:
+              - list [ref=e16]:
+                - listitem [ref=e17]:
+                  - link "Find universities" [ref=e18] [cursor=pointer]:
+                    - /url: /find-universities
+                - listitem [ref=e19]:
+                  - link "Find programs" [ref=e20] [cursor=pointer]:
+                    - /url: /find-programs
+                - listitem [ref=e21]:
+                  - link "Guides" [ref=e22] [cursor=pointer]:
+                    - /url: /guides
+        - generic [ref=e23]:
+          - generic: Close options
+          - generic [ref=e24]:
+            - text: 
+            - generic [ref=e28]:
+              - generic [ref=e29]: 
+              - combobox "Site search" [ref=e31]
+          - button "US flag USD" [ref=e34] [cursor=pointer]:
+            - img "US flag" [ref=e36]
+            - generic [ref=e37]: USD
+          - link "Account" [ref=e39] [cursor=pointer]:
+            - /url: /account/sign-in?return=%2Faccount%2Fgeneric
+            - generic [ref=e40]: 
+            - generic [ref=e41]: Account
+          - generic [ref=e42] [cursor=pointer]:
+            - generic [ref=e43]: 
+            - generic [ref=e44]: Menu
+    - main [ref=e45]:
+      - generic [ref=e46]:
+        - generic [ref=e51]:
+          - generic [ref=e52]:
+            - heading "Meet Studee" [level=1] [ref=e53]
+            - heading "Your online study abroad advisor" [level=2] [ref=e54]
+            - paragraph [ref=e56]:
+              - text: Find and apply to your dream university abroad with expert advice and
+              - link "rewards" [ref=e57] [cursor=pointer]:
+                - /url: /about/studee-rewards
+              - text: . Apply with Studee or on the university website.
+            - generic [ref=e58]:
+              - link "Free study abroad roadmap" [ref=e60] [cursor=pointer]:
+                - /url: /roadmap
+                - generic [ref=e61]: Free study abroad roadmap
+              - button "Find programs" [ref=e64] [cursor=pointer]:
+                - generic [ref=e65]: Find programs
+            - generic [ref=e66]:
+              - generic [ref=e68]:
+                - generic [ref=e69]: Trusted by 37,000+ students
+                - list [ref=e71]:
+                  - listitem [ref=e72]:
+                    - img "Young female student with full smile" [ref=e73]
+                  - listitem [ref=e74]:
+                    - img "Young asian female student smiling at an angle" [ref=e75]
+                  - listitem [ref=e76]:
+                    - img "Young male white student smiling directly at camera" [ref=e77]
+                  - listitem [ref=e78]:
+                    - img "Young white student smiling directly ahead" [ref=e79]
+                  - listitem [ref=e80]:
+                    - img "Young black student with tilted head looking directly ahead" [ref=e81]
+              - generic [ref=e83]:
+                - generic [ref=e84]: Highly rated
+                - generic [ref=e86]:
+                  - generic [ref=e87]:
+                    - generic [ref=e90]:
+                      - text: 󡀆󡀆󡀆󡀆󡀆
+                      - meter "4.5 out of 5 stars" [ref=e91]
+                    - img "feefo reviews logo" [ref=e93]
+                  - generic [ref=e94]: 4.5/5 based on 34 reviews
+          - img "Illustration of a confused student surrounded by elements representing studying abroad information, including a prospectus, a calendar, dollar, pound and euro currency symbols, a globe, checklist, clipboard and question mark. Arrow pointing upwards towards a happy student holding an acceptance letter in front of a university building, complete with a laptop on the arrow with the Studee logo on the screen." [ref=e96]
+        - generic [ref=e99]:
+          - paragraph [ref=e101]: Compare 300+ top universities worldwide
+          - list [ref=e103]:
+            - listitem [ref=e104]:
+              - link "Arizona state university logo" [ref=e105] [cursor=pointer]:
+                - /url: /find-universities
+                - img "Arizona state university logo" [ref=e106]
+            - listitem [ref=e107]:
+              - link "University of Nottingham logo" [ref=e108] [cursor=pointer]:
+                - /url: /find-universities
+                - img "University of Nottingham logo" [ref=e109]
+            - listitem [ref=e110]:
+              - link "University of Utah logo" [ref=e111] [cursor=pointer]:
+                - /url: /find-universities
+                - img "University of Utah logo" [ref=e112]
+            - listitem [ref=e113]:
+              - link "University of Saskatchewan logo" [ref=e114] [cursor=pointer]:
+                - /url: /find-universities
+                - img "University of Saskatchewan logo" [ref=e115]
+            - listitem [ref=e116]:
+              - link "Teesside University logo" [ref=e117] [cursor=pointer]:
+                - /url: /find-universities
+                - img "Teesside University logo" [ref=e118]
+            - listitem [ref=e119]:
+              - link "Pace University logo" [ref=e120] [cursor=pointer]:
+                - /url: /find-universities
+                - img "Pace University logo" [ref=e121]
+      - generic [ref=e124]:
+        - generic [ref=e126]:
+          - heading "Your 3 steps to studying abroad" [level=2] [ref=e128]
+          - list [ref=e130]:
+            - listitem [ref=e131]:
+              - img "Illustration of a person using a laptop, with an orange filter beside them. A dollar symbol and a clipboard with a checklist are entering the filter, symbolizing filtering and matching to your needs." [ref=e133]
+              - generic [ref=e134]:
+                - heading "Explore programs" [level=3] [ref=e135]
+                - paragraph [ref=e137]: Discover universities and programs that match your study goals
+                - button "Find programs " [ref=e140] [cursor=pointer]:
+                  - generic [ref=e141]: Find programs 
+            - listitem [ref=e142]:
+              - img "Illustration of a hand holding a smartphone with a Studee logo, surrounded by a passport, a folder with papers and certificates, and a form." [ref=e144]
+              - generic [ref=e145]:
+                - heading "Apply your way" [level=3] [ref=e146]
+                - paragraph [ref=e148]: Get full Studee support, or apply on the university website
+            - listitem [ref=e149]:
+              - img "Illustration of a graduate in a cap and gown holding a book, standing next to a computer monitor displaying the Studee logo. A price tag is attached to the monitor, suggesting discounts or offers." [ref=e151]
+              - generic [ref=e152]:
+                - heading "Get rewarded" [level=3] [ref=e153]
+                - paragraph [ref=e155]: We'll send you a $250 Amazon gift card when you enroll
+                - link "Reward ts & cs " [ref=e157] [cursor=pointer]:
+                  - /url: /about/studee-rewards
+                  - generic [ref=e158]: Reward ts & cs 
+        - generic [ref=e159]: You'll get expert support whenever you need it, no matter how you apply.
+      - generic [ref=e161]:
+        - generic [ref=e163]:
+          - heading "Enjoy a smoother study abroad journey" [level=2] [ref=e164]
+          - paragraph [ref=e166]: Discover a clearer way to study abroad. Save time, apply, and receive expert support - all online
+        - generic [ref=e170]:
+          - generic [ref=e171]:
+            - heading "An easier way to find programs" [level=3] [ref=e172]
+            - generic [ref=e173]:
+              - paragraph [ref=e174]: Finding the right program at the perfect university is important, and we want to help you get it right
+              - list [ref=e175]:
+                - listitem [ref=e176]:
+                  - text: 
+                  - generic [ref=e177]: Quick and easy to compare - search thousands of programs in a few clicks
+                - listitem [ref=e178]:
+                  - text: 
+                  - generic [ref=e179]: Find the best fit - discover programs and universities that match your goals and budget
+                - listitem [ref=e180]:
+                  - text: 
+                  - generic [ref=e181]: Check you qualify before applying - avoid wasting time and application fees
+                - listitem [ref=e182]:
+                  - text: 
+                  - generic [ref=e183]: Discover exciting alternatives - explore awesome programs you never knew existed that match your goals
+          - img "A recessed image of a black male student browsing on his laptop, surrounded by elements overlaid across the image such as a filters button with applied filters for for \"uk\" and \"bachelor's\" with options like \"mathematics - bsc\" displayed in cards and an illustration of a magnifying glass looking at three orange puzzle pieces." [ref=e185]
+        - generic [ref=e189]:
+          - generic [ref=e190]:
+            - heading "Apply your way with support and rewards" [level=3] [ref=e191]
+            - generic [ref=e192]:
+              - paragraph [ref=e193]: Apply with Studee for expert support at every step, or on the university website with advice available whenever you need it. Either way, you'll get a $250 Amazon gift card when you enroll.
+              - list [ref=e194]:
+                - listitem [ref=e195]:
+                  - text: 
+                  - generic [ref=e196]: Apply your way - get full Studee support, or apply on the university website
+                - listitem [ref=e197]:
+                  - text: 
+                  - generic [ref=e198]: Cheaper application fees - get exclusive fee waivers thanks to our partnerships with universities
+                - listitem [ref=e199]:
+                  - text: 
+                  - generic [ref=e200]: Decision-ready applications - as an extension of the university's admission team, we ensure your application is decision-ready
+                - listitem [ref=e201]:
+                  - text: 
+                  - generic [ref=e202]: Know if you're eligible - we make sure you've got everything you need to apply
+          - img "A recessed image of a female Indian student glancing down at her mobile phone, surrounded by elements related to university applications, including checks for documents such as funding, qualifications and a passport. A reduced application fee card showing 20 gbp with 100 gbp striked out and a couple of application cards with a \"Start application\" button." [ref=e204]
+        - generic [ref=e208]:
+          - generic [ref=e209]:
+            - heading "We're always by your side" [level=3] [ref=e210]
+            - generic [ref=e211]:
+              - paragraph [ref=e212]: Our expert team will support you throughout your study abroad journey
+              - list [ref=e213]:
+                - listitem [ref=e214]:
+                  - text: 
+                  - generic [ref=e215]: Faster decisions - we will handle the follow-ups to help you get a quicker response from universities
+                - listitem [ref=e216]:
+                  - text: 
+                  - generic [ref=e217]: Know exactly what to do, when - we'll guide you step by step through the admission process
+                - listitem [ref=e218]:
+                  - text: 
+                  - generic [ref=e219]: Get expert advice, anytime - from application to enrollment, we're here to help
+                - listitem [ref=e220]:
+                  - text: 
+                  - generic [ref=e221]: Visa guidance - step-by-step support to help you get your visa in time for your studies
+          - img "A recessed image of a white female student talking to a male advisor, surrounded by elements related to support, including graphical chat bubbles with a send button, cards with text for \"How to apply for a visa\" and \"What you need to enroll\", with illustration of an orange haired woman holding a book wearing a headset in bottom right corner and Studee Trees for Degrees logo in top right corner." [ref=e223]
+      - generic [ref=e224]:
+        - generic [ref=e228]:
+          - generic [ref=e229]:
+            - heading "Find the perfect program" [level=2] [ref=e230]
+            - paragraph [ref=e232]: We match you with universities that fit your interests, budget, and goals. Let us help you start your study abroad journey.
+          - list [ref=e236]:
+            - listitem [ref=e237]:
+              - generic [ref=e238]: Degree type
+              - combobox "Degree type" [ref=e239] [cursor=pointer]:
+                - option "Select a degree type" [selected]
+                - option "Bachelor's"
+                - option "Master's"
+                - option "Associate"
+                - option "Doctorate"
+                - option "Undergraduate diploma"
+                - option "Postgraduate pathway"
+                - option "Undergraduate certificate"
+                - option "Postgraduate certificate"
+                - option "Undergraduate pathway"
+                - option "Postgraduate diploma"
+            - listitem [ref=e240]:
+              - generic [ref=e241]: Location
+              - generic [ref=e242]:
+                - generic [ref=e243]: 
+                - combobox "Location" [ref=e245]
+            - listitem [ref=e246]:
+              - generic [ref=e247]: Subject
+              - generic [ref=e248]:
+                - generic [ref=e249]: 
+                - combobox "Subject" [ref=e251]
+            - listitem [ref=e252]:
+              - button "Find programs " [ref=e253] [cursor=pointer]:
+                - generic [ref=e254]: Find programs 
+        - generic [ref=e258]:
+          - generic [ref=e259]:
+            - paragraph [ref=e261]: Already have a university in mind?
+            - link "Find universities " [ref=e263] [cursor=pointer]:
+              - /url: /find-universities
+              - generic [ref=e264]: Find universities 
+          - paragraph [ref=e266]:
+            - text: Need help? First, work out which
+            - link "degree" [ref=e267] [cursor=pointer]:
+              - /url: /degree
+            - text: type suits you. Then, think about these key details when you've decided to study for a
+            - link "degree abroad" [ref=e268] [cursor=pointer]:
+              - /url: /degree/abroad
+            - text: .
+      - generic [ref=e273]:
+        - heading "Frequently asked questions" [level=2] [ref=e275]
+        - list [ref=e277]:
+          - listitem [ref=e278]:
+            - group [ref=e279]:
+              - generic "Who is Studee? " [ref=e280] [cursor=pointer]
+          - listitem [ref=e281]:
+            - group [ref=e282]:
+              - generic "How can I apply to a university? " [ref=e283] [cursor=pointer]
+          - listitem [ref=e284]:
+            - group [ref=e285]:
+              - generic "How do you improve my chances of getting a university offer? " [ref=e286] [cursor=pointer]
+          - listitem [ref=e287]:
+            - group [ref=e288]:
+              - generic "Do you charge for using Studee? " [ref=e289] [cursor=pointer]
+          - listitem [ref=e290]:
+            - group [ref=e291]:
+              - generic "When will I get an offer letter? " [ref=e292] [cursor=pointer]
+          - listitem [ref=e293]:
+            - group [ref=e294]:
+              - generic "Does applying with Studee mean it takes longer to get updates from the university? " [ref=e295] [cursor=pointer]
+          - listitem [ref=e296]:
+            - group [ref=e297]:
+              - generic "Can I get a scholarship from you? " [ref=e298] [cursor=pointer]
+          - listitem [ref=e299]:
+            - group [ref=e300]:
+              - generic "Can you get me a Visa? " [ref=e301] [cursor=pointer]
+          - listitem [ref=e302]:
+            - group [ref=e303]:
+              - generic "How do you keep my data secure? " [ref=e304] [cursor=pointer]
+        - img "Illustration of an open book surrounded by icons representing education and travel, including a globe, graduation cap, airplane, suitcase, and famous landmarks, all emanating from the pages." [ref=e306]
+      - generic [ref=e311]:
+        - heading "How we give back" [level=2] [ref=e313]
+        - list [ref=e315]:
+          - listitem [ref=e316]:
+            - img "Prospect Burma logo" [ref=e318]
+            - generic [ref=e319]:
+              - heading "Charity partnerships" [level=3] [ref=e320]
+              - paragraph [ref=e322]: We fund projects to help students who don't have access to education to study abroad.
+              - link "Read more " [ref=e324] [cursor=pointer]:
+                - /url: /giving-back/scholarships
+                - generic [ref=e325]: Read more 
+          - listitem [ref=e326]:
+            - img "Illustration of a person with purple hair and a blue shirt holding a backpack strap. They are pointing up with their index finger towards a speech bubble containing a heart symbol" [ref=e328]
+            - generic [ref=e329]:
+              - heading "Volunteering" [level=3] [ref=e330]
+              - paragraph [ref=e332]: We offer our team members the chance to volunteer with organizations they are passionate about.
+              - link "Read more " [ref=e334] [cursor=pointer]:
+                - /url: /giving-back/volunteering
+                - generic [ref=e335]: Read more 
+      - generic [ref=e340]:
+        - generic [ref=e341]:
+          - heading "Discover universities across the world" [level=2] [ref=e342]
+          - paragraph [ref=e344]: We compare universities in 28 countries, giving you plenty of options to find the right one.
+        - list [ref=e346]:
+          - listitem [ref=e347]:
+            - link "A famous cityscape or landscape of Australia featuring iconic elements of Australia's natural beauty or architectural landmarks. Australia " [ref=e348] [cursor=pointer]:
+              - /url: /degree/australia
+              - img "A famous cityscape or landscape of Australia featuring iconic elements of Australia's natural beauty or architectural landmarks." [ref=e350]
+              - generic [ref=e351]: Australia 
+          - listitem [ref=e352]:
+            - link "A famous cityscape or landscape of Austria featuring iconic elements of Austria's natural beauty or architectural landmarks. Austria " [ref=e353] [cursor=pointer]:
+              - /url: /degree/austria
+              - img "A famous cityscape or landscape of Austria featuring iconic elements of Austria's natural beauty or architectural landmarks." [ref=e355]
+              - generic [ref=e356]: Austria 
+          - listitem [ref=e357]:
+            - link "A famous cityscape or landscape of Belgium featuring iconic elements of Belgium's natural beauty or architectural landmarks. Belgium " [ref=e358] [cursor=pointer]:
+              - /url: /degree/belgium
+              - img "A famous cityscape or landscape of Belgium featuring iconic elements of Belgium's natural beauty or architectural landmarks." [ref=e360]
+              - generic [ref=e361]: Belgium 
+          - listitem [ref=e362]:
+            - link "A famous cityscape or landscape of Canada featuring iconic elements of Canada's natural beauty or architectural landmarks. Canada " [ref=e363] [cursor=pointer]:
+              - /url: /degree/canada
+              - img "A famous cityscape or landscape of Canada featuring iconic elements of Canada's natural beauty or architectural landmarks." [ref=e365]
+              - generic [ref=e366]: Canada 
+          - text:                    
+        - button "See all countries " [ref=e367] [cursor=pointer]:
+          - generic [ref=e368]: See all countries 
+      - generic [ref=e373]:
+        - generic [ref=e374]:
+          - heading "Explore exciting subjects" [level=2] [ref=e375]
+          - paragraph [ref=e377]: Discover subjects that match your interests and goals.
+        - list [ref=e379]:
+          - listitem [ref=e380]:
+            - link "Accounting " [ref=e381] [cursor=pointer]:
+              - /url: /degree/abroad/accounting
+              - generic [ref=e382]: Accounting
+              - text: 
+          - listitem [ref=e383]:
+            - link "Agriculture " [ref=e384] [cursor=pointer]:
+              - /url: /degree/abroad/agriculture
+              - generic [ref=e385]: Agriculture
+              - text: 
+          - listitem [ref=e386]:
+            - link "Architecture " [ref=e387] [cursor=pointer]:
+              - /url: /degree/abroad/architecture
+              - generic [ref=e388]: Architecture
+              - text: 
+          - listitem [ref=e389]:
+            - link "Biology " [ref=e390] [cursor=pointer]:
+              - /url: /degree/abroad/biology
+              - generic [ref=e391]: Biology
+              - text: 
+          - listitem [ref=e392]:
+            - link "Business " [ref=e393] [cursor=pointer]:
+              - /url: /degree/abroad/business
+              - generic [ref=e394]: Business
+              - text: 
+          - listitem [ref=e395]:
+            - link "Chemistry " [ref=e396] [cursor=pointer]:
+              - /url: /degree/abroad/chemistry
+              - generic [ref=e397]: Chemistry
+              - text: 
+          - listitem [ref=e398]:
+            - link "Communication " [ref=e399] [cursor=pointer]:
+              - /url: /degree/abroad/communication
+              - generic [ref=e400]: Communication
+              - text: 
+          - listitem [ref=e401]:
+            - link "Criminology " [ref=e402] [cursor=pointer]:
+              - /url: /degree/abroad/criminology
+              - generic [ref=e403]: Criminology
+              - text: 
+          - text:                   
+        - button "See our most popular subjects " [ref=e404] [cursor=pointer]:
+          - generic [ref=e405]: See our most popular subjects 
+      - generic [ref=e410]:
+        - generic [ref=e411]:
+          - heading "Study abroad guides for every topic" [level=2] [ref=e412]
+          - paragraph [ref=e414]: From visa advice to English language tests, our handy guides cover everything you need to know.
+        - list [ref=e416]:
+          - listitem [ref=e417]:
+            - link "The benefits of studying abroad The benefits of studying abroad Read the reasons why so many students study abroad" [ref=e418] [cursor=pointer]:
+              - /url: /guides/the-benefits-of-studying-abroad
+              - img "The benefits of studying abroad" [ref=e419]
+              - heading "The benefits of studying abroad" [level=3] [ref=e420]
+              - paragraph [ref=e421]: Read the reasons why so many students study abroad
+          - listitem [ref=e422]:
+            - link "Choose where to study abroad Choose where to study abroad Find out how to choose the perfect place for you to study" [ref=e423] [cursor=pointer]:
+              - /url: /guides/choose-where-to-study-abroad
+              - img "Choose where to study abroad" [ref=e424]
+              - heading "Choose where to study abroad" [level=3] [ref=e425]
+              - paragraph [ref=e426]: Find out how to choose the perfect place for you to study
+          - listitem [ref=e427]:
+            - link "The cost of studying abroad The cost of studying abroad Hoping to study abroad? We take you through the financial costs and share some top budgeting tips." [ref=e428] [cursor=pointer]:
+              - /url: /guides/the-cost-of-studying-abroad
+              - img "The cost of studying abroad" [ref=e429]
+              - heading "The cost of studying abroad" [level=3] [ref=e430]
+              - paragraph [ref=e431]: Hoping to study abroad? We take you through the financial costs and share some top budgeting tips.
+        - link "View all guides " [ref=e433] [cursor=pointer]:
+          - /url: /guides
+          - generic [ref=e434]: View all guides 
+      - generic [ref=e439]:
+        - generic [ref=e440]:
+          - heading "Want to study abroad? Get your free personal roadmap" [level=2] [ref=e441]
+          - list [ref=e442]:
+            - listitem [ref=e443]:
+              - generic [ref=e444]: 
+              - generic [ref=e445]:
+                - strong [ref=e446]: Discover
+                - text: the perfect university for your goals and your future career
+            - listitem [ref=e447]:
+              - generic [ref=e448]: 
+              - generic [ref=e449]:
+                - strong [ref=e450]: Get personal advice
+                - text: about your study abroad journey
+            - listitem [ref=e451]:
+              - generic [ref=e452]: 
+              - generic [ref=e453]:
+                - strong [ref=e454]: Learn
+                - text: how to write an application that makes a university say YES
+          - link "Let's go! " [ref=e455] [cursor=pointer]:
+            - /url: /account/register
+            - generic [ref=e456]: Let's go! 
+        - img "Illustration of studying abroad milestones along a path, including a graduate, documents, funding, a gauge, books, location pin, all leading to a classical university building." [ref=e458]
+    - contentinfo [ref=e460]:
+      - generic [ref=e464]:
+        - generic [ref=e465]:
+          - generic [ref=e466]: Partner with us
+          - list [ref=e467]:
+            - listitem [ref=e468]:
+              - link "I'm a university" [ref=e469] [cursor=pointer]:
+                - /url: /university-hub/services
+          - generic [ref=e470]: Partner support
+          - list [ref=e471]:
+            - listitem [ref=e472]:
+              - link "University support" [ref=e473] [cursor=pointer]:
+                - /url: /university-hub
+        - generic [ref=e474]:
+          - generic [ref=e475]: Students
+          - list [ref=e476]:
+            - listitem [ref=e477]:
+              - link "Find universities" [ref=e478] [cursor=pointer]:
+                - /url: /find-universities
+            - listitem [ref=e479]:
+              - link "Find programs" [ref=e480] [cursor=pointer]:
+                - /url: /find-programs
+            - listitem [ref=e481]:
+              - link "Why use Studee" [ref=e482] [cursor=pointer]:
+                - /url: /about/why-use-studee
+            - listitem [ref=e483]:
+              - link "Guides" [ref=e484] [cursor=pointer]:
+                - /url: /guides
+        - generic [ref=e485]:
+          - generic [ref=e486]: Company
+          - list [ref=e487]:
+            - listitem [ref=e488]:
+              - link "About us" [ref=e489] [cursor=pointer]:
+                - /url: /about
+            - listitem [ref=e490]:
+              - link "Press & media" [ref=e491] [cursor=pointer]:
+                - /url: /media
+            - listitem [ref=e492]:
+              - link "Discover" [ref=e493] [cursor=pointer]:
+                - /url: /discover
+            - listitem [ref=e494]:
+              - link "Careers" [ref=e495] [cursor=pointer]:
+                - /url: /about/careers
+            - listitem [ref=e496]:
+              - link "Contact us" [ref=e497] [cursor=pointer]:
+                - /url: /contact-us
+        - generic [ref=e498]:
+          - generic [ref=e499]: Sustainability
+          - list [ref=e500]:
+            - listitem [ref=e501]:
+              - link "Giving back" [ref=e502] [cursor=pointer]:
+                - /url: /giving-back
+            - listitem [ref=e503]:
+              - link "Prospect Burma" [ref=e504] [cursor=pointer]:
+                - /url: /giving-back/scholarships
+        - generic [ref=e505]:
+          - generic [ref=e506]: Accreditations
+          - generic [ref=e508]:
+            - img "AIRC logo" [ref=e509]
+            - img "NAFSA logo" [ref=e510]
+            - img "ICEF logo" [ref=e511]
+      - generic [ref=e514]:
+        - list [ref=e517]:
+          - listitem [ref=e518]: © Studee Ltd 2026. ⋅
+          - listitem [ref=e519]:
+            - link "Terms of use" [ref=e520] [cursor=pointer]:
+              - /url: /legal/terms-and-conditions
+            - text: ⋅
+          - listitem [ref=e521]:
+            - link "Cookies" [ref=e522] [cursor=pointer]:
+              - /url: /legal/cookies
+            - text: ⋅
+          - listitem [ref=e523]:
+            - link "Privacy" [ref=e524] [cursor=pointer]:
+              - /url: /legal/privacy
+            - text: ⋅
+          - listitem [ref=e525]:
+            - link "Policies" [ref=e526] [cursor=pointer]:
+              - /url: /policies
+            - text: ⋅
+          - listitem [ref=e527]:
+            - link "Legal" [ref=e528] [cursor=pointer]:
+              - /url: /legal
+        - list [ref=e530]:
+          - listitem [ref=e531]:
+            - link "" [ref=e532] [cursor=pointer]:
+              - /url: https://www.instagram.com/studee.international/
+          - listitem [ref=e533]:
+            - link "" [ref=e534] [cursor=pointer]:
+              - /url: https://www.tiktok.com/@studeeinternational
+          - listitem [ref=e535]:
+            - link "" [ref=e536] [cursor=pointer]:
+              - /url: https://www.facebook.com/studeeinternational
+          - listitem [ref=e537]:
+            - link "" [ref=e538] [cursor=pointer]:
+              - /url: https://www.linkedin.com/company/studee-com/
+  - generic [ref=e540]:
+    - paragraph [ref=e542]:
+      - text: We use cookies to enhance your experience. By continuing, you consent to
+      - link "all cookies" [ref=e543] [cursor=pointer]:
+        - /url: /legal/cookies
+      - text: ", including those for analytics, personalization, marketing, and activity recording by"
+      - link "Lucky Orange" [ref=e544] [cursor=pointer]:
+        - /url: https://help-preview.luckyorange.com/article/410-what-tracking-cookies-lucky-orange-sets
+      - text: . This may involve monitoring your site interactions, heatmaps, and click-maps to improve our services. If you’re under 18, you confirm parental consent to use our site.
+    - button "Accept and continue " [ref=e546] [cursor=pointer]:
+      - generic [ref=e547]: Accept and continue 

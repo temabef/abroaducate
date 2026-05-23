@@ -72,7 +72,7 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
             const { data: existingVersions } = await supabase
                 .from('document_versions')
                 .select('*')
-                .eq('document_id', sopId.toString())
+                .eq('document_id', data.sopId.toString())
                 .eq('document_type', 'sop')
                 .order('created_at', { ascending: false });
 
@@ -85,9 +85,9 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
             const versionResult = await createVersionSnapshot(
                 supabase,
                 config,
-                sopId,
-                editedContent,
-                isSignificantChange,
+                data.sopId,
+                data.editedContent,
+                data.isSignificantChange,
                 existingVersions || []
             );
 
@@ -96,7 +96,7 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
                 await supabase
                     .from('sops')
                     .update({ version: (updatedSop.version || 0) + 1 })
-                    .eq('id', sopId);
+                    .eq('id', data.sopId);
                 
                 console.log('Version created successfully:', versionResult.message);
             }

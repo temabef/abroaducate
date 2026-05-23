@@ -10,7 +10,7 @@ export async function GET({ request }: RequestEvent) {
     googleCredentialsPath: process.env.GOOGLE_APPLICATION_CREDENTIALS || 'Not set',
     platform: process.platform,
     cwd: process.cwd(),
-    filesInCwd: []
+    filesInCwd: [] as string[]
   };
   
   try {

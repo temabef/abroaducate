@@ -5,7 +5,7 @@ import { PUBLIC_SUPABASE_URL } from '$env/static/public';
 import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
 
-const stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: '2024-06-20' });
+const stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: '2025-05-28.basil' });
 const supabaseAdmin = createClient(PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
 export const GET: RequestHandler = async ({ request }) => {

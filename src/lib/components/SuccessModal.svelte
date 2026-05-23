@@ -33,20 +33,25 @@
 {#if isOpen}
   <!-- Backdrop -->
   <div 
-    class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+    class="fixed inset-0 z-50 flex items-center justify-center p-4"
     transition:fade={{ duration: 200 }}
-    on:click={handleClose}
     on:keydown={handleKeydown}
     role="dialog"
     aria-modal="true"
     aria-labelledby="success-modal-title"
     tabindex="-1"
   >
+    <button
+      type="button"
+      class="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm"
+      on:click={handleClose}
+      aria-label="Close modal"
+    ></button>
     <!-- Modal -->
     <div 
-      class="bg-white rounded-2xl shadow-2xl max-w-md w-full relative"
+      class="relative z-10 bg-white rounded-2xl shadow-2xl max-w-md w-full"
       transition:scale={{ duration: 300, start: 0.95 }}
-      on:click|stopPropagation
+      role="document"
     >
       <!-- Close Button -->
       <button 

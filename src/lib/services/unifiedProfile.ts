@@ -253,8 +253,9 @@ export function analyzeProfileCompletion(profile: UnifiedProfile | null): Profil
     }
   }
   
-  const is_ready_for_matching = missing_fields.length === 0 || 
-    (profile.preferred_countries?.length > 0 && profile.field_of_study && profile.degree_level);
+  const is_ready_for_matching =
+    missing_fields.length === 0 ||
+    Boolean(profile.preferred_countries?.length > 0 && profile.field_of_study && profile.degree_level);
   
   const next_step = missing_fields.length > 0 
     ? `Add ${missing_fields[0].toLowerCase()}`

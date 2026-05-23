@@ -21,6 +21,7 @@ export const load: LayoutLoad = async ({ fetch, data, depends }) => {
   return {
     supabase,
     session,
-    user: data.user,
+    user: data.user ?? session?.user ?? null,
+    subscription: data.subscription,
   }
 } 

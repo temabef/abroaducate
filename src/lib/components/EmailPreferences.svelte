@@ -277,8 +277,9 @@
             </label>
 
             <div class="timezone-selector">
-              <label class="block text-sm font-medium text-gray-700 mb-2">Timezone</label>
+              <label for="email-preferences-timezone" class="block text-sm font-medium text-gray-700 mb-2">Timezone</label>
               <select 
+                id="email-preferences-timezone"
                 bind:value={preferences.timezone}
                 class="timezone-select"
               >

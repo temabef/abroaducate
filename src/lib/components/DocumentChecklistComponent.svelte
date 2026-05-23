@@ -1,6 +1,7 @@
 <style>
     .line-clamp-2 {
         display: -webkit-box;
+        line-clamp: 2;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
         overflow: hidden;
@@ -17,9 +18,23 @@
     export let country = 'US';
     export let category = null;
     export let data: any;
+
+    type ChecklistRecord = {
+        code?: string;
+        category?: string;
+        name: string;
+        [key: string]: any;
+    };
+
+    type OrganizedChecklistCategory = {
+        code: string;
+        name: string;
+        icon: string;
+        checklists: ChecklistRecord[];
+    };
     
     // State
-    let checklists: any[] = [];
+    let checklists: ChecklistRecord[] = [];
     let loading = true;
     let error = '';
     let selectedCountry = country;
@@ -70,6 +85,7 @@
     let expandedChecklistId: any = null;
     
     // Add a reactive variable for organized checklists
+    let organizedChecklists: OrganizedChecklistCategory[] = [];
     $: organizedChecklists = checklists ? organizeByCategory(checklists) : [];
     
     onMount(() => {
@@ -388,7 +404,7 @@
                 
             } catch (fetchError) {
                 console.error('Error starting checklist:', fetchError);
-                if (fetchError.name === 'AbortError') {
+                if (fetchError instanceof Error && fetchError.name === 'AbortError') {
                     error = 'Request timed out. Please try again.';
                 } else {
                     error = 'Failed to start checklist. Please try again.';
@@ -482,8 +498,8 @@
     }
     
     // Update the organizeByCategory function to better handle duplicate entries
-    function organizeByCategory(checklistList: any) {
-        const result = {};
+    function organizeByCategory(checklistList: ChecklistRecord[]): OrganizedChecklistCategory[] {
+        const result: Record<string, Omit<OrganizedChecklistCategory, 'code'>> = {};
         const seenItems = new Set(); // Track seen items to prevent duplicates
         
         // Initialize with all known categories
@@ -496,7 +512,7 @@
         });
         
         // Add each checklist to its category, preventing duplicates
-        checklistList.forEach(checklist => {
+        checklistList.forEach((checklist: ChecklistRecord) => {
             const category = checklist.category || 'other';
             const uniqueKey = `${category}_${checklist.name}`;
             
@@ -523,7 +539,7 @@
         // Filter out empty categories
         return Object.entries(result)
             .filter(([_, data]) => data.checklists.length > 0)
-            .map(([code, data]) => ({
+            .map(([code, data]): OrganizedChecklistCategory => ({
                 code,
                 name: data.name,
                 icon: data.icon,
@@ -753,7 +769,7 @@
             {:else if organizedChecklists.length > 0}
                 <!-- Flatten all checklists for global 2-column layout -->
                 {@const allChecklists = organizedChecklists.flatMap(category => 
-                    category.checklists.map(checklist => ({
+                    category.checklists.map((checklist: ChecklistRecord) => ({
                         ...checklist,
                         categoryName: category.name,
                         categoryIcon: category.icon,
@@ -778,11 +794,17 @@
                             <!-- Checklist Card -->
                             <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden mb-6">
                                 <!-- Clickable Checklist Header -->
-                                <div class="p-4 flex items-start justify-between cursor-pointer hover:bg-gray-50 transition-colors" 
-                                         on:click={() => toggleExpand(checklist.id)}
-                                         class:bg-blue-50={expandedChecklistId === checklist.id}
-                                         class:border-b={expandedChecklistId === checklist.id}
-                                     class:border-blue-200={expandedChecklistId === checklist.id}>
+                                <div
+                                    class="p-4 flex items-start justify-between cursor-pointer hover:bg-gray-50 transition-colors"
+                                    on:click={() => toggleExpand(checklist.id)}
+                                    on:keydown={(event) => (event.key === 'Enter' || event.key === ' ') && toggleExpand(checklist.id)}
+                                    role="button"
+                                    tabindex="0"
+                                    aria-expanded={expandedChecklistId === checklist.id}
+                                    class:bg-blue-50={expandedChecklistId === checklist.id}
+                                    class:border-b={expandedChecklistId === checklist.id}
+                                    class:border-blue-200={expandedChecklistId === checklist.id}
+                                >
                                         
                                     <div class="flex items-start space-x-3 flex-1">
                                         <div class="flex-shrink-0 mt-1" class:text-[#2C3580]={expandedChecklistId === checklist.id}>
@@ -959,11 +981,17 @@
                             <!-- Checklist Card -->
                             <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden mb-6">
                                 <!-- Clickable Checklist Header -->
-                                <div class="p-4 flex items-start justify-between cursor-pointer hover:bg-gray-50 transition-colors" 
-                                                on:click={() => toggleExpand(checklist.id)}
-                                     class:bg-blue-50={expandedChecklistId === checklist.id}
-                                     class:border-b={expandedChecklistId === checklist.id}
-                                     class:border-blue-200={expandedChecklistId === checklist.id}>
+                                <div
+                                    class="p-4 flex items-start justify-between cursor-pointer hover:bg-gray-50 transition-colors"
+                                    on:click={() => toggleExpand(checklist.id)}
+                                    on:keydown={(event) => (event.key === 'Enter' || event.key === ' ') && toggleExpand(checklist.id)}
+                                    role="button"
+                                    tabindex="0"
+                                    aria-expanded={expandedChecklistId === checklist.id}
+                                    class:bg-blue-50={expandedChecklistId === checklist.id}
+                                    class:border-b={expandedChecklistId === checklist.id}
+                                    class:border-blue-200={expandedChecklistId === checklist.id}
+                                >
                                     
                                     <div class="flex items-start space-x-3 flex-1">
                                         <div class="flex-shrink-0 mt-1" class:text-[#2C3580]={expandedChecklistId === checklist.id}>

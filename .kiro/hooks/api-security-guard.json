@@ -1,0 +1,13 @@
+{
+  "name": "API Security Guard",
+  "version": "1.0.0",
+  "description": "After editing an API endpoint, reminds Kiro to verify session auth, credit checks, and rate limiting are present",
+  "when": {
+    "type": "fileEdited",
+    "patterns": ["**/routes/api/**/*.ts"]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "An API endpoint file was just edited. Please review it and verify: (1) session authentication is checked via event.locals.supabase.auth.getSession() or event.locals.session, (2) if this endpoint consumes credits, the credit check via comprehensive-usage-limits.server.ts is present, (3) rate limiting is applied where appropriate via src/lib/utils/rateLimiter.ts. If any of these are missing, flag them clearly. Do not make changes — just report."
+  }
+}

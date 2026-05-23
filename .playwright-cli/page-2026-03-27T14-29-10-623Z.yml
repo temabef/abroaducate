@@ -1,0 +1,847 @@
+- generic [ref=e2]:
+  - generic [ref=e4]:
+    - banner [ref=e6]:
+      - generic [ref=e8]:
+        - generic [ref=e9]:
+          - link "Studee homepage" [ref=e11] [cursor=pointer]:
+            - /url: /
+          - generic: Close options
+          - generic [ref=e12]:
+            - generic [ref=e15] [cursor=pointer]: Close 
+            - navigation [ref=e16]:
+              - list [ref=e17]:
+                - listitem [ref=e18]:
+                  - link "Find universities" [ref=e19] [cursor=pointer]:
+                    - /url: /find-universities
+                - listitem [ref=e20]:
+                  - link "Find programs" [ref=e21] [cursor=pointer]:
+                    - /url: /find-programs
+                - listitem [ref=e22]:
+                  - link "Guides" [ref=e23] [cursor=pointer]:
+                    - /url: /guides
+        - generic [ref=e24]:
+          - generic: Close options
+          - generic [ref=e25]:
+            - text: 
+            - generic [ref=e29]:
+              - generic [ref=e30]: 
+              - combobox "Site search" [ref=e32]
+          - button "US flag USD" [ref=e35] [cursor=pointer]:
+            - img "US flag" [ref=e37]
+            - generic [ref=e38]: USD
+          - link "Account" [ref=e40] [cursor=pointer]:
+            - /url: /account/sign-in?return=%2Faccount%2Fgeneric
+            - generic [ref=e41]: 
+            - generic [ref=e42]: Account
+          - generic [ref=e43] [cursor=pointer]:
+            - generic [ref=e44]: 
+            - generic [ref=e45]: Menu
+    - main [ref=e46]:
+      - generic [ref=e47]:
+        - heading "Find your perfect program" [level=1] [ref=e48]
+        - paragraph [ref=e50]: Explore study abroad programs for international students. Apply your way with expert support and rewards.
+        - generic [ref=e51]:
+          - button " Filters" [ref=e53] [cursor=pointer]:
+            - generic [ref=e54]:  Filters
+          - combobox [ref=e57] [cursor=pointer]:
+            - option "Best match" [selected]
+            - option "Program name (A-Z)"
+            - option "Program name (Z-A)"
+            - option "Cheapest tuition"
+            - option "Start date (soonest first)"
+            - option "Application deadline (Soonest first)"
+            - option "Application fee (lowest first)"
+        - list [ref=e59]:
+          - listitem [ref=e60]:
+            - generic [ref=e61]:
+              - generic [ref=e62]:
+                - button "" [ref=e63] [cursor=pointer]:
+                  - generic [ref=e64]: 
+                - generic [ref=e65]:
+                  - link "Jessup University logo" [ref=e68] [cursor=pointer]:
+                    - /url: /degree/usa/uni/jessup-university
+                    - img "Jessup University logo" [ref=e69]
+                  - generic [ref=e70]:
+                    - heading "Jessup University Accountancy - MAccy" [level=2] [ref=e71]:
+                      - link "Jessup University" [ref=e73] [cursor=pointer]:
+                        - /url: /degree/usa/uni/jessup-university
+                      - generic [ref=e74]:
+                        - link "Accountancy" [ref=e75] [cursor=pointer]:
+                          - /url: /find-programs/master-of-accountancy-maccy-jessup-university
+                        - text: "- MAccy"
+                    - list [ref=e76]:
+                      - listitem [ref=e77]: 󡀀 2 years
+                      - listitem [ref=e78]: 󡀂 Full-time
+                      - listitem [ref=e79]: 󡀁 On campus
+                - generic [ref=e81]:
+                  - generic [ref=e82]:
+                    - term [ref=e83]: Program type
+                    - definition [ref=e84]: Master's
+                  - generic [ref=e85]:
+                    - term [ref=e86]: Subject area
+                    - definition [ref=e87]: Accounting
+                  - generic [ref=e88]:
+                    - term [ref=e89]: Location
+                    - definition [ref=e90]: Rocklin, California, USA
+                  - generic [ref=e91]:
+                    - term [ref=e92]: Next available start date
+                    - definition [ref=e93]:
+                      - text: July 2026
+                      - link "+7 more" [ref=e94] [cursor=pointer]:
+                        - /url: /find-programs
+                  - generic [ref=e95]:
+                    - term [ref=e96]: Annual tuition fee
+                    - definition [ref=e97]:
+                      - generic [ref=e99]:
+                        - generic [ref=e100]: 11,880USD
+                        - button "Change currency" [ref=e101] [cursor=pointer]: 
+                  - generic [ref=e102]:
+                    - term [ref=e103]: Admission requirements
+                    - definition [ref=e104]:
+                      - link "Am I eligible?" [ref=e105] [cursor=pointer]:
+                        - /url: /find-programs/master-of-accountancy-maccy-jessup-university#admission-requirements
+              - generic [ref=e106]:
+                - generic [ref=e108]:
+                  - generic [ref=e109]:
+                    - term [ref=e110]: Next application deadline
+                    - definition [ref=e111]: 18 May 2026
+                  - generic [ref=e112]:
+                    - term [ref=e113]: Application fee from
+                    - definition [ref=e114]:
+                      - generic [ref=e117]: 150USD
+                      - button "View application fees" [ref=e118] [cursor=pointer]: 
+                - button "Start application" [ref=e120] [cursor=pointer]:
+                  - generic [ref=e121]: Start application
+          - listitem [ref=e122]:
+            - generic [ref=e123]:
+              - generic [ref=e124]:
+                - button "" [ref=e125] [cursor=pointer]:
+                  - generic [ref=e126]: 
+                - generic [ref=e127]:
+                  - link "MIU City University Miami logo" [ref=e130] [cursor=pointer]:
+                    - /url: /degree/usa/uni/miu-city-university-miami
+                    - img "MIU City University Miami logo" [ref=e131]
+                  - generic [ref=e132]:
+                    - 'heading "MIU City University Miami Business Administration: Business Analytics - MBA" [level=2] [ref=e133]':
+                      - link "MIU City University Miami" [ref=e135] [cursor=pointer]:
+                        - /url: /degree/usa/uni/miu-city-university-miami
+                      - generic [ref=e136]:
+                        - 'link "Business Administration: Business Analytics" [ref=e137] [cursor=pointer]':
+                          - /url: /find-programs/business-administration-business-analytics-online-miu
+                        - text: "- MBA"
+                    - list [ref=e138]:
+                      - listitem [ref=e139]: 󡀀 18 months
+                      - listitem [ref=e140]: 󡀂 Full-time
+                      - listitem [ref=e141]: 󡀁 Online
+                - generic [ref=e143]:
+                  - generic [ref=e144]:
+                    - term [ref=e145]: Program type
+                    - definition [ref=e146]: Master's
+                  - generic [ref=e147]:
+                    - term [ref=e148]: Subject area
+                    - definition [ref=e149]: Business Analytics, Business Administration
+                  - generic [ref=e150]:
+                    - term [ref=e151]: Location
+                    - definition [ref=e152]: Miami, Florida, USA
+                  - generic [ref=e153]:
+                    - term [ref=e154]: Next available start date
+                    - definition [ref=e155]:
+                      - text: September 2026
+                      - link "+3 more" [ref=e156] [cursor=pointer]:
+                        - /url: /find-programs
+                  - generic [ref=e157]:
+                    - term [ref=e158]: Annual tuition fee
+                    - definition [ref=e159]:
+                      - generic [ref=e161]:
+                        - generic [ref=e162]: 5,334USD
+                        - button "Change currency" [ref=e163] [cursor=pointer]: 
+                  - generic [ref=e164]:
+                    - term [ref=e165]: Admission requirements
+                    - definition [ref=e166]:
+                      - link "Am I eligible?" [ref=e167] [cursor=pointer]:
+                        - /url: /find-programs/business-administration-business-analytics-online-miu#admission-requirements
+              - generic [ref=e168]:
+                - generic [ref=e170]:
+                  - generic [ref=e171]:
+                    - term [ref=e172]: Next application deadline
+                    - definition [ref=e173]: 17 Jun 2026
+                  - generic [ref=e174]:
+                    - term [ref=e175]: Application fee from
+                    - definition [ref=e176]:
+                      - generic [ref=e179]: 150USD
+                      - button "View application fees" [ref=e180] [cursor=pointer]: 
+                - button "Start application" [ref=e182] [cursor=pointer]:
+                  - generic [ref=e183]: Start application
+          - listitem [ref=e184]:
+            - generic [ref=e185]:
+              - generic [ref=e186]:
+                - button "" [ref=e187] [cursor=pointer]:
+                  - generic [ref=e188]: 
+                - generic [ref=e189]:
+                  - link "MIU City University Miami logo" [ref=e192] [cursor=pointer]:
+                    - /url: /degree/usa/uni/miu-city-university-miami
+                    - img "MIU City University Miami logo" [ref=e193]
+                  - generic [ref=e194]:
+                    - 'heading "MIU City University Miami Business Administration: Digital Marketing - MBA" [level=2] [ref=e195]':
+                      - link "MIU City University Miami" [ref=e197] [cursor=pointer]:
+                        - /url: /degree/usa/uni/miu-city-university-miami
+                      - generic [ref=e198]:
+                        - 'link "Business Administration: Digital Marketing" [ref=e199] [cursor=pointer]':
+                          - /url: /find-programs/business-administration-digital-marketing-online-miu
+                        - text: "- MBA"
+                    - list [ref=e200]:
+                      - listitem [ref=e201]: 󡀀 18 months
+                      - listitem [ref=e202]: 󡀂 Full-time
+                      - listitem [ref=e203]: 󡀁 Online
+                - generic [ref=e205]:
+                  - generic [ref=e206]:
+                    - term [ref=e207]: Program type
+                    - definition [ref=e208]: Master's
+                  - generic [ref=e209]:
+                    - term [ref=e210]: Subject area
+                    - definition [ref=e211]: Digital Marketing, Business Administration
+                  - generic [ref=e212]:
+                    - term [ref=e213]: Location
+                    - definition [ref=e214]: Miami, Florida, USA
+                  - generic [ref=e215]:
+                    - term [ref=e216]: Next available start date
+                    - definition [ref=e217]:
+                      - text: September 2026
+                      - link "+3 more" [ref=e218] [cursor=pointer]:
+                        - /url: /find-programs
+                  - generic [ref=e219]:
+                    - term [ref=e220]: Annual tuition fee
+                    - definition [ref=e221]:
+                      - generic [ref=e223]:
+                        - generic [ref=e224]: 5,334USD
+                        - button "Change currency" [ref=e225] [cursor=pointer]: 
+                  - generic [ref=e226]:
+                    - term [ref=e227]: Admission requirements
+                    - definition [ref=e228]:
+                      - link "Am I eligible?" [ref=e229] [cursor=pointer]:
+                        - /url: /find-programs/business-administration-digital-marketing-online-miu#admission-requirements
+              - generic [ref=e230]:
+                - generic [ref=e232]:
+                  - generic [ref=e233]:
+                    - term [ref=e234]: Next application deadline
+                    - definition [ref=e235]: 17 Jun 2026
+                  - generic [ref=e236]:
+                    - term [ref=e237]: Application fee from
+                    - definition [ref=e238]:
+                      - generic [ref=e241]: 150USD
+                      - button "View application fees" [ref=e242] [cursor=pointer]: 
+                - button "Start application" [ref=e244] [cursor=pointer]:
+                  - generic [ref=e245]: Start application
+          - listitem [ref=e246]:
+            - generic [ref=e247]:
+              - generic [ref=e248]:
+                - button "" [ref=e249] [cursor=pointer]:
+                  - generic [ref=e250]: 
+                - generic [ref=e251]:
+                  - link "MIU City University Miami logo" [ref=e254] [cursor=pointer]:
+                    - /url: /degree/usa/uni/miu-city-university-miami
+                    - img "MIU City University Miami logo" [ref=e255]
+                  - generic [ref=e256]:
+                    - 'heading "MIU City University Miami Business Administration: Finance - MBA" [level=2] [ref=e257]':
+                      - link "MIU City University Miami" [ref=e259] [cursor=pointer]:
+                        - /url: /degree/usa/uni/miu-city-university-miami
+                      - generic [ref=e260]:
+                        - 'link "Business Administration: Finance" [ref=e261] [cursor=pointer]':
+                          - /url: /find-programs/business-administration-finance-online-miu
+                        - text: "- MBA"
+                    - list [ref=e262]:
+                      - listitem [ref=e263]: 󡀀 18 months
+                      - listitem [ref=e264]: 󡀂 Full-time
+                      - listitem [ref=e265]: 󡀁 Online
+                - generic [ref=e267]:
+                  - generic [ref=e268]:
+                    - term [ref=e269]: Program type
+                    - definition [ref=e270]: Master's
+                  - generic [ref=e271]:
+                    - term [ref=e272]: Subject area
+                    - definition [ref=e273]: Finance, Business Administration
+                  - generic [ref=e274]:
+                    - term [ref=e275]: Location
+                    - definition [ref=e276]: Miami, Florida, USA
+                  - generic [ref=e277]:
+                    - term [ref=e278]: Next available start date
+                    - definition [ref=e279]:
+                      - text: September 2026
+                      - link "+3 more" [ref=e280] [cursor=pointer]:
+                        - /url: /find-programs
+                  - generic [ref=e281]:
+                    - term [ref=e282]: Annual tuition fee
+                    - definition [ref=e283]:
+                      - generic [ref=e285]:
+                        - generic [ref=e286]: 5,334USD
+                        - button "Change currency" [ref=e287] [cursor=pointer]: 
+                  - generic [ref=e288]:
+                    - term [ref=e289]: Admission requirements
+                    - definition [ref=e290]:
+                      - link "Am I eligible?" [ref=e291] [cursor=pointer]:
+                        - /url: /find-programs/business-administration-finance-online-miu#admission-requirements
+              - generic [ref=e292]:
+                - generic [ref=e294]:
+                  - generic [ref=e295]:
+                    - term [ref=e296]: Next application deadline
+                    - definition [ref=e297]: 17 Jun 2026
+                  - generic [ref=e298]:
+                    - term [ref=e299]: Application fee from
+                    - definition [ref=e300]:
+                      - generic [ref=e303]: 150USD
+                      - button "View application fees" [ref=e304] [cursor=pointer]: 
+                - button "Start application" [ref=e306] [cursor=pointer]:
+                  - generic [ref=e307]: Start application
+          - listitem [ref=e308]:
+            - generic [ref=e309]:
+              - generic [ref=e310]:
+                - button "" [ref=e311] [cursor=pointer]:
+                  - generic [ref=e312]: 
+                - generic [ref=e313]:
+                  - link "MIU City University Miami logo" [ref=e316] [cursor=pointer]:
+                    - /url: /degree/usa/uni/miu-city-university-miami
+                    - img "MIU City University Miami logo" [ref=e317]
+                  - generic [ref=e318]:
+                    - 'heading "MIU City University Miami Business Administration: Global Management - MBA" [level=2] [ref=e319]':
+                      - link "MIU City University Miami" [ref=e321] [cursor=pointer]:
+                        - /url: /degree/usa/uni/miu-city-university-miami
+                      - generic [ref=e322]:
+                        - 'link "Business Administration: Global Management" [ref=e323] [cursor=pointer]':
+                          - /url: /find-programs/business-administration-global-management-miu
+                        - text: "- MBA"
+                    - list [ref=e324]:
+                      - listitem [ref=e325]: 󡀀 18 months
+                      - listitem [ref=e326]: 󡀂 Full-time
+                      - listitem [ref=e327]: 󡀁 Online
+                - generic [ref=e329]:
+                  - generic [ref=e330]:
+                    - term [ref=e331]: Program type
+                    - definition [ref=e332]: Master's
+                  - generic [ref=e333]:
+                    - term [ref=e334]: Subject area
+                    - definition [ref=e335]: Business Administration
+                  - generic [ref=e336]:
+                    - term [ref=e337]: Location
+                    - definition [ref=e338]: Miami, Florida, USA
+                  - generic [ref=e339]:
+                    - term [ref=e340]: Next available start date
+                    - definition [ref=e341]:
+                      - text: September 2026
+                      - link "+3 more" [ref=e342] [cursor=pointer]:
+                        - /url: /find-programs
+                  - generic [ref=e343]:
+                    - term [ref=e344]: Annual tuition fee
+                    - definition [ref=e345]:
+                      - generic [ref=e347]:
+                        - generic [ref=e348]: 5,334USD
+                        - button "Change currency" [ref=e349] [cursor=pointer]: 
+                  - generic [ref=e350]:
+                    - term [ref=e351]: Admission requirements
+                    - definition [ref=e352]:
+                      - link "Am I eligible?" [ref=e353] [cursor=pointer]:
+                        - /url: /find-programs/business-administration-global-management-miu#admission-requirements
+              - generic [ref=e354]:
+                - generic [ref=e356]:
+                  - generic [ref=e357]:
+                    - term [ref=e358]: Next application deadline
+                    - definition [ref=e359]: 17 Jun 2026
+                  - generic [ref=e360]:
+                    - term [ref=e361]: Application fee from
+                    - definition [ref=e362]:
+                      - generic [ref=e365]: 150USD
+                      - button "View application fees" [ref=e366] [cursor=pointer]: 
+                - button "Start application" [ref=e368] [cursor=pointer]:
+                  - generic [ref=e369]: Start application
+          - listitem [ref=e370]:
+            - generic [ref=e371]:
+              - generic [ref=e372]:
+                - button "" [ref=e373] [cursor=pointer]:
+                  - generic [ref=e374]: 
+                - generic [ref=e375]:
+                  - link "Teesside University logo" [ref=e378] [cursor=pointer]:
+                    - /url: /degree/uk/uni/teesside-university
+                    - img "Teesside University logo" [ref=e379]
+                  - generic [ref=e380]:
+                    - heading "Teesside University 2D Animation and Stop Motion - BA (Hons)" [level=2] [ref=e381]:
+                      - link "Teesside University" [ref=e383] [cursor=pointer]:
+                        - /url: /degree/uk/uni/teesside-university
+                      - generic [ref=e384]:
+                        - link "2D Animation and Stop Motion" [ref=e385] [cursor=pointer]:
+                          - /url: /find-programs/2d-animation-and-stop-motion-ba-hons-teesside-university
+                        - text: "- BA (Hons)"
+                    - list [ref=e386]:
+                      - listitem [ref=e387]: 󡀀 3 years
+                      - listitem [ref=e388]: 󡀂 Full-time
+                      - listitem [ref=e389]: 󡀁 On campus
+                - generic [ref=e391]:
+                  - generic [ref=e392]:
+                    - term [ref=e393]: Program type
+                    - definition [ref=e394]: Bachelor's
+                  - generic [ref=e395]:
+                    - term [ref=e396]: Subject area
+                    - definition [ref=e397]: 2D Animation
+                  - generic [ref=e398]:
+                    - term [ref=e399]: Location
+                    - definition [ref=e400]: Middlesbrough, UK
+                  - generic [ref=e401]:
+                    - term [ref=e402]: Next available start date
+                    - definition [ref=e403]:
+                      - text: September 2026
+                      - link "+2 more" [ref=e404] [cursor=pointer]:
+                        - /url: /find-programs
+                  - generic [ref=e405]:
+                    - term [ref=e406]: Annual tuition fee
+                    - definition [ref=e407]:
+                      - generic [ref=e409]:
+                        - generic [ref=e410]: 22,654USD
+                        - button "Change currency" [ref=e411] [cursor=pointer]: 
+                  - generic [ref=e412]:
+                    - term [ref=e413]: Admission requirements
+                    - definition [ref=e414]:
+                      - link "Am I eligible?" [ref=e415] [cursor=pointer]:
+                        - /url: /find-programs/2d-animation-and-stop-motion-ba-hons-teesside-university#admission-requirements
+              - generic [ref=e416]:
+                - generic [ref=e418]:
+                  - generic [ref=e419]:
+                    - term [ref=e420]: Next application deadline
+                    - definition [ref=e421]: 16 Jun 2026
+                  - generic [ref=e422]:
+                    - term [ref=e423]: Application fee from
+                    - definition [ref=e424]:
+                      - generic [ref=e427]: No fee
+                - button "Start application" [ref=e429] [cursor=pointer]:
+                  - generic [ref=e430]: Start application
+          - listitem [ref=e431]:
+            - generic [ref=e432]:
+              - generic [ref=e433]:
+                - button "" [ref=e434] [cursor=pointer]:
+                  - generic [ref=e435]: 
+                - generic [ref=e436]:
+                  - link "Teesside University logo" [ref=e439] [cursor=pointer]:
+                    - /url: /degree/uk/uni/teesside-university
+                    - img "Teesside University logo" [ref=e440]
+                  - generic [ref=e441]:
+                    - heading "Teesside University 2D Animation and Stop Motion - BA (Hons) (with placement)" [level=2] [ref=e442]:
+                      - link "Teesside University" [ref=e444] [cursor=pointer]:
+                        - /url: /degree/uk/uni/teesside-university
+                      - generic [ref=e445]:
+                        - link "2D Animation and Stop Motion" [ref=e446] [cursor=pointer]:
+                          - /url: /find-programs/2d-animation-and-stop-motion-ba-hons-teesside-university-placement
+                        - text: "- BA (Hons) (with placement)"
+                    - list [ref=e447]:
+                      - listitem [ref=e448]: 󡀀 3 years
+                      - listitem [ref=e449]: 󡀂 Full-time
+                      - listitem [ref=e450]: 󡀁 On campus
+                - generic [ref=e452]:
+                  - generic [ref=e453]:
+                    - term [ref=e454]: Program type
+                    - definition [ref=e455]: Bachelor's
+                  - generic [ref=e456]:
+                    - term [ref=e457]: Subject area
+                    - definition [ref=e458]: 2D Animation
+                  - generic [ref=e459]:
+                    - term [ref=e460]: Location
+                    - definition [ref=e461]: Middlesbrough, UK
+                  - generic [ref=e462]:
+                    - term [ref=e463]: Next available start date
+                    - definition [ref=e464]:
+                      - text: September 2026
+                      - link "+2 more" [ref=e465] [cursor=pointer]:
+                        - /url: /find-programs
+                  - generic [ref=e466]:
+                    - term [ref=e467]: Annual tuition fee
+                    - definition [ref=e468]:
+                      - generic [ref=e470]:
+                        - generic [ref=e471]: 22,654USD
+                        - button "Change currency" [ref=e472] [cursor=pointer]: 
+                  - generic [ref=e473]:
+                    - term [ref=e474]: Admission requirements
+                    - definition [ref=e475]:
+                      - link "Am I eligible?" [ref=e476] [cursor=pointer]:
+                        - /url: /find-programs/2d-animation-and-stop-motion-ba-hons-teesside-university-placement#admission-requirements
+              - generic [ref=e477]:
+                - generic [ref=e479]:
+                  - generic [ref=e480]:
+                    - term [ref=e481]: Next application deadline
+                    - definition [ref=e482]: 16 Jun 2026
+                  - generic [ref=e483]:
+                    - term [ref=e484]: Application fee from
+                    - definition [ref=e485]:
+                      - generic [ref=e488]: No fee
+                - button "Start application" [ref=e490] [cursor=pointer]:
+                  - generic [ref=e491]: Start application
+          - listitem [ref=e492]:
+            - generic [ref=e493]:
+              - generic [ref=e494]:
+                - button "" [ref=e495] [cursor=pointer]:
+                  - generic [ref=e496]: 
+                - generic [ref=e497]:
+                  - link "Teesside University logo" [ref=e500] [cursor=pointer]:
+                    - /url: /degree/uk/uni/teesside-university
+                    - img "Teesside University logo" [ref=e501]
+                  - generic [ref=e502]:
+                    - heading "Teesside University 2D Animation and Stop Motion - MA" [level=2] [ref=e503]:
+                      - link "Teesside University" [ref=e505] [cursor=pointer]:
+                        - /url: /degree/uk/uni/teesside-university
+                      - generic [ref=e506]:
+                        - link "2D Animation and Stop Motion" [ref=e507] [cursor=pointer]:
+                          - /url: /find-programs/2d-animation-and-stop-motion-ma-teesside-university
+                        - text: "- MA"
+                    - list [ref=e508]:
+                      - listitem [ref=e509]: 󡀀 1 year
+                      - listitem [ref=e510]: 󡀂 Full-time
+                      - listitem [ref=e511]: 󡀁 On campus
+                - generic [ref=e513]:
+                  - generic [ref=e514]:
+                    - term [ref=e515]: Program type
+                    - definition [ref=e516]: Master's
+                  - generic [ref=e517]:
+                    - term [ref=e518]: Subject area
+                    - definition [ref=e519]: 2D Animation
+                  - generic [ref=e520]:
+                    - term [ref=e521]: Location
+                    - definition [ref=e522]: Middlesbrough, UK
+                  - generic [ref=e523]:
+                    - term [ref=e524]: Next available start date
+                    - definition [ref=e525]:
+                      - text: September 2026
+                      - link "+1 more" [ref=e526] [cursor=pointer]:
+                        - /url: /find-programs
+                  - generic [ref=e527]:
+                    - term [ref=e528]: Annual tuition fee
+                    - definition [ref=e529]:
+                      - generic [ref=e531]:
+                        - generic [ref=e532]: 22,654USD
+                        - button "Change currency" [ref=e533] [cursor=pointer]: 
+                  - generic [ref=e534]:
+                    - term [ref=e535]: Admission requirements
+                    - definition [ref=e536]:
+                      - link "Am I eligible?" [ref=e537] [cursor=pointer]:
+                        - /url: /find-programs/2d-animation-and-stop-motion-ma-teesside-university#admission-requirements
+              - generic [ref=e538]:
+                - generic [ref=e540]:
+                  - generic [ref=e541]:
+                    - term [ref=e542]: Next application deadline
+                    - definition [ref=e543]: 01 Jul 2026
+                  - generic [ref=e544]:
+                    - term [ref=e545]: Application fee from
+                    - definition [ref=e546]:
+                      - generic [ref=e549]: No fee
+                - button "Start application" [ref=e551] [cursor=pointer]:
+                  - generic [ref=e552]: Start application
+          - listitem [ref=e553]:
+            - generic [ref=e554]:
+              - generic [ref=e555]:
+                - button "" [ref=e556] [cursor=pointer]:
+                  - generic [ref=e557]: 
+                - generic [ref=e558]:
+                  - link "Teesside University logo" [ref=e561] [cursor=pointer]:
+                    - /url: /degree/uk/uni/teesside-university
+                    - img "Teesside University logo" [ref=e562]
+                  - generic [ref=e563]:
+                    - heading "Teesside University 2D Animation and Stop Motion (Advanced Practice) - MA" [level=2] [ref=e564]:
+                      - link "Teesside University" [ref=e566] [cursor=pointer]:
+                        - /url: /degree/uk/uni/teesside-university
+                      - generic [ref=e567]:
+                        - link "2D Animation and Stop Motion (Advanced Practice)" [ref=e568] [cursor=pointer]:
+                          - /url: /find-programs/2d-animation-and-stop-motion-ma-teesside-university-placement
+                        - text: "- MA"
+                    - list [ref=e569]:
+                      - listitem [ref=e570]: 󡀀 2 years
+                      - listitem [ref=e571]: 󡀂 Full-time
+                      - listitem [ref=e572]: 󡀁 On campus
+                - generic [ref=e574]:
+                  - generic [ref=e575]:
+                    - term [ref=e576]: Program type
+                    - definition [ref=e577]: Master's
+                  - generic [ref=e578]:
+                    - term [ref=e579]: Subject area
+                    - definition [ref=e580]: 2D Animation
+                  - generic [ref=e581]:
+                    - term [ref=e582]: Location
+                    - definition [ref=e583]: Middlesbrough, UK
+                  - generic [ref=e584]:
+                    - term [ref=e585]: Next available start date
+                    - definition [ref=e586]: September 2026
+                  - generic [ref=e587]:
+                    - term [ref=e588]: Annual tuition fee
+                    - definition [ref=e589]:
+                      - generic [ref=e591]:
+                        - generic [ref=e592]: 22,654USD
+                        - button "Change currency" [ref=e593] [cursor=pointer]: 
+                  - generic [ref=e594]:
+                    - term [ref=e595]: Admission requirements
+                    - definition [ref=e596]:
+                      - link "Am I eligible?" [ref=e597] [cursor=pointer]:
+                        - /url: /find-programs/2d-animation-and-stop-motion-ma-teesside-university-placement#admission-requirements
+              - generic [ref=e598]:
+                - generic [ref=e600]:
+                  - generic [ref=e601]:
+                    - term [ref=e602]: Next application deadline
+                    - definition [ref=e603]: 01 Jul 2026
+                  - generic [ref=e604]:
+                    - term [ref=e605]: Application fee from
+                    - definition [ref=e606]:
+                      - generic [ref=e609]: No fee
+                - button "Start application" [ref=e611] [cursor=pointer]:
+                  - generic [ref=e612]: Start application
+          - listitem [ref=e613]:
+            - generic [ref=e614]:
+              - generic [ref=e615]:
+                - button "" [ref=e616] [cursor=pointer]:
+                  - generic [ref=e617]: 
+                - generic [ref=e618]:
+                  - link "Teesside University logo" [ref=e621] [cursor=pointer]:
+                    - /url: /degree/uk/uni/teesside-university
+                    - img "Teesside University logo" [ref=e622]
+                  - generic [ref=e623]:
+                    - heading "Teesside University 2D Animation and Stop Motion (with Foundation Year) - BA (Hons) (with foundation)" [level=2] [ref=e624]:
+                      - link "Teesside University" [ref=e626] [cursor=pointer]:
+                        - /url: /degree/uk/uni/teesside-university
+                      - generic [ref=e627]:
+                        - link "2D Animation and Stop Motion (with Foundation Year)" [ref=e628] [cursor=pointer]:
+                          - /url: /find-programs/2d-animation-and-stop-motion-ba-hons-teesside-university-foundation
+                        - text: "- BA (Hons) (with foundation)"
+                    - list [ref=e629]:
+                      - listitem [ref=e630]: 󡀀 3 years
+                      - listitem [ref=e631]: 󡀂 Full-time
+                      - listitem [ref=e632]: 󡀁 On campus
+                - generic [ref=e634]:
+                  - generic [ref=e635]:
+                    - term [ref=e636]: Program type
+                    - definition [ref=e637]: Bachelor's
+                  - generic [ref=e638]:
+                    - term [ref=e639]: Subject area
+                    - definition [ref=e640]: 2D Animation
+                  - generic [ref=e641]:
+                    - term [ref=e642]: Location
+                    - definition [ref=e643]: Middlesbrough, UK
+                  - generic [ref=e644]:
+                    - term [ref=e645]: Next available start date
+                    - definition [ref=e646]:
+                      - text: September 2026
+                      - link "+2 more" [ref=e647] [cursor=pointer]:
+                        - /url: /find-programs
+                  - generic [ref=e648]:
+                    - term [ref=e649]: Annual tuition fee
+                    - definition [ref=e650]:
+                      - generic [ref=e652]:
+                        - generic [ref=e653]: 22,654USD
+                        - button "Change currency" [ref=e654] [cursor=pointer]: 
+                  - generic [ref=e655]:
+                    - term [ref=e656]: Admission requirements
+                    - definition [ref=e657]:
+                      - link "Am I eligible?" [ref=e658] [cursor=pointer]:
+                        - /url: /find-programs/2d-animation-and-stop-motion-ba-hons-teesside-university-foundation#admission-requirements
+              - generic [ref=e659]:
+                - generic [ref=e661]:
+                  - generic [ref=e662]:
+                    - term [ref=e663]: Next application deadline
+                    - definition [ref=e664]: 16 Jun 2026
+                  - generic [ref=e665]:
+                    - term [ref=e666]: Application fee from
+                    - definition [ref=e667]:
+                      - generic [ref=e670]: No fee
+                - button "Start application" [ref=e672] [cursor=pointer]:
+                  - generic [ref=e673]: Start application
+        - link "Load more " [ref=e675] [cursor=pointer]:
+          - /url: /find-programs?page=2
+          - generic [ref=e676]: Load more 
+      - generic [ref=e679]:
+        - generic [ref=e680]:
+          - heading "Apply to study abroad for a faster decision" [level=2] [ref=e681]
+          - button "Hide " [ref=e683] [cursor=pointer]:
+            - generic [ref=e684]: Hide 
+        - generic [ref=e685]:
+          - paragraph [ref=e687]: Apply with Studee and we'll guide you through every step, making sure your application is correct and meets all the entry requirements.
+          - list [ref=e689]:
+            - listitem [ref=e690]:
+              - img "Illustration of a woman with purple hair, looking at a computer screen with a large magnifying glass, indicative of searching. She holds an orange book and wears a maroon colored top." [ref=e692]
+              - heading "Explore programs" [level=3] [ref=e693]
+              - paragraph [ref=e694]: Discover universities and programs that match your study goals
+            - listitem [ref=e695]:
+              - img "Illustration of a graduate in a cap and gown holding a book, standing next to a computer monitor displaying the Studee logo. A price tag is attached to the monitor, suggesting discounts or offers." [ref=e697]
+              - heading "Apply your way" [level=3] [ref=e698]
+              - paragraph [ref=e699]: Get full Studee support, or apply on the university website
+            - listitem [ref=e700]:
+              - img "Illustration of a smiling person with reddish-purple hair holding an envelope containing a document labeled 'OFFER' with a university building in the background." [ref=e702]
+              - heading "Get rewarded" [level=3] [ref=e703]
+              - paragraph [ref=e704]: We'll send you a $250 Amazon gift card when you enroll
+              - link "Reward ts & cs " [ref=e705] [cursor=pointer]:
+                - /url: /about/studee-rewards
+                - generic [ref=e706]: Reward ts & cs 
+          - paragraph [ref=e708]: You'll get expert support whenever you need it, no matter how you apply.
+          - list [ref=e712]:
+            - listitem [ref=e713]:
+              - text: 
+              - paragraph [ref=e714]: Find the best match - discover programs and universities that fit your goals and budget
+            - listitem [ref=e715]:
+              - text: 
+              - paragraph [ref=e716]: Apply your way - with Studee's expert support, or on the university site with advice when you need it
+            - listitem [ref=e717]:
+              - text: 
+              - paragraph [ref=e718]: Apply faster - like your browser auto-fills forms, we pre-fill your application with any info you've already submitted
+            - listitem [ref=e719]:
+              - text: 
+              - paragraph [ref=e720]: Get expert advice, anytime - from application to enrollment, we're here to help
+            - listitem [ref=e721]:
+              - text: 
+              - paragraph [ref=e722]: Know if you're eligible - we make sure you've got everything you need to apply
+            - listitem [ref=e723]:
+              - text: 
+              - paragraph [ref=e724]: Visa and admissions support - step-by-step admissions support and visa guidance to keep you on track
+          - button "See the benefits of applying your way " [ref=e725] [cursor=pointer]:
+            - generic [ref=e726]: See the benefits of applying your way 
+    - contentinfo [ref=e728]:
+      - generic [ref=e732]:
+        - generic [ref=e733]:
+          - generic [ref=e734]: Partner with us
+          - list [ref=e735]:
+            - listitem [ref=e736]:
+              - link "I'm a university" [ref=e737] [cursor=pointer]:
+                - /url: /university-hub/services
+          - generic [ref=e738]: Partner support
+          - list [ref=e739]:
+            - listitem [ref=e740]:
+              - link "University support" [ref=e741] [cursor=pointer]:
+                - /url: /university-hub
+        - generic [ref=e742]:
+          - generic [ref=e743]: Students
+          - list [ref=e744]:
+            - listitem [ref=e745]:
+              - link "Find universities" [ref=e746] [cursor=pointer]:
+                - /url: /find-universities
+            - listitem [ref=e747]:
+              - link "Find programs" [ref=e748] [cursor=pointer]:
+                - /url: /find-programs
+            - listitem [ref=e749]:
+              - link "Why use Studee" [ref=e750] [cursor=pointer]:
+                - /url: /about/why-use-studee
+            - listitem [ref=e751]:
+              - link "Guides" [ref=e752] [cursor=pointer]:
+                - /url: /guides
+        - generic [ref=e753]:
+          - generic [ref=e754]: Company
+          - list [ref=e755]:
+            - listitem [ref=e756]:
+              - link "About us" [ref=e757] [cursor=pointer]:
+                - /url: /about
+            - listitem [ref=e758]:
+              - link "Press & media" [ref=e759] [cursor=pointer]:
+                - /url: /media
+            - listitem [ref=e760]:
+              - link "Discover" [ref=e761] [cursor=pointer]:
+                - /url: /discover
+            - listitem [ref=e762]:
+              - link "Careers" [ref=e763] [cursor=pointer]:
+                - /url: /about/careers
+            - listitem [ref=e764]:
+              - link "Contact us" [ref=e765] [cursor=pointer]:
+                - /url: /contact-us
+        - generic [ref=e766]:
+          - generic [ref=e767]: Sustainability
+          - list [ref=e768]:
+            - listitem [ref=e769]:
+              - link "Giving back" [ref=e770] [cursor=pointer]:
+                - /url: /giving-back
+            - listitem [ref=e771]:
+              - link "Prospect Burma" [ref=e772] [cursor=pointer]:
+                - /url: /giving-back/scholarships
+        - generic [ref=e773]:
+          - generic [ref=e774]: Accreditations
+          - generic [ref=e776]:
+            - img "AIRC logo" [ref=e777]
+            - img "NAFSA logo" [ref=e778]
+            - img "ICEF logo" [ref=e779]
+      - generic [ref=e782]:
+        - list [ref=e785]:
+          - listitem [ref=e786]: © Studee Ltd 2026. ⋅
+          - listitem [ref=e787]:
+            - link "Terms of use" [ref=e788] [cursor=pointer]:
+              - /url: /legal/terms-and-conditions
+            - text: ⋅
+          - listitem [ref=e789]:
+            - link "Cookies" [ref=e790] [cursor=pointer]:
+              - /url: /legal/cookies
+            - text: ⋅
+          - listitem [ref=e791]:
+            - link "Privacy" [ref=e792] [cursor=pointer]:
+              - /url: /legal/privacy
+            - text: ⋅
+          - listitem [ref=e793]:
+            - link "Policies" [ref=e794] [cursor=pointer]:
+              - /url: /policies
+            - text: ⋅
+          - listitem [ref=e795]:
+            - link "Legal" [ref=e796] [cursor=pointer]:
+              - /url: /legal
+        - list [ref=e798]:
+          - listitem [ref=e799]:
+            - link "" [ref=e800] [cursor=pointer]:
+              - /url: https://www.instagram.com/studee.international/
+          - listitem [ref=e801]:
+            - link "" [ref=e802] [cursor=pointer]:
+              - /url: https://www.tiktok.com/@studeeinternational
+          - listitem [ref=e803]:
+            - link "" [ref=e804] [cursor=pointer]:
+              - /url: https://www.facebook.com/studeeinternational
+          - listitem [ref=e805]:
+            - link "" [ref=e806] [cursor=pointer]:
+              - /url: https://www.linkedin.com/company/studee-com/
+  - dialog [ref=e816]:
+    - generic [ref=e819]:
+      - generic [ref=e820]:
+        - generic [ref=e821]: Let's find your university application
+        - button "Close " [ref=e823] [cursor=pointer]:
+          - generic [ref=e824]: Close 
+      - generic [ref=e827]:
+        - generic [ref=e828]:
+          - generic [ref=e829]:
+            - img "Jessup University logo" [ref=e831]
+            - heading "Apply to Jessup University" [level=2] [ref=e832]
+            - paragraph [ref=e834]: Tell us your program and start date so we can send you to the right application.
+          - list [ref=e836]:
+            - listitem [ref=e837]:
+              - generic [ref=e838]: Which program are you applying to? *
+              - generic [ref=e840]: 󡀗 Accountancy - MAccy - On campus
+            - listitem [ref=e841]:
+              - generic [ref=e842]: When do you want to start studying? *
+              - combobox "When do you want to start studying? *" [active] [ref=e843] [cursor=pointer]:
+                - option "Select a start date"
+                - option [disabled]
+                - option "July 2026"
+                - option "August 2026"
+                - option "October 2026" [selected]
+                - option [disabled]
+                - option "January 2027"
+                - option "March 2027"
+                - option "May 2027"
+                - option "July 2027"
+                - option "August 2027"
+          - list [ref=e846]:
+            - listitem [ref=e847]:
+              - generic [ref=e848]:
+                - text: 󡀵
+                - generic [ref=e849]: Apply by 18 Aug 2026
+            - listitem [ref=e850]:
+              - generic [ref=e851]:
+                - text: 󡀖
+                - generic [ref=e852]: Application fee
+              - button "From 150 USD " [ref=e855] [cursor=pointer]:
+                - generic [ref=e856]:
+                  - generic [ref=e857]: From
+                  - generic [ref=e858]: 150 USD
+                  - text: 
+        - button "Continue" [ref=e859] [cursor=pointer]:
+          - generic [ref=e860]: Continue
+  - generic [ref=e808]:
+    - paragraph [ref=e810]:
+      - text: We use cookies to enhance your experience. By continuing, you consent to
+      - link "all cookies" [ref=e811] [cursor=pointer]:
+        - /url: /legal/cookies
+      - text: ", including those for analytics, personalization, marketing, and activity recording by"
+      - link "Lucky Orange" [ref=e812] [cursor=pointer]:
+        - /url: https://help-preview.luckyorange.com/article/410-what-tracking-cookies-lucky-orange-sets
+      - text: . This may involve monitoring your site interactions, heatmaps, and click-maps to improve our services. If you’re under 18, you confirm parental consent to use our site.
+    - button "Accept and continue " [ref=e814] [cursor=pointer]:
+      - generic [ref=e815]: Accept and continue 

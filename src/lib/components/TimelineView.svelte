@@ -211,8 +211,8 @@
         {#if showFilters && viewMode === 'full'}
             <div class="flex flex-wrap gap-4 p-4 bg-gray-50 rounded-lg">
                 <div class="flex items-center gap-2">
-                    <label class="text-sm font-medium text-gray-700">Priority:</label>
-                    <select bind:value={filterPriority} class="px-3 py-1 border border-gray-300 rounded">
+                    <label for="timeline-filter-priority" class="text-sm font-medium text-gray-700">Priority:</label>
+                    <select id="timeline-filter-priority" bind:value={filterPriority} class="px-3 py-1 border border-gray-300 rounded">
                         <option value="all">All</option>
                         <option value="urgent">Urgent</option>
                         <option value="high">High</option>
@@ -222,8 +222,8 @@
                 </div>
                 
                 <div class="flex items-center gap-2">
-                    <label class="text-sm font-medium text-gray-700">Status:</label>
-                    <select bind:value={filterStatus} class="px-3 py-1 border border-gray-300 rounded">
+                    <label for="timeline-filter-status" class="text-sm font-medium text-gray-700">Status:</label>
+                    <select id="timeline-filter-status" bind:value={filterStatus} class="px-3 py-1 border border-gray-300 rounded">
                         <option value="all">All</option>
                         <option value="upcoming">Upcoming</option>
                         <option value="today">Today</option>
@@ -233,8 +233,8 @@
                 </div>
                 
                 <div class="flex items-center gap-2">
-                    <label class="text-sm font-medium text-gray-700">Type:</label>
-                    <select bind:value={filterType} class="px-3 py-1 border border-gray-300 rounded">
+                    <label for="timeline-filter-type" class="text-sm font-medium text-gray-700">Type:</label>
+                    <select id="timeline-filter-type" bind:value={filterType} class="px-3 py-1 border border-gray-300 rounded">
                         <option value="all">All</option>
                         <option value="deadline">Deadlines</option>
                         <option value="milestone">Milestones</option>

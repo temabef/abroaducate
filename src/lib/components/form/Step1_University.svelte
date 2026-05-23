@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { formStore } from '$lib/stores';
     import { get } from 'svelte/store';
+    import { BookOpen } from 'lucide-svelte';
 
     const countries = [
         'United States of America', 'United Kingdom', 'Canada', 'Australia', 'Germany', 'France', 'Netherlands', 'Ireland', 'New Zealand', 'Singapore', 'Japan', '──────────',
@@ -103,7 +104,7 @@
     <!-- Instructional Text -->
     <div class="instruction-box mb-6">
         <p class="text-gray-600 text-sm bg-blue-50 p-3 rounded-lg border-l-4 border-blue-400">
-            <span class="font-medium">📚 University Application Details:</span> Please provide information about the university or college you are applying to.
+            <span class="font-medium inline-flex items-center gap-1"><BookOpen size={14} /> University Application Details:</span> Please provide information about the university or college you are applying to.
         </p>
     </div>
 
@@ -187,7 +188,7 @@
                     on:change={toggleCustomAspiration} 
                     class="mr-2"
                 >
-                <span class="font-medium">✨ This program is the best choice for me because... (Recommended)</span>
+                <span class="font-medium">This program is the best choice for me because… (Recommended)</span>
             </label>
             {#if $formStore.isBestChoiceSelected}
                 <textarea 

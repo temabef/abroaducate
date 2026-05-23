@@ -1,432 +1,272 @@
 <script lang="ts">
-  import SEO from '$lib/components/SEO.svelte';
-  import { derived } from 'svelte/store';
-  
-  let formData = $state({
-    name: '',
-    email: '',
-    category: 'general', // Default to 'general'
-    subject: '',
-    message: '',
-    priority: 'normal'
-  });
-  
-  let submitting = $state(false);
-  let submitted = $state(false);
-  let error = $state('');
+	import { Wrench, CreditCard, User, FileText, GraduationCap, MessageSquare, Mail, Clock, ChevronDown, CheckCircle2, ArrowLeft } from 'lucide-svelte';
 
-  // Real-time validation state
-  let nameError = '';
-  let emailError = '';
-  let messageError = '';
-  let categoryError = '';
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+	let { data } = $props();
 
-  function validateName() {
-    nameError = formData.name.trim().length < 2 ? 'Full name is required (min 2 characters).' : '';
-  }
-  function validateEmail() {
-    emailError = !formData.email ? 'Email is required.' : (!emailRegex.test(formData.email) ? 'Invalid email format.' : '');
-  }
-  function validateMessage() {
-    messageError = formData.message.trim().length < 10 ? 'Message is required (min 10 characters).' : '';
-  }
-  function validateCategory() {
-    categoryError = !formData.category ? 'Please select a support category.' : '';
-  }
+	let formData = $state({
+		name: '',
+		email: '',
+		category: 'general',
+		subject: '',
+		message: '',
+		priority: 'normal'
+	});
 
-  function validateAll() {
-    validateName();
-    validateEmail();
-    validateMessage();
-    validateCategory();
-  }
+	let submitting = $state(false);
+	let submitted = $state(false);
+	let error = $state('');
+	let nameError = $state('');
+	let emailError = $state('');
+	let messageError = $state('');
 
-  async function handleSubmit(event: Event) {
-    event.preventDefault();
-    validateAll();
-    if (nameError || emailError || messageError || categoryError) {
-      error = 'Please fix the errors above.';
-      return;
-    }
+	const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    submitting = true;
-    error = '';
+	function validateName() { nameError = formData.name.trim().length < 2 ? 'Full name is required.' : ''; }
+	function validateEmail() { emailError = !formData.email ? 'Email is required.' : !emailRegex.test(formData.email) ? 'Invalid email format.' : ''; }
+	function validateMessage() { messageError = formData.message.trim().length < 10 ? 'Message must be at least 10 characters.' : ''; }
 
-    try {
-      const response = await fetch('/api/contact-support', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData)
-      });
+	async function handleSubmit(e: Event) {
+		e.preventDefault();
+		validateName(); validateEmail(); validateMessage();
+		if (nameError || emailError || messageError) { error = 'Please fix the errors above.'; return; }
+		submitting = true;
+		error = '';
+		try {
+			const res = await fetch('/api/contact-support', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(formData)
+			});
+			if (res.ok) {
+				submitted = true;
+				formData = { name: '', email: '', category: 'general', subject: '', message: '', priority: 'normal' };
+				window.scrollTo({ top: 0, behavior: 'smooth' });
+			} else {
+				const j = await res.json().catch(() => ({}));
+				throw new Error(j.error || 'Failed to send message');
+			}
+		} catch (err: any) {
+			error = err.message || 'Failed to send. Please email hello@abroaducate.com directly.';
+		} finally {
+			submitting = false;
+		}
+	}
 
-      if (response.ok) {
-        submitted = true;
-        formData = { name: '', email: '', category: 'general', subject: '', message: '', priority: 'normal' };
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      } else {
-        throw new Error('Failed to send message');
-      }
-    } catch (err) {
-      error = 'Failed to send your message. Please try emailing us directly at support@abroaducate.com';
-    } finally {
-      submitting = false;
-    }
-  }
+	const categories = [
+		{ value: 'technical', label: 'Technical Issue', desc: 'Login problems, bugs, feature not working', icon: Wrench },
+		{ value: 'billing', label: 'Billing & Credits', desc: 'Payment issues, credit packs, refunds', icon: CreditCard },
+		{ value: 'account', label: 'Account Support', desc: 'Profile settings, data, account deletion', icon: User },
+		{ value: 'documents', label: 'Document Help', desc: 'SOP generation, editing, formatting', icon: FileText },
+		{ value: 'universities', label: 'Program Questions', desc: 'Programs, scholarships, deadlines', icon: GraduationCap },
+		{ value: 'general', label: 'General Inquiry', desc: 'Features, partnerships, feedback', icon: MessageSquare }
+	];
 
-  const supportCategories = [
-    { value: 'technical', label: 'Technical Issues', icon: '🔧', desc: 'Login problems, bugs, feature not working' },
-    { value: 'billing', label: 'Billing & Subscriptions', icon: '💳', desc: 'Payment issues, subscription changes, refunds' },
-    { value: 'account', label: 'Account Support', icon: '👤', desc: 'Profile settings, data export, account deletion' },
-    { value: 'documents', label: 'Document Help', icon: '📄', desc: 'SOP generation, editing tools, document formatting' },
-    { value: 'universities', label: 'University Questions', icon: '🎓', desc: 'University recommendations, application requirements' },
-    { value: 'general', label: 'General Inquiry', icon: '💬', desc: 'Features, partnerships, feedback' }
-  ];
+	const faqs = [
+		{ q: 'How quickly will you respond?', a: 'We aim to respond within 24–48 hours. Billing and technical issues get priority.' },
+		{ q: 'I\'m having trouble logging in. What should I do?', a: 'Try resetting your password using the "Forgot Password" link. If that doesn\'t work, contact us with your registered email.' },
+		{ q: 'How do credits work?', a: 'Every new account gets 3 free credits. Credits are spent on AI-powered features like strategy generation and document creation. Browsing programs and scholarships is always free. Top up by buying a credit pack from the Pricing page.' },
+		{ q: 'My AI-generated document seems off. Can you help?', a: 'Try being more specific in your inputs. If you\'re still having issues, send us your inputs and we\'ll help.' },
+		{ q: 'Is my personal information secure?', a: 'Yes. We use industry-standard encryption and never share your personal information. You can export or delete your data anytime.' }
+	];
 
-  const faqs = [
-    {
-      question: "How quickly will you respond to my support request?",
-      answer: "We aim to respond within 24-48 hours for all inquiries. Billing and technical issues typically receive priority response within 24 hours. During weekends, responses may take up to 72 hours."
-    },
-    {
-      question: "I'm having trouble logging in. What should I do?",
-      answer: "First, try resetting your password using the 'Forgot Password' link. If that doesn't work, check if you're using the correct email address. Still having issues? Contact us with your registered email and we'll help you regain access."
-    },
-    {
-      question: "Can I get a refund if I'm not satisfied?",
-      answer: "Yes! We offer a 7-day money-back guarantee for all paid plans. If you're not completely satisfied, contact us within 7 days of your purchase for a full refund."
-    },
-    {
-      question: "My AI-generated document seems incorrect. Can you help?",
-      answer: "Absolutely! AI can sometimes misinterpret inputs. Try rephrasing your information or being more specific. If you're still having issues, send us your inputs and we'll help optimize your document generation."
-    },
-    {
-      question: "How do I cancel my subscription?",
-      answer: "You can cancel anytime in your account settings under 'Subscription Management.' Or contact us and we'll cancel it for you immediately. You'll continue to have access until your current billing period ends."
-    },
-    {
-      question: "Do you offer student discounts?",
-      answer: "Our pricing is already designed with students in mind! Our Academic Starter plan is completely free, and our paid plans are priced affordably for student budgets. We occasionally offer special promotions - follow us for updates."
-    },
-    {
-      question: "Can you help me choose the right universities to apply to?",
-      answer: "While we can't provide personalized counseling, our University Matching tool analyzes your profile against 1500+ universities. For detailed guidance, consider booking a consultation with an educational advisor."
-    },
-    {
-      question: "Is my personal information and documents secure?",
-      answer: "Yes! We use industry-standard encryption and never share your personal information. Your documents are stored securely and you can export or delete them anytime. Read our Privacy Policy for full details."
-    }
-  ];
-
-  let openFAQ = $state<number | null>(null);
-  
-  function toggleFAQ(index: number) {
-    openFAQ = openFAQ === index ? null : index;
-  }
+	let openFAQ = $state<number | null>(null);
 </script>
 
-<SEO 
-  title="Contact & Support - Abroaducate"
-  description="Get help with your academic applications. Contact our support team for technical issues, billing questions, and application guidance."
-  canonical="https://abroaducate.com/contact"
-/>
+<svelte:head>
+	<title>Contact & Support — Abroaducate</title>
+	<meta name="description" content="Get help with your study abroad applications. Contact our support team for technical issues, billing questions, and guidance." />
+</svelte:head>
 
-<div class="min-h-screen bg-gray-50 py-16">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    
-    <!-- Header -->
-    <div class="text-center mb-16">
-      <h1 class="text-4xl font-bold text-gray-900 mb-4">Contact & Support</h1>
-      <p class="text-xl text-gray-600 max-w-3xl mx-auto">
-        We're here to help you succeed in your academic journey. Get support, ask questions, or share feedback.
-      </p>
-    </div>
+<div class="min-h-screen bg-slate-50 pt-20 pb-16">
+	<!-- Page header -->
+	<div class="bg-white border-b border-slate-200">
+		<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+			<a href="/dashboard" class="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-slate-900 transition-colors mb-6">
+				<ArrowLeft size={15} /> Back to Dashboard
+			</a>
+			<div class="flex items-center gap-4">
+				<div class="w-12 h-12 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center flex-shrink-0">
+					<Mail size={24} strokeWidth={2} />
+				</div>
+				<div>
+					<h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Contact & Support</h1>
+					<p class="text-slate-500 mt-1">We're here to help. We respond within 24–48 hours.</p>
+				</div>
+			</div>
+		</div>
+	</div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
-      
-      <!-- Contact Form -->
-      <div class="lg:col-span-2">
-        <div class="bg-white rounded-xl shadow-lg p-8">
-          <h2 class="text-2xl font-bold text-gray-900 mb-6">Send us a Message</h2>
-          
-          {#if submitted}
-            <div class="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
-              <div class="flex items-center">
-                <svg class="w-6 h-6 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                </svg>
-                <div>
-                  <h3 class="text-green-900 font-semibold">Message Sent Successfully!</h3>
-                  <p class="text-green-700 mt-1">We'll get back to you within 24-48 hours. Check your email for our response.</p>
-                </div>
-              </div>
-            </div>
-          {/if}
+	<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+		<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-          {#if error}
-            <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-              <p class="text-red-700">{error}</p>
-            </div>
-          {/if}
+			<!-- Form -->
+			<div class="lg:col-span-2">
+				<div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
 
-          <form onsubmit={handleSubmit} class="space-y-6">
-            
-            <!-- Support Category -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-3">What can we help you with? *</label>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {#each supportCategories as category}
-                  <label class="relative">
-                    <input
-                      type="radio"
-                      bind:group={formData.category}
-                      value={category.value}
-                      class="sr-only"
-                      onchange={validateCategory}
-                    />
-                    <div class="border-2 rounded-lg p-4 cursor-pointer transition-all {formData.category === category.value ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}">
-                      <div class="flex items-start space-x-3">
-                        <span class="text-2xl">{category.icon}</span>
-                        <div>
-                          <div class="font-semibold text-gray-900">{category.label}</div>
-                          <div class="text-xs text-gray-600 mt-1">{category.desc}</div>
-                        </div>
-                      </div>
-                    </div>
-                  </label>
-                {/each}
-              </div>
-              {#if categoryError}
-                <div class="input-error">{categoryError}</div>
-              {/if}
-            </div>
+					{#if submitted}
+						<div class="flex items-start gap-3 bg-emerald-50 border border-emerald-200 rounded-xl p-5 mb-6">
+							<CheckCircle2 size={20} class="text-emerald-600 flex-shrink-0 mt-0.5" />
+							<div>
+								<p class="font-bold text-emerald-900">Message sent</p>
+								<p class="text-emerald-700 text-sm mt-0.5">We'll get back to you within 24–48 hours. Check your email for a confirmation.</p>
+							</div>
+						</div>
+					{/if}
 
-            <!-- Name and Email -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label for="name" class="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
-                <input
-                  type="text"
-                  id="name"
-                  bind:value={formData.name}
-                  required
-                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Your full name"
-                  oninput={validateName}
-                />
-                {#if nameError}
-                  <div class="input-error">{nameError}</div>
-                {/if}
-              </div>
-              <div>
-                <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Email Address *</label>
-                <input
-                  type="email"
-                  id="email"
-                  bind:value={formData.email}
-                  required
-                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="your.email@example.com"
-                  oninput={validateEmail}
-                />
-                {#if emailError}
-                  <div class="input-error">{emailError}</div>
-                {/if}
-              </div>
-            </div>
+					{#if error}
+						<div class="bg-rose-50 border border-rose-200 rounded-xl p-4 mb-6">
+							<p class="text-rose-700 text-sm">{error}</p>
+						</div>
+					{/if}
 
-            <!-- Subject -->
-            <div>
-              <label for="subject" class="block text-sm font-medium text-gray-700 mb-2">Subject</label>
-              <input
-                type="text"
-                id="subject"
-                bind:value={formData.subject}
-                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Brief summary of your inquiry"
-              />
-            </div>
+					<form onsubmit={handleSubmit} class="space-y-6">
+						<!-- Category -->
+						<div>
+							<p class="block text-sm font-semibold text-slate-700 mb-3">What can we help you with?</p>
+							<div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+								{#each categories as cat}
+									<label class="cursor-pointer">
+										<input type="radio" bind:group={formData.category} value={cat.value} class="sr-only" />
+										<div class="flex items-start gap-3 border rounded-xl p-3.5 transition-all {formData.category === cat.value ? 'border-orange-500 bg-orange-50' : 'border-slate-200 hover:border-slate-300'}">
+											<div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 {formData.category === cat.value ? 'bg-orange-100 text-orange-600' : 'bg-slate-100 text-slate-500'}">
+												<cat.icon size={16} />
+											</div>
+											<div>
+												<div class="font-semibold text-slate-900 text-sm">{cat.label}</div>
+												<div class="text-xs text-slate-500 mt-0.5">{cat.desc}</div>
+											</div>
+										</div>
+									</label>
+								{/each}
+							</div>
+						</div>
 
-            <!-- Priority -->
-            <div>
-              <label for="priority" class="block text-sm font-medium text-gray-700 mb-2">Priority</label>
-              <select
-                id="priority"
-                bind:value={formData.priority}
-                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="low">Low - General inquiry</option>
-                <option value="normal">Normal - Standard support</option>
-                <option value="high">High - Urgent issue</option>
-                <option value="critical">Critical - Service blocking</option>
-              </select>
-            </div>
+						<!-- Name + Email -->
+						<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+							<div>
+								<label for="name" class="block text-sm font-semibold text-slate-700 mb-1.5">Full name <span class="text-rose-500">*</span></label>
+								<input type="text" id="name" bind:value={formData.name} oninput={validateName} placeholder="Your full name"
+									class="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 {nameError ? 'border-rose-400' : ''}" />
+								{#if nameError}<p class="text-rose-600 text-xs mt-1">{nameError}</p>{/if}
+							</div>
+							<div>
+								<label for="email" class="block text-sm font-semibold text-slate-700 mb-1.5">Email <span class="text-rose-500">*</span></label>
+								<input type="email" id="email" bind:value={formData.email} oninput={validateEmail} placeholder="your@email.com"
+									class="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 {emailError ? 'border-rose-400' : ''}" />
+								{#if emailError}<p class="text-rose-600 text-xs mt-1">{emailError}</p>{/if}
+							</div>
+						</div>
 
-            <!-- Message -->
-            <div>
-              <label for="message" class="block text-sm font-medium text-gray-700 mb-2">Message *</label>
-              <textarea
-                id="message"
-                bind:value={formData.message}
-                required
-                rows="6"
-                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Please describe your issue or question in detail. Include any error messages, steps you've tried, or specific information that might help us assist you better."
-                oninput={validateMessage}
-              ></textarea>
-              {#if messageError}
-                <div class="input-error">{messageError}</div>
-              {/if}
-            </div>
+						<!-- Subject + Priority -->
+						<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+							<div>
+								<label for="subject" class="block text-sm font-semibold text-slate-700 mb-1.5">Subject</label>
+								<input type="text" id="subject" bind:value={formData.subject} placeholder="Brief summary"
+									class="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500" />
+							</div>
+							<div>
+								<label for="priority" class="block text-sm font-semibold text-slate-700 mb-1.5">Priority</label>
+								<select id="priority" bind:value={formData.priority}
+									class="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white">
+									<option value="low">Low — General inquiry</option>
+									<option value="normal">Normal — Standard support</option>
+									<option value="high">High — Urgent issue</option>
+									<option value="critical">Critical — Blocking issue</option>
+								</select>
+							</div>
+						</div>
 
-            <!-- Submit Button -->
-            <button
-              type="submit"
-              disabled={submitting}
-              class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {submitting ? 'Sending...' : 'Send Message'}
-            </button>
-          </form>
-        </div>
-      </div>
+						<!-- Message -->
+						<div>
+							<label for="message" class="block text-sm font-semibold text-slate-700 mb-1.5">Message <span class="text-rose-500">*</span></label>
+							<textarea id="message" bind:value={formData.message} oninput={validateMessage} rows="5"
+								placeholder="Describe your issue or question in detail. Include any error messages or steps you've already tried."
+								class="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 resize-y {messageError ? 'border-rose-400' : ''}"></textarea>
+							{#if messageError}<p class="text-rose-600 text-xs mt-1">{messageError}</p>{/if}
+						</div>
 
-      <!-- Contact Info & Quick Help -->
-      <div class="space-y-8">
-        
-        <!-- Direct Contact -->
-        <div class="bg-white rounded-xl shadow-lg p-6">
-          <h3 class="text-lg font-bold text-gray-900 mb-4">Direct Contact</h3>
-          <div class="space-y-4">
-            <div class="flex items-center space-x-3">
-              <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-              </svg>
-              <div>
-                <div class="text-sm text-gray-600">Email Support</div>
-                <a href="mailto:support@abroaducate.com" class="text-blue-600 hover:text-blue-700 font-medium">support@abroaducate.com</a>
-              </div>
-            </div>
-            <div class="flex items-center space-x-3">
-              <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-              </svg>
-              <div>
-                <div class="text-sm text-gray-600">Response Time</div>
-                <div class="font-medium text-gray-900">24-48 hours</div>
-              </div>
-            </div>
-          </div>
-        </div>
+						<button type="submit" disabled={submitting}
+							class="w-full bg-slate-900 text-white font-bold py-3 rounded-xl hover:bg-slate-800 transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
+							{#if submitting}
+								<div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+								Sending…
+							{:else}
+								Send message
+							{/if}
+						</button>
+					</form>
+				</div>
+			</div>
 
-        <!-- Emergency Contact -->
-        <div class="bg-red-50 border border-red-200 rounded-xl p-6">
-          <h3 class="text-lg font-bold text-red-900 mb-2">Critical Issues?</h3>
-          <p class="text-red-700 text-sm mb-3">
-            If you're experiencing payment failures, account lockouts, or deadline-critical issues:
-          </p>
-          <a 
-            href="mailto:urgent@abroaducate.com?subject=URGENT:%20[Describe%20Issue]" 
-            class="inline-block bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-red-700 transition duration-300"
-          >
-            Email: urgent@abroaducate.com
-          </a>
-        </div>
+			<!-- Sidebar -->
+			<div class="space-y-5">
+				<!-- Direct contact -->
+				<div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+					<h3 class="font-bold text-slate-900 mb-4">Direct contact</h3>
+					<div class="space-y-4">
+						<div class="flex items-start gap-3">
+							<div class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center flex-shrink-0">
+								<Mail size={16} />
+							</div>
+							<div>
+								<p class="text-xs text-slate-500 mb-0.5">Email</p>
+								<a href="mailto:hello@abroaducate.com" class="text-sm font-semibold text-orange-600 hover:underline">hello@abroaducate.com</a>
+							</div>
+						</div>
+						<div class="flex items-start gap-3">
+							<div class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center flex-shrink-0">
+								<Clock size={16} />
+							</div>
+							<div>
+								<p class="text-xs text-slate-500 mb-0.5">Response time</p>
+								<p class="text-sm font-semibold text-slate-900">24–48 hours</p>
+							</div>
+						</div>
+					</div>
+				</div>
 
-        <!-- Quick Tips -->
-        <div class="bg-blue-50 border border-blue-200 rounded-xl p-6">
-          <h3 class="text-lg font-bold text-blue-900 mb-4">Before You Contact Us</h3>
-          <ul class="space-y-2 text-sm text-blue-800">
-            <li class="flex items-start space-x-2">
-              <span class="text-blue-600">•</span>
-              <span>Check our FAQ below for common solutions</span>
-            </li>
-            <li class="flex items-start space-x-2">
-              <span class="text-blue-600">•</span>
-              <span>Try refreshing the page or clearing your browser cache</span>
-            </li>
-            <li class="flex items-start space-x-2">
-              <span class="text-blue-600">•</span>
-              <span>Include screenshots or error messages in your request</span>
-            </li>
-            <li class="flex items-start space-x-2">
-              <span class="text-blue-600">•</span>
-              <span>Mention your account email for faster assistance</span>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </div>
+				<!-- Book a call -->
+				<div class="bg-orange-50 border border-orange-200 rounded-2xl p-6">
+					<h3 class="font-bold text-slate-900 mb-2">Book a free call</h3>
+					<p class="text-sm text-slate-600 mb-4">30-minute consultation — I'll review your profile and tell you exactly which programs and scholarships to target.</p>
+					<a href="/book-a-call" class="block text-center w-full bg-orange-500 text-white font-bold py-2.5 rounded-xl hover:bg-orange-600 transition-colors text-sm">
+						Book a free call
+					</a>
+				</div>
 
-    <!-- FAQ Section -->
-    <div class="mt-20">
-      <div class="text-center mb-12">
-        <h2 class="text-3xl font-bold text-gray-900 mb-4">Frequently Asked Questions</h2>
-        <p class="text-xl text-gray-600">Quick answers to common questions</p>
-      </div>
+				<!-- Tips -->
+				<div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+					<h3 class="font-bold text-slate-900 mb-3">Before you contact us</h3>
+					<ul class="space-y-2">
+						{#each ['Check the FAQ below for common solutions', 'Try refreshing the page or clearing your browser cache', 'Include screenshots or error messages', 'Mention your account email for faster help'] as tip}
+							<li class="flex items-start gap-2 text-sm text-slate-600">
+								<span class="text-slate-300 mt-0.5 flex-shrink-0">—</span>{tip}
+							</li>
+						{/each}
+					</ul>
+				</div>
+			</div>
+		</div>
 
-      <div class="max-w-4xl mx-auto">
-        <div class="space-y-4">
-          {#each faqs as faq, index}
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
-              <button 
-                class="w-full text-left p-6 focus:outline-none" 
-                onclick={() => toggleFAQ(index)}
-              >
-                <div class="flex items-center justify-between">
-                  <h3 class="text-lg font-semibold text-gray-900 pr-4">{faq.question}</h3>
-                  <svg 
-                    class="w-5 h-5 text-gray-500 transform transition-transform {openFAQ === index ? 'rotate-180' : ''}" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24"
-                  >
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                  </svg>
-                </div>
-              </button>
-              {#if openFAQ === index}
-                <div class="px-6 pb-6">
-                  <p class="text-gray-600 leading-relaxed">{faq.answer}</p>
-                </div>
-              {/if}
-            </div>
-          {/each}
-        </div>
-      </div>
-    </div>
-
-    <!-- Additional Resources -->
-    <div class="mt-16 bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-8 text-center">
-      <h2 class="text-2xl font-bold text-white mb-4">Still Need Help?</h2>
-      <p class="text-blue-100 mb-6 max-w-2xl mx-auto">
-        We're committed to your success. Don't hesitate to reach out - we're here to help you achieve your academic goals.
-      </p>
-      <div class="flex flex-col sm:flex-row gap-4 justify-center">
-        <a 
-          href="mailto:support@abroaducate.com" 
-          class="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-blue-50 transition duration-300"
-        >
-          Email Support
-        </a>
-        <a 
-          href="/dashboard" 
-          class="border-2 border-white text-white px-6 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition duration-300"
-        >
-          Back to Dashboard
-        </a>
-      </div>
-    </div>
-
-  </div>
-</div> 
-
-<style>
-.input-error {
-  color: #DC2626;
-  font-size: 0.85rem;
-  margin-top: 0.25rem;
-}
-</style> 
+		<!-- FAQ -->
+		<div class="mt-12">
+			<h2 class="text-2xl font-extrabold text-slate-900 mb-6">Frequently asked questions</h2>
+			<div class="space-y-2 max-w-3xl">
+				{#each faqs as faq, i}
+					<div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+						<button class="w-full text-left px-6 py-4 flex items-center justify-between gap-4 hover:bg-slate-50 transition-colors"
+							onclick={() => openFAQ = openFAQ === i ? null : i}>
+							<span class="font-semibold text-slate-900 text-sm">{faq.q}</span>
+							<ChevronDown size={16} class="text-slate-400 flex-shrink-0 transition-transform {openFAQ === i ? 'rotate-180' : ''}" />
+						</button>
+						{#if openFAQ === i}
+							<div class="px-6 pb-4">
+								<p class="text-slate-600 text-sm leading-relaxed">{faq.a}</p>
+							</div>
+						{/if}
+					</div>
+				{/each}
+			</div>
+		</div>
+	</div>
+</div>

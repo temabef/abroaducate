@@ -11,24 +11,31 @@
         removeAward
     } from '$lib/stores/cvStore';
     import { createEventDispatcher } from 'svelte';
+    import { User, GraduationCap, Briefcase, BookOpen, Wrench, Trophy, ClipboardList, TrendingUp, DollarSign, School, Handshake, Lightbulb } from 'lucide-svelte';
     
     const dispatch = createEventDispatcher();
 
     // Step-by-step navigation
     let currentSectionIndex = 0;
     const sections = [
-        { id: 'personal', label: 'Personal Info', icon: '👤' },
-        { id: 'education', label: 'Education', icon: '🎓' },
-        { id: 'experience', label: 'Experience', icon: '💼' },
-        { id: 'publications', label: 'Publications', icon: '📚' },
-        { id: 'skills', label: 'Skills', icon: '🛠️' },
-        { id: 'awards', label: 'Awards', icon: '🏆' },
-        { id: 'optional', label: 'Optional', icon: '📋' }
+        { id: 'personal', label: 'Personal Info', icon: User },
+        { id: 'education', label: 'Education', icon: GraduationCap },
+        { id: 'experience', label: 'Experience', icon: Briefcase },
+        { id: 'publications', label: 'Publications', icon: BookOpen },
+        { id: 'skills', label: 'Skills', icon: Wrench },
+        { id: 'awards', label: 'Awards', icon: Trophy },
+        { id: 'optional', label: 'Optional', icon: ClipboardList }
     ];
     let currentSection = sections[currentSectionIndex].id;
 
     // Update currentSection when index changes
     $: currentSection = sections[currentSectionIndex].id;
+
+    let educationErrors: string[][] = [];
+    let experienceErrors: string[][] = [];
+    let publicationErrors: string[][] = [];
+    let awardErrors: string[][] = [];
+    let languageErrors: string[][] = [];
     
     // Initialize error arrays when data changes
     $: educationErrors = $cvFormStore.education.map(() => []);
@@ -92,7 +99,7 @@
     }
 
     function validateWebsite() {
-        const website = $cvFormStore.personalInfo.website.trim();
+        const website = ($cvFormStore.personalInfo.website ?? '').trim();
         if (website) {
             const urlRegex = /^https?:\/\/.+/;
             if (!urlRegex.test(website)) {
@@ -106,7 +113,7 @@
     }
 
     function validateOrcid() {
-        const orcid = $cvFormStore.personalInfo.orcid.trim();
+        const orcid = ($cvFormStore.personalInfo.orcid ?? '').trim();
         if (orcid) {
             const orcidRegex = /^\d{4}-\d{4}-\d{4}-\d{4}$/;
             if (!orcidRegex.test(orcid)) {
@@ -338,12 +345,12 @@
     <!-- Section Navigation -->
     <div class="flex flex-wrap gap-2 mb-8 border-b pb-4">
         {#each sections as section, i}
-                            <button
-                    onclick={() => goToSection(i)}
-                    class="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors {currentSection === section.id ? 'bg-[#2C3580] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}"
-                    disabled={i > currentSectionIndex}
-                >
-                <span>{section.icon}</span>
+            <button
+                onclick={() => goToSection(i)}
+                class="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors {currentSection === section.id ? 'bg-[#2C3580] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}"
+                disabled={i > currentSectionIndex}
+            >
+                <svelte:component this={section.icon} size={15} />
                 {section.label}
             </button>
         {/each}
@@ -352,12 +359,13 @@
     <!-- Personal Information -->
     {#if currentSection === 'personal'}
         <div class="space-y-6">
-            <h3 class="text-xl font-bold text-gray-900 mb-4">👤 Personal Information</h3>
+            <h3 class="text-xl font-bold text-gray-900 mb-4"><User size={18} class="inline-block mr-2" />Personal Information</h3>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
+                    <label for="cv-full-name" class="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
                     <input 
+                        id="cv-full-name"
                         bind:value={$cvFormStore.personalInfo.fullName}
                         oninput={validateFullName}
                         type="text" 
@@ -370,8 +378,9 @@
                 </div>
                 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Email *</label>
+                    <label for="cv-email" class="block text-sm font-medium text-gray-700 mb-2">Email *</label>
                     <input 
+                        id="cv-email"
                         bind:value={$cvFormStore.personalInfo.email}
                         oninput={validateEmail}
                         type="email" 
@@ -384,8 +393,9 @@
                 </div>
                 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+                    <label for="cv-phone" class="block text-sm font-medium text-gray-700 mb-2">Phone</label>
                     <input 
+                        id="cv-phone"
                         bind:value={$cvFormStore.personalInfo.phone}
                         oninput={validatePhone}
                         type="text" 
@@ -398,8 +408,9 @@
                 </div>
                 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Location</label>
+                    <label for="cv-location" class="block text-sm font-medium text-gray-700 mb-2">Location</label>
                     <input 
+                        id="cv-location"
                         bind:value={$cvFormStore.personalInfo.address}
                         type="text" 
                         class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
@@ -411,8 +422,9 @@
                 </div>
                 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Website/Portfolio</label>
+                    <label for="cv-website" class="block text-sm font-medium text-gray-700 mb-2">Website/Portfolio</label>
                     <input 
+                        id="cv-website"
                         bind:value={$cvFormStore.personalInfo.website}
                         type="url" 
                         class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
@@ -424,8 +436,9 @@
                 </div>
                 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">ORCID ID</label>
+                    <label for="cv-orcid" class="block text-sm font-medium text-gray-700 mb-2">ORCID ID</label>
                     <input 
+                        id="cv-orcid"
                         bind:value={$cvFormStore.personalInfo.orcid}
                         type="text" 
                         class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
@@ -438,8 +451,9 @@
             </div>
             
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Academic Field *</label>
+                <label for="cv-academic-field" class="block text-sm font-medium text-gray-700 mb-2">Academic Field *</label>
                 <select 
+                    id="cv-academic-field"
                     bind:value={$cvFormStore.academicField}
                     class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 >
@@ -462,7 +476,7 @@
     {#if currentSection === 'education'}
         <div class="space-y-6">
             <div class="flex justify-between items-center">
-                <h3 class="text-xl font-bold text-gray-900">🎓 Education</h3>
+                <h3 class="text-xl font-bold text-gray-900"><GraduationCap size={18} class="inline-block mr-2" />Education</h3>
                 <button 
                     onclick={addEducation}
                     class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-indigo-700 transition-colors"
@@ -485,8 +499,9 @@
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Degree *</label>
+                            <label for={`cv-education-degree-${index}`} class="block text-sm font-medium text-gray-700 mb-1">Degree *</label>
                             <input 
+                                id={`cv-education-degree-${index}`}
                                 bind:value={edu.degree}
                                 type="text" 
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
@@ -502,8 +517,9 @@
                         </div>
                         
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Institution *</label>
+                            <label for={`cv-education-institution-${index}`} class="block text-sm font-medium text-gray-700 mb-1">Institution *</label>
                             <input 
+                                id={`cv-education-institution-${index}`}
                                 bind:value={edu.institution}
                                 type="text" 
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
@@ -519,8 +535,9 @@
                         </div>
                         
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Year *</label>
+                            <label for={`cv-education-year-${index}`} class="block text-sm font-medium text-gray-700 mb-1">Year *</label>
                             <input 
+                                id={`cv-education-year-${index}`}
                                 bind:value={edu.year}
                                 type="text" 
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
@@ -536,8 +553,9 @@
                         </div>
                         
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                            <label for={`cv-education-location-${index}`} class="block text-sm font-medium text-gray-700 mb-1">Location</label>
                             <input 
+                                id={`cv-education-location-${index}`}
                                 bind:value={edu.location}
                                 type="text" 
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
@@ -546,8 +564,9 @@
                         </div>
                         
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">GPA (if strong)</label>
+                            <label for={`cv-education-gpa-${index}`} class="block text-sm font-medium text-gray-700 mb-1">GPA (if strong)</label>
                             <input 
+                                id={`cv-education-gpa-${index}`}
                                 bind:value={edu.gpa}
                                 type="text" 
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
@@ -556,8 +575,9 @@
                         </div>
                         
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Advisor/Supervisor</label>
+                            <label for={`cv-education-advisor-${index}`} class="block text-sm font-medium text-gray-700 mb-1">Advisor/Supervisor</label>
                             <input 
+                                id={`cv-education-advisor-${index}`}
                                 bind:value={edu.advisor}
                                 type="text" 
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
@@ -567,8 +587,9 @@
                     </div>
                     
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Thesis/Dissertation Title</label>
+                        <label for={`cv-education-thesis-${index}`} class="block text-sm font-medium text-gray-700 mb-1">Thesis/Dissertation Title</label>
                         <textarea 
+                            id={`cv-education-thesis-${index}`}
                             bind:value={edu.thesis}
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                             rows="2"
@@ -590,7 +611,7 @@
     {#if currentSection === 'experience'}
         <div class="space-y-6">
             <div class="flex justify-between items-center">
-                <h3 class="text-xl font-bold text-gray-900">💼 Professional Experience</h3>
+                <h3 class="text-xl font-bold text-gray-900"><Briefcase size={18} class="inline-block mr-2" />Professional Experience</h3>
                 <button 
                     onclick={addExperience}
                     class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-indigo-700 transition-colors"
@@ -613,8 +634,9 @@
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Position Title *</label>
+                            <label for={`cv-experience-title-${index}`} class="block text-sm font-medium text-gray-700 mb-1">Position Title *</label>
                             <input 
+                                id={`cv-experience-title-${index}`}
                                 bind:value={exp.title}
                                 type="text" 
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
@@ -630,8 +652,9 @@
                         </div>
                         
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Institution/Company *</label>
+                            <label for={`cv-experience-institution-${index}`} class="block text-sm font-medium text-gray-700 mb-1">Institution/Company *</label>
                             <input 
+                                id={`cv-experience-institution-${index}`}
                                 bind:value={exp.institution}
                                 type="text" 
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
@@ -647,8 +670,9 @@
                         </div>
                         
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Duration *</label>
+                            <label for={`cv-experience-duration-${index}`} class="block text-sm font-medium text-gray-700 mb-1">Duration *</label>
                             <input 
+                                id={`cv-experience-duration-${index}`}
                                 bind:value={exp.duration}
                                 type="text" 
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
@@ -664,8 +688,9 @@
                         </div>
                         
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                            <label for={`cv-experience-location-${index}`} class="block text-sm font-medium text-gray-700 mb-1">Location</label>
                             <input 
+                                id={`cv-experience-location-${index}`}
                                 bind:value={exp.location}
                                 type="text" 
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
@@ -675,8 +700,9 @@
                     </div>
                     
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Description & Achievements</label>
+                        <label for={`cv-experience-description-${index}`} class="block text-sm font-medium text-gray-700 mb-1">Description & Achievements</label>
                         <textarea 
+                            id={`cv-experience-description-${index}`}
                             bind:value={exp.description}
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                             rows="4"
@@ -698,7 +724,7 @@
     {#if currentSection === 'publications'}
         <div class="space-y-6">
             <div class="flex justify-between items-center">
-                <h3 class="text-xl font-bold text-gray-900">📚 Publications</h3>
+                <h3 class="text-xl font-bold text-gray-900"><BookOpen size={18} class="inline-block mr-2" />Publications</h3>
                 <button 
                     onclick={addPublication}
                     class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-indigo-700 transition-colors"
@@ -721,8 +747,9 @@
                     
                     <div class="space-y-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Title *</label>
+                            <label for={`cv-publication-title-${index}`} class="block text-sm font-medium text-gray-700 mb-1">Title *</label>
                             <input 
+                                id={`cv-publication-title-${index}`}
                                 bind:value={pub.title}
                                 type="text" 
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
@@ -738,8 +765,9 @@
                         </div>
                         
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Authors *</label>
+                            <label for={`cv-publication-authors-${index}`} class="block text-sm font-medium text-gray-700 mb-1">Authors *</label>
                             <input 
+                                id={`cv-publication-authors-${index}`}
                                 bind:value={pub.authors}
                                 type="text" 
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
@@ -756,8 +784,9 @@
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Journal/Conference *</label>
+                                <label for={`cv-publication-journal-${index}`} class="block text-sm font-medium text-gray-700 mb-1">Journal/Conference *</label>
                                 <input 
+                                    id={`cv-publication-journal-${index}`}
                                     bind:value={pub.journal}
                                     type="text" 
                                     class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
@@ -766,8 +795,9 @@
                             </div>
                             
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Year *</label>
+                                <label for={`cv-publication-year-${index}`} class="block text-sm font-medium text-gray-700 mb-1">Year *</label>
                                 <input 
+                                    id={`cv-publication-year-${index}`}
                                     bind:value={pub.year}
                                     type="text" 
                                     class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
@@ -784,8 +814,9 @@
                         </div>
                         
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">DOI (optional)</label>
+                            <label for={`cv-publication-doi-${index}`} class="block text-sm font-medium text-gray-700 mb-1">DOI (optional)</label>
                             <input 
+                                id={`cv-publication-doi-${index}`}
                                 bind:value={pub.doi}
                                 type="text" 
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
@@ -807,7 +838,7 @@
     <!-- Skills -->
     {#if currentSection === 'skills'}
         <div class="space-y-8">
-            <h3 class="text-xl font-bold text-gray-900">🛠️ Skills & Competencies</h3>
+            <h3 class="text-xl font-bold text-gray-900"><Wrench size={18} class="inline-block mr-2" />Skills & Competencies</h3>
             
             <!-- Technical Skills -->
             <div class="space-y-4">
@@ -935,7 +966,7 @@
     {#if currentSection === 'awards'}
         <div class="space-y-6">
             <div class="flex justify-between items-center">
-                <h3 class="text-xl font-bold text-gray-900">🏆 Awards & Honors</h3>
+                <h3 class="text-xl font-bold text-gray-900"><Trophy size={18} class="inline-block mr-2" />Awards & Honors</h3>
                 <button 
                     onclick={addAward}
                     class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-indigo-700 transition-colors"
@@ -958,8 +989,9 @@
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Award Title *</label>
+                            <label for={`cv-award-title-${index}`} class="block text-sm font-medium text-gray-700 mb-1">Award Title *</label>
                             <input 
+                                id={`cv-award-title-${index}`}
                                 bind:value={award.title}
                                 type="text" 
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
@@ -975,8 +1007,9 @@
                         </div>
                         
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Organization *</label>
+                            <label for={`cv-award-organization-${index}`} class="block text-sm font-medium text-gray-700 mb-1">Organization *</label>
                             <input 
+                                id={`cv-award-organization-${index}`}
                                 bind:value={award.organization}
                                 type="text" 
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
@@ -992,8 +1025,9 @@
                         </div>
                         
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Year *</label>
+                            <label for={`cv-award-year-${index}`} class="block text-sm font-medium text-gray-700 mb-1">Year *</label>
                             <input 
+                                id={`cv-award-year-${index}`}
                                 bind:value={award.year}
                                 type="text" 
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
@@ -1010,8 +1044,9 @@
                     </div>
                     
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Description (optional)</label>
+                        <label for={`cv-award-description-${index}`} class="block text-sm font-medium text-gray-700 mb-1">Description (optional)</label>
                         <textarea 
+                            id={`cv-award-description-${index}`}
                             bind:value={award.description}
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                             rows="2"
@@ -1032,13 +1067,13 @@
     <!-- Optional Sections -->
     {#if currentSection === 'optional'}
         <div class="space-y-8">
-            <h3 class="text-xl font-bold text-gray-900">📋 Optional Sections</h3>
+            <h3 class="text-xl font-bold text-gray-900"><ClipboardList size={18} class="inline-block mr-2" />Optional Sections</h3>
             <p class="text-gray-600">Add additional sections that are relevant to your field and career stage.</p>
             
             <!-- This is a simplified version - in production you'd want full CRUD for each optional section -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div class="bg-blue-50 rounded-lg p-6">
-                    <h4 class="font-medium text-blue-900 mb-3">📈 Conferences & Presentations</h4>
+                    <h4 class="font-medium text-blue-900 mb-3"><TrendingUp size={16} class="inline-block mr-2" />Conferences & Presentations</h4>
                     <p class="text-sm text-blue-700 mb-4">Conference talks, poster sessions, invited presentations</p>
                     <div class="space-y-3">
                         <input 
@@ -1055,7 +1090,7 @@
                 </div>
                 
                 <div class="bg-green-50 rounded-lg p-6">
-                    <h4 class="font-medium text-green-900 mb-3">💰 Grants & Funding</h4>
+                    <h4 class="font-medium text-green-900 mb-3"><DollarSign size={16} class="inline-block mr-2" />Grants & Funding</h4>
                     <p class="text-sm text-green-700 mb-4">Research grants, fellowships, funding received</p>
                     <div class="space-y-3">
                         <input 
@@ -1072,7 +1107,7 @@
                 </div>
                 
                 <div class="bg-purple-50 rounded-lg p-6">
-                    <h4 class="font-medium text-purple-900 mb-3">🏫 Teaching Experience</h4>
+                    <h4 class="font-medium text-purple-900 mb-3"><School size={16} class="inline-block mr-2" />Teaching Experience</h4>
                     <p class="text-sm text-purple-700 mb-4">Courses taught, guest lectures, mentoring</p>
                     <div class="space-y-3">
                         <input 
@@ -1089,7 +1124,7 @@
                 </div>
                 
                 <div class="bg-orange-50 rounded-lg p-6">
-                    <h4 class="font-medium text-orange-900 mb-3">🤝 Professional Service</h4>
+                    <h4 class="font-medium text-orange-900 mb-3"><Handshake size={16} class="inline-block mr-2" />Professional Service</h4>
                     <p class="text-sm text-orange-700 mb-4">Editorial boards, peer review, committee work</p>
                     <div class="space-y-3">
                         <input 
@@ -1107,7 +1142,7 @@
             </div>
             
             <div class="bg-gray-50 rounded-lg p-6">
-                <h4 class="font-medium text-gray-900 mb-3">💡 Pro Tip</h4>
+                <h4 class="font-medium text-gray-900 mb-3"><Lightbulb size={16} class="inline-block mr-2" />Pro Tip</h4>
                 <p class="text-sm text-gray-700">
                     The optional sections shown here are simplified for this demo. In the generated CV, 
                     we'll include the most relevant sections based on your academic field and the information 

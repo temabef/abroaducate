@@ -1,9 +1,10 @@
 <script lang="ts">
   import type { PageData } from './$types';
   import SEO from '$lib/components/SEO.svelte';
+  import { Twitter, Linkedin, Link2, ChevronRight, Calendar, Clock } from 'lucide-svelte';
 
   let { data }: { data: PageData } = $props();
-  const { post, html } = data;
+  const { post, html, related } = data;
 
   function formatDate(dateStr: string) {
     return new Date(dateStr).toLocaleDateString('en-US', {
@@ -26,7 +27,6 @@
 
   function copyLink() {
     navigator.clipboard.writeText(window.location.href);
-    // Could add a toast notification here
   }
 </script>
 
@@ -37,90 +37,68 @@
   schemaType="Article"
 />
 
-<article class="bg-white">
-  <!-- Hero Section -->
+<article class="post-article">
+
+  <!-- Hero -->
   {#if post.cover_image_url}
-    <div class="relative h-64 sm:h-96 overflow-hidden bg-gray-900 mt-16">
+    <div class="hero-image mt-16">
       <img
         src={post.cover_image_url}
         alt={post.title}
-        class="w-full h-full block"
-        style="object-fit: cover; object-position: 50% 10% !important; min-height: 100%; min-width: 100%;"
+        class="hero-img"
         loading="eager"
         onerror={(e) => {
           const img = e.currentTarget as HTMLImageElement;
           img.style.display = 'none';
-          // Hide the overlay if image fails to load
           const overlay = img.nextElementSibling as HTMLElement | null;
           if (overlay) overlay.style.display = 'none';
         }}
       />
-      <!-- Gradient overlay for better text readability -->
-      <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
-      
-      <!-- Title Overlay -->
-      <div class="absolute inset-0 flex items-end">
-        <div class="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 pb-8 w-full">
-          <div class="max-w-5xl mx-auto text-center">
-            <h1 class="text-4xl md:text-5xl font-bold text-white mb-4 leading-tight" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">
-              {post.title}
-            </h1>
-            <div class="flex items-center justify-center text-white/90 space-x-4" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.8);">
-              <time class="flex items-center">
-                <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path>
-                </svg>
-                {formatDate(post.published_at)}
-              </time>
-              <span class="flex items-center">
-                <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
-                </svg>
-                {post.reading_time} min read
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  {:else}
-    <!-- Clean text-only header with gradient background -->
-    <div class="bg-gradient-to-r from-blue-50 via-white to-blue-50 border-b">
-      <div class="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 pt-24 pb-12">
-        <div class="max-w-5xl mx-auto text-center">
-          <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-6 leading-tight">
-            {post.title}
-          </h1>
-          <div class="flex items-center justify-center text-gray-600 space-x-6">
-            <time class="flex items-center">
-              <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path>
-              </svg>
-              {formatDate(post.published_at)}
-            </time>
-            <span class="flex items-center">
-              <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
-              </svg>
+      <div class="hero-overlay"></div>
+      <div class="hero-text-wrap">
+        <div class="hero-text-inner">
+          <h1 class="hero-title">{post.title}</h1>
+          <div class="hero-meta">
+            <span class="hero-meta-item">
+              <Calendar size={15} />
+              <time>{formatDate(post.published_at)}</time>
+            </span>
+            <span class="hero-meta-item">
+              <Clock size={15} />
               {post.reading_time} min read
             </span>
           </div>
         </div>
       </div>
     </div>
+  {:else}
+    <div class="hero-text-only">
+      <div class="hero-text-only-inner">
+        <h1 class="hero-title-dark">{post.title}</h1>
+        <div class="hero-meta-dark">
+          <span class="hero-meta-item-dark">
+            <Calendar size={16} />
+            <time>{formatDate(post.published_at)}</time>
+          </span>
+          <span class="hero-meta-item-dark">
+            <Clock size={16} />
+            {post.reading_time} min read
+          </span>
+        </div>
+      </div>
+    </div>
   {/if}
 
-  <!-- Content -->
-  <div class="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-12">
-    <div class="max-w-5xl mx-auto">
-      <div class="grid lg:grid-cols-4 gap-8">
-        <!-- Main Content -->
-        <div class="lg:col-span-3">
+  <!-- Content area -->
+  <div class="content-wrap">
+    <div class="content-inner">
+      <div class="content-grid">
+        <!-- Main content -->
+        <div class="main-col">
+
           {#if post.excerpt}
-            <div class="bg-gray-50 border-l-4 border-blue-500 p-6 mb-8 rounded-r-lg">
-              <p class="text-lg text-gray-700 italic leading-relaxed">
-                {post.excerpt}
-              </p>
+            <div class="excerpt-block">
+              <p>{post.excerpt}</p>
             </div>
           {/if}
 
@@ -128,142 +106,520 @@
             {@html html}
           </div>
 
-          <!-- Manual AdSense block removed (auto ads only) -->
-
-          <!-- Share Section -->
-          <div class="mt-12 pt-8 border-t border-gray-200">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">Share this article</h3>
-            <div class="flex items-center space-x-4">
-              <button
-                onclick={shareOnTwitter}
-                class="flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-              >
-                <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
-                </svg>
-                Twitter
+          <!-- Share -->
+          <div class="share-section">
+            <h3 class="share-title">Share this article</h3>
+            <div class="share-buttons">
+              <button onclick={shareOnTwitter} class="share-btn" aria-label="Share on Twitter">
+                <Twitter size={16} />
               </button>
-
-              <button
-                onclick={shareOnLinkedIn}
-                class="flex items-center px-4 py-2 bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition-colors"
-              >
-                <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-                </svg>
-                LinkedIn
+              <button onclick={shareOnLinkedIn} class="share-btn" aria-label="Share on LinkedIn">
+                <Linkedin size={16} />
               </button>
-
-              <button
-                onclick={copyLink}
-                class="flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-              >
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-                </svg>
-                Copy Link
+              <button onclick={copyLink} class="share-btn" aria-label="Copy link">
+                <Link2 size={16} />
               </button>
             </div>
           </div>
         </div>
 
         <!-- Sidebar -->
-        <div class="lg:col-span-1">
-          <div class="sticky top-8 space-y-6">
-            <!-- Manual AdSense block removed (auto ads only) -->
-
-            <!-- Navigation -->
-            <div class="bg-gray-50 rounded-lg p-6">
-              <h3 class="font-semibold text-gray-900 mb-4">Navigation</h3>
-              <nav class="space-y-2">
-                <a href="/blog" class="block text-blue-600 hover:text-blue-800 text-sm">
-                  ← Back to Blog
-                </a>
-                <a href="/scholarships" class="block text-blue-600 hover:text-blue-800 text-sm">
-                  Find Scholarships
-                </a>
-                <a href="/universities" class="block text-blue-600 hover:text-blue-800 text-sm">
-                  University Database
-                </a>
-                <a href="/test-prep" class="block text-blue-600 hover:text-blue-800 text-sm">
-                  Test Preparation
-                </a>
-              </nav>
-            </div>
-
-
+        <aside class="sidebar-col">
+          <div class="sidebar-card">
+            <h3 class="sidebar-heading">Navigation</h3>
+            <nav class="sidebar-nav">
+              <a href="/blog" class="sidebar-link sidebar-link-back">
+                &larr; Back to Blog
+              </a>
+              <a href="/programs" class="sidebar-link">
+                <ChevronRight size={13} /> Find Programs
+              </a>
+              <a href="/scholarships" class="sidebar-link">
+                <ChevronRight size={13} /> Browse Scholarships
+              </a>
+              <a href="/dashboard" class="sidebar-link">
+                <ChevronRight size={13} /> My Dashboard
+              </a>
+            </nav>
           </div>
-        </div>
+        </aside>
+
       </div>
     </div>
   </div>
+
+  <!-- Related Posts -->
+  {#if related && related.length > 0}
+    <div class="related-section">
+      <div class="related-inner">
+        <h2 class="related-title">Related Articles</h2>
+        <div class="related-grid" style="--count: {related.length}">
+          {#each related as rp}
+            <a href="/blog/{rp.slug}" class="related-card">
+              {#if rp.thumbnail_url}
+                <div class="related-thumb">
+                  <img
+                    src={rp.thumbnail_url}
+                    alt={rp.title}
+                    class="related-thumb-img"
+                    onerror={(e) => {
+                      const t = e.target as HTMLImageElement;
+                      if (t && t.parentElement) {
+                        t.style.display = 'none';
+                        t.parentElement.classList.add('related-thumb-fallback');
+                      }
+                    }}
+                  />
+                </div>
+              {:else}
+                <div class="related-thumb related-thumb-fallback"></div>
+              {/if}
+              <div class="related-body">
+                <div class="related-meta">
+                  <time>{formatDate(rp.published_at)}</time>
+                  <span>&middot;</span>
+                  <span>{rp.reading_time} min read</span>
+                </div>
+                <h3 class="related-post-title">{rp.title}</h3>
+                {#if rp.excerpt}
+                  <p class="related-excerpt">{rp.excerpt}</p>
+                {/if}
+                <span class="related-read-more">Read more <ChevronRight size={13} /></span>
+              </div>
+            </a>
+          {/each}
+        </div>
+      </div>
+    </div>
+  {/if}
+
 </article>
 
 <style>
-  .prose {
-    color: #374151;
-    line-height: 1.7;
+  .post-article {
+    background: white;
   }
 
-  .prose h1,
-  .prose h2,
-  .prose h3 {
-    color: #111827;
+  /* ── Hero with image ── */
+  .hero-image {
+    position: relative;
+    height: 18rem;
+    overflow: hidden;
+    background: #0f172a;
+  }
+  @media (min-width: 640px) {
+    .hero-image { height: 24rem; }
+  }
+  .hero-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 10%;
+    display: block;
+  }
+  .hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.2) 50%, transparent 100%);
+  }
+  .hero-text-wrap {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: flex-end;
+  }
+  .hero-text-inner {
+    max-width: 72rem;
+    margin: 0 auto;
+    padding: 0 1.5rem 2rem;
+    width: 100%;
+    text-align: center;
+  }
+  .hero-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: clamp(1.6rem, 4vw, 2.8rem);
+    font-weight: 800;
+    color: white;
+    line-height: 1.2;
+    margin-bottom: 0.75rem;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    letter-spacing: -0.02em;
+  }
+  .hero-meta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+  }
+  .hero-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.875rem;
+    color: rgba(255,255,255,0.88);
+    text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+  }
+
+  /* ── Hero text-only ── */
+  .hero-text-only {
+    background: white;
+    border-bottom: 1px solid #e2e8f0;
+    padding-top: 6rem;
+    padding-bottom: 3rem;
+  }
+  .hero-text-only-inner {
+    max-width: 72rem;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+    text-align: center;
+  }
+  .hero-title-dark {
+    font-family: 'Outfit', sans-serif;
+    font-size: clamp(1.8rem, 4vw, 3rem);
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.15;
+    margin-bottom: 1rem;
+    letter-spacing: -0.03em;
+  }
+  .hero-meta-dark {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .hero-meta-item-dark {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.9rem;
+    color: #64748b;
+  }
+
+  /* ── Content ── */
+  .content-wrap {
+    background: #f8fafc;
+    padding: 3rem 1.5rem 5rem;
+  }
+  .content-inner {
+    max-width: 72rem;
+    margin: 0 auto;
+  }
+  .content-grid {
+    display: grid;
+    grid-template-columns: 1fr 240px;
+    gap: 3rem;
+    align-items: start;
+  }
+  .main-col {
+    min-width: 0;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 1rem;
+    padding: 2.5rem;
+  }
+
+  /* ── Excerpt ── */
+  .excerpt-block {
+    border-left: 4px solid #fb923c;
+    background: #fff7ed;
+    border-radius: 0 0.5rem 0.5rem 0;
+    padding: 1rem 1.25rem;
+    margin-bottom: 2rem;
+  }
+  .excerpt-block p {
+    font-size: 1.05rem;
+    color: #7c2d12;
+    font-style: italic;
+    line-height: 1.7;
+    margin: 0;
+  }
+
+  /* ── Prose ── */
+  :global(.prose) {
+    color: #374151;
+    line-height: 1.75;
+    overflow: hidden;
+  }
+  /* Kill any stray resize handles that browsers may render inside rendered HTML */
+  :global(.prose *) {
+    resize: none !important;
+  }
+  :global(.prose h1),
+  :global(.prose h2),
+  :global(.prose h3) {
+    font-family: 'Outfit', sans-serif;
+    color: #0f172a;
     font-weight: 700;
     margin-top: 2rem;
-    margin-bottom: 1rem;
+    margin-bottom: 0.875rem;
+    letter-spacing: -0.02em;
   }
-
-  .prose h1 {
-    font-size: 2rem;
-  }
-
-  .prose h2 {
-    font-size: 1.5rem;
-  }
-
-  .prose h3 {
-    font-size: 1.25rem;
-  }
-
-  .prose p {
+  :global(.prose h1) { font-size: 1.875rem; }
+  :global(.prose h2) { font-size: 1.5rem; }
+  :global(.prose h3) { font-size: 1.25rem; }
+  :global(.prose p) {
     margin-bottom: 1.5rem;
-    font-size: 1.125rem;
+    font-size: 1.0625rem;
   }
-
-  .prose img {
+  :global(.prose img) {
     width: 100%;
     height: auto;
-    border-radius: 0.5rem;
+    border-radius: 0.75rem;
     margin: 2rem 0;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
   }
-
-  .prose a {
-    color: #2563eb;
+  :global(.prose a) {
+    color: #f97316;
     text-decoration: underline;
   }
-
-  .prose a:hover {
-    color: #1d4ed8;
+  :global(.prose a:hover) {
+    color: #ea580c;
   }
-
-  .prose strong {
+  :global(.prose strong) {
     font-weight: 600;
-    color: #111827;
+    color: #0f172a;
   }
-
-  .prose em {
+  :global(.prose em) {
     font-style: italic;
   }
-
-  .prose ul {
+  :global(.prose ul),
+  :global(.prose ol) {
     margin: 1.5rem 0;
     padding-left: 1.5rem;
+    list-style-position: outside;
+  }
+  :global(.prose ul) {
+    list-style-type: disc;
+  }
+  :global(.prose ol) {
+    list-style-type: decimal;
+  }
+  :global(.prose li) {
+    margin-bottom: 0.5rem;
+    font-size: 1.0625rem;
+    display: list-item;
+    appearance: none;
+    -webkit-appearance: none;
+    overflow: visible;
+    resize: none;
+  }
+  :global(.prose li::marker) {
+    color: #94a3b8;
+  }
+  /* Prevent any stray resize handles inside prose */
+  :global(.prose *) {
+    resize: none;
   }
 
-  .prose li {
+  /* ── Share ── */
+  .share-section {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid #e2e8f0;
+  }
+  .share-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 0.875rem;
+  }
+  .share-buttons {
+    display: flex;
+    gap: 0.6rem;
+  }
+  .share-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 0.5rem;
+    border: 1px solid #e2e8f0;
+    background: white;
+    color: #64748b;
+    transition: color 0.15s, border-color 0.15s, background 0.15s;
+  }
+  .share-btn:hover {
+    color: #f97316;
+    border-color: #f97316;
+    background: #fff7ed;
+  }
+
+  /* ── Sidebar ── */
+  .sidebar-col {
+    position: sticky;
+    top: 5.5rem;
+  }
+  .sidebar-card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 1rem;
+    padding: 1.5rem;
+  }
+  .sidebar-heading {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #94a3b8;
+    margin-bottom: 1rem;
+  }
+  .sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+  .sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.875rem;
+    color: #475569;
+    text-decoration: none;
+    padding: 0.45rem 0.5rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    transition: color 0.15s, background 0.15s;
+  }
+  .sidebar-link:hover {
+    color: #f97316;
+    background: #fff7ed;
+  }
+  .sidebar-link-back {
+    color: #64748b;
+    font-size: 0.85rem;
+    margin-bottom: 0.25rem;
+    padding-left: 0.25rem;
+  }
+  .sidebar-link-back:hover {
+    color: #f97316;
+    background: transparent;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    .content-grid {
+      grid-template-columns: 1fr;
+    }
+    .sidebar-col {
+      position: static;
+    }
+  }
+  @media (max-width: 640px) {
+    .main-col {
+      padding: 1.5rem;
+    }
+    .content-wrap {
+      padding: 1.5rem 1rem 4rem;
+    }
+  }
+
+  /* ── Related Posts ── */
+  .related-section {
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    padding: 3.5rem 1.5rem 5rem;
+  }
+  .related-inner {
+    max-width: 72rem;
+    margin: 0 auto;
+  }
+  .related-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.02em;
+    margin-bottom: 1.75rem;
+  }
+  .related-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.25rem;
+  }
+  .related-card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 1rem;
+    overflow: hidden;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .related-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+  }
+  .related-thumb {
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background: #f1f5f9;
+    flex-shrink: 0;
+  }
+  .related-thumb-fallback {
+    background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+  }
+  .related-thumb-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+  }
+  .related-card:hover .related-thumb-img {
+    transform: scale(1.04);
+  }
+  .related-body {
+    padding: 1rem 1.1rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+  .related-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.75rem;
+    color: #64748b;
     margin-bottom: 0.5rem;
-    font-size: 1.125rem;
+  }
+  .related-post-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.4;
+    margin-bottom: 0.5rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .related-excerpt {
+    font-size: 0.82rem;
+    color: #475569;
+    line-height: 1.6;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    flex: 1;
+    margin-bottom: 0.75rem;
+  }
+  .related-read-more {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #f97316;
+    margin-top: auto;
   }
 </style>

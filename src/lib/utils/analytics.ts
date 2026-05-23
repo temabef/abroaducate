@@ -41,7 +41,7 @@ class AnalyticsManager {
 
   // Initialize Google Analytics
   private initGoogleAnalytics() {
-    if (typeof window !== 'undefined' && window.gtag) {
+    if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
       // Google Analytics is already loaded via app.html
       console.log('Google Analytics already loaded');
     } else {
@@ -55,7 +55,7 @@ class AnalyticsManager {
 
     try {
       // Track with Google Analytics
-      if (typeof window !== 'undefined' && window.gtag) {
+      if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
         window.gtag('config', GA_TRACKING_ID, {
           page_path: window.location.pathname,
           page_title: document.title,
@@ -77,7 +77,7 @@ class AnalyticsManager {
 
     try {
       // Track with Google Analytics
-      if (typeof window !== 'undefined' && window.gtag) {
+      if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
         window.gtag('event', eventName, {
           event_category: properties?.category || 'general',
           event_label: properties?.label,
@@ -99,7 +99,7 @@ class AnalyticsManager {
 
     try {
       // Track with Google Analytics
-      if (typeof window !== 'undefined' && window.gtag) {
+      if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
         window.gtag('config', GA_TRACKING_ID, {
           user_id: userId,
           ...properties

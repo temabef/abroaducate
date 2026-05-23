@@ -15,8 +15,14 @@ export interface AcademicProfile {
   gradeDistribution: {
     byGPARange: { [key: string]: number };
   };
-  coursesBySubject: any; // Using 'any' for now, can be refined
-  coursesByYear: any; // Using 'any' for now, can be refined
+  coursesBySubject: Record<string, {
+    courseCount: number;
+    gpa: string;
+  }>;
+  coursesByYear: Record<string, {
+    gpa: string;
+    totalCredits: number;
+  }>;
 }
 
 /**
@@ -259,8 +265,8 @@ function analyzeAcademicTrends(profile: AcademicProfile) {
     };
   }
 
-  const gpaTrend = [];
-  const creditTrend = [];
+  const gpaTrend: Array<{ year: string; gpa: number }> = [];
+  const creditTrend: Array<{ year: string; credits: number }> = [];
   
   years.forEach(year => {
     gpaTrend.push({
@@ -403,7 +409,7 @@ function assessCompetitiveness(profile: AcademicProfile) {
  * @param {number} gpa - GPA value
  * @returns {number} Estimated percentile
  */
-function calculateGPAPercentile(gpa) {
+function calculateGPAPercentile(gpa: number) {
   if (gpa >= 3.8) return 95;
   if (gpa >= 3.5) return 85;
   if (gpa >= 3.2) return 70;

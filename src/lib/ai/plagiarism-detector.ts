@@ -118,7 +118,7 @@ class PlagiarismDetector {
                 word_frequency_issues: wordFrequencyIssues,
                 analysis: {
                     total_sentences: sentences.length,
-                    flagged_sentences,
+                    flagged_sentences: flaggedSentences,
                     common_phrases_found: phraseMatches.length,
                     repetitive_patterns: repetitivePatterns.length
                 }

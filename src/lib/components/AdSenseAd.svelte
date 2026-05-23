@@ -17,6 +17,8 @@
   // Props for backward compatibility (no longer required)
   export let session: any = null;
   export let supabase: any = null;
+  void session;
+  void supabase;
 
   let storeUnsub: (() => void) | null = null;
   

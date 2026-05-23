@@ -40,21 +40,30 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
             return json({ error: 'Missing required fields' }, { status: 400 });
         }
 
-        // Check cold email usage limits using new comprehensive system
-        const usageCheck = await checkComprehensiveUsageLimit(session.user.id, 'cold_email_generation');
-        if (!usageCheck.allowed) {
-            return json({
-                error: 'Cold email limit exceeded',
-                message: usageCheck.message,
-                planType: usageCheck.planType,
-                currentUsage: usageCheck.currentUsage,
-                limit: usageCheck.limit,
-                upgradeRequired: true
-            }, { status: 403 });
+        // Grandfather logic & Securely spend 1 credit
+        const { data: sub } = await supabase
+            .from('user_subscriptions')
+            .select('status')
+            .eq('user_id', session.user.id)
+            .eq('status', 'active')
+            .maybeSingle();
+
+        if (!sub) {
+            const { data: creditSpent, error: creditError } = await supabase.rpc('spend_credits', {
+                user_uid: session.user.id,
+                required_credits: 1,
+                action_name: 'COLD_EMAIL_GENERATION'
+            });
+
+            if (creditError || !creditSpent) {
+                return json({ error: 'Insufficient credits. Please top up your balance.' }, { status: 402 });
+            }
+        } else {
+            console.log(`[GRANDFATHER] User ${session.user.id} has active subscription, bypassing credit deduction.`);
         }
 
         // Analyze research overlap using simple keyword matching
-        let researchOverlap = [];
+        let researchOverlap: string[] = [];
         const professorKeywords = data.professorResearch.toLowerCase().split(/\s+/).filter(word => word.length > 3);
         const studentKeywords = data.studentResearch.toLowerCase().split(/\s+/).filter(word => word.length > 3);
         
@@ -109,7 +118,7 @@ Return the response in this exact JSON format:
             'Authorization': `Bearer ${OPENAI_API_KEY}`
           },
           body: JSON.stringify({
-            model: usageCheck.planType === 'elite' ? 'gpt-4o' : usageCheck.planType === 'professional' ? 'gpt-4o-mini' : 'gpt-3.5-turbo',
+            model: 'gpt-4o-mini',
             messages: [
               {
                 role: 'system',
@@ -160,18 +169,11 @@ Return the response in this exact JSON format:
           }, { status: 500 });
         }
 
-        // Increment usage counter using new comprehensive system
-        await incrementComprehensiveUsage(session.user.id, 'cold_email_generation');
-
+        // Usage info no longer needed since it's 1 credit
         return json({
           subject: emailResult.subject,
           body: emailResult.body,
-          researchOverlap: researchOverlap,
-          usage_info: {
-            current: usageCheck.currentUsage + 1,
-            limit: usageCheck.limit,
-            remaining: usageCheck.limit ? usageCheck.limit - (usageCheck.currentUsage + 1) : null
-          }
+          researchOverlap: researchOverlap
         });
 
     } catch (error) {

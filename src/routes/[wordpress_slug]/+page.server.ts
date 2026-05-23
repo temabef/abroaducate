@@ -123,11 +123,23 @@ export const load: PageServerLoad = async ({ params }) => {
 		// Render the markdown content
 		const renderedContent = renderMarkdown(post.content);
 
+		// Fetch related posts — other published posts, most recent 4
+		const { data: relatedRows, error: relatedErr } = await supabase
+			.from('blog_posts')
+			.select('id, title, slug, excerpt, cover_image_url, published_at')
+			.neq('id', post.id)
+			.order('published_at', { ascending: false })
+			.limit(4);
+
+		console.log('[related posts]', relatedRows?.length ?? 0, relatedErr?.message ?? 'ok');
+		const related = relatedRows ?? [];
+
 		return {
 			post: {
 				...post,
 				content: renderedContent
 			},
+			related,
 			// SEO metadata
 			seo: {
 				title: post.title,

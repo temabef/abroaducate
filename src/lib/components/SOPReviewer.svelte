@@ -165,7 +165,7 @@
             <div class="p-6 border-b">
                 <!-- Input Method Selection -->
                 <div class="mb-6">
-                    <label class="block text-sm font-medium text-gray-700 mb-3">How would you like to provide your SOP?</label>
+                    <p class="block text-sm font-medium text-gray-700 mb-3">How would you like to provide your SOP?</p>
                     <div class="flex gap-4">
                         <label class="flex items-center">
                             <input type="radio" bind:group={inputMethod} value="paste" class="mr-2">
@@ -187,8 +187,9 @@
                 <!-- File Upload -->
                 {#if inputMethod === 'upload'}
                     <div class="mb-6">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Upload SOP File</label>
+                        <label for="sop-review-upload" class="block text-sm font-medium text-gray-700 mb-2">Upload SOP File</label>
                         <input 
+                            id="sop-review-upload"
                             type="file" 
                             accept=".txt,.pdf,.doc,.docx"
                             onchange={handleFileUpload}
@@ -201,10 +202,11 @@
                 <!-- Text Input -->
                 {#if inputMethod === 'paste' || inputMethod === 'existing'}
                     <div class="mb-6">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <label for="sop-review-text" class="block text-sm font-medium text-gray-700 mb-2">
                             SOP Text ({wordCount} words, {paragraphs.length} paragraphs)
                         </label>
                         <textarea
+                            id="sop-review-text"
                             bind:value={sopText}
                             placeholder="Paste your Statement of Purpose here..."
                             class="w-full h-80 p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-y"
@@ -215,7 +217,7 @@
                 
                 <!-- Review Mode Selection -->
                 <div class="mb-6">
-                    <label class="block text-sm font-medium text-gray-700 mb-3">Review Type</label>
+                    <p class="block text-sm font-medium text-gray-700 mb-3">Review Type</p>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <label class={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${
                             reviewMode === 'quick' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'

@@ -2,6 +2,7 @@ import type { LayoutServerLoad } from './$types'
 
 export const load: LayoutServerLoad = async ({ locals }) => {
   const session = await locals.getSession();
+  const user = session?.user ?? null;
   let subscription: any = null;
 
   try {
@@ -11,7 +12,7 @@ export const load: LayoutServerLoad = async ({ locals }) => {
         .select('plan_type, status, admin_override')
         .eq('user_id', session.user.id)
         .in('status', ['active', 'trialing', 'past_due'])
-        .single();
+        .maybeSingle();
       subscription = data || null;
     }
   } catch {
@@ -20,6 +21,7 @@ export const load: LayoutServerLoad = async ({ locals }) => {
 
   return {
     session,
+    user,
     subscription
   }
 }

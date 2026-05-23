@@ -712,7 +712,9 @@
   }
 </script>
 
-<div class="blog-editor flex flex-col h-full {isFullscreen ? 'fullscreen' : ''}" class:border={!isFullscreen} class:rounded-lg={!isFullscreen} onclick={handleClickOutside}>
+<svelte:window onclick={handleClickOutside} />
+
+<div class="blog-editor flex flex-col h-full {isFullscreen ? 'fullscreen' : ''}" class:border={!isFullscreen} class:rounded-lg={!isFullscreen}>
   <!-- Toolbar -->
   <div class="toolbar flex flex-wrap items-center gap-1 p-3 border-b bg-gray-50">
     <!-- Text Formatting -->
@@ -770,8 +772,9 @@
         
         <div class="space-y-3">
           <div>
-            <label class="block text-xs font-medium text-gray-700 mb-1">Columns</label>
+            <label class="block text-xs font-medium text-gray-700 mb-1" for="table-builder-columns">Columns</label>
             <input 
+              id="table-builder-columns"
               type="range" 
               min="2" 
               max="8" 
@@ -782,8 +785,9 @@
           </div>
           
           <div>
-            <label class="block text-xs font-medium text-gray-700 mb-1">Rows</label>
+            <label class="block text-xs font-medium text-gray-700 mb-1" for="table-builder-rows">Rows</label>
             <input 
+              id="table-builder-rows"
               type="range" 
               min="2" 
               max="10" 
@@ -1054,45 +1058,45 @@
     color: #1f2937;
   }
   
-  .prose img {
+  :global(.prose img) {
     max-width: 100%;
     height: auto;
     border-radius: 0.5rem;
     box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
   }
   
-  .prose table {
+  :global(.prose table) {
     border-collapse: collapse;
     border: 1px solid #d1d5db;
     width: 100%;
   }
   
-  .prose th,
-  .prose td {
+  :global(.prose th),
+  :global(.prose td) {
     border: 1px solid #d1d5db;
     padding: 1rem;
   }
   
-  .prose th {
+  :global(.prose th) {
     background-color: #f3f4f6;
     font-weight: 600;
   }
   
-  .prose blockquote {
+  :global(.prose blockquote) {
     border-left: 4px solid #3b82f6;
     padding-left: 1rem;
     font-style: italic;
     color: #374151;
   }
   
-  .prose code {
+  :global(.prose code) {
     background-color: #f3f4f6;
     padding: 0.125rem 0.25rem;
     border-radius: 0.25rem;
     font-size: 0.875rem;
   }
   
-  .prose pre {
+  :global(.prose pre) {
     background-color: #111827;
     color: white;
     padding: 1rem;
@@ -1100,7 +1104,7 @@
     overflow-x: auto;
   }
   
-  .prose pre code {
+  :global(.prose pre code) {
     background: transparent;
     padding: 0;
   }

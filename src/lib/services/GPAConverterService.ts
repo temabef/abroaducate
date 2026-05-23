@@ -13,6 +13,39 @@ export interface GPAConversionData {
 }
 
 export class GPAConverterService {
+  private normalizeGradingSystem(
+    fromCountry: string,
+    fromSystemName: string,
+    rawGrades: GradingSystem['grades']
+  ): GradingSystem {
+    return {
+      country: fromCountry,
+      systemName: fromSystemName,
+      description: `${fromCountry} - ${fromSystemName}`,
+      gradeScale: this.inferGradeScale(rawGrades),
+      grades: rawGrades
+    };
+  }
+
+  private inferGradeScale(rawGrades: GradingSystem['grades']): GradingSystem['gradeScale'] {
+    const ranges = Object.values(rawGrades)
+      .map((grade) => grade.scoreRange)
+      .filter((range) => range && range !== 'Nil');
+
+    const numericBounds = ranges
+      .flatMap((range) => {
+        const match = range.match(/(\d+\.?\d*)\s*-\s*(\d+\.?\d*)/);
+        return match ? [parseFloat(match[1]), parseFloat(match[2])] : [];
+      });
+
+    const maxBound = numericBounds.length > 0 ? Math.max(...numericBounds) : 0;
+
+    if (maxBound <= 4) return '4.0';
+    if (maxBound <= 5) return '5.0';
+    if (maxBound <= 7) return '7.0';
+    if (maxBound <= 10) return '10.0';
+    return '100';
+  }
   
   /**
    * Convert courses from one grading system to US 4.0 GPA
@@ -23,10 +56,11 @@ export class GPAConverterService {
     fromSystemName: string
   ): Promise<ConversionResult> {
     
-    const gradingSystem = getGradingSystem(fromCountry, fromSystemName);
-    if (!gradingSystem) {
+    const rawGrades = getGradingSystem(fromCountry, fromSystemName);
+    if (!rawGrades) {
       throw new Error(`Grading system not found: ${fromCountry} - ${fromSystemName}`);
     }
+    const gradingSystem = this.normalizeGradingSystem(fromCountry, fromSystemName, rawGrades);
 
     let totalGradePoints = 0;
     let totalCredits = 0;

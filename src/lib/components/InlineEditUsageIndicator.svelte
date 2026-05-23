@@ -3,6 +3,7 @@
 
   export let supabase: any;
   export let session: any;
+  void supabase;
   
   let usage = {
     current: 0,

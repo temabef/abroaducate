@@ -398,8 +398,8 @@
       <form onsubmit={handleSubmit} class="space-y-4">
         <!-- Funding Category -->
         <div>
-          <label class="block text-sm font-medium mb-1">Funding Category</label>
-          <select bind:value={formData.funding_category} class="w-full border rounded px-3 py-2">
+          <label for="scholarship-funding-category" class="block text-sm font-medium mb-1">Funding Category</label>
+          <select id="scholarship-funding-category" bind:value={formData.funding_category} class="w-full border rounded px-3 py-2">
             <option value="Traditional Scholarship">Traditional Scholarship</option>
             <option value="Graduate Program Funding">Graduate Program Funding</option>
             <option value="Advertised Position">Advertised Position</option>
@@ -409,8 +409,9 @@
         <!-- Basic Fields -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-medium mb-1">Title *</label>
+            <label for="scholarship-title" class="block text-sm font-medium mb-1">Title *</label>
             <input 
+              id="scholarship-title"
               type="text" 
               bind:value={formData.title} 
               oninput={validateTitle}
@@ -422,8 +423,9 @@
             {/if}
           </div>
           <div>
-            <label class="block text-sm font-medium mb-1">Provider *</label>
+            <label for="scholarship-provider" class="block text-sm font-medium mb-1">Provider *</label>
             <input 
+              id="scholarship-provider"
               type="text" 
               bind:value={formData.provider} 
               oninput={validateProvider}
@@ -435,8 +437,9 @@
             {/if}
           </div>
           <div>
-            <label class="block text-sm font-medium mb-1">Amount</label>
+            <label for="scholarship-amount" class="block text-sm font-medium mb-1">Amount</label>
             <input 
+              id="scholarship-amount"
               type="text" 
               bind:value={formData.amount} 
               oninput={validateAmount}
@@ -447,8 +450,9 @@
             {/if}
           </div>
           <div>
-            <label class="block text-sm font-medium mb-1">Deadline</label>
+            <label for="scholarship-deadline" class="block text-sm font-medium mb-1">Deadline</label>
             <input 
+              id="scholarship-deadline"
               type="date" 
               bind:value={formData.deadline} 
               onchange={validateDeadline}
@@ -459,8 +463,9 @@
             {/if}
           </div>
           <div>
-            <label class="block text-sm font-medium mb-1">Location</label>
+            <label for="scholarship-location" class="block text-sm font-medium mb-1">Location</label>
             <input 
+              id="scholarship-location"
               type="text" 
               bind:value={formData.location} 
               oninput={validateLocation}
@@ -471,8 +476,9 @@
             {/if}
           </div>
           <div>
-            <label class="block text-sm font-medium mb-1">Field</label>
+            <label for="scholarship-field" class="block text-sm font-medium mb-1">Field</label>
             <input 
+              id="scholarship-field"
               type="text" 
               bind:value={formData.field} 
               oninput={validateField}
@@ -483,8 +489,9 @@
             {/if}
           </div>
           <div>
-            <label class="block text-sm font-medium mb-1">Level</label>
+            <label for="scholarship-level" class="block text-sm font-medium mb-1">Level</label>
             <select 
+              id="scholarship-level"
               bind:value={formData.level} 
               onchange={validateLevel}
               class="w-full border rounded px-3 py-2"
@@ -500,8 +507,9 @@
             {/if}
           </div>
           <div>
-            <label class="block text-sm font-medium mb-1">Type</label>
+            <label for="scholarship-type" class="block text-sm font-medium mb-1">Type</label>
             <select 
+              id="scholarship-type"
               bind:value={formData.type} 
               onchange={validateType}
               class="w-full border rounded px-3 py-2"
@@ -522,8 +530,9 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-blue-50 rounded">
             <h3 class="md:col-span-2 font-medium text-blue-900">Graduate Program Details</h3>
             <div>
-              <label class="block text-sm font-medium mb-1">University Name</label>
+              <label for="scholarship-university-name" class="block text-sm font-medium mb-1">University Name</label>
               <input 
+                id="scholarship-university-name"
                 type="text" 
                 bind:value={formData.university_name} 
                 oninput={validateUniversityName}
@@ -534,8 +543,9 @@
               {/if}
             </div>
             <div>
-              <label class="block text-sm font-medium mb-1">Program Name</label>
+              <label for="scholarship-program-name" class="block text-sm font-medium mb-1">Program Name</label>
               <input 
+                id="scholarship-program-name"
                 type="text" 
                 bind:value={formData.program_name} 
                 oninput={validateProgramName}
@@ -546,8 +556,9 @@
               {/if}
             </div>
             <div>
-              <label class="block text-sm font-medium mb-1">Department</label>
+              <label for="scholarship-department" class="block text-sm font-medium mb-1">Department</label>
               <input 
+                id="scholarship-department"
                 type="text" 
                 bind:value={formData.department} 
                 oninput={validateDepartment}
@@ -558,8 +569,9 @@
               {/if}
             </div>
             <div>
-              <label class="block text-sm font-medium mb-1">Funding Type</label>
+              <label for="scholarship-funding-type" class="block text-sm font-medium mb-1">Funding Type</label>
               <select 
+                id="scholarship-funding-type"
                 bind:value={formData.funding_type} 
                 onchange={validateFundingType}
                 class="w-full border rounded px-3 py-2"
@@ -575,8 +587,9 @@
               {/if}
             </div>
             <div class="md:col-span-2">
-              <label class="block text-sm font-medium mb-1">Application Method</label>
+              <label for="scholarship-application-method" class="block text-sm font-medium mb-1">Application Method</label>
               <input 
+                id="scholarship-application-method"
                 type="text" 
                 bind:value={formData.application_method} 
                 oninput={validateApplicationMethod}
@@ -594,8 +607,9 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-green-50 rounded">
             <h3 class="md:col-span-2 font-medium text-green-900">Position Details</h3>
             <div>
-              <label class="block text-sm font-medium mb-1">Professor Name</label>
+              <label for="scholarship-professor-name" class="block text-sm font-medium mb-1">Professor Name</label>
               <input 
+                id="scholarship-professor-name"
                 type="text" 
                 bind:value={formData.professor_name} 
                 oninput={validateProfessorName}
@@ -606,8 +620,9 @@
               {/if}
             </div>
             <div>
-              <label class="block text-sm font-medium mb-1">Professor Email</label>
+              <label for="scholarship-professor-email" class="block text-sm font-medium mb-1">Professor Email</label>
               <input 
+                id="scholarship-professor-email"
                 type="email" 
                 bind:value={formData.professor_email} 
                 oninput={validateProfessorEmail}
@@ -618,8 +633,9 @@
               {/if}
             </div>
             <div class="md:col-span-2">
-              <label class="block text-sm font-medium mb-1">Position Details</label>
+              <label for="scholarship-position-details" class="block text-sm font-medium mb-1">Position Details</label>
               <textarea 
+                id="scholarship-position-details"
                 bind:value={formData.position_details} 
                 oninput={validatePositionDetails}
                 rows="3" 
@@ -634,8 +650,9 @@
 
         <!-- Description and Requirements -->
         <div>
-          <label class="block text-sm font-medium mb-1">Description</label>
+          <label for="scholarship-description" class="block text-sm font-medium mb-1">Description</label>
           <textarea 
+            id="scholarship-description"
             bind:value={formData.description} 
             oninput={validateDescription}
             rows="4" 
@@ -647,8 +664,9 @@
         </div>
 
         <div>
-          <label class="block text-sm font-medium mb-1">Requirements (one per line)</label>
+          <label for="scholarship-requirements" class="block text-sm font-medium mb-1">Requirements (one per line)</label>
           <textarea 
+            id="scholarship-requirements"
             bind:value={formData.requirements} 
             oninput={validateRequirements}
             rows="4" 
@@ -662,8 +680,9 @@
         <!-- Additional Fields -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-medium mb-1">Website</label>
+            <label for="scholarship-website" class="block text-sm font-medium mb-1">Website</label>
             <input 
+              id="scholarship-website"
               type="url" 
               bind:value={formData.website} 
               oninput={validateWebsite}
@@ -674,8 +693,9 @@
             {/if}
           </div>
           <div>
-            <label class="block text-sm font-medium mb-1">Nationality Restrictions (comma-separated)</label>
+            <label for="scholarship-nationality-restrictions" class="block text-sm font-medium mb-1">Nationality Restrictions (comma-separated)</label>
             <input 
+              id="scholarship-nationality-restrictions"
               type="text" 
               bind:value={formData.nationality_restrictions} 
               oninput={validateNationalityRestrictions}
@@ -686,8 +706,9 @@
             {/if}
           </div>
           <div>
-            <label class="block text-sm font-medium mb-1">Minimum GPA</label>
+            <label for="scholarship-min-gpa" class="block text-sm font-medium mb-1">Minimum GPA</label>
             <input 
+              id="scholarship-min-gpa"
               type="number" 
               step="0.1" 
               bind:value={formData.min_gpa} 
@@ -699,8 +720,9 @@
             {/if}
           </div>
           <div>
-            <label class="block text-sm font-medium mb-1">Minimum IELTS</label>
+            <label for="scholarship-min-ielts" class="block text-sm font-medium mb-1">Minimum IELTS</label>
             <input 
+              id="scholarship-min-ielts"
               type="number" 
               step="0.5" 
               bind:value={formData.min_ielts} 
@@ -712,8 +734,9 @@
             {/if}
           </div>
           <div>
-            <label class="block text-sm font-medium mb-1">Minimum TOEFL</label>
+            <label for="scholarship-min-toefl" class="block text-sm font-medium mb-1">Minimum TOEFL</label>
             <input 
+              id="scholarship-min-toefl"
               type="number" 
               bind:value={formData.min_toefl} 
               oninput={validateMinToefl}
@@ -724,8 +747,9 @@
             {/if}
           </div>
           <div>
-            <label class="block text-sm font-medium mb-1">Age Limit</label>
+            <label for="scholarship-age-limit" class="block text-sm font-medium mb-1">Age Limit</label>
             <input 
+              id="scholarship-age-limit"
               type="number" 
               bind:value={formData.age_limit} 
               oninput={validateAgeLimit}

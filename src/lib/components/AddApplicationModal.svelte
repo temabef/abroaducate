@@ -189,10 +189,23 @@
 </script>
 
 {#if show}
-    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onclick={closeModal}>
-        <div class="bg-white rounded-lg w-full max-w-lg mx-4 max-h-[90vh] flex flex-col" onclick={(e) => e.stopPropagation()} transition:slide>
+    <div
+        class="fixed inset-0 flex items-center justify-center z-50 p-4"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="add-application-title"
+        onkeydown={(e) => e.key === 'Escape' && closeModal()}
+        tabindex="-1"
+    >
+        <button
+            type="button"
+            class="absolute inset-0 bg-black bg-opacity-50"
+            onclick={closeModal}
+            aria-label="Close modal"
+        ></button>
+        <div class="relative z-10 bg-white rounded-lg w-full max-w-lg mx-4 max-h-[90vh] flex flex-col" transition:slide>
             <div class="flex justify-between items-center p-6 pb-4 border-b">
-                <h2 class="text-xl font-semibold text-gray-900">Add New Application</h2>
+                <h2 id="add-application-title" class="text-xl font-semibold text-gray-900">Add New Application</h2>
                 <button onclick={closeModal} class="text-gray-400 hover:text-gray-600" aria-label="Close modal">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -372,9 +385,9 @@
                 <!-- Link Existing SOPs -->
                 {#if existingSOPs.length > 0}
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <p class="block text-sm font-medium text-gray-700 mb-2">
                             Link Existing SOPs (Optional)
-                        </label>
+                        </p>
                         <div class="space-y-2 max-h-32 overflow-y-auto">
                             {#each existingSOPs as sop}
                                 <label class="flex items-center">

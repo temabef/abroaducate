@@ -1,13 +1,11 @@
+// All data loading for the dashboard happens in +page.server.ts.
+// We import supabase and session from the layout parent so
+// the dashboard component can make client-side Supabase calls.
+// IMPORTANT: We spread `data` to pass through ALL server-loaded data
+// (profile, trackedProgramsData, savedScholarships, etc.)
 import type { PageLoad } from './$types';
 
-export const load = (async ({ parent }) => {
+export const load = (async ({ parent, data }) => {
     const { supabase, session } = await parent();
-    
-    // Allow users to access dashboard regardless of onboarding status
-    // ProfileCompletionWidget will guide them to complete missing fields
-    
-    return {
-        supabase,
-        session
-    };
-}) satisfies PageLoad; 
+    return { ...data, supabase, session };
+}) satisfies PageLoad;

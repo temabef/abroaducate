@@ -38,11 +38,12 @@
 
 {#if show}
     <!-- Overlay -->
-    <div 
+    <button
+        type="button"
         class="fixed inset-0 bg-black bg-opacity-20 z-40"
         on:click={close}
-        on:keydown={(e) => e.key === 'Escape' && close()}
-    ></div>
+        aria-label="Close editor"
+    ></button>
     
     <!-- Popup -->
     <div 
@@ -55,6 +56,7 @@
                 <button 
                     on:click={close}
                     class="text-gray-400 hover:text-gray-600"
+                    aria-label="Close text editor popup"
                 >
                     ✕
                 </button>
@@ -67,8 +69,9 @@
             
             <!-- Edit Type Selection -->
             <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Enhancement Type:</label>
+                <label for="inline-ai-editor-type" class="block text-sm font-medium text-gray-700 mb-2">Enhancement Type:</label>
                 <select 
+                    id="inline-ai-editor-type"
                     bind:value={editType}
                     class="w-full border border-gray-300 rounded px-3 py-2 text-sm"
                 >

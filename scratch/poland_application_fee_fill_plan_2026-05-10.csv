@@ -1,0 +1,16 @@
+scope_type,scope_key,rows_covered,suggested_application_fee,status,notes,source_url
+university,Warsaw University of Technology,29,85 PLN,safe,"University-wide application fee page states 85 PLN",https://new.students.pw.edu.pl/index.php/Resources/Application-Glossary/Application-fee
+university_domain,admission.pwr.edu.pl,15,85 PLN,safe,"Wrocław University of Science and Technology non-architecture rows",https://rekrutacja.pwr.edu.pl/en/admission/application-fee/
+program_group,Wrocław University of Science and Technology architecture rows,2,150 PLN,safe,"Architecture rows only",https://rekrutacja.pwr.edu.pl/en/admission/application-fee/
+university,Lodz University of Technology,20,85 PLN,safe,"Admissions fees page lists 85 PLN",https://apply.p.lodz.pl/en/enrollment/enroll/fees-and-scholarships
+university,Bialystok University of Technology,15,85 PLN,safe,"Admissions documents page requires 85 PLN payment confirmation",https://apply.pb.edu.pl/a/bialystok-university-of-technology/documents/
+university,University of Warmia and Mazury in Olsztyn,14,85 PLN,safe,"Official FAQ and programme pages state 85 PLN",https://wl.uwm.edu.pl/en/candidates/faq-frequently-asked-questions
+university,University of Lodz,14,85 PLN,safe,"International candidate guide states 85 PLN",https://www.uni.lodz.pl/en/candidate-zone/information-for-candidates-without-polish-citizenship/how-to-apply-for-ba-bachelors-for-candidates-who-do-not-hold-polish-citizenship
+university,University of Opole,8,85 PLN,safe,"General fee page says 85 PLN; no art programme rows in current upload",https://bdijk.uni.opole.pl/en/fees-and-refunds/
+university,Lazarski University,11,18 EUR,safe,"Admissions page states admission fee is EUR 18",https://www.lazarski.pl/en/offer-education/recruitment/graduate-studies/corporate-finance-j-English-bachelors-degree
+university_domain,upwr.edu.pl,9,85 PLN,safe,"Programme pages state application fee 85 PLN one-time",https://apply.upwr.edu.pl/en_GB/courses/course/482-inz-applied-bioeconomy
+university,University of Szczecin,8,85 PLN,safe,"Official tuition page states 85 PLN per degree programme",https://admissions.usz.edu.pl/tuition-fees/
+university,University of Warsaw,23,85 PLN or 100 PLN,conditional,"100 PLN applies if exam/interview is required",https://rekrutacja.uw.edu.pl/en/application-and-tuition-fees/
+university,SGH Warsaw School of Economics,7,85 PLN or 100 PLN,conditional,"100 PLN applies if entrance exam is required",https://www.sgh.waw.pl/en/table-fees-graduate-studies
+university_domain,pg.edu.pl,16,85 PLN or 100 PLN; 150 PLN for Architecture,conditional,"Depends on certificate/country pathway; architecture has 150 PLN rule",https://pg.edu.pl/en/admission/bachelor-studies-international-students/application-procedure
+university,The John Paul II Catholic University of Lublin,9,85 PLN or 100 PLN,conditional,"100 PLN applies to programmes with entrance exams; 150 PLN only for Musicology",https://kandydat.kul.pl/en/vademecum-rekrutacji/oplaty/

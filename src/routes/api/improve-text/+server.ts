@@ -1,8 +1,26 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { z } from 'zod';
+import { OPENAI_API_KEY } from '$env/static/private';
 import { checkComprehensiveUsageLimit, incrementComprehensiveUsage } from '$lib/comprehensive-usage-limits.server';
 import { getAIModelForUser } from '$lib/ai-models';
+
+function generateImprovementPrompt(
+	text: string,
+	improvementType: string,
+	context: string,
+	documentType: string
+): string {
+	const contextNote = context ? `\nContext: ${context}` : '';
+	const prompts: Record<string, string> = {
+		grammar: `Fix all grammar, spelling, and punctuation errors in the following ${documentType} text. Return only the corrected text.${contextNote}\n\nText:\n${text}`,
+		style: `Improve the writing style of the following ${documentType} text to make it more engaging and professional. Return only the improved text.${contextNote}\n\nText:\n${text}`,
+		clarity: `Rewrite the following ${documentType} text to improve clarity and readability. Return only the improved text.${contextNote}\n\nText:\n${text}`,
+		academic: `Enhance the academic tone and vocabulary of the following ${documentType} text. Return only the improved text.${contextNote}\n\nText:\n${text}`,
+		professional: `Make the following ${documentType} text more professional and polished. Return only the improved text.${contextNote}\n\nText:\n${text}`
+	};
+	return prompts[improvementType] ?? prompts.clarity;
+}
 
 export const POST: RequestHandler = async ({ request, locals: { getSession, supabase } }) => {
     const session = await getSession();
@@ -54,7 +72,7 @@ export const POST: RequestHandler = async ({ request, locals: { getSession, supa
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+                'Authorization': `Bearer ${OPENAI_API_KEY}`
             },
             body: JSON.stringify({
                 model: aiModel,

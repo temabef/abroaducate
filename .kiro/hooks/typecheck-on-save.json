@@ -1,0 +1,13 @@
+{
+  "name": "Type Check on Save",
+  "version": "1.0.0",
+  "description": "Runs svelte-check to catch TypeScript errors whenever a Svelte or TS file is saved",
+  "when": {
+    "type": "fileEdited",
+    "patterns": ["**/*.svelte", "**/*.ts"]
+  },
+  "then": {
+    "type": "runCommand",
+    "command": "npm run check"
+  }
+}

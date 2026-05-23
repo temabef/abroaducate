@@ -1832,17 +1832,6 @@
     margin-bottom: 0.25rem;
   }
 
-  .city-cost {
-    font-size: 0.875rem;
-    color: #6b7280;
-  }
-
-  .city-universities {
-    font-size: 0.75rem;
-    color: #9ca3af;
-    margin-top: 0.25rem;
-  }
-
   /* Custom Selection */
   .custom-selection {
     border-top: 1px solid #e5e7eb;
@@ -2201,120 +2190,6 @@
   .scholarship-content p {
     margin: 0;
     color: #78350f;
-  }
-
-  /* Email Capture */
-  /* Next Steps Section */
-  .next-steps-section {
-    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-    padding: 2.5rem;
-    border-radius: 16px;
-    border: 1px solid #e2e8f0;
-    margin-top: 2rem;
-  }
-
-  .next-steps-header {
-    text-align: center;
-    margin-bottom: 2.5rem;
-  }
-
-  .next-steps-icon {
-    width: 4rem;
-    height: 4rem;
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    border-radius: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    margin: 0 auto 1.5rem auto;
-  }
-
-  .next-steps-icon svg {
-    width: 2rem;
-    height: 2rem;
-  }
-
-  .next-steps-header h3 {
-    font-size: 2rem;
-    font-weight: 700;
-    color: #1f2937;
-    margin: 0 0 0.75rem 0;
-  }
-
-  .next-steps-header p {
-    font-size: 1.125rem;
-    color: #6b7280;
-    margin: 0;
-  }
-
-  /* Action Cards Grid */
-  .action-cards-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-    gap: 1.5rem;
-  }
-
-  .action-card {
-    background: white;
-    border-radius: 12px;
-    padding: 1.5rem;
-    border: 1px solid #e5e7eb;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-    transition: all 0.3s ease;
-  }
-
-  .action-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-  }
-
-  .action-card.primary-card {
-    border: 2px solid #3b82f6;
-    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-  }
-
-  /* Removed legacy/unused styles (old cards/login gate/teaser forms) */
-
-  .interests {
-    display: grid;
-    gap: 0.5rem;
-  }
-
-  .interests-title {
-    font-weight: 500;
-    color: #374151;
-    margin: 0;
-  }
-
-  .interest-option {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: #374151;
-    cursor: pointer;
-  }
-
-  .capture-button {
-    padding: 1rem 2rem;
-    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-size: 1.1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-
-  .capture-button:hover:not(:disabled) {
-    transform: translateY(-1px);
-    box-shadow: 0 10px 25px rgba(59, 130, 246, 0.25);
-  }
-
-  .capture-button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
   }
 
   /* Navigation */

@@ -15,8 +15,8 @@
   let returnUrl = $derived(
     next ||
       (action === 'improve_profile' || source === 'diagnostic'
-        ? '/plan?from=roadmap'
-        : '/plan')
+        ? '/dashboard'
+        : '/dashboard')
   );
   
   let showAuth = $state(true);

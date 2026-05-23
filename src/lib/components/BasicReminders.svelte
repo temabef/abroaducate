@@ -73,7 +73,7 @@
 
         // Process application reminders
         const applicationReminders = (applicationsResponse.data || [])
-          .map(app => {
+          .map((app: { id: string; application_deadline: string }) => {
             const deadline = new Date(app.application_deadline);
             const now = new Date();
             const daysUntil = Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
@@ -94,8 +94,8 @@
 
         // Process scholarship reminders (these come pre-calculated from the view)
         const scholarshipReminders = (scholarshipsResponse.data || [])
-          .filter(scholarship => scholarship && (scholarship.is_saved || scholarship.is_applied))
-          .map(scholarship => scholarship ? ({
+          .filter((scholarship: any) => scholarship && (scholarship.is_saved || scholarship.is_applied))
+          .map((scholarship: any) => scholarship ? ({
             id: scholarship.scholarship_id,
             title: scholarship.title,
             deadline: scholarship.deadline,
@@ -228,7 +228,7 @@
         return { data: [], error: interactionsError };
       }
 
-      const scholarshipIds = interactions.map(i => i.scholarship_id);
+      const scholarshipIds = interactions.map((i: any) => i.scholarship_id);
       const { data: scholarships, error: scholarshipsError } = await $page.data.supabase
         .from('scholarships')
         .select('id, title, provider, amount, deadline')
@@ -241,8 +241,8 @@
       }
 
       // Calculate days until deadline and urgency
-      const calculatedData = scholarships?.map(scholarship => {
-        const interaction = interactions.find(i => i.scholarship_id === scholarship.id);
+      const calculatedData = scholarships?.map((scholarship: any) => {
+        const interaction = interactions.find((i: any) => i.scholarship_id === scholarship.id);
         const deadline = new Date(scholarship.deadline);
         const today = new Date();
         const daysUntil = Math.ceil((deadline.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));

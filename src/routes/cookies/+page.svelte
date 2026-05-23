@@ -364,7 +364,7 @@
               Contact Support
             </a>
             <a 
-              href="mailto:privacy@abroaducate.com" 
+              href="mailto:hello@abroaducate.com" 
               class="border-2 border-blue-600 text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-blue-600 hover:text-white transition duration-300 text-center"
             >
               Email Privacy Team
