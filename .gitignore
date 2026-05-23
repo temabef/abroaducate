@@ -35,3 +35,20 @@ svelte-check*.log
 dashboard*.diff
 *.diff
 scratch/
+
+# Internal planning/working documents (not for production)
+ANSWERS_TO_YOUR_QUESTIONS.md
+CHATGPT_APPROACH_EVALUATION.md
+COLLABORATOR_CHANGES_SUMMARY.md
+FINAL_REDESIGN_RECOMMENDATIONS.md
+HOMEPAGE_IMPLEMENTATION.md
+IMPLEMENTATION_ROADMAP.md
+MINIMALIST_REDESIGN.md
+ROLLBACK_AND_SAFETY_STRATEGY.md
+STRATEGIC_PLATFORM_ASSESSMENT.md
+RECOVERY_CONTENT.txt
+POST_LAUNCH_ROADMAP.md
+
+# Junk data files
+german_universities_refresh.json
+poland_final_upload_fee_ready.csv
