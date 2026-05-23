@@ -2,8 +2,7 @@
 	import { ArrowLeft, Clock, CheckCircle2, Users, Target, MessageSquare } from 'lucide-svelte';
 	import { onMount } from 'svelte';
 
-	// Replace this with your actual Calendly URL
-	const CALENDLY_URL = 'https://calendly.com/abroaducate/30min';
+	const CALENDLY_URL = 'https://calendly.com/hello-abroaducate/30min';
 
 	onMount(() => {
 		// Load Calendly widget script
