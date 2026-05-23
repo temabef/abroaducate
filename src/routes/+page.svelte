@@ -305,7 +305,7 @@ return () => clearInterval(interval);
 <section class="section-video" use:fadeUpOnScroll>
 	<div class="section-inner">
 		<span class="eyebrow eyebrow-on-dark">SEE IT IN ACTION</span>
-		<h2 class="section-heading section-heading-light" style="white-space: nowrap;">From finding a program to matching scholarships in under 2 minutes</h2>
+		<h2 class="section-heading section-heading-light">From finding a program to matching scholarships in under 2 minutes</h2>
 		<div class="video-container">
 			<div class="video-wrapper">
 				<iframe
@@ -991,12 +991,14 @@ return () => clearInterval(interval);
 .section-proof {
 	padding: 6rem 1.5rem;
 	background: #ffffff;
+	overflow: hidden;
 }
 .proof-layout {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
 	gap: 3rem;
 	align-items: stretch;
+	max-width: 100%;
 }
 .proof-stats-card {
 	background: #ffffff;
@@ -1030,6 +1032,8 @@ return () => clearInterval(interval);
 .proof-secondary-stats {
 	display: flex;
 	justify-content: space-around;
+	gap: 1.5rem;
+	flex-wrap: wrap;
 }
 .proof-stat-item {
 	text-align: center;

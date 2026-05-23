@@ -69,8 +69,9 @@
 	class="fixed left-0 right-0 top-0 z-50 transition-all duration-300"
 	class:nav-scrolled={scrolled}
 	class:nav-top={!scrolled}
+	style="overflow: hidden; max-width: 100vw;"
 >
-	<nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
+	<nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-3" style="overflow: hidden; max-width: 100vw;">
 		<!-- Logo -->
 		<a href="/" class="flex items-center gap-2.5 transition duration-300 hover:opacity-80">
 			<img src="/abroaducate-new-icon1.png" alt="Abroaducate icon" style="height: 2.5rem; width: auto; mix-blend-mode: multiply;" />
