@@ -403,17 +403,16 @@ async function handleCreditCheckoutCompleted(session: any, eventId?: string) {
             return;
         }
 
-        // Idempotency check — skip if this Stripe event was already processed
-        if (eventId) {
-            const { data: existing } = await supabaseAdmin
-                .from('credit_transactions')
-                .select('id')
-                .eq('action_type', `STRIPE_EVENT_${eventId}`)
-                .maybeSingle();
-            if (existing) {
-                console.log(`[STRIPE CREDITS] ⚠️  Event ${eventId} already processed — skipping duplicate`);
-                return;
-            }
+        // Idempotency check — skip if this Stripe session was already processed
+        const { data: existing } = await supabaseAdmin
+            .from('credit_transactions')
+            .select('id')
+            .eq('user_id', userId)
+            .eq('action_type', `STRIPE_SESSION_${session.id}`)
+            .maybeSingle();
+        if (existing) {
+            console.log(`[STRIPE CREDITS] ⚠️  Session ${session.id} already processed — skipping duplicate`);
+            return;
         }
 
         // Re-verify the payment status directly with Stripe (prevents replay attacks)
@@ -452,15 +451,16 @@ async function handleCreditCheckoutCompleted(session: any, eventId?: string) {
 
         console.log(`[STRIPE CREDITS] ✅ Credits updated: ${currentCredits} → ${newCredits} for user ${userId}`);
 
-        // Record this event ID to prevent duplicate processing
-        if (eventId) {
-            await supabaseAdmin
-                .from('credit_transactions')
-                .insert({
-                    user_id: userId,
-                    amount: creditsToAdd,
-                    action_type: `STRIPE_EVENT_${eventId}`
-                }).catch(() => {}); // non-fatal
+        // Record this session ID to prevent duplicate processing
+        const { error: insertErr } = await supabaseAdmin
+            .from('credit_transactions')
+            .insert({
+                user_id: userId,
+                amount: creditsToAdd,
+                action_type: `STRIPE_SESSION_${session.id}`
+            });
+        if (insertErr) {
+            console.error('[STRIPE CREDITS] ⚠️  Failed to record session ID (idempotency):', insertErr.message);
         }
 
         try {
