@@ -40,7 +40,19 @@ export const GET: RequestHandler = async (event) => {
                         .maybeSingle();
 
                     if (!existingProfile) {
-                        // Brand new user — send welcome email (fire-and-forget)
+                        // Brand new user — create profile with 3 credits and send welcome email
+
+                        // Create user_profiles row with 3 free credits
+                        await supabase
+                            .from('user_profiles')
+                            .insert({
+                                user_id: userId,
+                                credits: 3,
+                                workspace_data: {}
+                            })
+                            .catch(e => console.error('[CALLBACK] Failed to create user_profiles:', e));
+
+                        // Send welcome email (fire-and-forget)
                         sendEmail({
                             to: userEmail,
                             subject: 'Welcome to Abroaducate — your 3 free credits are ready',
