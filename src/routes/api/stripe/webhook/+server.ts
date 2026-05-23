@@ -54,7 +54,7 @@ export const POST: RequestHandler = async ({ request }) => {
         try {
             switch (event.type) {
                 case 'checkout.session.completed':
-                    await handleCheckoutCompleted(event.data.object);
+                    await handleCheckoutCompleted(event.data.object, event.id);
                     console.log(`[WEBHOOK] ✅ Successfully processed checkout.session.completed`);
                     break;
 
@@ -118,7 +118,7 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 };
 
-async function handleCheckoutCompleted(session: any) {
+async function handleCheckoutCompleted(session: any, eventId?: string) {
     try {
         console.log(`[CHECKOUT] Processing checkout completion for session: ${session.id}`);
         
@@ -126,7 +126,7 @@ async function handleCheckoutCompleted(session: any) {
         const planType = session.metadata?.plan_type;
 
         if (session.mode === 'payment' && session.metadata?.pack_type) {
-            return handleCreditCheckoutCompleted(session);
+            return handleCreditCheckoutCompleted(session, eventId);
         }
 
         if (!userId || !planType) {
@@ -392,7 +392,7 @@ async function sendPaymentFailedNotification(customerId: string, invoice: any) {
  *   2. Read credits_to_add from session metadata
  *   3. Add credits to user_profiles.credits
  */
-async function handleCreditCheckoutCompleted(session: any) {
+async function handleCreditCheckoutCompleted(session: any, eventId?: string) {
     try {
         const userId = session.metadata?.user_id;
         const creditsToAdd = parseInt(session.metadata?.credits_to_add ?? '0', 10);
@@ -401,6 +401,19 @@ async function handleCreditCheckoutCompleted(session: any) {
         if (!userId || !creditsToAdd || isNaN(creditsToAdd)) {
             console.error('[STRIPE CREDITS] ❌ Missing or invalid metadata — userId:', userId, 'credits:', creditsToAdd);
             return;
+        }
+
+        // Idempotency check — skip if this Stripe event was already processed
+        if (eventId) {
+            const { data: existing } = await supabaseAdmin
+                .from('credit_transactions')
+                .select('id')
+                .eq('action_type', `STRIPE_EVENT_${eventId}`)
+                .maybeSingle();
+            if (existing) {
+                console.log(`[STRIPE CREDITS] ⚠️  Event ${eventId} already processed — skipping duplicate`);
+                return;
+            }
         }
 
         // Re-verify the payment status directly with Stripe (prevents replay attacks)
@@ -438,6 +451,17 @@ async function handleCreditCheckoutCompleted(session: any) {
         }
 
         console.log(`[STRIPE CREDITS] ✅ Credits updated: ${currentCredits} → ${newCredits} for user ${userId}`);
+
+        // Record this event ID to prevent duplicate processing
+        if (eventId) {
+            await supabaseAdmin
+                .from('credit_transactions')
+                .insert({
+                    user_id: userId,
+                    amount: creditsToAdd,
+                    action_type: `STRIPE_EVENT_${eventId}`
+                }).catch(() => {}); // non-fatal
+        }
 
         try {
             analytics.trackEvent('credit_pack_purchased', {
