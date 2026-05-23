@@ -28,3 +28,10 @@ vite.config.ts.timestamp-*
 # Accidental CLI output / junk (e.g. partial command output saved to file)
 tatus
 ter
+
+# Temporary check/log files
+tmp-check*.log
+svelte-check*.log
+dashboard*.diff
+*.diff
+scratch/
