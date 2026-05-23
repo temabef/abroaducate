@@ -45,6 +45,19 @@ export const POST: RequestHandler = async ({ request, locals: { supabase } }) =>
 			console.log(`[WELCOME] Created user_profiles with 3 credits for ${userId}`);
 		}
 
+		// Identify user in Customer.io so they receive future broadcasts
+		try {
+			const { APIClient, RegionEU } = await import('customerio-node');
+			const { env } = await import('$env/dynamic/private');
+			if (env.CUSTOMER_IO_API_KEY) {
+				const cio = new APIClient(env.CUSTOMER_IO_API_KEY, { region: RegionEU });
+				await cio.identify(userId, { email: userEmail, user_type: 'registered', created_at: Math.floor(Date.now() / 1000) });
+				console.log(`[WELCOME] Identified in Customer.io: ${userEmail}`);
+			}
+		} catch (cioErr: any) {
+			console.error('[WELCOME] Customer.io identify failed (non-fatal):', cioErr?.message);
+		}
+
 		await sendEmail({
 			to: userEmail,
 			subject: 'Welcome to Abroaducate — your 3 free credits are ready',

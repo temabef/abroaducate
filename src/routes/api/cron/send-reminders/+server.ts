@@ -103,111 +103,35 @@ export const POST: RequestHandler = async ({ request }) => {
       newsletter_emails: 0
     };
 
-    // ============ SCHOLARSHIP DIGEST (EVERYONE - WEEKLY/DAILY) ============
-    // Updated: Use new columns for daily/weekly digest and prevent double sending
-    const { data: allUsers } = await supabase
-      .from('user_preferences')
-      .select(`
-        user_id,
-        scholarship_digest_weekly,
-        scholarship_digest_daily
-      `);
+    // ============ SCHOLARSHIP DIGEST — ALL REGISTERED USERS, EVERY MONDAY ============
+    const isMonday = dayOfWeek === 1;
 
-    // Get user tiers for all users (skip when doing batched force digest)
-    let userTierMap = new Map<string, string>();
-    if (!forceDigestAllRegistered) {
-      const { data: allSubs } = await supabase
-        .from('user_subscriptions')
-        .select('user_id, plan_type, status');
-      for (const sub of allSubs || []) {
-        if (sub.status === 'active') {
-          userTierMap.set(sub.user_id, sub.plan_type);
-        }
+    if (isMonday || forceDigestAllRegistered) {
+      console.log('📊 Sending weekly digest to all registered users...');
+      let allAuthUsers: any[] = [];
+      let authPage = 1;
+      while (true) {
+        const { data: { users: batch } } = await supabase.auth.admin.listUsers({ page: authPage, perPage: 1000 });
+        if (!batch || batch.length === 0) break;
+        allAuthUsers = [...allAuthUsers, ...batch];
+        if (batch.length < 1000) break;
+        authPage++;
       }
-    }
-
-    // Build list of users to process for scholarship digest
-    const digestEligible: { user_id: string }[] = [];
-    for (const user of allUsers || []) {
-      const wantsDigest = !!(user.scholarship_digest_weekly || user.scholarship_digest_daily);
-      if (!wantsDigest) continue;
-
-      let shouldSend = false;
-      if (forceDigestAllRegistered) {
-        shouldSend = true;
-      } else {
-        const planType = userTierMap.get(user.user_id) || 'free';
-        const isPaid = planType === 'professional' || planType === 'elite';
-        const isMonday = dayOfWeek === 1;
-        let sendDaily = false;
-        let sendWeekly = false;
-        if (isPaid) {
-          if (isMonday) {
-            if (user.scholarship_digest_daily && user.scholarship_digest_weekly) sendDaily = true;
-            else if (user.scholarship_digest_daily) sendDaily = true;
-            else if (user.scholarship_digest_weekly) sendWeekly = true;
-          } else {
-            if (user.scholarship_digest_daily) sendDaily = true;
-          }
-        } else {
-          if (isMonday && user.scholarship_digest_weekly) sendWeekly = true;
-        }
-        shouldSend = sendDaily || sendWeekly;
-      }
-      if (shouldSend) digestEligible.push({ user_id: user.user_id });
-    }
-
-    // When force-digest: process only this batch to avoid timeout, then return
-    if (forceDigestAllRegistered && digestEligible.length > 0) {
-      digestEligible.sort((a, b) => a.user_id.localeCompare(b.user_id));
-      const totalEligible = digestEligible.length;
-      const batch = digestEligible.slice(batchOffset, batchOffset + batchSize);
-
-      for (const user of batch) {
+      console.log(`📊 Sending digest to ${allAuthUsers.length} registered users...`);
+      for (const authUser of allAuthUsers) {
+        if (!authUser.email) continue;
         try {
-          const { data: authUser } = await supabase.auth.admin.getUserById(user.user_id);
-          if (authUser.user?.email) {
-            const emailSent = await sendScholarshipDigest(authUser.user.email, user.user_id);
-            if (emailSent) {
-              emailsProcessed.scholarship_digest++;
-              totalEmailsSent++;
-            }
-          }
-        } catch (error) {
-          console.error(`Error sending scholarship digest to user ${user.user_id}:`, error);
-        }
-      }
-
-      const hasMore = batchOffset + batchSize < totalEligible;
-      const nextOffset = batchOffset + batchSize;
-
-      return json({
-        success: true,
-        total_emails_sent: totalEmailsSent,
-        breakdown: emailsProcessed,
-        force_digest_batch: true,
-        hasMore,
-        next_offset: hasMore ? nextOffset : undefined,
-        total_eligible: totalEligible,
-        processed_this_batch: batch.length,
-        timestamp: new Date().toISOString()
-      });
-    }
-
-    // Normal cron: process all eligible users (no batching)
-    for (const user of digestEligible) {
-      try {
-        const { data: authUser } = await supabase.auth.admin.getUserById(user.user_id);
-        if (authUser.user?.email) {
-          const emailSent = await sendScholarshipDigest(authUser.user.email, user.user_id);
+          const emailSent = await sendScholarshipDigest(authUser.email, authUser.id);
           if (emailSent) {
             emailsProcessed.scholarship_digest++;
             totalEmailsSent++;
           }
+        } catch (error) {
+          console.error(`Error sending digest to ${authUser.email}:`, error);
         }
-      } catch (error) {
-        console.error(`Error sending scholarship digest to user ${user.user_id}:`, error);
       }
+    } else {
+      console.log(`📊 Not Monday (day ${dayOfWeek}) — skipping registered user digest`);
     }
 
     // ============ APPLICATION DEADLINE REMINDERS (ALL USERS) ============

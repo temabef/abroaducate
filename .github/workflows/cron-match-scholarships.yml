@@ -12,7 +12,7 @@ jobs:
     steps:
       - name: Trigger matcher
         run: |
-          curl -X POST "https://abroaducate.com/api/cron/match-scholarships" \
+          curl -X POST "https://www.abroaducate.com/api/cron/match-scholarships" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
             -H "Content-Type: application/json" \
             --max-time 600 \
