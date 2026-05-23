@@ -38,7 +38,8 @@
 		Mail,
 		PenLine,
 		ScrollText,
-		Plane
+		Plane,
+		Coins
 	} from 'lucide-svelte';
 	import type { PageData } from './$types';
 	import { createDefaultDocumentSlots, computePhase } from '$lib/copilot/handoff-packet';
@@ -899,7 +900,14 @@
 <div class="hub-shell">
 	<div class="hub-header">
 		<div class="hub-header-left"><div class="hub-brand"><div class="hub-brand-icon"><Rocket size={22} /></div><div><h1 class="hub-brand-title">My Study Abroad Hub</h1><p class="hub-brand-sub">Your centralized command center</p></div></div></div>
-		<div class="hub-header-right"><a href="/programs" class="hub-action-btn"><PlusCircle size={14} /> Add Program</a><a href="/scholarships" class="hub-action-btn hub-action-secondary"><Award size={14} /> Find Scholarships</a></div>
+		<div class="hub-header-right">
+			<a href="/pricing" class="hub-credits-badge" title="Buy more credits">
+				<Coins size={14} class="text-orange-400" />
+				<span class="hub-credits-count">{profile?.credits ?? 0}</span>
+				<span class="hub-credits-label">credits</span>
+			</a>
+			<a href="/programs" class="hub-action-btn"><PlusCircle size={14} /> Add Program</a><a href="/scholarships" class="hub-action-btn hub-action-secondary"><Award size={14} /> Find Scholarships</a>
+		</div>
 	</div>
 
 	<!-- Profile completion nudge -->
@@ -2067,7 +2075,11 @@
 	.hub-brand-icon { width: 3rem; height: 3rem; border-radius: 1rem; background: linear-gradient(135deg, #f97316, #ea580c); display: flex; align-items: center; justify-content: center; color: white; box-shadow: 0 4px 12px rgba(249,115,22,0.25); }
 	.hub-brand-title { font-family: 'Outfit', sans-serif; font-size: 1.5rem; font-weight: 800; color: #0f172a; }
 	.hub-brand-sub { font-size: 0.8125rem; color: #64748b; font-weight: 500; }
-	.hub-header-right { display: flex; gap: 0.5rem; }
+	.hub-header-right { display: flex; align-items: center; gap: 0.5rem; }
+	.hub-credits-badge { display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.4rem 0.875rem; font-size: 0.8125rem; font-weight: 700; border-radius: 0.625rem; text-decoration: none; transition: all 0.2s; background: #fff7ed; color: #ea580c; border: 1px solid #fed7aa; }
+	.hub-credits-badge:hover { background: #ffedd5; border-color: #f97316; transform: translateY(-1px); }
+	.hub-credits-count { font-size: 0.9375rem; font-weight: 800; color: #0f172a; }
+	.hub-credits-label { color: #94a3b8; font-weight: 600; }
 	.hub-action-btn { display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.5rem 1rem; font-size: 0.8125rem; font-weight: 700; border-radius: 0.625rem; text-decoration: none; transition: all 0.2s; background: #0f172a; color: white; }
 	.hub-action-btn:hover { background: #1e293b; transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0,0,0,0.15); }
 	.hub-action-secondary { background: white; color: #64748b; border: 1px solid #e2e8f0; }
