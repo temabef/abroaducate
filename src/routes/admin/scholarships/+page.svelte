@@ -50,6 +50,32 @@
   let bulkCsvData = $state('');
   let selectedImportType = $state('Traditional Scholarship');
 
+  // Search state
+  let searchQuery = $state('');
+
+  // Filtered scholarships derived from search query
+  let filteredScholarships = $derived(
+    searchQuery.trim()
+      ? scholarships.filter(s =>
+          s.title.toLowerCase().includes(searchQuery.trim().toLowerCase()) ||
+          s.provider.toLowerCase().includes(searchQuery.trim().toLowerCase()) ||
+          (s.location || '').toLowerCase().includes(searchQuery.trim().toLowerCase())
+        )
+      : scholarships
+  );
+
+  function getDeadlineStatus(deadline: string) {
+    if (!deadline) return { text: 'No deadline', colorClass: 'text-slate-500' };
+    const deadlineDate = new Date(deadline);
+    const today = new Date();
+    const diffTime = deadlineDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    if (diffDays < 0) return { text: 'Expired', colorClass: 'text-red-500' };
+    if (diffDays <= 7) return { text: `${diffDays} day${diffDays === 1 ? '' : 's'} left`, colorClass: 'text-red-500' };
+    if (diffDays <= 30) return { text: `${diffDays} days left`, colorClass: 'text-amber-600' };
+    return { text: `${diffDays} days left`, colorClass: 'text-slate-700' };
+  }
+
   // Success modal state
   let showSuccessModal = $state(false);
   let successModalTitle = $state('Success!');
@@ -58,7 +84,7 @@
 
   // Pagination state
   let currentPage = $state(1);
-  let pageSize = $state(10);
+  let pageSize = $state(12);
   let totalScholarships = $state(0);
   let totalPages = $state(1);
   let goToPageInput = $state('');
@@ -1422,215 +1448,223 @@
       {/if}
 
       <!-- Scholarships List -->
-      <div class="bg-white rounded-lg shadow">
-        <div class="p-6 border-b">
-          <h3 class="text-lg font-semibold flex items-center gap-2">
-            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-            </svg>
-            Current Scholarships ({totalScholarships})
-          </h3>
-        </div>
-        
-        {#if isLoading}
-          <div class="p-8 text-center">
-            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-            <p class="mt-2 text-gray-600">Loading scholarships...</p>
-          </div>
-        {:else if scholarships.length === 0}
-          <div class="p-8 text-center">
-            <div class="text-gray-400 mb-4">
-              <svg class="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div>
+        <!-- Search bar + count header -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 mb-6">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <h3 class="text-lg font-semibold text-slate-900 flex items-center gap-2">
+              <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
               </svg>
+              Current Scholarships
+              <span class="text-sm font-normal text-slate-500">({totalScholarships} total{searchQuery.trim() ? `, ${filteredScholarships.length} matching` : ''})</span>
+            </h3>
+            <!-- Search input -->
+            <div class="relative w-full sm:w-80">
+              <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+              </svg>
+              <input
+                type="text"
+                bind:value={searchQuery}
+                placeholder="Search by name, provider, location…"
+                class="w-full pl-9 pr-4 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-slate-50"
+              />
+              {#if searchQuery}
+                <button
+                  onclick={() => searchQuery = ''}
+                  class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  aria-label="Clear search"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                  </svg>
+                </button>
+              {/if}
             </div>
-            <p class="text-gray-600">No scholarships found. Add your first one!</p>
+          </div>
+        </div>
+
+        {#if isLoading}
+          <div class="py-20 flex justify-center">
+            <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+          </div>
+        {:else if filteredScholarships.length === 0}
+          <div class="bg-white rounded-xl border border-slate-200 p-16 text-center shadow-sm">
+            <svg class="w-12 h-12 mx-auto text-slate-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            <h3 class="text-lg font-semibold text-slate-900 mb-1">
+              {searchQuery.trim() ? 'No scholarships match your search' : 'No scholarships yet'}
+            </h3>
+            <p class="text-slate-500 text-sm">
+              {searchQuery.trim() ? 'Try a different name or provider.' : 'Add your first scholarship using the button above.'}
+            </p>
           </div>
         {:else}
-          <div class="p-6">
-            <div class="space-y-4">
-              {#each scholarships as scholarship}
-                <div class="border rounded-lg p-4 hover:bg-gray-50 transition duration-200">
-                  <div class="flex items-start justify-between">
-                    <div class="flex-1">
-                      <div class="flex items-center gap-2 mb-2">
-                        <h4 class="font-semibold text-lg">{scholarship.title}</h4>
-                        {#if scholarship.funding_category === 'Graduate Program Funding'}
-                          <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">🎓 Program Funding</span>
-                        {:else if scholarship.funding_category === 'Advertised Position'}
-                          <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">🔬 Research Position</span>
-                        {:else}
-                          <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">🏆 Scholarship</span>
-                        {/if}
-                        {#if scholarship.has_automatic_funding}
-                          <span class="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full">✨ Auto Funding</span>
-                        {/if}
-                      </div>
-                      
-                      {#if scholarship.funding_category === 'Graduate Program Funding' || scholarship.funding_category === 'Advertised Position'}
-                        <p class="text-sm text-gray-600 mb-1">
-                          <strong>{scholarship.university_name}</strong> • {scholarship.program_name}
-                        </p>
-                        {#if scholarship.department}
-                          <p class="text-sm text-gray-500 mb-1">{scholarship.department}</p>
-                        {/if}
-                        {#if scholarship.funding_type}
-                          <p class="text-sm text-blue-600 mb-1">Funding: {scholarship.funding_type}</p>
-                        {/if}
-                        {#if scholarship.application_method}
-                          <p class="text-sm text-gray-600 mb-1">Apply: {scholarship.application_method}</p>
-                        {/if}
-                        {#if scholarship.professor_name}
-                          <p class="text-sm text-green-600 mb-1">Contact: {scholarship.professor_name}</p>
-                        {/if}
-                        {#if scholarship.professor_email}
-                          <p class="text-sm text-green-600 mb-1">Email: {scholarship.professor_email}</p>
-                        {/if}
-                      {:else}
-                        <p class="text-sm text-gray-600 mb-1">{scholarship.provider} • {scholarship.amount}</p>
-                      {/if}
-                      
-                      <p class="text-sm text-gray-500">
-                        {scholarship.location} • Deadline: {scholarship.deadline}
-                        {#if scholarship.levels && scholarship.levels.length > 1}
-                          • Levels: {scholarship.levels.join(', ')}
-                        {:else}
-                          • Level: {scholarship.level}
-                        {/if}
+          <!-- Card grid — mirrors the public discovery page layout -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {#each filteredScholarships as scholarship (scholarship.id)}
+              {@const deadline = getDeadlineStatus(scholarship.deadline)}
+              <div class="admin-scholarship-card">
+                <div class="p-5 flex flex-col h-full">
+                  <!-- Provider badge + category tag -->
+                  <div class="flex justify-between items-start mb-4">
+                    <div class="uni-badge">
+                      <svg class="w-4 h-4 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                      </svg>
+                      <span class="text-xs font-semibold text-slate-500 tracking-wide uppercase truncate max-w-[160px]">
+                        {scholarship.provider}
+                      </span>
+                    </div>
+                    {#if scholarship.funding_category === 'Graduate Program Funding'}
+                      <span class="text-[10px] font-bold bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full whitespace-nowrap">🎓 Program</span>
+                    {:else if scholarship.funding_category === 'Advertised Position'}
+                      <span class="text-[10px] font-bold bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full whitespace-nowrap">🔬 Position</span>
+                    {:else}
+                      <span class="text-[10px] font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full whitespace-nowrap">🏆 Scholarship</span>
+                    {/if}
+                  </div>
+
+                  <!-- Title -->
+                  <h4 class="text-base font-bold text-slate-900 mb-2 leading-snug line-clamp-2">
+                    {scholarship.title}
+                  </h4>
+
+                  <!-- Location -->
+                  <div class="flex items-center gap-1.5 text-sm font-semibold text-slate-400 mb-4">
+                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.242-4.243a8 8 0 1111.314 0z"/>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    <span class="truncate">{scholarship.location || '—'}</span>
+                  </div>
+
+                  <!-- Value + Deadline row -->
+                  <div class="mt-auto grid grid-cols-2 gap-3 pt-4 border-t border-slate-100">
+                    <div>
+                      <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-0.5">Value</p>
+                      <p class="text-sm font-bold text-emerald-600 truncate">
+                        {scholarship.amount || 'Fully Funded'}
                       </p>
-                      
-                      {#if scholarship.position_details}
-                        <p class="text-sm text-gray-600 mt-2 italic">{scholarship.position_details}</p>
-                      {/if}
                     </div>
-                    
-                    <div class="flex gap-2 ml-4">
-                      <button
-                        onclick={() => handleEditScholarship(scholarship)}
-                        class="text-blue-600 hover:text-blue-800 text-sm px-3 py-1 border border-blue-200 rounded hover:bg-blue-50"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onclick={() => deleteScholarship(scholarship.id)}
-                        class="text-red-600 hover:text-red-800 text-sm px-3 py-1 border border-red-200 rounded hover:bg-red-50"
-                      >
-                        Delete
-                      </button>
+                    <div>
+                      <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-0.5">Deadline</p>
+                      <p class="text-sm font-bold {deadline.colorClass} truncate">{deadline.text}</p>
                     </div>
                   </div>
-                </div>
-              {/each}
-            </div>
-            
-            <!-- Smart Pagination -->
-            {#if totalPages > 1}
-              <div class="mt-8 border-t pt-6">
-                <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
-                  <!-- Page Info -->
-                  <div class="text-sm text-gray-600">
-                    Showing page <strong>{currentPage}</strong> of <strong>{totalPages}</strong> 
-                    (<strong>{totalScholarships}</strong> total scholarships)
+
+                  <!-- Admin actions -->
+                  <div class="flex gap-2 mt-4 pt-3 border-t border-slate-100">
+                    <button
+                      onclick={() => handleEditScholarship(scholarship)}
+                      class="flex-1 text-sm font-semibold text-blue-600 hover:text-blue-800 border border-blue-200 hover:bg-blue-50 rounded-lg py-1.5 transition-colors"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onclick={() => deleteScholarship(scholarship.id)}
+                      class="flex-1 text-sm font-semibold text-red-500 hover:text-red-700 border border-red-200 hover:bg-red-50 rounded-lg py-1.5 transition-colors"
+                    >
+                      Delete
+                    </button>
                   </div>
-                  
-                  <!-- Pagination Controls -->
-                  <nav class="flex items-center space-x-2">
-                    <!-- First Page -->
-                    <button
-                      onclick={() => goToPage(1)}
-                      disabled={currentPage === 1}
-                      class="px-3 py-2 text-sm border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition"
-                      title="First page"
-                    >
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/>
-                      </svg>
-                    </button>
-                    
-                    <!-- Previous Page -->
-                    <button
-                      onclick={() => goToPage(currentPage - 1)}
-                      disabled={currentPage === 1}
-                      class="px-3 py-2 text-sm border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition"
-                    >
-                      Previous
-                    </button>
-                    
-                    <!-- Page Numbers -->
-                    {#each getPageNumbers() as pageNum}
-                      {#if pageNum === '...'}
-                        <span class="px-3 py-2 text-gray-400">...</span>
-                      {:else}
-                        <button
-                          onclick={() => goToPage(pageNum as number)}
-                          class="px-3 py-2 text-sm border rounded-lg transition {currentPage === pageNum ? 'bg-blue-600 text-white border-blue-600 font-semibold' : 'hover:bg-gray-50'}"
-                        >
-                          {pageNum}
-                        </button>
-                      {/if}
-                    {/each}
-                    
-                    <!-- Next Page -->
-                    <button
-                      onclick={() => goToPage(currentPage + 1)}
-                      disabled={currentPage === totalPages}
-                      class="px-3 py-2 text-sm border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition"
-                    >
-                      Next
-                    </button>
-                    
-                    <!-- Last Page -->
-                    <button
-                      onclick={() => goToPage(totalPages)}
-                      disabled={currentPage === totalPages}
-                      class="px-3 py-2 text-sm border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition"
-                      title="Last page"
-                    >
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/>
-                      </svg>
-                    </button>
-                  </nav>
-                  
-                  <!-- Go to Page Input -->
-                  <form onsubmit={handleGoToPageInput} class="flex items-center gap-2">
-                    <label for="goToPage" class="text-sm text-gray-600 whitespace-nowrap">Go to:</label>
-                    <input
-                      id="goToPage"
-                      type="number"
-                      bind:value={goToPageInput}
-                      min="1"
-                      max={totalPages}
-                      placeholder="Page"
-                      class="w-20 px-2 py-1 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                    <button
-                      type="submit"
-                      class="px-3 py-1 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-                    >
-                      Go
-                    </button>
-                  </form>
-                </div>
-                
-                <!-- Page Size Selector -->
-                <div class="flex items-center justify-center gap-2 mt-4 text-sm text-gray-600">
-                  <span>Items per page:</span>
-                  <select
-                    bind:value={pageSize}
-                    onchange={() => { currentPage = 1; loadScholarships(); }}
-                    class="px-2 py-1 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="5">5</option>
-                    <option value="10">10</option>
-                    <option value="20">20</option>
-                    <option value="50">50</option>
-                    <option value="100">100</option>
-                  </select>
                 </div>
               </div>
-            {/if}
+            {/each}
           </div>
+
+          <!-- Pagination (only shown when not searching — search filters client-side across all loaded items) -->
+          {#if !searchQuery.trim() && totalPages > 1}
+            <div class="mt-10 border-t pt-6">
+              <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="text-sm text-slate-600">
+                  Showing page <strong>{currentPage}</strong> of <strong>{totalPages}</strong>
+                  (<strong>{totalScholarships}</strong> total)
+                </div>
+
+                <nav class="flex items-center space-x-1.5">
+                  <button
+                    onclick={() => goToPage(1)}
+                    disabled={currentPage === 1}
+                    class="px-3 py-2 text-sm border rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 transition"
+                    title="First page"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/>
+                    </svg>
+                  </button>
+                  <button
+                    onclick={() => goToPage(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    class="px-4 py-2 text-sm border rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 transition font-semibold"
+                  >
+                    Previous
+                  </button>
+                  {#each getPageNumbers() as pageNum}
+                    {#if pageNum === '...'}
+                      <span class="px-3 py-2 text-slate-400">…</span>
+                    {:else}
+                      <button
+                        onclick={() => goToPage(pageNum as number)}
+                        class="w-10 h-10 flex items-center justify-center text-sm border rounded-lg font-semibold transition {currentPage === pageNum ? 'bg-slate-900 text-white border-slate-900' : 'hover:bg-slate-50 text-slate-700'}"
+                      >
+                        {pageNum}
+                      </button>
+                    {/if}
+                  {/each}
+                  <button
+                    onclick={() => goToPage(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    class="px-4 py-2 text-sm border rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 transition font-semibold"
+                  >
+                    Next
+                  </button>
+                  <button
+                    onclick={() => goToPage(totalPages)}
+                    disabled={currentPage === totalPages}
+                    class="px-3 py-2 text-sm border rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 transition"
+                    title="Last page"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/>
+                    </svg>
+                  </button>
+                </nav>
+
+                <form onsubmit={handleGoToPageInput} class="flex items-center gap-2">
+                  <label for="goToPage" class="text-sm text-slate-600 whitespace-nowrap">Go to:</label>
+                  <input
+                    id="goToPage"
+                    type="number"
+                    bind:value={goToPageInput}
+                    min="1"
+                    max={totalPages}
+                    placeholder="Page"
+                    class="w-20 px-2 py-1 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <button type="submit" class="px-3 py-1 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                    Go
+                  </button>
+                </form>
+              </div>
+
+              <div class="flex items-center justify-center gap-2 mt-4 text-sm text-slate-600">
+                <span>Items per page:</span>
+                <select
+                  bind:value={pageSize}
+                  onchange={() => { currentPage = 1; loadScholarships(); }}
+                  class="px-2 py-1 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="12">12</option>
+                  <option value="24">24</option>
+                  <option value="48">48</option>
+                  <option value="100">100</option>
+                </select>
+              </div>
+            </div>
+          {/if}
         {/if}
       </div>
     {/if}
@@ -1646,3 +1680,39 @@
   on:close={() => showSuccessModal = false}
   on:action={() => showSuccessModal = false}
 /> 
+
+<style>
+  .admin-scholarship-card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 1.25rem;
+    transition: all 0.2s ease;
+    display: block;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .admin-scholarship-card:hover {
+    border-color: #cbd5e1;
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px -6px rgba(15, 23, 42, 0.08);
+  }
+
+  .uni-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    background: #f8fafc;
+    border: 1px solid #f1f5f9;
+    padding: 0.25rem 0.625rem;
+    border-radius: 9999px;
+    min-width: 0;
+  }
+
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+</style>
