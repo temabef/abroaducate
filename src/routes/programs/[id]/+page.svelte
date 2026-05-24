@@ -355,8 +355,8 @@
 		</div>
 
 		<!-- Right Sticky Action Panel -->
-		<div class="lg:col-span-1 self-start">
-			<div class="sticky top-32">
+		<div class="lg:col-span-1 lg:self-start lg:sticky lg:top-32 lg:h-fit">
+			<div>
 			<div class="bg-slate-900 rounded-3xl p-8 text-white shadow-2xl border border-slate-800" style="position: relative;">
 				<!-- Sparkle Background -->
 				<div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background-image: radial-gradient(white 1px, transparent 1px); background-size: 20px 20px;"></div>

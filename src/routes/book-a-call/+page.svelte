@@ -1,22 +1,11 @@
 <script lang="ts">
 	import { ArrowLeft, Clock, CheckCircle2, Users, Target, MessageSquare } from 'lucide-svelte';
-	import { onMount } from 'svelte';
-
-	const CALENDLY_URL = 'https://calendly.com/hello-abroaducate/30min';
-
-	onMount(() => {
-		// Load Calendly widget script
-		const script = document.createElement('script');
-		script.src = 'https://assets.calendly.com/assets/external/widget.js';
-		script.async = true;
-		document.head.appendChild(script);
-	});
+	const CALENDLY_URL = 'https://calendly.com/hello-abroaducate/30min?hide_gdpr_banner=1&primary_color=f97316';
 </script>
 
 <svelte:head>
 	<title>Book a Free Call — Abroaducate</title>
 	<meta name="description" content="Book a free 30-minute consultation. Get personalised advice on which programs and scholarships to target for your profile." />
-	<link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet" />
 </svelte:head>
 
 <div class="min-h-screen bg-slate-50 pt-20 pb-16">
@@ -92,14 +81,36 @@
 			<!-- Calendly embed -->
 			<div class="lg:col-span-2">
 				<div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-					<!-- Calendly inline widget -->
-					<div
-						class="calendly-inline-widget"
-						data-url="{CALENDLY_URL}?hide_gdpr_banner=1&primary_color=f97316"
-						style="min-width:320px;height:900px;"
-					></div>
+					<iframe
+						title="Book a free call with Abroaducate"
+						src={CALENDLY_URL}
+						class="calendly-frame"
+						frameborder="0"
+					></iframe>
 				</div>
 			</div>
 		</div>
 	</div>
 </div>
+
+<style>
+	.calendly-frame {
+		display: block;
+		width: 100%;
+		min-width: 0;
+		height: 980px;
+		border: 0;
+	}
+
+	@media (max-width: 1023px) {
+		.calendly-frame {
+			height: 900px;
+		}
+	}
+
+	@media (max-width: 767px) {
+		.calendly-frame {
+			height: 820px;
+		}
+	}
+</style>
