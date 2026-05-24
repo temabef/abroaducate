@@ -1,13 +1,7 @@
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ locals, setHeaders }) => {
+export const load: PageServerLoad = async ({ locals }) => {
 	const supabase = locals.supabase;
-
-	// Cache the programs list for 5 minutes at the CDN edge
-	// Programs don't change frequently — this makes the page load near-instant for most users
-	setHeaders({
-		'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600'
-	});
 
 	let dbPrograms: any[] = [];
 	try {

@@ -9,6 +9,7 @@
 		Clock, Languages, CheckCircle2, ChevronLeft, ArrowRight
 	} from 'lucide-svelte';
 	import FundingGuidance from '$lib/components/FundingGuidance.svelte';
+	import WorkAndStay from '$lib/components/WorkAndStay.svelte';
 
 	let { data } = $props();
 	let session = $derived(data.session);
@@ -152,7 +153,7 @@
 	</div>
 
 	<!-- Main Detail Content -->
-	<div class="max-w-6xl mx-auto px-6 md:px-12 mt-10 grid grid-cols-1 lg:grid-cols-3 gap-10">
+	<div class="max-w-6xl mx-auto px-6 md:px-12 mt-10 grid grid-cols-1 lg:grid-cols-3 gap-10 items-start">
 		
 		<!-- Left / Main Stream -->
 		<div class="lg:col-span-2 space-y-10">
@@ -340,11 +341,23 @@
 				</div>
 			</section>
 
+			<!-- Work & Stay Section -->
+			<section class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+				<div class="px-8 pt-8 pb-2">
+					<h2 class="text-xl font-extrabold text-slate-900 mb-1" style="font-family: 'Outfit', sans-serif;">Work & Stay</h2>
+					<p class="text-sm text-slate-500 mb-6">What you can earn and how long you can stay after graduation.</p>
+				</div>
+				<div class="px-8 pb-8">
+					<WorkAndStay country={program.country} />
+				</div>
+			</section>
+
 		</div>
 
 		<!-- Right Sticky Action Panel -->
-		<div class="lg:col-span-1">
-			<div class="sticky top-32 bg-slate-900 rounded-3xl p-8 text-white shadow-2xl overflow-hidden border border-slate-800">
+		<div class="lg:col-span-1 self-start">
+			<div class="sticky top-32">
+			<div class="bg-slate-900 rounded-3xl p-8 text-white shadow-2xl border border-slate-800" style="position: relative;">
 				<!-- Sparkle Background -->
 				<div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background-image: radial-gradient(white 1px, transparent 1px); background-size: 20px 20px;"></div>
 				
@@ -382,6 +395,7 @@
 						</div>
 					</div>
 				</div>
+			</div>
 			</div>
 		</div>
 

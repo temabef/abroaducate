@@ -627,6 +627,7 @@ return () => clearInterval(interval);
 }
 .marquee-track {
 	position: relative;
+	overflow: hidden;
 	mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
 	-webkit-mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
 }
