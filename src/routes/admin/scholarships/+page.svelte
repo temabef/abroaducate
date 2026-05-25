@@ -1507,11 +1507,11 @@
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {#each filteredScholarships as scholarship (scholarship.id)}
               {@const deadline = getDeadlineStatus(scholarship.deadline)}
-              <div class="admin-scholarship-card">
+              <div class="bg-white border border-slate-200 rounded-2xl transition-all duration-200 hover:-translate-y-1 hover:border-slate-300 hover:shadow-lg relative overflow-hidden">
                 <div class="p-5 flex flex-col h-full">
                   <!-- Provider badge + category tag -->
                   <div class="flex justify-between items-start mb-4">
-                    <div class="uni-badge">
+                    <div class="flex items-center gap-1.5 bg-slate-50 border border-slate-100 px-2.5 py-1 rounded-full min-w-0">
                       <svg class="w-4 h-4 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                       </svg>
@@ -1681,39 +1681,3 @@
   on:close={() => showSuccessModal = false}
   on:action={() => showSuccessModal = false}
 /> 
-
-<style>
-  .admin-scholarship-card {
-    background: white;
-    border: 1px solid #e2e8f0;
-    border-radius: 1.25rem;
-    transition: all 0.2s ease;
-    display: block;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .admin-scholarship-card:hover {
-    border-color: #cbd5e1;
-    transform: translateY(-3px);
-    box-shadow: 0 10px 20px -6px rgba(15, 23, 42, 0.08);
-  }
-
-  .uni-badge {
-    display: flex;
-    align-items: center;
-    gap: 0.375rem;
-    background: #f8fafc;
-    border: 1px solid #f1f5f9;
-    padding: 0.25rem 0.625rem;
-    border-radius: 9999px;
-    min-width: 0;
-  }
-
-  .line-clamp-2 {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-</style>
