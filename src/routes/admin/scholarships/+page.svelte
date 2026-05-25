@@ -53,17 +53,62 @@
 
   // Search state
   let searchQuery = $state('');
+  let isSearching = $state(false);
 
-  // Filtered scholarships derived from search query
-  let filteredScholarships = $derived(
-    searchQuery.trim()
-      ? scholarships.filter(s =>
-          decodeHtmlEntities(s.title).toLowerCase().includes(searchQuery.trim().toLowerCase()) ||
-          decodeHtmlEntities(s.provider).toLowerCase().includes(searchQuery.trim().toLowerCase()) ||
-          decodeHtmlEntities(s.location || '').toLowerCase().includes(searchQuery.trim().toLowerCase())
-        )
-      : scholarships
-  );
+  // When search query changes, do a DB-wide search instead of filtering the current page
+  let searchDebounceTimer: ReturnType<typeof setTimeout>;
+  function handleSearchInput() {
+    clearTimeout(searchDebounceTimer);
+    searchDebounceTimer = setTimeout(async () => {
+      currentPage = 1;
+      if (searchQuery.trim()) {
+        await searchScholarships();
+      } else {
+        await loadScholarships();
+      }
+    }, 300);
+  }
+
+  async function searchScholarships() {
+    isSearching = true;
+    isLoading = true;
+    const q = `%${searchQuery.trim()}%`;
+    try {
+      // Count matches
+      const { count } = await supabase
+        .from('scholarships')
+        .select('*', { count: 'exact', head: true })
+        .or(`title.ilike.${q},provider.ilike.${q},location.ilike.${q}`);
+
+      totalScholarships = count || 0;
+      totalPages = Math.max(1, Math.ceil(totalScholarships / pageSize));
+
+      // Fetch matching page
+      const { data: results, error } = await supabase
+        .from('scholarships')
+        .select('*')
+        .or(`title.ilike.${q},provider.ilike.${q},location.ilike.${q}`)
+        .order('created_at', { ascending: false })
+        .order('id', { ascending: false })
+        .range((currentPage - 1) * pageSize, currentPage * pageSize - 1);
+
+      if (error) {
+        console.error('❌ Search error:', error);
+        scholarships = [];
+      } else {
+        scholarships = results || [];
+      }
+    } catch (e) {
+      console.error('❌ Search exception:', e);
+      scholarships = [];
+    }
+    isLoading = false;
+    isSearching = false;
+  }
+
+  // Filtered scholarships — when searching via DB the results are already filtered,
+  // so this just passes through the current scholarships array
+  let filteredScholarships = $derived(scholarships);
 
   function getDeadlineStatus(deadline: string) {
     if (!deadline) return { text: 'No deadline', colorClass: 'text-slate-500' };
@@ -160,36 +205,7 @@
   async function loadScholarships() {
     isLoading = true;
     console.log('🔄 Loading scholarships for admin...');
-    
-    try {
-      // Use enhanced nuclear function to bypass RLS and get decoded entities
-      const { data: result, error } = await supabase.rpc('nuclear_load_scholarships_enhanced', {
-        page_number: currentPage,
-        page_size: pageSize
-      });
-      
-      if (error) {
-        console.error('❌ Error loading scholarships:', error);
-        // Fallback to direct query for debugging
-        await loadScholarshipsDirect();
-      } else if (result?.error) {
-        console.error('❌ Nuclear function returned error:', result.error);
-        await loadScholarshipsDirect();
-      } else {
-        console.log('✅ Scholarships loaded via enhanced nuclear function:', result);
-        scholarships = result.scholarships || [];
-        totalScholarships = result.total_count || 0;
-        totalPages = Math.ceil(totalScholarships / pageSize);
-        
-        if (currentPage > totalPages && totalPages > 0) {
-          currentPage = totalPages;
-        }
-      }
-    } catch (error) {
-      console.error('❌ Exception loading scholarships:', error);
-      await loadScholarshipsDirect();
-    }
-    
+    await loadScholarshipsDirect();
     isLoading = false;
   }
 
@@ -218,6 +234,7 @@
       .from('scholarships')
       .select('*')
       .order('created_at', { ascending: false })
+      .order('id', { ascending: false })
       .range((currentPage - 1) * pageSize, currentPage * pageSize - 1);
 
     if (error) {
@@ -231,8 +248,12 @@
   function goToPage(page: number) {
     if (page >= 1 && page <= totalPages) {
       currentPage = page;
-      loadScholarships();
-      goToPageInput = ''; // Clear the input after navigating
+      if (searchQuery.trim()) {
+        searchScholarships();
+      } else {
+        loadScholarships();
+      }
+      goToPageInput = '';
     }
   }
 
@@ -1468,12 +1489,13 @@
               <input
                 type="text"
                 bind:value={searchQuery}
+                oninput={handleSearchInput}
                 placeholder="Search by name, provider, location…"
                 class="w-full pl-9 pr-4 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-slate-50"
               />
               {#if searchQuery}
                 <button
-                  onclick={() => searchQuery = ''}
+                  onclick={() => { searchQuery = ''; loadScholarships(); }}
                   class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                   aria-label="Clear search"
                 >
@@ -1576,8 +1598,8 @@
             {/each}
           </div>
 
-          <!-- Pagination (only shown when not searching — search filters client-side across all loaded items) -->
-          {#if !searchQuery.trim() && totalPages > 1}
+          <!-- Pagination — works for both normal browsing and search results -->
+          {#if totalPages > 1}
             <div class="mt-10 border-t pt-6">
               <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div class="text-sm text-slate-600">

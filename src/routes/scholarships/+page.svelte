@@ -326,8 +326,12 @@
 
       // Ensure deterministic ordering even if server ordering wasn't possible
       allScholarships.sort(
-        (a, b) =>
-          new Date((b as any).created_at || 0).getTime() - new Date((a as any).created_at || 0).getTime()
+        (a, b) => {
+          const timeDiff = new Date((b as any).created_at || 0).getTime() - new Date((a as any).created_at || 0).getTime();
+          if (timeDiff !== 0) return timeDiff;
+          // Secondary sort by id descending for deterministic tie-breaking
+          return ((b as any).id || '').localeCompare((a as any).id || '');
+        }
       );
       
       // Initial filtering after loading
