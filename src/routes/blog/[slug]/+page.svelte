@@ -5,11 +5,19 @@
   import { onMount } from 'svelte';
 
   let { data }: { data: PageData } = $props();
-  const { post, html, related } = data;
+  let post = $derived(data.post);
+  let html = $derived(data.html);
+  let related = $derived(data.related);
 
   let scrollProgress = $state(0);
   let headings = $state<{ id: string; text: string; level: number }[]>([]);
   let activeHeadingId = $state<string>('');
+
+  // Scroll to top when navigating between posts
+  $effect(() => {
+    post.id; // track post changes
+    window.scrollTo({ top: 0 });
+  });
 
   function formatDate(dateStr: string) {
     return new Date(dateStr).toLocaleDateString('en-US', {
@@ -47,57 +55,74 @@
     window.addEventListener('scroll', handleScroll);
     handleScroll();
 
-    // Table of contents heading parsing
-    const proseContainer = document.querySelector('.prose');
-    if (proseContainer) {
-      const headingElements = proseContainer.querySelectorAll('h2, h3');
-      const extractedHeadings: typeof headings = [];
-
-      headingElements.forEach((el, index) => {
-        if (!el.id) {
-          // Generate semantic slug-like ID from heading text
-          el.id = el.textContent
-            ? el.textContent
-                .toLowerCase()
-                .replace(/[^a-z0-9\s-]/g, '')
-                .replace(/\s+/g, '-')
-            : `heading-${index}`;
-        }
-        
-        extractedHeadings.push({
-          id: el.id,
-          text: el.textContent || '',
-          level: parseInt(el.tagName.replace('H', ''))
-        });
-      });
-
-      headings = extractedHeadings;
-
-      // Track active heading on scroll
-      const observerOptions = {
-        root: null,
-        rootMargin: '-80px 0px -60% 0px',
-        threshold: 0
-      };
-
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            activeHeadingId = entry.target.id;
-          }
-        });
-      }, observerOptions);
-
-      headingElements.forEach((el) => observer.observe(el));
-
-      return () => {
-        window.removeEventListener('scroll', handleScroll);
-        observer.disconnect();
-      };
-    }
-
     return () => {
       window.removeEventListener('scroll', handleScroll);
+    };
+  });
+
+  // Extract headings for TOC — re-runs when html changes (new post loaded)
+  let tocObserver: IntersectionObserver | null = null;
+  $effect(() => {
+    // Track html to re-run when post changes
+    html;
+
+    // Small delay to let the DOM update with new content
+    const timer = setTimeout(() => {
+      // Disconnect previous observer
+      if (tocObserver) {
+        tocObserver.disconnect();
+        tocObserver = null;
+      }
+
+      const proseContainer = document.querySelector('.prose');
+      if (proseContainer) {
+        const headingElements = proseContainer.querySelectorAll('h2, h3');
+        const extractedHeadings: typeof headings = [];
+
+        headingElements.forEach((el, index) => {
+          if (!el.id) {
+            el.id = el.textContent
+              ? el.textContent
+                  .toLowerCase()
+                  .replace(/[^a-z0-9\s-]/g, '')
+                  .replace(/\s+/g, '-')
+              : `heading-${index}`;
+          }
+
+          extractedHeadings.push({
+            id: el.id,
+            text: el.textContent || '',
+            level: parseInt(el.tagName.replace('H', ''))
+          });
+        });
+
+        headings = extractedHeadings;
+        activeHeadingId = '';
+
+        // Track active heading on scroll
+        const observerOptions = {
+          root: null,
+          rootMargin: '-80px 0px -60% 0px',
+          threshold: 0
+        };
+
+        tocObserver = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              activeHeadingId = entry.target.id;
+            }
+          });
+        }, observerOptions);
+
+        headingElements.forEach((el) => tocObserver!.observe(el));
+      }
+    }, 50);
+
+    return () => {
+      clearTimeout(timer);
+      if (tocObserver) {
+        tocObserver.disconnect();
+      }
     };
   });
 </script>
@@ -247,15 +272,12 @@
             <p class="cta-card-text">Abroaducate is the all-in-one platform to find and apply to affordable European universities.</p>
             <ul class="cta-features">
               <li>
-                <span class="feature-icon">✨</span>
                 <span>2,500+ Programs</span>
               </li>
               <li>
-                <span class="feature-icon">⚡</span>
-                <span>AI CV & SOP Writer</span>
+                <span>AI CV &amp; SOP Writer</span>
               </li>
               <li>
-                <span class="feature-icon">🎓</span>
                 <span>Scholarship Matcher</span>
               </li>
             </ul>
@@ -593,6 +615,9 @@
   .sidebar-col {
     position: sticky;
     top: 5.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
   }
   .sidebar-card {
     background: white;
@@ -792,9 +817,6 @@
   }
   .cta-features li::marker {
     display: none !important;
-  }
-  .feature-icon {
-    font-size: 0.9rem;
   }
   .cta-button {
     display: flex;
