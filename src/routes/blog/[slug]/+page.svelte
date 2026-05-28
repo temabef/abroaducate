@@ -2,9 +2,14 @@
   import type { PageData } from './$types';
   import SEO from '$lib/components/SEO.svelte';
   import { Twitter, Linkedin, Link2, ChevronRight, Calendar, Clock } from 'lucide-svelte';
+  import { onMount } from 'svelte';
 
   let { data }: { data: PageData } = $props();
   const { post, html, related } = data;
+
+  let scrollProgress = $state(0);
+  let headings = $state<{ id: string; text: string; level: number }[]>([]);
+  let activeHeadingId = $state<string>('');
 
   function formatDate(dateStr: string) {
     return new Date(dateStr).toLocaleDateString('en-US', {
@@ -28,6 +33,73 @@
   function copyLink() {
     navigator.clipboard.writeText(window.location.href);
   }
+
+  function handleScroll() {
+    const scrollTop = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    if (docHeight > 0) {
+      scrollProgress = (scrollTop / docHeight) * 100;
+    }
+  }
+
+  onMount(() => {
+    // Scroll event listener
+    window.addEventListener('scroll', handleScroll);
+    handleScroll();
+
+    // Table of contents heading parsing
+    const proseContainer = document.querySelector('.prose');
+    if (proseContainer) {
+      const headingElements = proseContainer.querySelectorAll('h2, h3');
+      const extractedHeadings: typeof headings = [];
+
+      headingElements.forEach((el, index) => {
+        if (!el.id) {
+          // Generate semantic slug-like ID from heading text
+          el.id = el.textContent
+            ? el.textContent
+                .toLowerCase()
+                .replace(/[^a-z0-9\s-]/g, '')
+                .replace(/\s+/g, '-')
+            : `heading-${index}`;
+        }
+        
+        extractedHeadings.push({
+          id: el.id,
+          text: el.textContent || '',
+          level: parseInt(el.tagName.replace('H', ''))
+        });
+      });
+
+      headings = extractedHeadings;
+
+      // Track active heading on scroll
+      const observerOptions = {
+        root: null,
+        rootMargin: '-80px 0px -60% 0px',
+        threshold: 0
+      };
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            activeHeadingId = entry.target.id;
+          }
+        });
+      }, observerOptions);
+
+      headingElements.forEach((el) => observer.observe(el));
+
+      return () => {
+        window.removeEventListener('scroll', handleScroll);
+        observer.disconnect();
+      };
+    }
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  });
 </script>
 
 <SEO
@@ -38,6 +110,10 @@
 />
 
 <article class="post-article">
+  <!-- Scroll Progress Bar -->
+  <div class="scroll-progress-container">
+    <div class="scroll-progress-bar" style="width: {scrollProgress}%"></div>
+  </div>
 
   <!-- Hero -->
   {#if post.cover_image_url}
@@ -95,6 +171,16 @@
       <div class="content-grid">
         <!-- Main content -->
         <div class="main-col">
+          <!-- Author Block -->
+          <div class="author-block">
+            <div class="author-avatar">
+              <span class="avatar-fallback">AB</span>
+            </div>
+            <div class="author-info">
+              <span class="author-name">Abroaducate Admissions Team</span>
+              <span class="author-role">Admissions & Scholarship Experts</span>
+            </div>
+          </div>
 
           {#if post.excerpt}
             <div class="excerpt-block">
@@ -125,6 +211,60 @@
 
         <!-- Sidebar -->
         <aside class="sidebar-col">
+          <!-- Dynamic Table of Contents -->
+          {#if headings.length > 0}
+            <div class="sidebar-card toc-card">
+              <h3 class="sidebar-heading">Table of Contents</h3>
+              <nav class="sidebar-nav toc-nav">
+                {#each headings as heading}
+                  <a
+                    href="#{heading.id}"
+                    class="toc-link level-{heading.level} {activeHeadingId === heading.id ? 'active' : ''}"
+                    onclick={(e) => {
+                      e.preventDefault();
+                      const element = document.getElementById(heading.id);
+                      if (element) {
+                        const yOffset = -90; // Offset for sticky navbar
+                        const y = element.getBoundingClientRect().top + window.scrollY + yOffset;
+                        window.scrollTo({ top: y, behavior: 'smooth' });
+                      }
+                    }}
+                  >
+                    {#if heading.level === 3}
+                      <span class="toc-indent">&middot;</span>
+                    {/if}
+                    {heading.text}
+                  </a>
+                {/each}
+              </nav>
+            </div>
+          {/if}
+
+          <!-- Premium High-Converting CTA Card -->
+          <div class="sidebar-card cta-card">
+            <div class="cta-card-badge">FOR STUDENTS</div>
+            <h4 class="cta-card-heading">Study in Europe for Free</h4>
+            <p class="cta-card-text">Abroaducate is the all-in-one platform to find and apply to affordable European universities.</p>
+            <ul class="cta-features">
+              <li>
+                <span class="feature-icon">✨</span>
+                <span>2,500+ Programs</span>
+              </li>
+              <li>
+                <span class="feature-icon">⚡</span>
+                <span>AI CV & SOP Writer</span>
+              </li>
+              <li>
+                <span class="feature-icon">🎓</span>
+                <span>Scholarship Matcher</span>
+              </li>
+            </ul>
+            <a href="/register" class="cta-button">
+              Get Started Free &rarr;
+            </a>
+          </div>
+
+          <!-- Navigation -->
           <div class="sidebar-card">
             <h3 class="sidebar-heading">Navigation</h3>
             <nav class="sidebar-nav">
@@ -499,6 +639,211 @@
   .sidebar-link-back:hover {
     color: #f97316;
     background: transparent;
+  }
+
+  /* ── Scroll Progress ── */
+  .scroll-progress-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: transparent;
+    z-index: 1000;
+  }
+  .scroll-progress-bar {
+    height: 100%;
+    background: linear-gradient(to right, #f97316, #fb923c);
+    width: 0%;
+    transition: width 0.1s ease-out;
+  }
+
+  /* ── Author Bio ── */
+  .author-block {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  .author-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f97316, #fb923c);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 10px rgba(249, 115, 22, 0.2);
+  }
+  .avatar-fallback {
+    color: white;
+    font-weight: 700;
+    font-size: 0.9rem;
+    letter-spacing: 0.05em;
+  }
+  .author-info {
+    display: flex;
+    flex-direction: column;
+  }
+  .author-name {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #0f172a;
+  }
+  .author-role {
+    font-size: 0.8rem;
+    color: #64748b;
+  }
+
+  /* ── Table of Contents (TOC) ── */
+  .toc-card {
+    max-height: 24rem;
+    overflow-y: auto;
+  }
+  .toc-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+  .toc-link {
+    font-size: 0.85rem;
+    color: #64748b;
+    text-decoration: none;
+    line-height: 1.4;
+    padding: 0.3rem 0.5rem;
+    border-left: 2px solid #e2e8f0;
+    transition: all 0.2s ease;
+    display: block;
+  }
+  .toc-link:hover {
+    color: #f97316;
+    border-left-color: #f97316;
+    background: #fff7ed;
+  }
+  .toc-link.active {
+    color: #ea580c;
+    font-weight: 600;
+    border-left-color: #f97316;
+    background: #fff7ed;
+    padding-left: 0.65rem;
+  }
+  .toc-link.level-3 {
+    font-size: 0.78rem;
+    color: #94a3b8;
+    padding-left: 1.25rem;
+  }
+  .toc-indent {
+    margin-right: 0.25rem;
+    color: #cbd5e1;
+    font-weight: bold;
+  }
+
+  /* ── Sidebar High-Converting CTA Card ── */
+  .cta-card {
+    background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%);
+    border: 1px solid rgba(249, 115, 22, 0.2);
+    color: white;
+    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.3);
+  }
+  .cta-card-badge {
+    background: rgba(249, 115, 22, 0.15);
+    color: #fb923c;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.2rem 0.5rem;
+    border-radius: 9999px;
+    display: inline-block;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.75rem;
+    border: 1px solid rgba(249, 115, 22, 0.3);
+  }
+  .cta-card-heading {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 0.5rem;
+    line-height: 1.3;
+  }
+  .cta-card-text {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    line-height: 1.5;
+    margin-bottom: 1rem;
+  }
+  .cta-features {
+    list-style: none !important;
+    padding: 0 !important;
+    margin: 0 0 1.25rem 0 !important;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .cta-features li {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.5rem;
+    font-size: 0.8rem !important;
+    color: #cbd5e1 !important;
+    margin-bottom: 0 !important;
+  }
+  .cta-features li::marker {
+    display: none !important;
+  }
+  .feature-icon {
+    font-size: 0.9rem;
+  }
+  .cta-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 0.65rem;
+    background: #f97316;
+    color: white;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 0.85rem;
+    border-radius: 0.5rem;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+    transition: all 0.2s ease;
+  }
+  .cta-button:hover {
+    background: #ea580c;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(249, 115, 22, 0.45);
+    color: white !important;
+  }
+
+  /* Improve .prose rendering styles for supreme readability */
+  :global(.prose) {
+    font-size: 1.0625rem;
+    color: #334155;
+    letter-spacing: -0.01em;
+  }
+  :global(.prose p) {
+    line-height: 1.8;
+    margin-bottom: 1.75rem;
+  }
+  :global(.prose h2) {
+    margin-top: 2.75rem;
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 0.5rem;
+  }
+  :global(.prose h3) {
+    margin-top: 2.25rem;
+  }
+  :global(.prose blockquote) {
+    border-left: 4px solid #f97316;
+    padding-left: 1.25rem;
+    font-style: italic;
+    color: #475569;
+    margin: 2rem 0;
+    line-height: 1.75;
   }
 
   /* ── Responsive ── */

@@ -5,13 +5,15 @@ export const load: PageServerLoad = async ({ params, locals }) => {
   const supabase = locals.supabase;
   const { slug } = params;
 
-  // Check if this is a WordPress migrated post (should be handled by [wordpress_slug] route)
+  // Check if this is a WordPress migrated post (created before migration date)
+  // These should be handled by the [wordpress_slug] route at the root level
   const { data: wordpressPost } = await supabase
     .from('blog_posts')
     .select('id')
     .eq('slug', slug)
     .eq('status', 'published')
     .lte('published_at', new Date().toISOString())
+    .lt('created_at', '2025-08-17T00:00:00Z') // Only WordPress-era posts
     .single();
 
   // If it's a WordPress post, redirect to the root URL (without /blog/)
@@ -42,17 +44,36 @@ export const load: PageServerLoad = async ({ params, locals }) => {
   // Fetch related posts — other published posts excluding current, most recent 4
   const { data: relatedRows } = await supabase
     .from('blog_posts')
-    .select('id, title, slug, excerpt, thumbnail_url, published_at, reading_time')
+    .select('id, title, slug, excerpt, cover_image_url, content, published_at')
     .eq('status', 'published')
     .lte('published_at', new Date().toISOString())
     .neq('id', post.id)
     .order('published_at', { ascending: false })
     .limit(4);
 
-  const related = (relatedRows ?? []).map((r: any) => ({
-    ...r,
-    reading_time: r.reading_time ?? Math.max(1, Math.round((r.content?.split(/\s+/).length || 0) / 200))
-  }));
+  const related = (relatedRows ?? []).map((r: any) => {
+    const wordCount = r.content?.split(/\s+/).length || 0;
+    const reading_time = Math.max(1, Math.round(wordCount / 200));
+    
+    // Smart thumbnail selection: cover_image_url first, then first image from content
+    let thumbnail_url = r.cover_image_url;
+    if (!thumbnail_url && r.content) {
+      const imageMatch = r.content.match(/!\[([^\]]*)\]\(([^)]+)\)/);
+      if (imageMatch) {
+        thumbnail_url = imageMatch[2];
+      }
+    }
+
+    return {
+      id: r.id,
+      title: r.title,
+      slug: r.slug,
+      excerpt: r.excerpt,
+      thumbnail_url,
+      published_at: r.published_at,
+      reading_time
+    };
+  });
 
   return {
     post: {
