@@ -236,5 +236,99 @@
 				</div>
 			</div>
 		</div>
+
+		<!-- Sample Output Section -->
+		<div class="mt-24 max-w-4xl mx-auto">
+			<div class="text-center mb-12">
+				<span class="inline-block px-4 py-1.5 rounded-full bg-emerald-50 text-emerald-700 text-sm font-bold tracking-wider uppercase mb-4 border border-emerald-200">
+					Real Output Example
+				</span>
+				<h2 class="text-3xl font-bold text-slate-900 mb-4" style="font-family: 'Outfit', sans-serif;">
+					Here's what 1 credit gets you
+				</h2>
+				<p class="text-slate-600 max-w-xl mx-auto">
+					This is a real AI Fit Check output for a Computer Science applicant targeting TU Berlin. One credit. Thirty seconds.
+				</p>
+			</div>
+
+			<!-- Mock terminal / output card -->
+			<div class="bg-[#0f172a] rounded-3xl overflow-hidden shadow-2xl border border-slate-700">
+				<!-- Terminal bar -->
+				<div class="flex items-center gap-2 px-5 py-3.5 border-b border-slate-700/60 bg-slate-800/50">
+					<span class="w-3 h-3 rounded-full bg-red-500/80"></span>
+					<span class="w-3 h-3 rounded-full bg-yellow-500/80"></span>
+					<span class="w-3 h-3 rounded-full bg-emerald-500/80"></span>
+					<span class="ml-3 text-xs text-slate-400 font-mono">AI Fit Check — Computer Science (M.Sc.) · TU Berlin</span>
+				</div>
+
+				<div class="p-7 space-y-6 font-mono text-sm">
+					<!-- Match score -->
+					<div class="flex items-center justify-between">
+						<span class="text-slate-400">Overall Match Score</span>
+						<div class="flex items-center gap-3">
+							<div class="w-32 h-2 bg-slate-700 rounded-full overflow-hidden">
+								<div class="h-full bg-emerald-500 rounded-full" style="width: 82%"></div>
+							</div>
+							<span class="text-emerald-400 font-bold text-base">82 / 100</span>
+						</div>
+					</div>
+
+					<div class="border-t border-slate-700/60"></div>
+
+					<!-- Strengths -->
+					<div>
+						<p class="text-orange-400 font-bold mb-3 text-xs uppercase tracking-widest">✦ Your Strengths</p>
+						<ul class="space-y-2 text-slate-300">
+							<li class="flex items-start gap-2"><span class="text-emerald-400 mt-0.5">✓</span> Strong GPA (3.7) exceeds TU Berlin's typical threshold of 3.0</li>
+							<li class="flex items-start gap-2"><span class="text-emerald-400 mt-0.5">✓</span> IELTS 7.0 meets the B2/C1 English requirement</li>
+							<li class="flex items-start gap-2"><span class="text-emerald-400 mt-0.5">✓</span> Bachelor's in Computer Engineering is a direct field match</li>
+						</ul>
+					</div>
+
+					<!-- Gaps -->
+					<div>
+						<p class="text-red-400 font-bold mb-3 text-xs uppercase tracking-widest">⚠ Gaps to Address</p>
+						<ul class="space-y-2 text-slate-300">
+							<li class="flex items-start gap-2"><span class="text-red-400 mt-0.5">✗</span> No research experience listed — TU Berlin values this for M.Sc. applicants</li>
+							<li class="flex items-start gap-2"><span class="text-red-400 mt-0.5">✗</span> SOP does not mention specific TU Berlin research groups or professors</li>
+						</ul>
+					</div>
+
+					<!-- Recommendation -->
+					<div class="bg-slate-800/60 rounded-xl p-4 border border-slate-700/40">
+						<p class="text-orange-400 font-bold mb-2 text-xs uppercase tracking-widest">→ Recommendation</p>
+						<p class="text-slate-300 leading-relaxed">
+							Your profile is competitive. The main risk is a generic SOP. Mention Prof. Klaus-Robert Müller's machine learning group specifically — it aligns with your background and signals you've done your research. Add any project work (even coursework) that involved data or algorithms as a proxy for research experience.
+						</p>
+					</div>
+
+					<!-- Matched scholarships -->
+					<div>
+						<p class="text-slate-400 font-bold mb-3 text-xs uppercase tracking-widest">🎓 Top Matched Scholarships</p>
+						<ul class="space-y-2 text-slate-300">
+							<li class="flex items-start gap-2"><span class="text-orange-400 mt-0.5">◆</span> DAAD Study Scholarships — 94% match · Deadline: Oct 15</li>
+							<li class="flex items-start gap-2"><span class="text-orange-400 mt-0.5">◆</span> Deutschlandstipendium — 88% match · Deadline: Nov 30</li>
+							<li class="flex items-start gap-2"><span class="text-orange-400 mt-0.5">◆</span> Heinrich Böll Foundation — 76% match · Deadline: Sep 1</li>
+						</ul>
+					</div>
+				</div>
+			</div>
+
+			<p class="text-center text-sm text-slate-400 mt-5">
+				Output tailored to your actual profile and the specific program you're applying to.
+			</p>
+		</div>
+
+		<!-- Final CTA -->
+		<div class="mt-16 max-w-2xl mx-auto text-center">
+			<p class="text-slate-500 text-sm mb-2">New accounts get 3 free credits — no card required.</p>
+			<a
+				href="/dashboard"
+				class="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-8 py-4 rounded-full font-bold text-base transition-colors shadow-lg shadow-orange-500/20"
+			>
+				Try it free <ArrowRight size={18} />
+			</a>
+		</div>
+
 	</div>
 </div>
