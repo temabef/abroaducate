@@ -49,13 +49,14 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 			const amount = s.amount || 'Fully Funded';
 			const deadline = formatDeadline(s.deadline);
 			const urgency = daysLeft(s.deadline);
-			const description = [
+			const platformLink = `${siteUrl}/scholarships/${s.id}`;
+		const description = [
 				s.description || '',
 				`\n\nValue: ${amount}`,
 				`Location: ${s.location || 'International'}`,
 				`Level: ${(s.level || 'All levels').replace(/;/g, ' · ')}`,
 				`Deadline: ${deadline}${urgency}`,
-				`\nApply: ${link}`
+				`\nApply: ${platformLink}`
 			]
 				.join('\n')
 				.trim();
