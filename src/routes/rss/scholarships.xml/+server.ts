@@ -51,11 +51,11 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 			const urgency = daysLeft(s.deadline);
 			const description = [
 				s.description || '',
-				`\n\n💰 Value: ${amount}`,
-				`📍 Location: ${s.location || 'International'}`,
-				`🎓 Level: ${s.level || 'All levels'}`,
-				`📅 Deadline: ${deadline}${urgency}`,
-				`\n🔗 Apply: ${link}`
+				`\n\nValue: ${amount}`,
+				`Location: ${s.location || 'International'}`,
+				`Level: ${(s.level || 'All levels').replace(/;/g, ' · ')}`,
+				`Deadline: ${deadline}${urgency}`,
+				`\nApply: ${link}`
 			]
 				.join('\n')
 				.trim();
