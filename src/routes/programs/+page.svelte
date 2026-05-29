@@ -1,77 +1,67 @@
 <script lang="ts">
 	import { Search, SlidersHorizontal, Filter, GraduationCap, Bookmark, MapPin, Banknote } from 'lucide-svelte';
 	import { page } from '$app/stores';
+	import { goto } from '$app/navigation';
 	import { getProgramDeadlineLifecycle, getProgramDeadlineSortValue } from '$lib/utils/programDeadlines';
 
 	let { data }: { data: any } = $props();
 	let session = $derived(data.session);
 
-	// Pre-fill the search box from the Home Page URL parameters if present
-	let initialSearch = [$page.url.searchParams.get('field'), $page.url.searchParams.get('destination')].filter(Boolean).join(' ');
-	let searchQuery = $state(initialSearch);
+	// Server-loaded data
+	let programs = $derived(data.programs || []);
+	let totalCount = $derived(data.totalCount || 0);
+	let currentPage = $derived(data.page || 1);
+	let totalPages = $derived(data.totalPages || 1);
+	let countryOptions = $derived(data.countryOptions || []);
+
+	// Local filter state — synced with URL on change
+	let searchQuery = $state(data.filters?.q || '');
 	let showMobileFilters = $state(false);
-	
-	let selectedCountries = $state<string[]>([]);
-	let selectedLanguages = $state<string[]>([]);
-	let selectedDegreeLevels = $state<string[]>([]);
-	let selectedIntakes = $state<string[]>([]);
-	let selectedTiers = $state<string[]>([]);
-	let maxTuition = $state(10000);
-	let sortBy = $state('recommended');
-	
-	let displayLimit = $state(10);
+	let selectedCountries = $state<string[]>(data.filters?.countries || []);
+	let selectedLanguages = $state<string[]>(data.filters?.languages || []);
+	let selectedDegreeLevels = $state<string[]>(data.filters?.degreeLevels || []);
+	let selectedIntakes = $state<string[]>(data.filters?.intakes || []);
+	let selectedTiers = $state<string[]>(data.filters?.tiers || []);
+	let maxTuition = $state(data.filters?.maxTuition ?? 10000);
+	let sortBy = $state(data.filters?.sort || 'recommended');
 
-	// Reset pagination when any filter changes
+	// Debounced search input
+	let searchTimer: ReturnType<typeof setTimeout>;
+	function onSearchInput() {
+		clearTimeout(searchTimer);
+		searchTimer = setTimeout(() => applyFilters(1), 300);
+	}
+
+	function applyFilters(targetPage = 1) {
+		const params = new URLSearchParams();
+		if (searchQuery.trim()) params.set('q', searchQuery.trim());
+		selectedCountries.forEach((c) => params.append('country', c));
+		selectedLanguages.forEach((l) => params.append('lang', l));
+		selectedDegreeLevels.forEach((l) => params.append('level', l));
+		selectedIntakes.forEach((i) => params.append('intake', i));
+		selectedTiers.forEach((t) => params.append('tier', t));
+		if (maxTuition < 10000) params.set('maxTuition', String(maxTuition));
+		if (sortBy !== 'recommended') params.set('sort', sortBy);
+		if (targetPage > 1) params.set('page', String(targetPage));
+
+		const qs = params.toString();
+		goto(qs ? `/programs?${qs}` : '/programs', {
+			keepFocus: true,
+			noScroll: false
+		});
+	}
+
+	// React to filter changes (excluding searchQuery which has its own debounce)
+	let filterSig = $derived(
+		JSON.stringify([selectedCountries, selectedLanguages, selectedDegreeLevels, selectedIntakes, selectedTiers, maxTuition, sortBy])
+	);
+	let lastFilterSig = $state(filterSig);
 	$effect(() => {
-		searchQuery; selectedCountries; selectedLanguages; selectedDegreeLevels; selectedIntakes; selectedTiers; maxTuition; sortBy;
-		displayLimit = 10;
+		if (filterSig !== lastFilterSig) {
+			lastFilterSig = filterSig;
+			applyFilters(1);
+		}
 	});
-
-	const countryOptions = $derived(
-		[...new Set((data.programs || []).map((p: any) => p.country || 'Germany'))].sort()
-	);
-
-	// Filter logic for search
-	const filteredPrograms = $derived(
-		(data.programs || []).filter((p: any) => {
-			const query = searchQuery.toLowerCase();
-			const searchMatch =
-				p.program_name.toLowerCase().includes(query) ||
-				p.university_name.toLowerCase().includes(query) ||
-				(p.field_of_study || '').toLowerCase().includes(query) ||
-				(p.city || '').toLowerCase().includes(query) ||
-				(p.country || '').toLowerCase().includes(query);
-			
-			const degreeMatch = selectedDegreeLevels.length === 0 || 
-								selectedDegreeLevels.includes(p.degree_level?.toLowerCase() || 'master');
-								
-			const annualTuition = (p.tuition_per_semester || 0) * 2;
-			// When the user explicitly opts into scholarship_funded, they are
-			// accepting higher tuition in exchange for a covering scholarship —
-			// so we bypass the tuition cap for programs in that tier.
-			const scholarshipFundedOnly =
-				selectedTiers.length > 0 && selectedTiers.every((t) => t === 'scholarship_funded');
-			const programIsScholarshipFunded = p.tuition_tier === 'scholarship_funded';
-			const tuitionMatch =
-				scholarshipFundedOnly || (programIsScholarshipFunded && selectedTiers.includes('scholarship_funded'))
-					? true
-					: annualTuition <= maxTuition;
-			
-			const intakeMatch = selectedIntakes.length === 0 || 
-								(p.intake && selectedIntakes.some(i => p.intake.toLowerCase().includes(i.toLowerCase())));
-
-			const countryMatch = selectedCountries.length === 0 || 
-								selectedCountries.includes(p.country || 'Germany');
-
-			const langMatch = selectedLanguages.length === 0 ||
-								selectedLanguages.some(l => p.language_of_instruction?.toLowerCase().includes(l.toLowerCase()) || (l === 'English' && p.english_required));
-
-			const tierMatch = selectedTiers.length === 0 ||
-								selectedTiers.includes(p.tuition_tier || 'low_tuition');
-
-			return searchMatch && degreeMatch && tuitionMatch && intakeMatch && countryMatch && langMatch && tierMatch;
-		})
-	);
 
 	function deadlineTime(program: any) {
 		return getProgramDeadlineSortValue(program);
@@ -88,17 +78,8 @@
 		return 'text-slate-700';
 	}
 
-	const sortedPrograms = $derived(
-		[...filteredPrograms].sort((a: any, b: any) => {
-			if (sortBy === 'lowest-fee') {
-				return (a.tuition_per_semester || 0) * 2 - (b.tuition_per_semester || 0) * 2;
-			}
-			if (sortBy === 'deadline') {
-				return deadlineTime(a) - deadlineTime(b);
-			}
-			return 0;
-		})
-	);
+	// No client-side sort — server already returns sorted data.
+	const sortedPrograms = $derived(programs);
 
 	function handleBookmark(e: MouseEvent, programId: string) {
 		e.preventDefault();
@@ -108,9 +89,21 @@
 			window.location.href = `/auth?next=${encodeURIComponent(`/dashboard?programId=${programId}`)}`;
 		}
 	}
-	
-	function loadMore() {
-		displayLimit += 10;
+
+	function goToPage(p: number) {
+		if (p < 1 || p > totalPages) return;
+		applyFilters(p);
+	}
+
+	function clearAllFilters() {
+		selectedCountries = [];
+		selectedLanguages = [];
+		selectedDegreeLevels = [];
+		selectedIntakes = [];
+		selectedTiers = [];
+		maxTuition = 10000;
+		searchQuery = '';
+		sortBy = 'recommended';
 	}
 
 	function tierMeta(tier?: string) {
@@ -144,7 +137,8 @@
 				<Search size={20} class="text-slate-400 ml-4" />
 				<input 
 					type="text" 
-					bind:value={searchQuery} 
+					bind:value={searchQuery}
+					oninput={onSearchInput}
 					placeholder="Search for programs by title, field, or university..." 
 					class="search-input"
 				/>
@@ -281,7 +275,7 @@
 			</div>
 
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-				{#each sortedPrograms.slice(0, displayLimit) as program}
+				{#each sortedPrograms as program}
 					<a href={`/programs/${program.id}`} class="program-card">
 						<div class="p-5 flex flex-col h-full">
 							<div class="flex justify-between items-start mb-4">
@@ -343,28 +337,41 @@
 			</div>
 
 			<!-- Pagination -->
-			{#if displayLimit < sortedPrograms.length}
-				<div class="mt-10 flex justify-center">
-					<button 
-						onclick={loadMore}
-						class="px-8 py-3 bg-white border border-slate-200 hover:border-orange-500 hover:text-orange-600 shadow-sm text-slate-700 font-bold rounded-full text-sm transition-all active:scale-95 group"
-					>
-						Load More Programs
-					</button>
+			{#if totalPages > 1}
+				<div class="mt-10 flex flex-col sm:flex-row items-center justify-between gap-4">
+					<p class="text-sm text-slate-500">
+						Showing <strong>{(currentPage - 1) * data.pageSize + 1}</strong>–<strong>{Math.min(currentPage * data.pageSize, totalCount)}</strong> of <strong>{totalCount}</strong> programs
+					</p>
+					<div class="flex items-center gap-2">
+						<button
+							onclick={() => goToPage(currentPage - 1)}
+							disabled={currentPage === 1}
+							class="px-4 py-2 text-sm font-bold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+						>
+							Prev
+						</button>
+						{#each Array.from({ length: Math.min(5, totalPages) }, (_, i) => Math.max(1, currentPage - 2) + i).filter((p) => p <= totalPages) as p}
+							<button
+								onclick={() => goToPage(p)}
+								class="w-10 h-10 flex items-center justify-center text-sm font-bold rounded-xl border transition-colors {currentPage === p ? 'bg-[#0f172a] text-white border-[#0f172a]' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}"
+							>
+								{p}
+							</button>
+						{/each}
+						<button
+							onclick={() => goToPage(currentPage + 1)}
+							disabled={currentPage === totalPages}
+							class="px-4 py-2 text-sm font-bold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+						>
+							Next
+						</button>
+					</div>
 				</div>
 			{/if}
 			{#if sortedPrograms.length === 0}
 				<div class="text-center py-20 bg-white rounded-2xl border border-dashed border-slate-300">
 					<p class="text-slate-500 mb-2">No programs match your current filters.</p>
-					<button onclick={() => {
-						selectedCountries = [];
-						selectedLanguages = [];
-						selectedDegreeLevels = [];
-						selectedIntakes = [];
-						selectedTiers = [];
-						maxTuition = 10000;
-						searchQuery = '';
-					}} class="text-orange-500 font-medium hover:underline">Clear all filters</button>
+					<button onclick={clearAllFilters} class="text-orange-500 font-medium hover:underline">Clear all filters</button>
 				</div>
 			{/if}
 		</main>
