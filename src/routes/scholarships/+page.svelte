@@ -72,9 +72,31 @@
   let viewMode = $state('all'); // 'all', 'saved', 'applied'
   let showFilters = $state(false);
 
+  // Derived filter options from real data
+  let countryOptions = $derived(
+    [...new Set(allScholarships.map(s => s.location).filter(Boolean))].sort() as string[]
+  );
+
+  let fieldOptions = $derived(
+    [...new Set(allScholarships.map(s => s.field).filter(Boolean))].sort() as string[]
+  );
+
+  function clearAllFilters() {
+    filters = {
+      location: '',
+      level: '',
+      field: '',
+      type: '',
+      amount: '',
+      deadline: '',
+      funding_category: ''
+    };
+    searchQuery = '';
+  }
+
   // Pagination state
   let currentPage = $state(1);
-  let itemsPerPage = $state(12);
+  let itemsPerPage = $state(9);
   let showQuickProfile = $state(false);
   let authRequiredForProfile = $state(false);
 
@@ -599,31 +621,154 @@
           </div>
         {/if}
 
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
-            <div class="bg-slate-100 p-1 rounded-xl flex inline-block">
-                <button onclick={() => switchViewMode('all')} class="px-5 py-2 rounded-lg text-sm font-bold transition-all {viewMode === 'all' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-900'}">All</button>
-                <button onclick={() => switchViewMode('saved')} class="px-5 py-2 rounded-lg text-sm font-bold transition-all {viewMode === 'saved' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-900'}">Saved</button>
-            </div>
-            
-            <div class="flex items-center gap-3 w-full sm:w-auto">
-                <p class="text-sm text-slate-500 font-medium whitespace-nowrap hidden sm:block">Showing {displayScholarships.length} results</p>
-                <select bind:value={sortBy} class="w-full sm:w-auto text-sm bg-white border border-slate-200 rounded-xl text-slate-700 py-2.5 px-4 font-semibold shadow-sm focus:ring-orange-500 focus:border-orange-500 outline-none">
-                    <option value="created_at">Latest First</option>
-                    <option value="matchScore">Best Match</option>
-                    <option value="deadline">Deadline (Soonest)</option>
+        <div class="flex gap-8">
+
+          <!-- SIDEBAR: Filters (Desktop) -->
+          <aside class="w-64 flex-shrink-0 hidden lg:block">
+            <div class="sticky top-24">
+              <h3 class="font-bold text-slate-800 mb-4 flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+                Filters
+              </h3>
+
+              <!-- Funding Category -->
+              <div class="mb-6">
+                <h4 class="text-sm font-semibold text-slate-600 mb-3 uppercase tracking-wider">Scholarship Type</h4>
+                <div class="space-y-2">
+                  <label class="flex items-center gap-3 cursor-pointer group">
+                    <input type="radio" name="funding_category" value="" bind:group={filters.funding_category} class="w-4 h-4 text-orange-500 border-slate-300 focus:ring-orange-500" />
+                    <span class="text-slate-700 text-sm group-hover:text-orange-600 transition-colors">All types</span>
+                  </label>
+                  <label class="flex items-center gap-3 cursor-pointer group">
+                    <input type="radio" name="funding_category" value="Traditional Scholarship" bind:group={filters.funding_category} class="w-4 h-4 text-orange-500 border-slate-300 focus:ring-orange-500" />
+                    <span class="text-slate-700 text-sm group-hover:text-orange-600 transition-colors">Traditional Scholarship</span>
+                  </label>
+                  <label class="flex items-center gap-3 cursor-pointer group">
+                    <input type="radio" name="funding_category" value="Graduate Program Funding" bind:group={filters.funding_category} class="w-4 h-4 text-orange-500 border-slate-300 focus:ring-orange-500" />
+                    <span class="text-slate-700 text-sm group-hover:text-orange-600 transition-colors">Graduate Program Funding</span>
+                  </label>
+                  <label class="flex items-center gap-3 cursor-pointer group">
+                    <input type="radio" name="funding_category" value="Advertised Position" bind:group={filters.funding_category} class="w-4 h-4 text-orange-500 border-slate-300 focus:ring-orange-500" />
+                    <span class="text-slate-700 text-sm group-hover:text-orange-600 transition-colors">Advertised Position</span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Level -->
+              <div class="mb-6">
+                <h4 class="text-sm font-semibold text-slate-600 mb-3 uppercase tracking-wider">Level</h4>
+                <div class="space-y-2">
+                  <label class="flex items-center gap-3 cursor-pointer group">
+                    <input type="radio" name="level" value="" bind:group={filters.level} class="w-4 h-4 text-orange-500 border-slate-300 focus:ring-orange-500" />
+                    <span class="text-slate-700 text-sm group-hover:text-orange-600 transition-colors">All levels</span>
+                  </label>
+                  <label class="flex items-center gap-3 cursor-pointer group">
+                    <input type="radio" name="level" value="Bachelor" bind:group={filters.level} class="w-4 h-4 text-orange-500 border-slate-300 focus:ring-orange-500" />
+                    <span class="text-slate-700 text-sm group-hover:text-orange-600 transition-colors">Bachelor's</span>
+                  </label>
+                  <label class="flex items-center gap-3 cursor-pointer group">
+                    <input type="radio" name="level" value="Master's" bind:group={filters.level} class="w-4 h-4 text-orange-500 border-slate-300 focus:ring-orange-500" />
+                    <span class="text-slate-700 text-sm group-hover:text-orange-600 transition-colors">Master's</span>
+                  </label>
+                  <label class="flex items-center gap-3 cursor-pointer group">
+                    <input type="radio" name="level" value="PhD" bind:group={filters.level} class="w-4 h-4 text-orange-500 border-slate-300 focus:ring-orange-500" />
+                    <span class="text-slate-700 text-sm group-hover:text-orange-600 transition-colors">PhD</span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Country -->
+              <div class="mb-6">
+                <h4 class="text-sm font-semibold text-slate-600 mb-3 uppercase tracking-wider">Country</h4>
+                <select bind:value={filters.location} class="w-full text-sm border border-slate-200 rounded-lg py-2 px-3 focus:ring-orange-500 focus:border-orange-500 outline-none bg-white">
+                  <option value="">All countries</option>
+                  {#each countryOptions as country}
+                    <option value={country}>{country}</option>
+                  {/each}
                 </select>
+              </div>
+
+              <!-- Field -->
+              <div class="mb-6">
+                <h4 class="text-sm font-semibold text-slate-600 mb-3 uppercase tracking-wider">Field of Study</h4>
+                <select bind:value={filters.field} class="w-full text-sm border border-slate-200 rounded-lg py-2 px-3 focus:ring-orange-500 focus:border-orange-500 outline-none bg-white">
+                  <option value="">All fields</option>
+                  {#each fieldOptions as field}
+                    <option value={field}>{field}</option>
+                  {/each}
+                </select>
+                <p class="text-xs text-slate-400 mt-2 leading-snug">Most scholarships accept all fields. Clear this filter to see them.</p>
+              </div>
+
+              <!-- Type -->
+              <div class="mb-6">
+                <h4 class="text-sm font-semibold text-slate-600 mb-3 uppercase tracking-wider">Funding Type</h4>
+                <div class="space-y-2">
+                  <label class="flex items-center gap-3 cursor-pointer group">
+                    <input type="radio" name="type" value="" bind:group={filters.type} class="w-4 h-4 text-orange-500 border-slate-300 focus:ring-orange-500" />
+                    <span class="text-slate-700 text-sm group-hover:text-orange-600 transition-colors">Any type</span>
+                  </label>
+                  <label class="flex items-center gap-3 cursor-pointer group">
+                    <input type="radio" name="type" value="Merit-based" bind:group={filters.type} class="w-4 h-4 text-orange-500 border-slate-300 focus:ring-orange-500" />
+                    <span class="text-slate-700 text-sm group-hover:text-orange-600 transition-colors">Merit-based</span>
+                  </label>
+                  <label class="flex items-center gap-3 cursor-pointer group">
+                    <input type="radio" name="type" value="Need-based" bind:group={filters.type} class="w-4 h-4 text-orange-500 border-slate-300 focus:ring-orange-500" />
+                    <span class="text-slate-700 text-sm group-hover:text-orange-600 transition-colors">Need-based</span>
+                  </label>
+                  <label class="flex items-center gap-3 cursor-pointer group">
+                    <input type="radio" name="type" value="Research-based" bind:group={filters.type} class="w-4 h-4 text-orange-500 border-slate-300 focus:ring-orange-500" />
+                    <span class="text-slate-700 text-sm group-hover:text-orange-600 transition-colors">Research-based</span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Clear filters -->
+              <button
+                onclick={clearAllFilters}
+                class="w-full text-sm text-orange-600 hover:text-orange-700 font-semibold py-2 border border-orange-200 rounded-lg hover:bg-orange-50 transition-colors"
+              >
+                Clear all filters
+              </button>
             </div>
-        </div>
+          </aside>
+
+          <!-- MAIN: Scholarship Grid -->
+          <main class="flex-1 min-w-0">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+              <div class="flex items-center gap-3 flex-wrap">
+                <div class="bg-slate-100 p-1 rounded-xl flex inline-block">
+                  <button onclick={() => switchViewMode('all')} class="px-5 py-2 rounded-lg text-sm font-bold transition-all {viewMode === 'all' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-900'}">All</button>
+                  <button onclick={() => switchViewMode('saved')} class="px-5 py-2 rounded-lg text-sm font-bold transition-all {viewMode === 'saved' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-900'}">Saved</button>
+                </div>
+                <button
+                  class="lg:hidden bg-white border border-slate-200 px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2"
+                  onclick={() => showFilters = !showFilters}
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+                  Filters
+                </button>
+              </div>
+
+              <div class="flex items-center gap-3 w-full sm:w-auto">
+                <p class="text-sm text-slate-500 font-medium whitespace-nowrap hidden sm:block">{filteredScholarships.length} results</p>
+                <select bind:value={sortBy} class="w-full sm:w-auto text-sm bg-white border border-slate-200 rounded-xl text-slate-700 py-2.5 px-4 font-semibold shadow-sm focus:ring-orange-500 focus:border-orange-500 outline-none">
+                  <option value="created_at">Latest First</option>
+                  <option value="matchScore">Best Match</option>
+                  <option value="deadline">Deadline (Soonest)</option>
+                </select>
+              </div>
+            </div>
 
         {#if isLoading}
           <div class="py-20 flex justify-center"><div class="animate-spin rounded-full h-10 w-10 border-b-2 border-brand-navy"></div></div>
         {:else if displayScholarships.length === 0}
           <div class="bg-white rounded-3xl border border-slate-200 p-16 text-center shadow-sm">
             <h3 class="text-xl font-bold text-slate-900 mb-2">No scholarships found</h3>
-            <p class="text-slate-500">Adjust your search to discover more funding options.</p>
+            <p class="text-slate-500">Try clearing some filters or adjusting your search.</p>
           </div>
         {:else}
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
                 {#each displayScholarships as scholarship (scholarship.id)}
                     <a href={`/scholarships/${scholarship.id}`} class="program-card">
                         <div class="p-5 flex flex-col h-full">
@@ -677,6 +822,80 @@
                 <button onclick={nextPage} disabled={currentPage === totalPages} class="px-4 py-2 text-sm font-bold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 disabled:opacity-50">Next</button>
                 </div>
             {/if}
+        {/if}
+          </main>
+        </div>
+
+        <!-- Mobile filter drawer -->
+        {#if showFilters}
+          <div class="lg:hidden fixed inset-0 bg-black/50 z-50" onclick={() => showFilters = false} role="presentation">
+            <div class="absolute right-0 top-0 bottom-0 w-80 max-w-[90vw] bg-white p-6 overflow-y-auto" onclick={(e) => e.stopPropagation()} role="presentation">
+              <div class="flex items-center justify-between mb-6">
+                <h3 class="font-bold text-slate-800 text-lg">Filters</h3>
+                <button onclick={() => showFilters = false} class="text-slate-500 hover:text-slate-700" aria-label="Close filters">
+                  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+              </div>
+
+              <!-- Mobile: same filters as desktop -->
+              <div class="mb-6">
+                <h4 class="text-sm font-semibold text-slate-600 mb-3 uppercase tracking-wider">Scholarship Type</h4>
+                <select bind:value={filters.funding_category} class="w-full text-sm border border-slate-200 rounded-lg py-2 px-3 bg-white">
+                  <option value="">All types</option>
+                  <option value="Traditional Scholarship">Traditional Scholarship</option>
+                  <option value="Graduate Program Funding">Graduate Program Funding</option>
+                  <option value="Advertised Position">Advertised Position</option>
+                </select>
+              </div>
+
+              <div class="mb-6">
+                <h4 class="text-sm font-semibold text-slate-600 mb-3 uppercase tracking-wider">Level</h4>
+                <select bind:value={filters.level} class="w-full text-sm border border-slate-200 rounded-lg py-2 px-3 bg-white">
+                  <option value="">All levels</option>
+                  <option value="Bachelor">Bachelor's</option>
+                  <option value="Master's">Master's</option>
+                  <option value="PhD">PhD</option>
+                </select>
+              </div>
+
+              <div class="mb-6">
+                <h4 class="text-sm font-semibold text-slate-600 mb-3 uppercase tracking-wider">Country</h4>
+                <select bind:value={filters.location} class="w-full text-sm border border-slate-200 rounded-lg py-2 px-3 bg-white">
+                  <option value="">All countries</option>
+                  {#each countryOptions as country}
+                    <option value={country}>{country}</option>
+                  {/each}
+                </select>
+              </div>
+
+              <div class="mb-6">
+                <h4 class="text-sm font-semibold text-slate-600 mb-3 uppercase tracking-wider">Field of Study</h4>
+                <select bind:value={filters.field} class="w-full text-sm border border-slate-200 rounded-lg py-2 px-3 bg-white">
+                  <option value="">All fields</option>
+                  {#each fieldOptions as field}
+                    <option value={field}>{field}</option>
+                  {/each}
+                </select>
+              </div>
+
+              <div class="mb-6">
+                <h4 class="text-sm font-semibold text-slate-600 mb-3 uppercase tracking-wider">Funding Type</h4>
+                <select bind:value={filters.type} class="w-full text-sm border border-slate-200 rounded-lg py-2 px-3 bg-white">
+                  <option value="">Any type</option>
+                  <option value="Merit-based">Merit-based</option>
+                  <option value="Need-based">Need-based</option>
+                  <option value="Research-based">Research-based</option>
+                </select>
+              </div>
+
+              <button
+                onclick={() => { clearAllFilters(); showFilters = false; }}
+                class="w-full text-sm text-orange-600 hover:text-orange-700 font-semibold py-2 border border-orange-200 rounded-lg hover:bg-orange-50"
+              >
+                Clear all filters
+              </button>
+            </div>
+          </div>
         {/if}
 
         <!-- Call to Action Section -->
