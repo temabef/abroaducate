@@ -1,9 +1,43 @@
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ params, locals }) => {
+// Explicit column list for the detail page — avoids select('*') which pulls
+// every column including large unused fields, reducing egress per page view.
+const DETAIL_COLUMNS = [
+	'id',
+	'program_name',
+	'university_name',
+	'university_id',
+	'country',
+	'city',
+	'degree_level',
+	'field_of_study',
+	'tuition_per_semester',
+	'tuition_currency',
+	'semester_fee',
+	'tuition_tier',
+	'language_of_instruction',
+	'application_close_date',
+	'deadline_summary',
+	'rubric_criteria',
+	'intake',
+	'intakes',
+	'program_duration_months',
+	'application_steps',
+	'full_description_text',
+	'is_active'
+].join(',');
+
+export const load: PageServerLoad = async ({ params, locals, setHeaders }) => {
 	const supabase = locals.supabase;
 	const { id } = params;
+
+	// Cache individual program pages for 10 minutes at the CDN edge.
+	// Program data changes infrequently; this cuts egress significantly for
+	// popular programs that get many repeat visits.
+	setHeaders({
+		'cache-control': 'public, max-age=600, s-maxage=600'
+	});
 
 	let program = null;
 	let university = null;
@@ -12,7 +46,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 	if (supabase) {
 		const { data, error: dbError } = await supabase
 			.from('programs')
-			.select('*')
+			.select(DETAIL_COLUMNS)
 			.eq('id', id)
 			.single();
 
