@@ -52,3 +52,62 @@ POST_LAUNCH_ROADMAP.md
 # Junk data files
 german_universities_refresh.json
 poland_final_upload_fee_ready.csv
+
+# Playwright test artifacts
+.playwright-cli/
+output/
+
+# Query / data export artifacts
+query_planning.json
+query_results.json
+query_out.txt
+query_planning.mjs
+query_programs.mjs
+*.csv
+
+# One-off / temp scripts
+check_posts.js
+diagnose_blog_list.js
+find_our_post.js
+insert_erasmus_post.js
+insert_post.js
+insert_program_or_scholarship_first.sql
+insert_study_free_blog_post.sql
+update_image_urls.js
+restore_blog_links.js
+restore_links_final.js
+restore_links_simple.js
+restore_original_content.js
+restore_original.sql
+revert_links.sql
+fix_chars.js
+fix_encoding.cjs
+fix_icons.cjs
+fix_syntax.js
+do_splice.js
+del_footprint.js
+temp_search_programs.py
+decode_query.py
+
+# Blog post drafts
+*_draft*.md
+erasmus_mundus_winning_application_draft.md
+
+# Email HTML drafts
+docs/email-*-html.html
+
+# VS Code personal settings
+.vscode/settings.json
+
+# Static binary assets (large PNGs not part of the app)
+static/blog_*.png
+static/erasmus_*.png
+static/germany_*.png
+static/ielts_*.png
+static/moi_*.png
+
+# Static SVG graphics (design artifacts, not used in the app)
+static/blog_flowchart_infographic.svg
+static/blog_platform_radar_mockup.svg
+static/blog_timeline_graphic.svg
+

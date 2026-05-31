@@ -5,30 +5,27 @@ export const load: PageServerLoad = async ({ params, locals }) => {
   const supabase = locals.supabase;
   const { slug } = params;
 
-  // Check if this is a WordPress migrated post (created before migration date)
-  // These should be handled by the [wordpress_slug] route at the root level
+  // Check if this is a WordPress migrated post (created before migration date).
+  // Those live at /{slug} (root level), not /blog/{slug}.
   const { data: wordpressPost } = await supabase
     .from('blog_posts')
     .select('id')
     .eq('slug', slug)
     .eq('status', 'published')
-    .lte('published_at', new Date().toISOString())
-    .lt('created_at', '2025-08-17T00:00:00Z') // Only WordPress-era posts
+    .lt('created_at', '2025-08-17T00:00:00Z')
     .single();
 
-  // If it's a WordPress post, redirect to the root URL (without /blog/)
   if (wordpressPost) {
     throw redirect(301, `/${slug}`);
   }
 
-  // Continue with new blog posts (created after migration)
+  // Load the post by slug — no date filter, just slug + published status
   const { data: post, error: fetchErr } = await supabase
     .from('blog_posts')
     .select('*')
     .eq('slug', slug)
     .eq('status', 'published')
     .lte('published_at', new Date().toISOString())
-    .gte('created_at', '2025-08-17T00:00:00Z') // Only new posts after migration
     .single();
 
   if (fetchErr || !post) {
@@ -41,12 +38,13 @@ export const load: PageServerLoad = async ({ params, locals }) => {
   // Simple markdown to HTML conversion
   const html = renderMarkdown(post.content || '');
 
-  // Fetch related posts — other published posts excluding current, most recent 4
+  // Fetch related posts — only new posts (not WordPress-era), excluding current
   const { data: relatedRows } = await supabase
     .from('blog_posts')
     .select('id, title, slug, excerpt, cover_image_url, content, published_at')
     .eq('status', 'published')
     .lte('published_at', new Date().toISOString())
+    .gte('created_at', '2025-08-17T00:00:00Z')
     .neq('id', post.id)
     .order('published_at', { ascending: false })
     .limit(4);

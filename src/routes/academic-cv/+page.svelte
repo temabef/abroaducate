@@ -14,7 +14,7 @@
 		{
 			name: 'Europass CV',
 			description:
-				'The official European standard. Widely accepted across all 9 countries on Abroaducate. Free, multilingual, and recognised by every European university admissions office.',
+				'The official European standard. Widely accepted across all 10 countries on Abroaducate. Free, multilingual, and recognised by every European university admissions office.',
 			url: 'https://europa.eu/europass/en/create-europass-cv',
 			badge: 'Recommended',
 			badgeColor: 'bg-emerald-100 text-emerald-700',

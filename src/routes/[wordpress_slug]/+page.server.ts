@@ -115,9 +115,15 @@ export const load: PageServerLoad = async ({ params }) => {
 				throw error(404, 'Page not found');
 			}
 			
-			// Check if it's a scholarship or other content type
 			// If not found anywhere, 404
 			throw error(404, 'Page not found');
+		}
+
+		// New posts (created after the WordPress migration) belong at /blog/[slug].
+		// Redirect any root-level access to the canonical /blog/ URL.
+		const MIGRATION_DATE = '2025-08-17T00:00:00Z';
+		if (post.created_at >= MIGRATION_DATE) {
+			throw redirect(301, `/blog/${slug}`);
 		}
 
 		// Render the markdown content

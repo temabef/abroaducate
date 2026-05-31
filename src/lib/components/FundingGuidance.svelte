@@ -11,7 +11,7 @@
 	let { country, degreeLevel, universityName, programName }: Props = $props();
 
 	// ── Funding structure lookup ──────────────────────────────────────────────
-	// Based on how funding actually works in each of our 9 countries.
+	// Based on how funding actually works in each of our 10 countries.
 	// Degree level: 'master' | 'phd' | 'bachelor'
 
 	type FundingTip = {
@@ -313,6 +313,37 @@
 						icon: BookOpen,
 						title: 'University merit awards',
 						description: `${universityName} may offer merit-based scholarships or tuition reductions. Contact their international office directly.`
+					}
+				]
+			};
+		}
+
+		if (c.includes('portugal')) {
+			return {
+				headline: 'How Master\'s funding works in Portugal',
+				context: 'Portuguese public universities charge €697–7,000/year for international students — significantly cheaper than the UK or US. Several scholarships target African and Portuguese-speaking country students specifically.',
+				tips: [
+					{
+						icon: Search,
+						title: 'Aga Khan Foundation Scholarships',
+						description: 'Fully funded scholarships for students from developing countries, including many African nations. Portugal is an eligible destination.',
+						link: { label: 'Aga Khan Foundation', url: 'https://www.akdn.org/our-agencies/aga-khan-foundation/international-scholarship-programme' }
+					},
+					{
+						icon: Globe,
+						title: 'Portuguese Government Scholarships (IPDJ)',
+						description: 'The Instituto Português do Desporto e Juventude offers scholarships for students from Portuguese-speaking countries (PALOP) — Angola, Mozambique, Cape Verde, Guinea-Bissau, São Tomé.',
+						link: { label: 'IPDJ Scholarships', url: 'https://www.ipdj.pt/bolsas' }
+					},
+					{
+						icon: BookOpen,
+						title: 'Erasmus+ and bilateral agreements',
+						description: 'Portugal has bilateral scholarship agreements with many African countries. Check with your home country\'s ministry of education for Portugal-specific programs.',
+					},
+					{
+						icon: Mail,
+						title: 'University merit scholarships',
+						description: `${universityName} may offer merit-based scholarships or tuition reductions for high-achieving international students. Contact their international office.`
 					}
 				]
 			};

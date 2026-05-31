@@ -34,13 +34,13 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     let forceDigestAllRegistered = false;
-    let batchSize = 80;
+    let batchSize = 200;
     let batchOffset = 0;
     let testEmail: string | null = null;
     try {
       const body = await request.json().catch(() => ({}));
       forceDigestAllRegistered = !!body?.force_digest_all_registered;
-      if (typeof body?.batch_size === 'number' && body.batch_size > 0) batchSize = Math.min(200, body.batch_size);
+      if (typeof body?.batch_size === 'number' && body.batch_size > 0) batchSize = Math.min(500, body.batch_size);
       if (typeof body?.offset === 'number' && body.offset >= 0) batchOffset = body.offset;
       if (typeof body?.test_email === 'string' && body.test_email) testEmail = body.test_email;
     } catch {
@@ -106,19 +106,26 @@ export const POST: RequestHandler = async ({ request }) => {
     // ============ SCHOLARSHIP DIGEST — ALL REGISTERED USERS, EVERY MONDAY ============
     const isMonday = dayOfWeek === 1;
 
+    // has_more tracks whether there are more users beyond this batch (for the cron loop)
+    let hasMore = false;
+
     if (isMonday || forceDigestAllRegistered) {
-      console.log('📊 Sending weekly digest to all registered users...');
-      let allAuthUsers: any[] = [];
-      let authPage = 1;
-      while (true) {
-        const { data: { users: batch } } = await supabase.auth.admin.listUsers({ page: authPage, perPage: 1000 });
-        if (!batch || batch.length === 0) break;
-        allAuthUsers = [...allAuthUsers, ...batch];
-        if (batch.length < 1000) break;
-        authPage++;
-      }
-      console.log(`📊 Sending digest to ${allAuthUsers.length} registered users...`);
-      for (const authUser of allAuthUsers) {
+      // Fetch only the current page of users using Supabase's page/perPage pagination.
+      // The cron workflow calls this endpoint repeatedly with increasing offsets until
+      // has_more is false, so each invocation stays well within the function timeout.
+      const authPage = Math.floor(batchOffset / batchSize) + 1;
+      const { data: { users: batchUsers } } = await supabase.auth.admin.listUsers({
+        page: authPage,
+        perPage: batchSize
+      });
+
+      const usersInBatch = batchUsers ?? [];
+      // If we got a full page there are likely more users after this batch
+      hasMore = usersInBatch.length === batchSize;
+
+      console.log(`📊 Sending digest to batch of ${usersInBatch.length} registered users (page ${authPage}, offset ${batchOffset}, has_more=${hasMore})...`);
+
+      for (const authUser of usersInBatch) {
         if (!authUser.email) continue;
         try {
           const emailSent = await sendScholarshipDigest(authUser.email, authUser.id);
@@ -135,9 +142,11 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     // ============ APPLICATION DEADLINE REMINDERS (ALL USERS) ============
+    // Only run on the first batch (offset 0) to avoid duplicate reminders across pages.
     // Removed paid-only gate — all users get deadline reminders for programs/scholarships
     // they have saved to their dashboard.
 
+    if (batchOffset === 0) {
     const { data: allUsersPrefs } = await supabase
       .from('user_preferences')
       .select('user_id, email_deadlines, instant_alerts')
@@ -161,13 +170,16 @@ export const POST: RequestHandler = async ({ request }) => {
         console.error(`Error processing application reminders for user ${userPref.user_id}:`, error);
       }
     }
+    } // end batchOffset === 0 guard for deadline reminders
 
     // Subscription expiry alerts and trial ending reminders removed —
     // the platform is now pay-as-you-go credits, not subscriptions.
     // Low-credit warnings are sent at the point of use (spend_credits RPC → API endpoint).
 
     // ============ NEWSLETTER SUBSCRIBERS (NON-USERS) ============
+    // Only run on the first batch to avoid duplicate newsletter sends.
     
+    if (batchOffset === 0) {
     // Check if newsletter system is enabled
     const { data: newsletterSettings } = await supabase
       .from('newsletter_settings')
@@ -181,132 +193,103 @@ export const POST: RequestHandler = async ({ request }) => {
       .eq('setting_key', 'scholarship_digest_enabled')
       .single();
 
-    if (newsletterSettings?.setting_value === true && digestSettings?.setting_value === true) {
-      // Get newsletter frequency setting
-      const { data: frequencySettings } = await supabase
-        .from('newsletter_settings')
-        .select('setting_value')
-        .eq('setting_key', 'send_frequency')
-        .single();
+    // Newsletter digest runs on the same schedule as the registered-user digest:
+    // every Monday, or whenever force_digest_all_registered is set.
+    // We no longer gate on the newsletter_settings DB flags for the weekly digest —
+    // those flags are for the admin campaign system. If the flags are explicitly set
+    // to false we still respect that, but a missing/null value defaults to enabled.
+    const newsletterExplicitlyDisabled =
+      newsletterSettings?.setting_value === false ||
+      digestSettings?.setting_value === false;
 
-      const { data: sendDaySettings } = await supabase
-        .from('newsletter_settings')
-        .select('setting_value')
-        .eq('setting_key', 'send_day')
-        .single();
+    if ((isMonday || forceDigestAllRegistered) && !newsletterExplicitlyDisabled) {
+      // Fetch all active newsletter subscribers who opted into the scholarship digest.
+      // We paginate using range() so this scales to 8k+ subscribers without loading
+      // everything into memory at once.
+      const NL_PAGE = 500;
+      let nlOffset = 0;
+      let totalNlSubscribers = 0;
 
-      const rawFreq = frequencySettings?.setting_value ?? 'weekly';
-      const sendFrequency = typeof rawFreq === 'string' && rawFreq.startsWith('"') ? JSON.parse(rawFreq) : rawFreq;
-      const sendDay = typeof sendDaySettings?.setting_value === 'number' ? sendDaySettings.setting_value : 1; // Default Monday
-
-      let shouldSendNewsletter = false;
-      if (sendFrequency === 'daily') {
-        shouldSendNewsletter = true;
-      } else if (sendFrequency === 'weekly') {
-        shouldSendNewsletter = dayOfWeek === sendDay;
-      } else if (sendFrequency === 'monthly') {
-        shouldSendNewsletter = today.getDate() === 1; // First of month
-      } else if (sendFrequency === 'bi-weekly') {
-        const { data: lastDigestRow } = await supabase
-          .from('newsletter_settings')
-          .select('setting_value')
-          .eq('setting_key', 'last_digest_sent')
-          .single();
-        const lastSentRaw = lastDigestRow?.setting_value;
-        const lastSent = lastSentRaw && lastSentRaw !== 'null' ? new Date(typeof lastSentRaw === 'string' && lastSentRaw.startsWith('"') ? JSON.parse(lastSentRaw) : lastSentRaw) : null;
-        const daysSince = (lastSent && !isNaN(lastSent.getTime())) ? (today.getTime() - lastSent.getTime()) / (24 * 60 * 60 * 1000) : 999;
-        shouldSendNewsletter = daysSince >= 14; // Every two weeks
+      // Build the set of registered-user emails once for deduplication
+      const registeredEmails = new Set<string>();
+      {
+        let authPage = 1;
+        while (true) {
+          const { data: { users: authBatch } } = await supabase.auth.admin.listUsers({
+            page: authPage,
+            perPage: 1000
+          });
+          if (!authBatch || authBatch.length === 0) break;
+          for (const u of authBatch) {
+            if (u.email) registeredEmails.add(u.email.toLowerCase());
+          }
+          if (authBatch.length < 1000) break;
+          authPage++;
+        }
       }
+      console.log(`📧 Dedup set built: ${registeredEmails.size} registered user emails`);
 
-      if (shouldSendNewsletter) {
-        // Get active newsletter subscribers
-        const { data: newsletterSubscribers } = await supabase
+      while (true) {
+        const { data: nlBatch } = await supabase
           .from('newsletter_subscribers')
           .select('id, email, source')
           .eq('status', 'active')
-          .eq('scholarship_digest', true);
+          .eq('scholarship_digest', true)
+          .range(nlOffset, nlOffset + NL_PAGE - 1)
+          .order('id', { ascending: true });
 
-        console.log(`📧 Processing newsletter for ${newsletterSubscribers?.length || 0} subscribers`);
+        if (!nlBatch || nlBatch.length === 0) break;
 
-        // Deduplicate: skip newsletter subscribers who are already registered users
-        // (they'll get the digest via the registered user flow above)
-        let dedupedSubscribers = newsletterSubscribers || [];
-        if (dedupedSubscribers.length > 0) {
-          const emails = dedupedSubscribers.map((s: any) => s.email.toLowerCase());
-          // Fetch registered user emails in batches of 500
-          const registeredEmails = new Set<string>();
-          for (let i = 0; i < emails.length; i += 500) {
-            const chunk = emails.slice(i, i + 500);
-            const { data: authUsers } = await supabase.auth.admin.listUsers({ perPage: 1000 });
-            if (authUsers?.users) {
-              for (const u of authUsers.users) {
-                if (u.email) registeredEmails.add(u.email.toLowerCase());
-              }
-            }
-            break; // listUsers returns all users in one call up to perPage
-          }
-          const before = dedupedSubscribers.length;
-          dedupedSubscribers = dedupedSubscribers.filter((s: any) => !registeredEmails.has(s.email.toLowerCase()));
-          const skipped = before - dedupedSubscribers.length;
-          if (skipped > 0) console.log(`📧 Skipped ${skipped} newsletter subscribers who are already registered users`);
+        // Skip subscribers who are already registered users (they get the digest above)
+        const dedupedBatch = nlBatch.filter(
+          (s: any) => !registeredEmails.has(s.email.toLowerCase())
+        );
+
+        const skipped = nlBatch.length - dedupedBatch.length;
+        if (skipped > 0) {
+          console.log(`📧 Skipped ${skipped} newsletter subscribers who are already registered users`);
         }
 
-        // Get batch size setting
-        const { data: batchSettings } = await supabase
-          .from('newsletter_settings')
-          .select('setting_value')
-          .eq('setting_key', 'max_emails_per_batch')
-          .single();
+        console.log(`📧 Sending digest to newsletter batch: ${dedupedBatch.length} subscribers (offset ${nlOffset})`);
 
-        const batchSize = batchSettings?.setting_value || 100;
+        for (const subscriber of dedupedBatch) {
+          try {
+            const emailSent = await sendScholarshipDigest(subscriber.email, null, subscriber.source);
+            if (emailSent) {
+              emailsProcessed.newsletter_emails++;
+              totalEmailsSent++;
+              totalNlSubscribers++;
 
-        // Process in batches to avoid overwhelming the email provider
-        if (dedupedSubscribers.length > 0) {
-          for (let i = 0; i < dedupedSubscribers.length; i += batchSize) {
-            const batch = dedupedSubscribers.slice(i, i + batchSize);
-            
-            for (const subscriber of batch) {
-              try {
-                const emailSent = await sendScholarshipDigest(subscriber.email, null, subscriber.source);
-                if (emailSent) {
-                  emailsProcessed.newsletter_emails++;
-                  totalEmailsSent++;
-
-                  // Update subscriber stats
-                  await supabase
-                    .from('newsletter_subscribers')
-                    .update({
-                      last_email_sent: new Date().toISOString(),
-                      total_emails_sent: supabase.rpc('increment', { x: 1 })
-                    })
-                    .eq('id', subscriber.id);
-                }
-              } catch (error) {
-                console.error(`Error sending newsletter to ${subscriber.email}:`, error);
-              }
+              // Update subscriber stats (fire-and-forget, don't block the loop)
+              supabase
+                .from('newsletter_subscribers')
+                .update({ last_email_sent: new Date().toISOString() })
+                .eq('id', subscriber.id)
+                .then(() => {})
+                .catch(() => {});
             }
-
-            // Add delay between batches to respect rate limits
-            if (i + batchSize < dedupedSubscribers.length) {
-              await new Promise(resolve => setTimeout(resolve, 1000)); // 1 second delay
-            }
+          } catch (error) {
+            console.error(`Error sending newsletter to ${subscriber.email}:`, error);
           }
-
-          // Update last digest sent setting
-          await supabase
-            .from('newsletter_settings')
-            .update({
-              setting_value: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            })
-            .eq('setting_key', 'last_digest_sent');
         }
-      } else {
-        console.log(`📧 Newsletter not scheduled for today (${sendFrequency} on day ${sendDay}, today is ${dayOfWeek})`);
+
+        if (nlBatch.length < NL_PAGE) break; // last page
+        nlOffset += NL_PAGE;
       }
+
+      console.log(`📧 Newsletter digest complete — sent to ${totalNlSubscribers} subscribers`);
+
+      // Update last digest sent timestamp
+      await supabase
+        .from('newsletter_settings')
+        .update({ setting_value: new Date().toISOString(), updated_at: new Date().toISOString() })
+        .eq('setting_key', 'last_digest_sent');
+    } else if (newsletterExplicitlyDisabled) {
+      console.log('📧 Newsletter digest explicitly disabled in settings — skipping');
     } else {
-      console.log('📧 Newsletter system is disabled');
+      console.log(`📧 Not Monday (day ${dayOfWeek}) and no force flag — skipping newsletter digest`);
     }
+    } // end batchOffset === 0 guard for newsletter
 
     // Log activity to database
     try {
@@ -326,10 +309,13 @@ export const POST: RequestHandler = async ({ request }) => {
       console.error('Error logging email activity:', logError);
     }
 
-    console.log('✅ Email cron job completed successfully:', emailsProcessed);
+    console.log(`✅ Email cron batch complete (offset=${batchOffset}, has_more=${hasMore}):`, emailsProcessed);
 
     return json({
       success: true,
+      has_more: hasMore,
+      batch_offset: batchOffset,
+      batch_size: batchSize,
       total_emails_sent: totalEmailsSent,
       breakdown: emailsProcessed,
       timestamp: new Date().toISOString()

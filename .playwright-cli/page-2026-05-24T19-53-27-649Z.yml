@@ -1,0 +1,420 @@
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e3]:
+      - navigation [ref=e5]:
+        - generic [ref=e8]:
+          - list [ref=e10]:
+            - listitem [ref=e11]:
+              - link "Notícias" [ref=e12] [cursor=pointer]:
+                - /url: /pt/noticias
+            - listitem [ref=e13]:
+              - link "Agenda" [ref=e14] [cursor=pointer]:
+                - /url: /pt/agenda
+            - listitem [ref=e15]:
+              - link "facebook" [ref=e16] [cursor=pointer]:
+                - /url: https://twitter.com/univaveiro
+                - generic [ref=e17]: 
+            - listitem [ref=e18]:
+              - link "instagram" [ref=e19] [cursor=pointer]:
+                - /url: https://www.instagram.com/universidadedeaveiro/
+                - generic [ref=e20]: 
+          - list [ref=e22]:
+            - listitem [ref=e23]:
+              - link "Futuros estudantes" [ref=e24] [cursor=pointer]:
+                - /url: /pt/publico-futuros-estudantes
+            - listitem [ref=e25]:
+              - link "Estudantes UA" [ref=e26] [cursor=pointer]:
+                - /url: /pt/publico-estudantes
+            - listitem [ref=e27]:
+              - link "Estudantes internacionais" [ref=e28] [cursor=pointer]:
+                - /url: /pt/publico-estudantes-internacionais
+            - listitem [ref=e29]:
+              - link "Alumni" [ref=e30] [cursor=pointer]:
+                - /url: /pt/publico-alumni
+            - listitem [ref=e31]:
+              - link "Pessoas UA" [ref=e32] [cursor=pointer]:
+                - /url: /pt/publico-pessoas
+            - listitem [ref=e33]:
+              - link "Sociedade" [ref=e34] [cursor=pointer]:
+                - /url: /pt/publico-sociedade
+          - link "entrar " [ref=e36] [cursor=pointer]:
+            - /url: "https://wso2-gw.ua.pt/authorize?client_id=UodNbVBS9FhNkuzYooTTBdfSqYAa&scope=openid%20profile&response_type=id_token%20token&state=af0ifjsldkj&nonce=aaaaaaaa&redirect_uri=https://www.ua.pt/pt/login "
+            - text: entrar
+            - generic [ref=e37]: 
+      - navigation [ref=e38]:
+        - heading "Navegação Principal" [level=2] [ref=e40]
+        - generic [ref=e43]:
+          - link "Logótipo da Universidade de Aveiro, ir para a página inicial" [ref=e46] [cursor=pointer]:
+            - /url: /
+            - img [ref=e47]
+          - list [ref=e50]:
+            - listitem [ref=e51]:
+              - link "sobre a ua" [ref=e53] [cursor=pointer]:
+                - /url: /pt/universidade
+            - listitem [ref=e54]:
+              - link "estudar" [ref=e56] [cursor=pointer]:
+                - /url: /pt/estudar
+            - listitem [ref=e58]:
+              - link "viver" [ref=e60] [cursor=pointer]:
+                - /url: /pt/viver
+            - listitem [ref=e61]:
+              - link "investigar" [ref=e63] [cursor=pointer]:
+                - /url: /pt/investigacao
+            - listitem [ref=e64]:
+              - link "cooperar" [ref=e66] [cursor=pointer]:
+                - /url: /pt/cooperacao
+            - listitem [ref=e67]:
+              - link "internacional" [ref=e69] [cursor=pointer]:
+                - /url: /pt/internacional
+          - list [ref=e71]:
+            - listitem [ref=e72]:
+              - generic "menu da acessibilidade" [ref=e73]:
+                - link "acessibilidade" [ref=e75] [cursor=pointer]:
+                  - /url: /pt/acessibilidade
+                  - generic [ref=e76]: 
+            - listitem [ref=e77]:
+              - link "alterar idioma para EN" [ref=e78] [cursor=pointer]:
+                - /url: /pt/curso/1730
+                - text: EN
+            - listitem [ref=e79]:
+              - link "Pesquisar" [ref=e80] [cursor=pointer]:
+                - /url: /pt/curso/1730
+                - generic [ref=e81]: 
+        - navigation [ref=e82] [cursor=pointer]:
+          - heading "Navegação Lateral" [level=2] [ref=e84]
+          - heading "estudar" [level=2] [ref=e90]
+          - tablist [ref=e95]:
+            - tab "tu pertences aqui" [ref=e97]:
+              - link "tu pertences aqui" [ref=e99]:
+                - /url: /pt/pertences-aqui
+            - tab "cursos" [ref=e101]:
+              - link "cursos" [ref=e103]:
+                - /url: /pt/tipo-curso
+            - tab "candidaturas" [ref=e105]:
+              - link "candidaturas" [ref=e107]:
+                - /url: /pt/candidaturas
+            - tab "apoio ao ensino" [ref=e109]:
+              - link "apoio ao ensino" [ref=e111]:
+                - /url: /pt/apoio-ensino
+            - tab "apoio ao estudo" [ref=e113]:
+              - link "apoio ao estudo" [ref=e115]:
+                - /url: /pt/apoio-estudo
+            - tab "estágios e emprego" [ref=e117]:
+              - link "estágios e emprego" [ref=e119]:
+                - /url: /pt/estagios-emprego
+            - tab "departamentos e escolas" [ref=e121]:
+              - link "departamentos e escolas" [ref=e123]:
+                - /url: /pt/departamentos-escolas
+      - generic [ref=e124]:
+        - generic [ref=e126]:
+          - heading "Mestrado em Engenharia Aeroespacial" [level=1] [ref=e130]
+          - generic [ref=e131]:
+            - generic [ref=e132]:
+              - generic [ref=e133]:
+                - paragraph [ref=e134]: O Mestrado em Engenharia Aeroespacial da Universidade de Aveiro visa proporcionar formação avançada e multidisciplinar a licenciados em Engenharia que se pretendam inserir em indústrias tecnológicas do setor aeroespacial. O programa de estudos prevê uma formação sólida de princípios fundamentais de engenharia, como mecânica, ciência dos materiais, eletrónica e gestão de projetos, dotando assim os seus diplomados de competências de planeamento e execução de projetos aeroespaciais de forma crítica, eficiente e sustentável.
+                - paragraph [ref=e135]: "Esta filosofia está patente tanto na base curricular comum como nas três áreas de especialização disponíveis: Estruturas e Sistemas de Engenharia, que explora a projeto estrutural e aerodinâmico de veículos e estruturas; Eletrónica Aeroespacial, que desenvolve sistemas eletrónicos energeticamente eficientes e de alta confiabilidade para o Espaço; e Design de Materiais e Dispositivos, que aborda práticas sustentáveis de manufatura e inovação em materiais aeroespaciais."
+                - paragraph [ref=e136]: A estrutura do curso, com uma formação teórica e prática robusta, prepara engenheiros capazes de contribuir de forma inovadora para desafios globais, promovendo parcerias com a indústria e centros de...
+              - generic [ref=e137]: ver mais
+            - generic [ref=e138]:
+              - generic [ref=e139]:
+                - paragraph [ref=e141]: Diretor(a) de curso
+                - link "Pedro Daniel Graça Casau" [ref=e142] [cursor=pointer]:
+                  - /url: /pt/p/80651766
+                - link "pcasau@ua.pt" [ref=e144] [cursor=pointer]:
+                  - /url: mailto:pcasau@ua.pt
+                - generic [ref=e145]:
+                  - paragraph [ref=e146]: Departamentos/Escolas politécnicas
+                  - link "Departamento de Eletrónica, Telecomunicações e Informática" [ref=e147] [cursor=pointer]:
+                    - /url: http://www.ua.pt/deti
+                  - link "Departamento de Engenharia de Materiais e Cerâmica" [ref=e148] [cursor=pointer]:
+                    - /url: http://www.ua.pt/cv
+                  - link "Departamento de Engenharia Mecânica" [ref=e149] [cursor=pointer]:
+                    - /url: http://www.ua.pt/mec
+                  - link "Departamento de Física" [ref=e150] [cursor=pointer]:
+                    - /url: http://www.ua.pt/fis
+                  - link "Escola Superior Aveiro Norte" [ref=e151] [cursor=pointer]:
+                    - /url: http://www.ua.pt/esan/
+              - button "Plano Curricular +" [ref=e153] [cursor=pointer]
+              - generic [ref=e155]:
+                - link "Indústria, inovação e infraestruturas" [ref=e156] [cursor=pointer]:
+                  - /url: "#ods"
+                  - img [ref=e157]
+                - link "Produção e Consumo Sustentáveis" [ref=e159] [cursor=pointer]:
+                  - /url: "#ods"
+                  - img [ref=e160]
+                - link "Ação Climática" [ref=e162] [cursor=pointer]:
+                  - /url: "#ods"
+                  - img [ref=e163]
+                - link [ref=e165] [cursor=pointer]:
+                  - /url: "#ods"
+                  - img [ref=e166]
+        - generic [ref=e169]:
+          - generic [ref=e171]:
+            - generic [ref=e173]:
+              - paragraph [ref=e174]: Duração
+              - heading "2 anos - 4 semestres" [level=3] [ref=e175]
+            - generic [ref=e177]:
+              - paragraph [ref=e178]: Regime
+              - heading "Diurno / laboral" [level=3] [ref=e179]
+            - generic [ref=e181]:
+              - paragraph [ref=e182]: Curso
+              - heading "Mestrado" [level=3] [ref=e183]
+            - generic [ref=e185]:
+              - paragraph [ref=e186]: Propina estudante nacional/UE 2024/2025
+              - heading "1000€/ano" [level=3] [ref=e187]
+          - generic [ref=e189]:
+            - generic [ref=e191]:
+              - paragraph [ref=e192]: Área(s) científica(s)
+              - heading "Engenharia Aeroespacial" [level=3] [ref=e193]
+            - generic [ref=e195]:
+              - paragraph [ref=e196]: Subsistema
+              - heading "Universitário" [level=3] [ref=e197]
+            - generic [ref=e199]:
+              - paragraph [ref=e200]: Idioma(s) de lecionação
+              - heading "Português / Inglês" [level=3] [ref=e201]
+            - generic [ref=e203]:
+              - paragraph [ref=e204]: Anuidade estudante internacional 2024/2025
+              - heading "5000€/ano" [level=3] [ref=e205]
+        - generic [ref=e206]:
+          - heading "Candidaturas" [level=2] [ref=e209]
+          - generic [ref=e217]:
+            - heading "Fases de candidatura" [level=2] [ref=e218]
+            - generic [ref=e219]:
+              - generic [ref=e220]:
+                - paragraph [ref=e221]: Vagas
+                - generic [ref=e222]:
+                  - text: "1ª fase: Não abre"
+                  - text: "2ª fase: 45"
+                  - text: "3ª fase: sobrantes da fase anterior"
+              - generic [ref=e223]:
+                - paragraph [ref=e224]: Período de candidatura
+                - generic [ref=e225]:
+                  - text: "1ª fase: 02/02/2026 a 12/02/2026"
+                  - text: "2ª fase: 14/04/2026 a 14/05/2026"
+                  - text: "3ª fase: 01/09/2026 a 04/09/2026"
+              - generic [ref=e226]:
+                - paragraph [ref=e227]: Edital
+                - link "https://acesso.ua.pt/upload/editais/e_11988.pdf" [ref=e228] [cursor=pointer]:
+                  - /url: https://acesso.ua.pt/upload/editais/e_11988.pdf
+              - generic [ref=e229]:
+                - paragraph [ref=e230]: Ata
+                - link "https://acesso.ua.pt/upload/atas/a_11988.pdf" [ref=e231] [cursor=pointer]:
+                  - /url: https://acesso.ua.pt/upload/atas/a_11988.pdf
+            - link "candidatura +" [ref=e233] [cursor=pointer]:
+              - /url: https://paco.ua.pt/candidaturas
+        - generic [ref=e241]:
+          - heading "Plano Curricular" [level=2] [ref=e244]
+          - generic [ref=e247]:
+            - paragraph [ref=e248]: O curso Mestrado em Engenharia Aeroespacial tem a duração de 2 anos - 4 semestres
+            - button "Plano Curricular +" [ref=e252] [cursor=pointer]
+        - generic [ref=e255]:
+          - generic [ref=e256]:
+            - heading "Registos" [level=2] [ref=e257]
+            - generic [ref=e258]:
+              - heading [level=3]
+              - paragraph [ref=e260]: Curso registado na Direção Geral do Ensino Superior com o número R/A-Cr 98/2024
+              - paragraph [ref=e262]: Publicação em D.R. Não aplicável
+              - paragraph [ref=e264]: Plano de estudos disponível em https://www.dges.gov.pt/simges/public/www/cursos/12143
+          - generic [ref=e265]:
+            - heading "Acreditações" [level=2] [ref=e266]
+            - generic [ref=e267]:
+              - heading "a3es" [level=3] [ref=e268]
+              - paragraph [ref=e270]: Curso acreditado em 03/06/2024
+              - link "Resultados Acreditação" [ref=e272] [cursor=pointer]:
+                - /url: https://si.a3es.pt/sia3es/page?stage=ConsultaPublicaProcesso&processID=870
+              - link "Relatório Autoavaliação A3ES" [ref=e274] [cursor=pointer]:
+                - /url: https://www.ua.pt/file/RA_9332_A3ES.pdf
+              - link "Relatório Autoavaliação SGQ" [ref=e276] [cursor=pointer]:
+                - /url: https://www.ua.pt/file/RelCurso_9332_2024_2025.pdf
+        - generic [ref=e278]:
+          - heading "Aplicação do Método da Universidade de Auckland na identificação da Contribuição da Universidade de Aveiro para os ODS através da oferta formativa" [level=2] [ref=e281]
+          - generic [ref=e283]:
+            - generic [ref=e285]:
+              - link "Indústria, inovação e infraestruturas" [ref=e287] [cursor=pointer]:
+                - /url: https://sdgs.un.org/goals/goal9
+                - img [ref=e288]
+              - link "Produção e Consumo Sustentáveis" [ref=e291] [cursor=pointer]:
+                - /url: https://sdgs.un.org/goals/goal12
+                - img [ref=e292]
+              - link "Ação Climática" [ref=e295] [cursor=pointer]:
+                - /url: https://sdgs.un.org/goals/goal13
+                - img [ref=e296]
+            - generic [ref=e298]:
+              - generic [ref=e300]:
+                - paragraph [ref=e301]: Os 17 Objetivos de Desenvolvimento Sustentável (ODS) traduzem o apelo universal para acabar com a pobreza, proteger o planeta, e garantir paz e prosperidade para todos, até 2030. Alinhada a estes objetivos globais, a Universidade de Aveiro (UA) adotou o Mapeamento de Palavras-chave dos ODS, desenvolvido pela Universidade de Auckland, na Nova Zelândia, para identificar correspondências na oferta formativa.
+                - paragraph [ref=e302]: Ao mapear os ODS na oferta formativa, a UA visa informar e sensibilizar os estudantes para questões reais e atuais, capacitando-os e envolvendo-os ativamente no desenvolvimento sustentável. A análise do contributo da oferta formativa para os ODS permitirá ainda promover a melhoria contínua do processo de ensino-aprendizagem.
+                - paragraph [ref=e303]: O método consiste na mineração de palavras-chave, predefinidas e validadas, no texto descritivo da oferta formativa que consta no portal da UA. A redação do texto é da responsabilidade do respetivo diretor de curso, estando o método automatizado para a atualização dos ODS em função da edição do texto.
+              - generic [ref=e304]:
+                - generic [ref=e306]:
+                  - paragraph [ref=e307]: Na aplicação do método, há que diferenciar o contributo da Instituição de Ensino Superior (IES) Universidade de Aveiro para os ODS e a contribuição parcelar da sua oferta formativa para o todo. Neste contexto, o ODS 4, que se centra na educação de qualidade, assume grande relevância para a UA, enquanto IES, e é refletido primeiramente nos cursos destinados à formação de novos professores, independentemente de todos os cursos promoverem um ensino de qualidade. O ODS 8, que promove crescimento económico sustentado, emprego pleno e produtivo, e trabalho digno para todos, está associado a cursos diretamente relacionados com o crescimento económico e o emprego, garantindo uma integração relevante e impactante, não obstante toda a formação preparar os estudantes para o mercado de trabalho. O ODS 17, que se foca em parcerias, não está incluído no método de mapeamento, pois apresenta-se como facilitador para a implementação dos restantes 16 objetivos.
+                  - paragraph [ref=e308]: A adoção do Mapeamento dos ODS pela Universidade de Aveiro representa um passo transformador para um ambiente académico mais sustentável e responsável. Esta iniciativa posiciona a universidade na divulgação da integração da sustentabilidade na sua oferta formativa, preparando os estudantes para fazerem escolhas informadas e serem contribuidores proativos para um futuro sustentável.
+                - generic [ref=e309]:
+                  - link "saber mais +" [ref=e311] [cursor=pointer]:
+                    - /url: /pt/sustentabilidade/ods
+                  - link [ref=e313] [cursor=pointer]:
+                    - /url: https://sdgs.un.org/goals
+                    - img [ref=e314]
+    - contentinfo [ref=e316]:
+      - heading "Rodapé" [level=2] [ref=e318]
+      - generic [ref=e321]:
+        - generic [ref=e323]:
+          - heading "Segue-nos" [level=3] [ref=e325]
+          - generic [ref=e326]:
+            - list [ref=e327]:
+              - listitem [ref=e328]:
+                - link "Logótipo facebook" [ref=e329] [cursor=pointer]:
+                  - /url: https://www.facebook.com/universidadedeaveiro/
+                  - generic [ref=e330]: 
+              - listitem [ref=e331]:
+                - link "Logótipo do instagram" [ref=e332] [cursor=pointer]:
+                  - /url: https://www.instagram.com/universidadedeaveiro/
+                  - generic [ref=e333]: 
+              - listitem [ref=e334]:
+                - link "Logótipo do twitter" [ref=e335] [cursor=pointer]:
+                  - /url: https://twitter.com/univaveiro
+                  - generic [ref=e336]: 
+              - listitem [ref=e337]:
+                - link "Logótipo do LinkedIn" [ref=e338] [cursor=pointer]:
+                  - /url: https://www.linkedin.com/school/universidade-de-aveiro/?originalSubdomain=pt
+                  - generic [ref=e339]: 
+              - listitem [ref=e340]:
+                - link "Logótipo do YouTube" [ref=e341] [cursor=pointer]:
+                  - /url: https://www.youtube.com/channel/UCJnxPIxMHdxcYhRIIw_ztEg
+                  - generic [ref=e342]: 
+            - link "Logótipo do Consórcio Europeu de Universidades Inovadoras" [ref=e345] [cursor=pointer]:
+              - /url: /pt/covid-19-info
+              - img "Logótipo do Consórcio Europeu de Universidades Inovadoras" [ref=e346]
+        - generic [ref=e347]:
+          - heading "Questões" [level=3] [ref=e348]
+          - list [ref=e349]:
+            - listitem [ref=e350]:
+              - link "pergunta ao reitor" [ref=e351] [cursor=pointer]:
+                - /url: https://forms.ua.pt/index.php?r=survey/index&sid=988175&lang=pt
+            - listitem [ref=e352]:
+              - link "pergunta ao provedor do estudante" [ref=e353] [cursor=pointer]:
+                - /url: https://forms.ua.pt/index.php?r=survey/index&sid=115724&lang=pt
+            - listitem [ref=e354]:
+              - link "canal de denúncias" [ref=e355] [cursor=pointer]:
+                - /url: /pt/reitoria/denuncias
+            - listitem [ref=e356]:
+              - link "livro amarelo eletrónico" [ref=e357] [cursor=pointer]:
+                - /url: https://lae.digital.gov.pt/
+        - generic [ref=e359]:
+          - heading "Links Rápidos" [level=3] [ref=e360]
+          - list [ref=e361]:
+            - listitem [ref=e362]:
+              - link "sobre a ua" [ref=e363] [cursor=pointer]:
+                - /url: /pt/universidade
+            - listitem [ref=e364]:
+              - link "Cursos" [ref=e365] [cursor=pointer]:
+                - /url: /pt/tipo-curso
+                - text: cursos
+            - listitem [ref=e366]:
+              - link "candidaturas" [ref=e367] [cursor=pointer]:
+                - /url: /pt/candidaturas
+            - listitem [ref=e368]:
+              - link "Departamentos/ Escolas" [ref=e369] [cursor=pointer]:
+                - /url: /pt/departamentos-escolas
+                - text: departamentos e escolas
+            - listitem [ref=e370]:
+              - link "Serviços" [ref=e371] [cursor=pointer]:
+                - /url: /pt/administracao-servicos
+                - text: serviços
+            - listitem [ref=e372]:
+              - link "unidades de investigação" [ref=e373] [cursor=pointer]:
+                - /url: /pt/unidades-investigacao
+            - listitem [ref=e374]:
+              - link "Biblioteca" [ref=e375] [cursor=pointer]:
+                - /url: https://www.ua.pt/pt/sbidm
+                - text: biblioteca
+        - generic [ref=e377]:
+          - heading "Públicos" [level=3] [ref=e378]
+          - list [ref=e379]:
+            - listitem [ref=e380]:
+              - link "futuros estudantes" [ref=e381] [cursor=pointer]:
+                - /url: /pt/publico-futuros-estudantes
+            - listitem [ref=e382]:
+              - link "estudantes da ua" [ref=e383] [cursor=pointer]:
+                - /url: /pt/publico-estudantes
+                - text: estudantes ua
+            - listitem [ref=e384]:
+              - link "estudantes internacionais" [ref=e385] [cursor=pointer]:
+                - /url: /pt/publico-estudantes-internacionais
+            - listitem [ref=e386]:
+              - link "alumni" [ref=e387] [cursor=pointer]:
+                - /url: /pt/publico-alumni
+            - listitem [ref=e388]:
+              - link "pessoas ua" [ref=e389] [cursor=pointer]:
+                - /url: /pt/publico-pessoas
+            - listitem [ref=e390]:
+              - link "sociedade" [ref=e391] [cursor=pointer]:
+                - /url: /pt/publico-sociedade
+            - listitem [ref=e392]:
+              - link "comunicação e media" [ref=e393] [cursor=pointer]:
+                - /url: /pt/comunicacao-e-media
+        - generic [ref=e395]:
+          - heading "Contactos" [level=3] [ref=e396]
+          - generic [ref=e397]:
+            - paragraph [ref=e399]:
+              - text: Campus Universitário de Santiago
+              - text: 3810-193 Aveiro
+              - text: Portugal
+            - link "+351 234 370 200" [ref=e401] [cursor=pointer]:
+              - /url: tel:+351234370200
+            - link "contactos gerais" [ref=e403] [cursor=pointer]:
+              - /url: /pt/contactos-gerais
+      - generic [ref=e406]:
+        - generic [ref=e408]:
+          - generic [ref=e409]:
+            - link "Proteção de dados" [ref=e411] [cursor=pointer]:
+              - /url: /pt/protecao-dados
+            - link "Termos de utilização" [ref=e413] [cursor=pointer]:
+              - /url: /pt/termos-de-utilizacao
+            - link "Acessibilidade" [ref=e415] [cursor=pointer]:
+              - /url: /pt/acessibilidade
+            - link "Mapa do site" [ref=e417] [cursor=pointer]:
+              - /url: /pt/mapa-site
+          - paragraph [ref=e420]: Universidade de Aveiro 2026
+        - generic [ref=e422]:
+          - link "Logótipo Compete 2020" [ref=e425] [cursor=pointer]:
+            - /url: https://www.ua.pt/stic/page/22825
+            - img "Logótipo Compete 2020" [ref=e426]
+          - link "Em conformidade com o nível 'duplo-A' das WCAG 2.0 do W3C" [ref=e429] [cursor=pointer]:
+            - /url: https://www.w3.org/WAI/WCAG2AA-Conformance.html
+            - img "Em conformidade com o nível 'duplo-A' das WCAG 2.0 do W3C" [ref=e430]
+          - link "Logótipo do Consórcio Europeu de Universidades Inovadoras" [ref=e433] [cursor=pointer]:
+            - /url: http://www.eciu.org/
+            - img "Logótipo do Consórcio Europeu de Universidades Inovadoras" [ref=e434]
+          - link "Logótipo do ERASMUS charter for higher education 2014-2020" [ref=e437] [cursor=pointer]:
+            - /url: https://www.ua.pt/file/42005
+            - img "Logótipo do ERASMUS charter for higher education 2014-2020" [ref=e438]
+          - link "Logótipo do ERASMUS policy statement" [ref=e441] [cursor=pointer]:
+            - /url: https://www.ua.pt/file/33409
+            - img "Logótipo do ERASMUS policy statement" [ref=e442]
+          - link "Símbolo de Acessibilidade à Web" [ref=e445] [cursor=pointer]:
+            - /url: http://www.acessibilidade.gov.pt/simbolo
+            - img "Símbolo de Acessibilidade à Web" [ref=e446]
+          - link "CGD" [ref=e449] [cursor=pointer]:
+            - /url: https://www.cgd.pt/
+            - img "CGD" [ref=e450]
+      - generic [ref=e453]:
+        - link "Logótipo Norte e Centro 2020" [ref=e456] [cursor=pointer]:
+          - /url: https://www.ua.pt/
+          - img "Logótipo Norte e Centro 2020" [ref=e457]
+        - link "Logótipo Compete 2030" [ref=e460] [cursor=pointer]:
+          - /url: https://www.ua.pt/
+          - img "Logótipo Compete 2030" [ref=e461]
+      - link "Logótipo Compete 2030" [ref=e467] [cursor=pointer]:
+        - /url: https://www.ua.pt/
+        - img "Logótipo Compete 2030" [ref=e468]
+  - dialog [ref=e470]:
+    - generic [ref=e472]:
+      - paragraph [ref=e475]:
+        - text: Ao aceitar a política de cookies da Universidade de Aveiro deverá ter em consideração que o armazenamento de cookies no seu dispositivo possibilita a personalização da utilização e a melhoria de navegação no website. Poderá alterar as definições de cookies a qualquer altura.
+        - link "Política de cookies" [ref=e476] [cursor=pointer]:
+          - /url: /protecao-dados
+      - generic [ref=e478]:
+        - button "Alterar definições de cookies" [ref=e479] [cursor=pointer]
+        - button "Rejeitar Tudo" [ref=e480] [cursor=pointer]
+        - button "Aceitar tudo" [ref=e481] [cursor=pointer]
+    - button "Fechar" [ref=e483] [cursor=pointer]

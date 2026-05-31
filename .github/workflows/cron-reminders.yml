@@ -9,13 +9,45 @@ on:
 jobs:
   send-reminders:
     runs-on: ubuntu-latest
-    
+    timeout-minutes: 30
+
     steps:
-      - name: Send Email Reminders
-        run: |
-          curl -X POST "https://www.abroaducate.com/api/cron/send-reminders" \
-            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
-            -H "Content-Type: application/json" \
-            --max-time 300
+      - name: Send Email Reminders (paginated)
         env:
-          CRON_SECRET: ${{ secrets.CRON_SECRET }} 
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          BATCH_SIZE=200
+          OFFSET=0
+          MAX_BATCHES=50   # safety cap — 50 × 200 = 10 000 users max
+          BATCH_NUM=0
+
+          while [ $BATCH_NUM -lt $MAX_BATCHES ]; do
+            echo "▶ Sending batch offset=$OFFSET size=$BATCH_SIZE"
+
+            RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
+              "https://www.abroaducate.com/api/cron/send-reminders" \
+              -H "Authorization: Bearer $CRON_SECRET" \
+              -H "Content-Type: application/json" \
+              --max-time 240 \
+              -d "{\"batch_size\": $BATCH_SIZE, \"offset\": $OFFSET, \"force_digest_all_registered\": true}")
+
+            HTTP_STATUS=$(echo "$RESPONSE" | tail -n1)
+            BODY=$(echo "$RESPONSE" | head -n -1)
+
+            echo "  HTTP $HTTP_STATUS — $BODY"
+
+            if [ "$HTTP_STATUS" != "200" ]; then
+              echo "❌ Batch failed with HTTP $HTTP_STATUS"
+              exit 1
+            fi
+
+            # Check if there are more users to process
+            HAS_MORE=$(echo "$BODY" | grep -o '"has_more":[^,}]*' | cut -d: -f2 | tr -d ' ')
+            if [ "$HAS_MORE" != "true" ]; then
+              echo "✅ All batches complete"
+              break
+            fi
+
+            OFFSET=$((OFFSET + BATCH_SIZE))
+            BATCH_NUM=$((BATCH_NUM + 1))
+          done

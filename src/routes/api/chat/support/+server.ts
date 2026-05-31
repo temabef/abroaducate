@@ -30,7 +30,7 @@ WHAT YOU CAN HELP WITH:
 - Scholarships: 679+ scholarships with automatic matching to programs
 - How the platform works: dashboard, credit system, document generation, strategy feature
 - Application process: deadlines, required documents, how to apply
-- Study abroad advice: visa requirements, living costs, language requirements for the 9 countries
+- Study abroad advice: visa requirements, living costs, language requirements for the 10 countries
 - Credit system: 3 free credits on signup, credit packs (20/$4.99, 50/$9.99, 130/$24.99)
 - Documents: SOP, cover letter, personal statement, academic CV generation
 

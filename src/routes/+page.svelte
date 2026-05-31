@@ -130,7 +130,7 @@ return () => clearInterval(interval);
 			<span class="hero-highlight">without breaking the bank</span>
 		</h1>
 		<p class="hero-sub">
-			Discover 2,500+ affordable programs across 9 European countries. Get matched with scholarships and generate application documents with AI.
+			Discover 2,500+ affordable programs across 10 European countries. Get matched with scholarships and generate application documents with AI.
 		</p>
 
 		<!-- Finder Bar -->
@@ -338,7 +338,7 @@ return () => clearInterval(interval);
 				</div>
 				<div class="proof-secondary-stats">
 					<div class="proof-stat-item">
-						<span class="proof-stat-val">9</span>
+						<span class="proof-stat-val">10</span>
 						<span class="proof-stat-lbl">Countries</span>
 					</div>
 					<div class="proof-stat-item">

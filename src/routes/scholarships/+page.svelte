@@ -254,13 +254,15 @@
       
       // Primary source: decoded view (better text rendering).
       // Some Supabase views don't expose `created_at` for ordering; if so, retry without ordering.
+      // Only select columns needed for the card display + filters (reduces egress significantly).
+      const SCHOLARSHIP_LIST_COLS = 'id, title, provider, amount, deadline, location, field, level, levels, type, is_active, funding_category, university_name, program_name, has_automatic_funding, min_gpa, created_at';
       let scholarshipData: any[] | null = null;
       let fetchError: any = null;
 
       {
         const res = await supabase
           .from('public_scholarships_decoded')
-          .select('*')
+          .select(SCHOLARSHIP_LIST_COLS)
           .order('created_at', { ascending: false });
         scholarshipData = (res.data as any[] | null) ?? null;
         fetchError = res.error;
@@ -268,7 +270,7 @@
 
       if (fetchError) {
         console.warn('⚠️ Decoded view ordered query failed; retrying without order.', fetchError);
-        const res2 = await supabase.from('public_scholarships_decoded').select('*');
+        const res2 = await supabase.from('public_scholarships_decoded').select(SCHOLARSHIP_LIST_COLS);
         scholarshipData = (res2.data as any[] | null) ?? null;
         fetchError = res2.error;
       }
@@ -276,7 +278,7 @@
       // Fallback: base table (keeps list working even if view is unavailable/misconfigured)
       if (fetchError) {
         console.warn('⚠️ Decoded view query failed; falling back to scholarships table.', fetchError);
-        const res3 = await supabase.from('scholarships').select('*').order('created_at', { ascending: false });
+        const res3 = await supabase.from('scholarships').select(SCHOLARSHIP_LIST_COLS).order('created_at', { ascending: false }).order('id', { ascending: false });
         scholarshipData = (res3.data as any[] | null) ?? null;
         fetchError = res3.error;
       }

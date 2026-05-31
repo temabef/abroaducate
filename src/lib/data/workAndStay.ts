@@ -266,6 +266,35 @@ export const WORK_AND_STAY: Record<string, WorkAndStayData> = {
     officialLink: 'https://www.migracija.lt/en/'
   },
 
+  Portugal: {
+    country: 'Portugal',
+    flag: '🇵🇹',
+    studentWorkRights: {
+      hoursPerWeek: 20,
+      notes: 'Up to 20 hours/week during term. Full-time during holidays. Work permit included in student visa.'
+    },
+    postStudyVisa: {
+      duration: '12 months',
+      name: 'Job Seeker Visa (Visto de Procura de Trabalho)',
+      notes: 'One-year permit to find employment after graduation. Portugal is part of Schengen — you can travel freely across Europe during this period.'
+    },
+    pathToPR: {
+      yearsRequired: 5,
+      notes: 'Permanent residency after 5 years of legal residence. Portugal\'s Golden Visa and D7 visa also offer alternative pathways.'
+    },
+    averageGraduateSalary: {
+      amount: '€18,000',
+      currency: 'EUR',
+      notes: 'Average starting salary. Lisbon and Porto tech sectors average €25,000–€35,000. Lower than northern Europe but cost of living is significantly lower.'
+    },
+    studentMinWage: {
+      amount: '€5.42',
+      per: 'hour',
+      notes: 'Based on national minimum wage (€820/month). Most student jobs in Lisbon pay €5–€8/hour.'
+    },
+    officialLink: 'https://imigrante.sef.pt/en/stay/autorizations/stay-for-study/'
+  },
+
   Estonia: {
     country: 'Estonia',
     flag: '🇪🇪',
