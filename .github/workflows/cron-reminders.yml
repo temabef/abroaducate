@@ -2,8 +2,8 @@ name: Send Scholarship Reminders
 
 on:
   schedule:
-    # Run every day at 9:00 AM UTC
-    - cron: '0 9 * * *'
+    # Run every Monday at 9:00 AM UTC
+    - cron: '0 9 * * 1'
   workflow_dispatch: # Allow manual trigger
 
 jobs:
@@ -21,24 +21,56 @@ jobs:
           MAX_BATCHES=50   # safety cap — 50 × 200 = 10 000 users max
           BATCH_NUM=0
 
+          # retry/backoff settings
+          MAX_RETRIES=3
+          INITIAL_DELAY=5
+          CONSECUTIVE_FAILS=0
+          MAX_CONSECUTIVE_FAILS=3
+
           while [ $BATCH_NUM -lt $MAX_BATCHES ]; do
             echo "▶ Sending batch offset=$OFFSET size=$BATCH_SIZE"
 
-            RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
-              "https://www.abroaducate.com/api/cron/send-reminders" \
-              -H "Authorization: Bearer $CRON_SECRET" \
-              -H "Content-Type: application/json" \
-              --max-time 240 \
-              -d "{\"batch_size\": $BATCH_SIZE, \"offset\": $OFFSET, \"force_digest_all_registered\": true}")
+            attempt=1
+            success=0
+            while [ $attempt -le $MAX_RETRIES ]; do
+              RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
+                "https://www.abroaducate.com/api/cron/send-reminders" \
+                -H "Authorization: Bearer $CRON_SECRET" \
+                -H "Content-Type: application/json" \
+                --max-time 240 \
+                -d "{\"batch_size\": $BATCH_SIZE, \"offset\": $OFFSET}") || true
 
-            HTTP_STATUS=$(echo "$RESPONSE" | tail -n1)
-            BODY=$(echo "$RESPONSE" | head -n -1)
+              HTTP_STATUS=$(echo "$RESPONSE" | tail -n1)
+              BODY=$(echo "$RESPONSE" | head -n -1)
 
-            echo "  HTTP $HTTP_STATUS — $BODY"
+              echo "  HTTP $HTTP_STATUS — $BODY"
 
-            if [ "$HTTP_STATUS" != "200" ]; then
-              echo "❌ Batch failed with HTTP $HTTP_STATUS"
-              exit 1
+              if [ "$HTTP_STATUS" = "200" ]; then
+                success=1
+                break
+              fi
+
+              echo "  Attempt $attempt failed (HTTP $HTTP_STATUS)."
+              if [ $attempt -lt $MAX_RETRIES ]; then
+                SLEEP_SEC=$(awk -v d=$INITIAL_DELAY -v a=$attempt 'BEGIN{srand(); printf "%.2f", d*(2^(a-1))*(0.8+rand()*0.4)}')
+                echo "  Retrying after ${SLEEP_SEC}s..."
+                sleep $SLEEP_SEC
+              fi
+              attempt=$((attempt+1))
+            done
+
+            if [ $success -ne 1 ]; then
+              echo "❌ Batch failed after $MAX_RETRIES attempts (last HTTP $HTTP_STATUS). Logging and continuing."
+              CONSECUTIVE_FAILS=$((CONSECUTIVE_FAILS+1))
+              OFFSET=$((OFFSET + BATCH_SIZE))
+              BATCH_NUM=$((BATCH_NUM + 1))
+              if [ $CONSECUTIVE_FAILS -ge $MAX_CONSECUTIVE_FAILS ]; then
+                echo "⚠️ ${CONSECUTIVE_FAILS} consecutive failures — aborting early to avoid wasting runtime."
+                break
+              fi
+              continue
+            else
+              CONSECUTIVE_FAILS=0
             fi
 
             # Check if there are more users to process
