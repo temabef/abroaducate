@@ -42,8 +42,8 @@ const APPLY = process.argv.includes('--apply');
 const ROLLOVER_SCHOLARSHIPS = process.argv.includes('--rollover-scholarships');
 const PERSIST_ROLLOVER = process.argv.includes('--persist-rollover');
 const TOP_N = 999; // No cap — show all genuine matches. Zero is acceptable and honest.
-const SCORE_THRESHOLD = 60; // Requires country match (30) + level (20) + at minimum no field mismatch.
-                             // A score of 55 = country+level+nationality but field_mismatch — excluded.
+const SCORE_THRESHOLD = 70; // Requires country (30) + level (20) + field (15) + nationality/deadline (5+)
+                             // This ensures only realistic, field-specific matches
 
 const supabase = createClient(process.env.PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
@@ -115,10 +115,15 @@ function matchesField(programField, scholarshipField) {
   const pf = normalize(programField);
   const sf = normalize(scholarshipField);
   if (!sf) return false;
-  if (sf === 'all fields') return true;
+  
+  // REJECT generic "All Fields" scholarships - they're too broad to be useful
+  if (sf === 'all fields' || sf === 'all' || sf === 'various' || sf === 'any field') {
+    return false;
+  }
+  
   if (!pf) return false;
 
-  // Bidirectional substring match
+  // Bidirectional substring match (at least 4 characters)
   if (sf.length >= 4 && pf.includes(sf)) return true;
   if (pf.length >= 4 && sf.includes(pf)) return true;
 
@@ -194,20 +199,17 @@ function scoreMatch(program, scholarship) {
   // have a strong field match to be shown, otherwise they mislead students.
   const scholarshipClass = classifyScholarship(scholarship);
 
-  // Country — STRICT: scholarship must directly name the program's country.
-  // broad_region ("Europe", "Global") is intentionally NOT scored.
-  // A scholarship for Malta or Japan cannot fund a program in Germany.
+  // 1. MANDATORY: Country — STRICT: scholarship must directly name the program's country.
   const { direct } = matchesCountry(program.country, scholarship.location);
   if (direct) {
     score += 30;
     rules.push('country');
   } else {
     // No country match = this scholarship cannot fund this program.
-    // Return early with score 0 to skip expensive remaining checks.
     return { score: 0, rules: ['no_country_match'], covers: [] };
   }
 
-  // Institution-specific
+  // 2. Institution-specific (highest confidence)
   if (
     scholarship.university_name &&
     program.university_name &&
@@ -217,20 +219,24 @@ function scoreMatch(program, scholarship) {
     rules.push('institution');
   }
 
-  // Level
+  // 3. MANDATORY: Level
   if (matchesLevel(program.degree_level, scholarship.level, scholarship.levels)) {
     score += 20;
     rules.push('level');
+  } else {
+    // Level mismatch = cannot fund this program
+    return { score: 0, rules: ['level_mismatch'], covers: [] };
   }
 
-  // Field
+  // 4. MANDATORY: Field
   const fieldMatch = matchesField(program.field_of_study, scholarship.field);
   if (fieldMatch) {
     score += 15;
     rules.push('field');
-  } else if (scholarship.field && normalize(scholarship.field) !== 'all fields') {
-    score -= 15;
-    rules.push('field_mismatch');
+  } else {
+    // No field match = not eligible
+    // This rejects "All Fields" scholarships AND field mismatches
+    return { score: 0, rules: ['field_mismatch_or_too_broad'], covers: [] };
   }
 
   // Program-specific penalty: Erasmus Mundus / joint-degree scholarships are
@@ -251,7 +257,7 @@ function scoreMatch(program, scholarship) {
     }
   }
 
-  // Nationality
+  // 5. Nationality
   const restrictions = Array.isArray(scholarship.nationality_restrictions)
     ? scholarship.nationality_restrictions
     : [];
@@ -260,7 +266,7 @@ function scoreMatch(program, scholarship) {
     rules.push('nationality_open');
   }
 
-  // Deadline viability (scholarship deadline must be reachable before program close)
+  // 6. Deadline viability (scholarship deadline must be reachable before program close)
   if (scholarship.deadline && program.application_close_date) {
     if (scholarship.deadline <= program.application_close_date) {
       score += 5;
@@ -268,14 +274,14 @@ function scoreMatch(program, scholarship) {
     }
   }
 
-  // Covers tuition where program has tuition
+  // 7. Covers tuition where program has tuition
   const covers = parseCovers(scholarship.amount, scholarship.type, scholarship.description);
   if ((program.tuition_per_semester || 0) > 0 && covers.includes('tuition')) {
     score += 5;
     rules.push('tuition_covered');
   }
 
-  // Past deadline penalty
+  // 8. Past deadline penalty
   if (scholarship.deadline && scholarship.deadline < TODAY) {
     score -= 20;
     rules.push('deadline_past');
@@ -449,15 +455,13 @@ async function main() {
   }
   console.log(`\nInserted ${inserted} match rows.`);
 
-  // Bump tuition_tier on programs that have a strong scholarship match
-  console.log('\nPromoting programs with matches to scholarship_funded tier (if paid)...');
-  const paidProgramsWithMatches = programs.filter(
-    (p) => (p.tuition_per_semester || 0) > 5000 && matchedProgramIds.has(p.id)
-  );
-  console.log(`  ${paidProgramsWithMatches.length} paid programs have matches — promoting`);
+  // Bump tuition_tier on programs that have a scholarship match
+  console.log('\nPromoting programs with matches to scholarship_funded tier...');
+  const programsToPromote = programs.filter((p) => matchedProgramIds.has(p.id));
+  console.log(`  ${programsToPromote.length} programs have matches — promoting`);
 
   let promoted = 0;
-  for (const p of paidProgramsWithMatches) {
+  for (const p of programsToPromote) {
     const { error } = await supabase
       .from('programs')
       .update({ tuition_tier: 'scholarship_funded' })
@@ -465,6 +469,24 @@ async function main() {
     if (!error) promoted += 1;
   }
   console.log(`  promoted ${promoted} programs to scholarship_funded.`);
+
+  // Demote programs that were previously scholarship_funded but no longer have
+  // any active scholarship matches.
+  console.log('Demoting stale scholarship_funded programs...');
+  const currentlyFunded = programs.filter((p) => p.tuition_tier === 'scholarship_funded');
+  let demoted = 0;
+  for (const p of currentlyFunded) {
+    if (!matchedProgramIds.has(p.id)) {
+      const tuition = p.tuition_per_semester || 0;
+      const newTier = tuition === 0 ? 'zero_tuition' : tuition <= 5000 ? 'low_tuition' : 'paid';
+      const { error } = await supabase
+        .from('programs')
+        .update({ tuition_tier: newTier })
+        .eq('id', p.id);
+      if (!error) demoted += 1;
+    }
+  }
+  console.log(`  demoted ${demoted} stale scholarship_funded programs.`);
 
   console.log('\nDone.');
 }

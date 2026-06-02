@@ -21,7 +21,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 export const TOP_N = 5;
-export const MIN_SCORE = 25;
+export const MIN_SCORE = 70; // Requires country (30) + level (20) + field (15) + nationality/deadline (5+)
 
 const BROAD_LOCATIONS = [
 	'europe',
@@ -121,9 +121,15 @@ function matchesField(programField: string | null | undefined, scholarshipField:
 	const pf = normalize(programField);
 	const sf = normalize(scholarshipField);
 	if (!sf) return false;
-	if (sf === 'all fields') return true;
+	
+	// Reject generic "All Fields" scholarships - they're too broad to be useful
+	if (sf === 'all fields' || sf === 'all' || sf === 'various' || sf === 'any field') {
+		return false;
+	}
+	
 	if (!pf) return false;
 
+	// Direct substring match (at least 4 characters)
 	if (sf.length >= 4 && pf.includes(sf)) return true;
 	if (pf.length >= 4 && sf.includes(pf)) return true;
 
@@ -173,45 +179,54 @@ export function scoreMatch(program: ProgramRow, scholarship: ScholarshipRow, tod
 	const rules: string[] = [];
 	let score = 0;
 
+	// 1. MANDATORY: Country match
 	const { direct, broad } = matchesCountry(program.country, scholarship.location);
 	if (direct) {
 		score += 30;
 		rules.push('country');
-	} else if (broad) {
-		score += 15;
-		rules.push('broad_region');
+	} else {
+		// STRICT: No direct country match = cannot fund this program.
+		return { score: 0, rules: ['no_country_match'], covers: [] };
 	}
 
-	if (
-		scholarship.university_name &&
+	// 2. Institution-specific (highest confidence)
+	const institutionMatch = scholarship.university_name &&
 		program.university_name &&
-		normalize(scholarship.university_name) === normalize(program.university_name)
-	) {
+		normalize(scholarship.university_name) === normalize(program.university_name);
+	
+	if (institutionMatch) {
 		score += 25;
 		rules.push('institution');
 	}
 
+	// 3. MANDATORY: Level match
 	if (matchesLevel(program.degree_level, scholarship.level, scholarship.levels)) {
 		score += 20;
 		rules.push('level');
+	} else {
+		// Level mismatch = cannot fund this program
+		return { score: 0, rules: ['level_mismatch'], covers: [] };
 	}
 
-	if (matchesField(program.field_of_study, scholarship.field)) {
+	// 4. MANDATORY: Field match
+	const fieldMatch = matchesField(program.field_of_study, scholarship.field);
+	if (fieldMatch) {
 		score += 15;
 		rules.push('field');
-	} else if (scholarship.field && normalize(scholarship.field) !== 'all fields') {
-		// Scholarship targets a specific field list but the program doesn't fit.
-		// Penalise so a clear mismatch can't ride country+level coat-tails.
-		score -= 15;
-		rules.push('field_mismatch');
+	} else {
+		// No field match = not eligible for this scholarship
+		// This rejects "All Fields" scholarships and field mismatches
+		return { score: 0, rules: ['field_mismatch_or_too_broad'], covers: [] };
 	}
 
+	// 5. Nationality restrictions
 	const restrictions = Array.isArray(scholarship.nationality_restrictions) ? scholarship.nationality_restrictions : [];
 	if (restrictions.length === 0) {
 		score += 10;
 		rules.push('nationality_open');
 	}
 
+	// 6. Deadline viability
 	if (scholarship.deadline && program.application_close_date) {
 		if (scholarship.deadline <= program.application_close_date) {
 			score += 5;
@@ -219,12 +234,14 @@ export function scoreMatch(program: ProgramRow, scholarship: ScholarshipRow, tod
 		}
 	}
 
+	// 7. Tuition coverage
 	const covers = parseCovers(scholarship.amount, scholarship.type, scholarship.description);
 	if ((program.tuition_per_semester || 0) > 0 && covers.includes('tuition')) {
 		score += 5;
 		rules.push('tuition_covered');
 	}
 
+	// 8. Past deadline penalty
 	if (scholarship.deadline && scholarship.deadline < today) {
 		score -= 20;
 		rules.push('deadline_past');
@@ -243,7 +260,7 @@ export async function rematchScholarship(
 	supabase: SupabaseClient,
 	scholarshipId: string,
 	opts: { rolloverIfPast?: boolean; persistRollover?: boolean } = {}
-): Promise<{ inserted: number; reranked: number; newDeadline?: string | null; skipped?: string }> {
+): Promise<{ inserted: number; reranked: number; newDeadline?: string | null; skipped?: string; demoted?: number }> {
 	const today = new Date().toISOString().slice(0, 10);
 
 	const { data: s, error: sErr } = await supabase
@@ -253,10 +270,18 @@ export async function rematchScholarship(
 		.single();
 	if (sErr || !s) throw new Error(`Scholarship ${scholarshipId} not found: ${sErr?.message}`);
 
+	const { data: oldMatches, error: oldMatchError } = await supabase
+		.from('program_scholarship_matches')
+		.select('program_id')
+		.eq('scholarship_id', scholarshipId);
+	if (oldMatchError) throw oldMatchError;
+	const oldProgramIds = [...new Set((oldMatches || []).map((m: any) => m.program_id))];
+
 	if (!s.is_active) {
 		// Remove any stale matches for an inactive scholarship
 		await supabase.from('program_scholarship_matches').delete().eq('scholarship_id', scholarshipId);
-		return { inserted: 0, reranked: 0, skipped: 'inactive' };
+		const demoted = await demoteStaleScholarshipFundedPrograms(oldProgramIds);
+		return { inserted: 0, reranked: 0, skipped: 'inactive', demoted };
 	}
 
 	// Roll deadline forward if requested (same behaviour as batch)
@@ -290,6 +315,37 @@ export async function rematchScholarship(
 		programs.push(...(data as ProgramRow[]));
 		if (data.length < PAGE) break;
 		from += PAGE;
+	}
+
+	async function demoteStaleScholarshipFundedPrograms(programIds: string[]): Promise<number> {
+		if (programIds.length === 0) return 0;
+		const { data: stillMatched, error: stillError } = await supabase
+			.from('program_scholarship_matches')
+			.select('program_id')
+			.in('program_id', programIds);
+		if (stillError) throw stillError;
+		const stillSet = new Set((stillMatched || []).map((m: any) => m.program_id));
+
+		const { data: fundedPrograms, error: fundedError } = await supabase
+			.from('programs')
+			.select('id, tuition_per_semester')
+			.eq('tuition_tier', 'scholarship_funded')
+			.in('id', programIds);
+		if (fundedError || !fundedPrograms) return 0;
+
+		let demoted = 0;
+		for (const p of fundedPrograms) {
+			if (!stillSet.has(p.id)) {
+				const tuition = p.tuition_per_semester ?? 0;
+				const newTier = tuition === 0 ? 'zero_tuition' : tuition <= 5000 ? 'low_tuition' : 'paid';
+				const { error } = await supabase
+					.from('programs')
+					.update({ tuition_tier: newTier })
+					.eq('id', p.id);
+				if (!error) demoted += 1;
+			}
+		}
+		return demoted;
 	}
 
 	// Delete existing matches for this scholarship (we're about to recompute)
@@ -386,15 +442,18 @@ export async function rematchScholarship(
 		if (!error) reranked += 1;
 	}
 
-	// Promote newly-covered paid programs to scholarship_funded, if any
+	// Promote programs with scholarship matches to scholarship_funded tier
+	// regardless of their tuition amount. A scholarship-funded program is one
+	// that has at least one matching scholarship, even if it's low-tuition or
+	// zero-tuition (the scholarship may cover living costs, travel, etc.).
 	const programsCovered = rowsToInsert.map((r) => r.program_id);
 	if (programsCovered.length > 0) {
 		await supabase
 			.from('programs')
 			.update({ tuition_tier: 'scholarship_funded' })
-			.in('id', programsCovered)
-			.gt('tuition_per_semester', 5000);
+			.in('id', programsCovered);
 	}
 
-	return { inserted, reranked, newDeadline };
+	const demoted = await demoteStaleScholarshipFundedPrograms(oldProgramIds);
+	return { inserted, reranked, newDeadline, demoted };
 }

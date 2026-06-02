@@ -120,9 +120,30 @@ export const POST: RequestHandler = async ({ request }) => {
 			const { count } = await supabase
 				.from('programs')
 				.update({ tuition_tier: 'scholarship_funded' }, { count: 'exact' })
-				.in('id', slice)
-				.gt('tuition_per_semester', 5000);
+				.in('id', slice);
 			promoted += count ?? 0;
+		}
+	}
+
+	// Demote programs that were previously scholarship_funded but no longer
+	// have any active scholarship matches.
+	let demoted = 0;
+	const matchedSet = new Set(matchedProgramIds);
+	const { data: fundedPrograms, error: fundedError } = await supabase
+		.from('programs')
+		.select('id, tuition_per_semester')
+		.eq('tuition_tier', 'scholarship_funded');
+	if (!fundedError && fundedPrograms?.length) {
+		for (const p of fundedPrograms) {
+			if (!matchedSet.has(p.id)) {
+				const tuition = p.tuition_per_semester ?? 0;
+				const newTier = tuition === 0 ? 'zero_tuition' : tuition <= 5000 ? 'low_tuition' : 'paid';
+				const { error } = await supabase
+					.from('programs')
+					.update({ tuition_tier: newTier })
+					.eq('id', p.id);
+				if (!error) demoted += 1;
+			}
 		}
 	}
 
@@ -134,6 +155,7 @@ export const POST: RequestHandler = async ({ request }) => {
 		deadlines_rolled: rolledIds.length,
 		matches_inserted: inserted,
 		programs_with_matches: matchedProgramIds.length,
-		paid_promoted: promoted
+		paid_promoted: promoted,
+		funded_demoted: demoted
 	});
 };
