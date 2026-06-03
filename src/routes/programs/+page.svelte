@@ -149,6 +149,132 @@
 		</div>
 	</div>
 
+	<!-- Mobile Filter Overlay -->
+	{#if showMobileFilters}
+		<div class="mobile-filter-overlay" onclick={() => showMobileFilters = false}>
+			<div class="mobile-filter-panel" onclick={(e) => e.stopPropagation()}>
+				<div class="mobile-filter-header">
+					<h3 class="font-bold text-slate-800 flex items-center gap-2">
+						<Filter size={18} /> Filters
+					</h3>
+					<button onclick={() => showMobileFilters = false} class="text-slate-500 hover:text-slate-700">
+						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+					</button>
+				</div>
+
+				<div class="mobile-filter-content">
+					<!-- Filter Group -->
+					<div class="mb-6">
+						<h4 class="text-sm font-semibold text-slate-600 mb-3 uppercase tracking-wider">Funding Tier</h4>
+						<div class="space-y-2">
+							<label class="flex items-center gap-3 cursor-pointer group">
+								<input type="checkbox" value="zero_tuition" bind:group={selectedTiers} class="w-4 h-4 rounded text-orange-500 border-slate-300 focus:ring-orange-500 transition-colors" />
+								<span class="text-slate-700 text-sm group-hover:text-orange-600 transition-colors">No tuition</span>
+							</label>
+							<label class="flex items-center gap-3 cursor-pointer group">
+								<input type="checkbox" value="low_tuition" bind:group={selectedTiers} class="w-4 h-4 rounded text-orange-500 border-slate-300 focus:ring-orange-500 transition-colors" />
+								<span class="text-slate-700 text-sm group-hover:text-orange-600 transition-colors">Low tuition (≤ €10k/yr)</span>
+							</label>
+							<label class="flex items-center gap-3 cursor-pointer group">
+								<input type="checkbox" value="scholarship_funded" bind:group={selectedTiers} class="w-4 h-4 rounded text-orange-500 border-slate-300 focus:ring-orange-500 transition-colors" />
+								<span class="text-slate-700 text-sm group-hover:text-orange-600 transition-colors">Scholarship-funded</span>
+							</label>
+						</div>
+						<p class="text-xs text-slate-400 mt-2 leading-snug">Pick the funding paths that work for you. Scholarship-funded programs have at least one matching scholarship in our database that covers tuition.</p>
+					</div>
+
+					<!-- Filter Group -->
+					<div class="mb-6">
+						<h4 class="text-sm font-semibold text-slate-600 mb-3 uppercase tracking-wider">Country</h4>
+						<div class="space-y-2">
+							{#each countryOptions as country}
+								<label class="flex items-center gap-3 cursor-pointer group">
+									<input type="checkbox" value={country} bind:group={selectedCountries} class="w-4 h-4 rounded text-orange-500 border-slate-300 focus:ring-orange-500 transition-colors" />
+									<span class="text-slate-700 text-sm group-hover:text-orange-600 transition-colors">{country}</span>
+								</label>
+							{/each}
+						</div>
+					</div>
+
+					<!-- Filter Group -->
+					<div class="mb-6">
+						<h4 class="text-sm font-semibold text-slate-600 mb-3 uppercase tracking-wider">Language</h4>
+						<div class="space-y-2">
+							<label class="flex items-center gap-3 cursor-pointer group">
+								<input type="checkbox" value="English" bind:group={selectedLanguages} class="w-4 h-4 rounded text-orange-500 border-slate-300 focus:ring-orange-500 transition-colors" />
+								<span class="text-slate-700 text-sm group-hover:text-orange-600 transition-colors">English programs</span>
+							</label>
+						</div>
+					</div>
+
+					<!-- Filter Group -->
+					<div class="mb-6">
+						<h4 class="text-sm font-semibold text-slate-600 mb-3 uppercase tracking-wider">Annual Tuition Budget</h4>
+						{#if selectedTiers.length > 0 && selectedTiers.every((t) => t === 'scholarship_funded')}
+							<p class="text-xs text-slate-500 leading-snug bg-amber-50 border border-amber-100 rounded-md p-3">
+								Tuition cap is ignored while Scholarship-funded is the only selected tier — these programs are meant to be funded by a matching scholarship.
+							</p>
+						{:else}
+							<div class="space-y-4">
+								<div class="flex justify-between items-center text-sm font-bold text-slate-700">
+									<span>€0</span>
+									<span class="text-orange-500 whitespace-nowrap">Max: €{maxTuition.toLocaleString()}</span>
+								</div>
+								<input 
+									type="range" 
+									min="0" 
+									max="10000" 
+									step="500" 
+									bind:value={maxTuition} 
+									class="w-full h-2 cursor-pointer accent-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/50 rounded-lg" 
+								/>
+							</div>
+						{/if}
+					</div>
+
+					<!-- Filter Group -->
+					<div class="mb-6">
+						<h4 class="text-sm font-semibold text-slate-600 mb-3 uppercase tracking-wider">Intake Semester</h4>
+						<div class="space-y-2">
+							<label class="flex items-center gap-3">
+								<input type="checkbox" value="winter" bind:group={selectedIntakes} class="w-4 h-4 rounded text-orange-500 border-slate-300 focus:ring-orange-500" />
+								<span class="text-slate-700 text-sm">Winter Semester</span>
+							</label>
+							<label class="flex items-center gap-3">
+								<input type="checkbox" value="summer" bind:group={selectedIntakes} class="w-4 h-4 rounded text-orange-500 border-slate-300 focus:ring-orange-500" />
+								<span class="text-slate-700 text-sm">Summer Semester</span>
+							</label>
+						</div>
+					</div>
+
+					<!-- Filter Group -->
+					<div class="mb-6">
+						<h4 class="text-sm font-semibold text-slate-600 mb-3 uppercase tracking-wider">Degree Level</h4>
+						<div class="space-y-2">
+							<label class="flex items-center gap-3">
+								<input type="checkbox" value="bachelor" bind:group={selectedDegreeLevels} class="w-4 h-4 rounded text-orange-500 border-slate-300 focus:ring-orange-500" />
+								<span class="text-slate-700 text-sm">Bachelor's (BSc, BA)</span>
+							</label>
+							<label class="flex items-center gap-3">
+								<input type="checkbox" value="master" bind:group={selectedDegreeLevels} class="w-4 h-4 rounded text-orange-500 border-slate-300 focus:ring-orange-500" />
+								<span class="text-slate-700 text-sm">Master's (MSc, MA)</span>
+							</label>
+							<label class="flex items-center gap-3">
+								<input type="checkbox" value="phd" bind:group={selectedDegreeLevels} class="w-4 h-4 rounded text-orange-500 border-slate-300 focus:ring-orange-500" />
+								<span class="text-slate-700 text-sm">PhD / Doctorate</span>
+							</label>
+						</div>
+					</div>
+				</div>
+
+				<div class="mobile-filter-footer">
+					<button onclick={clearAllFilters} class="btn-clear">Clear All</button>
+					<button onclick={() => showMobileFilters = false} class="btn-apply">Apply Filters</button>
+				</div>
+			</div>
+		</div>
+	{/if}
+
 	<div class="discovery-body max-w-7xl mx-auto px-6 py-8 flex gap-8">
 		
 		<!-- SIDEBAR: Filters (Desktop) -->
@@ -486,5 +612,100 @@
 		.search-input {
 			font-size: 0.9375rem;
 		}
+	}
+
+	/* Mobile Filter Overlay & Panel */
+	.mobile-filter-overlay {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background: rgba(0, 0, 0, 0.5);
+		z-index: 9998;
+		backdrop-filter: blur(2px);
+	}
+
+	.mobile-filter-panel {
+		position: fixed;
+		top: 0;
+		right: 0;
+		bottom: 0;
+		width: 85%;
+		max-width: 400px;
+		background: white;
+		z-index: 9999;
+		display: flex;
+		flex-direction: column;
+		box-shadow: -4px 0 24px rgba(0, 0, 0, 0.15);
+		animation: slideIn 0.3s ease-out;
+	}
+
+	@keyframes slideIn {
+		from {
+			transform: translateX(100%);
+		}
+		to {
+			transform: translateX(0);
+		}
+	}
+
+	.mobile-filter-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 1.5rem;
+		border-bottom: 1px solid #e2e8f0;
+		flex-shrink: 0;
+	}
+
+	.mobile-filter-content {
+		flex: 1;
+		overflow-y: auto;
+		padding: 1.5rem;
+	}
+
+	.mobile-filter-footer {
+		display: flex;
+		gap: 0.75rem;
+		padding: 1.5rem;
+		border-top: 1px solid #e2e8f0;
+		flex-shrink: 0;
+	}
+
+	.btn-clear {
+		flex: 1;
+		padding: 0.875rem 1rem;
+		font-weight: 600;
+		font-size: 0.9375rem;
+		color: #475569;
+		background: white;
+		border: 2px solid #e2e8f0;
+		border-radius: 0.75rem;
+		cursor: pointer;
+		transition: all 0.2s ease;
+	}
+
+	.btn-clear:hover {
+		background: #f8fafc;
+		border-color: #cbd5e1;
+	}
+
+	.btn-apply {
+		flex: 1;
+		padding: 0.875rem 1rem;
+		font-weight: 700;
+		font-size: 0.9375rem;
+		color: white;
+		background: #0f172a;
+		border: 2px solid #0f172a;
+		border-radius: 0.75rem;
+		cursor: pointer;
+		transition: all 0.2s ease;
+	}
+
+	.btn-apply:hover {
+		background: #1e293b;
+		border-color: #1e293b;
 	}
 </style>

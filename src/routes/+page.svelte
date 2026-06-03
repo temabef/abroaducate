@@ -75,10 +75,12 @@ observer.disconnect();
 }
 
 function goToPrograms() {
-const params = new URLSearchParams();
-if (finderField.trim()) params.set('field', finderField.trim());
-if (finderDestination.trim()) params.set('destination', finderDestination.trim());
-goto(`/programs?${params.toString()}`);
+	const params = new URLSearchParams();
+	// Use 'q' for general search query (field of study)
+	if (finderField.trim()) params.set('q', finderField.trim());
+	// Use 'country' for destination filter
+	if (finderDestination.trim()) params.append('country', finderDestination.trim());
+	goto(`/programs?${params.toString()}`);
 }
 
 function openSignup() {
