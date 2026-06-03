@@ -76,10 +76,11 @@ observer.disconnect();
 
 function goToPrograms() {
 	const params = new URLSearchParams();
-	// Use 'q' for general search query (field of study)
-	if (finderField.trim()) params.set('q', finderField.trim());
-	// Use 'country' for destination filter
-	if (finderDestination.trim()) params.append('country', finderDestination.trim());
+	// Combine field and destination into a single search query for case-insensitive search
+	const searchTerms = [finderField.trim(), finderDestination.trim()].filter(Boolean);
+	if (searchTerms.length > 0) {
+		params.set('q', searchTerms.join(' '));
+	}
 	goto(`/programs?${params.toString()}`);
 }
 
