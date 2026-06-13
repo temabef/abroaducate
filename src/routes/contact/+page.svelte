@@ -22,6 +22,9 @@
 	let messageError = $state('');
 	let turnstileToken = $state('');
 	let turnstileDiv: HTMLElement | null = null;
+	let turnstileLoaded = $state(false);
+	let turnstileRetries = 0;
+	const MAX_RETRIES = 3;
 
 	const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -29,18 +32,73 @@
 	if (typeof window !== 'undefined') {
 		(window as any).onTurnstileSuccess = (token: string) => {
 			turnstileToken = token;
+			turnstileLoaded = true;
 		};
 		(window as any).onTurnstileError = () => {
 			error = 'Security check failed. Please refresh and try again.';
+			tryRenderTurnstile(); // Retry on error
 		};
 	}
 
+	function tryRenderTurnstile() {
+		if (turnstileRetries >= MAX_RETRIES) {
+			console.error('Turnstile failed to load after maximum retries');
+			return;
+		}
+
+		if ((window as any).turnstile && turnstileDiv) {
+			try {
+				// Clear any existing widget first
+				turnstileDiv.innerHTML = '';
+				
+				(window as any).turnstile.render('#turnstile-widget', {
+					sitekey: PUBLIC_TURNSTILE_SITE_KEY,
+					callback: 'onTurnstileSuccess',
+					'error-callback': 'onTurnstileError',
+					theme: 'light'
+				});
+				console.log('Turnstile widget rendered successfully');
+			} catch (err) {
+				console.error('Error rendering Turnstile:', err);
+				turnstileRetries++;
+				// Retry after a short delay
+				setTimeout(tryRenderTurnstile, 1000);
+			}
+		} else {
+			turnstileRetries++;
+			// Wait for Turnstile API to be ready
+			setTimeout(tryRenderTurnstile, 500);
+		}
+	}
+
 	onMount(() => {
-		// Load Turnstile script
+		// Check if Turnstile script is already loaded
+		const existingScript = document.querySelector('script[src*="challenges.cloudflare.com/turnstile"]');
+		
+		if (existingScript) {
+			// Script already exists, try to render widget
+			console.log('Turnstile script already loaded, attempting render');
+			setTimeout(tryRenderTurnstile, 100);
+			return;
+		}
+
+		// Load Turnstile script if not already present
 		const script = document.createElement('script');
-		script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
+		script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTurnstileLoad&render=explicit';
 		script.async = true;
 		script.defer = true;
+		
+		// Callback when script loads
+		(window as any).onTurnstileLoad = () => {
+			console.log('Turnstile script loaded');
+			setTimeout(tryRenderTurnstile, 100);
+		};
+
+		script.onerror = () => {
+			console.error('Failed to load Turnstile script');
+			error = 'Failed to load security check. Please refresh the page.';
+		};
+
 		document.head.appendChild(script);
 	});
 
@@ -71,9 +129,16 @@
 				submitted = true;
 				formData = { name: '', email: '', category: 'general', subject: '', message: '', priority: 'normal' };
 				turnstileToken = '';
+				turnstileLoaded = false;
 				// Reset Turnstile widget
-				if (typeof (window as any).turnstile !== 'undefined' && turnstileDiv) {
-					(window as any).turnstile.reset(turnstileDiv);
+				if (typeof (window as any).turnstile !== 'undefined') {
+					try {
+						(window as any).turnstile.reset('#turnstile-widget');
+					} catch (e) {
+						console.error('Error resetting Turnstile:', e);
+						// Re-render if reset fails
+						tryRenderTurnstile();
+					}
 				}
 				window.scrollTo({ top: 0, behavior: 'smooth' });
 			} else {
@@ -225,12 +290,11 @@
 							<label class="block text-sm font-semibold text-slate-700 mb-2">Security check <span class="text-rose-500">*</span></label>
 							<div 
 								bind:this={turnstileDiv}
-								class="cf-turnstile" 
-								data-sitekey={PUBLIC_TURNSTILE_SITE_KEY}
-								data-callback="onTurnstileSuccess"
-								data-error-callback="onTurnstileError"
-								data-theme="light"
+								id="turnstile-widget"
 							></div>
+							{#if !turnstileToken}
+								<p class="text-xs text-slate-500 mt-2">Complete the security check to enable the submit button.</p>
+							{/if}
 						</div>
 
 						<button type="submit" disabled={submitting || !turnstileToken}
