@@ -47,17 +47,10 @@
 			return;
 		}
 
-		console.log('Attempting to render Turnstile, attempt:', turnstileRetries + 1);
-		console.log('PUBLIC_TURNSTILE_SITE_KEY:', PUBLIC_TURNSTILE_SITE_KEY ? 'Present' : 'MISSING');
-		console.log('Turnstile API available:', !!(window as any).turnstile);
-		console.log('Turnstile div exists:', !!turnstileDiv);
-
 		if ((window as any).turnstile && turnstileDiv) {
 			try {
 				// Clear any existing widget first
 				turnstileDiv.innerHTML = '';
-				
-				console.log('Rendering with sitekey:', PUBLIC_TURNSTILE_SITE_KEY?.substring(0, 10) + '...');
 				
 				(window as any).turnstile.render('#turnstile-widget', {
 					sitekey: PUBLIC_TURNSTILE_SITE_KEY,
@@ -65,7 +58,6 @@
 					'error-callback': 'onTurnstileError',
 					theme: 'light'
 				});
-				console.log('Turnstile widget rendered successfully');
 			} catch (err) {
 				console.error('Error rendering Turnstile:', err);
 				error = 'Failed to load security check. Please refresh the page.';
@@ -74,7 +66,6 @@
 				setTimeout(tryRenderTurnstile, 1000);
 			}
 		} else {
-			console.warn('Turnstile not ready yet, retrying...');
 			turnstileRetries++;
 			// Wait for Turnstile API to be ready
 			setTimeout(tryRenderTurnstile, 500);
@@ -87,7 +78,6 @@
 		
 		if (existingScript) {
 			// Script already exists, try to render widget
-			console.log('Turnstile script already loaded, attempting render');
 			setTimeout(tryRenderTurnstile, 100);
 			return;
 		}
@@ -100,7 +90,6 @@
 		
 		// Callback when script loads
 		(window as any).onTurnstileLoad = () => {
-			console.log('Turnstile script loaded');
 			setTimeout(tryRenderTurnstile, 100);
 		};
 
