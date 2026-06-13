@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { sendEmail } from '$lib/server/email.server';
 import { createClient } from '@supabase/supabase-js';
 import { PUBLIC_SUPABASE_URL } from '$env/static/public';
-import { SUPABASE_SERVICE_ROLE_KEY } from '$env/static/private';
+import { SUPABASE_SERVICE_ROLE_KEY, TURNSTILE_SECRET_KEY } from '$env/static/private';
 
 // Simple in-memory rate limiter (per IP, resets on server restart)
 const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
@@ -25,7 +25,8 @@ const contactSchema = z.object({
 	category: z.string().min(1).max(50),
 	subject: z.string().max(200).optional().default(''),
 	message: z.string().min(10).max(2000),
-	priority: z.enum(['low', 'normal', 'high', 'critical']).optional().default('normal')
+	priority: z.enum(['low', 'normal', 'high', 'critical']).optional().default('normal'),
+	turnstileToken: z.string().min(1)
 });
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -60,7 +61,25 @@ export const POST: RequestHandler = async ({ request }) => {
 			return json({ error: 'Invalid input', details: parsed.error.flatten() }, { status: 400 });
 		}
 
-		const { name, email, category, subject, message, priority } = parsed.data;
+		const { name, email, category, subject, message, priority, turnstileToken } = parsed.data;
+
+		// Verify Turnstile token server-side
+		const turnstileResponse = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({
+				secret: TURNSTILE_SECRET_KEY,
+				response: turnstileToken,
+				remoteip: ip
+			})
+		});
+
+		const turnstileResult = await turnstileResponse.json();
+		if (!turnstileResult.success) {
+			console.warn('[contact-support] Turnstile verification failed:', turnstileResult);
+			return json({ error: 'Security check failed. Please refresh and try again.' }, { status: 403 });
+		}
+
 		const categoryLabel = CATEGORY_LABELS[category] ?? category;
 		const requestId = crypto.randomUUID();
 		const timestamp = new Date().toLocaleString('en-GB', { timeZone: 'UTC' });

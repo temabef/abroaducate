@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { Wrench, CreditCard, User, FileText, GraduationCap, MessageSquare, Mail, Clock, ChevronDown, CheckCircle2, ArrowLeft } from 'lucide-svelte';
+	import { onMount } from 'svelte';
+	import { PUBLIC_TURNSTILE_SITE_KEY } from '$env/static/public';
 
 	let { data } = $props();
 
@@ -18,8 +20,29 @@
 	let nameError = $state('');
 	let emailError = $state('');
 	let messageError = $state('');
+	let turnstileToken = $state('');
+	let turnstileDiv: HTMLElement | null = null;
 
 	const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+	// Global callback for Turnstile
+	if (typeof window !== 'undefined') {
+		(window as any).onTurnstileSuccess = (token: string) => {
+			turnstileToken = token;
+		};
+		(window as any).onTurnstileError = () => {
+			error = 'Security check failed. Please refresh and try again.';
+		};
+	}
+
+	onMount(() => {
+		// Load Turnstile script
+		const script = document.createElement('script');
+		script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
+		script.async = true;
+		script.defer = true;
+		document.head.appendChild(script);
+	});
 
 	function validateName() { nameError = formData.name.trim().length < 2 ? 'Full name is required.' : ''; }
 	function validateEmail() { emailError = !formData.email ? 'Email is required.' : !emailRegex.test(formData.email) ? 'Invalid email format.' : ''; }
@@ -29,17 +52,29 @@
 		e.preventDefault();
 		validateName(); validateEmail(); validateMessage();
 		if (nameError || emailError || messageError) { error = 'Please fix the errors above.'; return; }
+		
+		// Require Turnstile token
+		if (!turnstileToken) {
+			error = 'Please complete the security check.';
+			return;
+		}
+
 		submitting = true;
 		error = '';
 		try {
 			const res = await fetch('/api/contact-support', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify(formData)
+				body: JSON.stringify({ ...formData, turnstileToken })
 			});
 			if (res.ok) {
 				submitted = true;
 				formData = { name: '', email: '', category: 'general', subject: '', message: '', priority: 'normal' };
+				turnstileToken = '';
+				// Reset Turnstile widget
+				if (typeof (window as any).turnstile !== 'undefined' && turnstileDiv) {
+					(window as any).turnstile.reset(turnstileDiv);
+				}
 				window.scrollTo({ top: 0, behavior: 'smooth' });
 			} else {
 				const j = await res.json().catch(() => ({}));
@@ -185,7 +220,20 @@
 							{#if messageError}<p class="text-rose-600 text-xs mt-1">{messageError}</p>{/if}
 						</div>
 
-						<button type="submit" disabled={submitting}
+						<!-- Turnstile CAPTCHA -->
+						<div>
+							<label class="block text-sm font-semibold text-slate-700 mb-2">Security check <span class="text-rose-500">*</span></label>
+							<div 
+								bind:this={turnstileDiv}
+								class="cf-turnstile" 
+								data-sitekey={PUBLIC_TURNSTILE_SITE_KEY}
+								data-callback="onTurnstileSuccess"
+								data-error-callback="onTurnstileError"
+								data-theme="light"
+							></div>
+						</div>
+
+						<button type="submit" disabled={submitting || !turnstileToken}
 							class="w-full bg-slate-900 text-white font-bold py-3 rounded-xl hover:bg-slate-800 transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
 							{#if submitting}
 								<div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
