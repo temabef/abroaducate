@@ -26,6 +26,7 @@ export const actions: Actions = {
 		}
 
 		const formData = await request.formData();
+		const userName = formData.get('userName') as string;
 		const usedSOP = formData.get('usedSOP') as string;
 		const usedScholarshipRadar = formData.get('usedScholarshipRadar') as string;
 		const rating = formData.get('rating') as string;
@@ -45,6 +46,7 @@ export const actions: Actions = {
 			.insert({
 				user_id: session.user.id,
 				user_email: session.user.email,
+				user_name: userName || null,
 				used_sop: usedSOP === 'yes',
 				used_scholarship_radar: usedScholarshipRadar === 'yes',
 				rating: parseInt(rating),

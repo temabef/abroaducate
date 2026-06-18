@@ -5,6 +5,7 @@ CREATE TABLE early_user_feedback (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
   user_email TEXT NOT NULL,
+  user_name TEXT,
   used_sop BOOLEAN DEFAULT false,
   used_scholarship_radar BOOLEAN DEFAULT false,
   rating INTEGER CHECK (rating >= 1 AND rating <= 5),

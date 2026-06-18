@@ -8,6 +8,7 @@
 	let usedSOP = $state<boolean | null>(null);
 	let usedScholarshipRadar = $state<boolean | null>(null);
 	let wasBeneficial = $state<number | null>(null);
+	let userName = $state('');
 	let whatWorked = $state('');
 	let whatToImprove = $state('');
 	let wouldRecommend = $state<string | null>(null);
@@ -89,6 +90,23 @@
 				<div class="bg-gradient-to-r from-orange-500 via-emerald-500 to-blue-500 h-2"></div>
 				
 				<div class="p-8 space-y-8">
+					<!-- Name Field -->
+					<div class="space-y-3">
+						<label class="block text-sm font-bold text-slate-900 uppercase tracking-wide" for="userName">
+							Your Name (Optional)
+						</label>
+						<input 
+							type="text"
+							id="userName"
+							name="userName"
+							bind:value={userName}
+							class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none text-slate-800"
+							placeholder="e.g. John Doe"
+						/>
+					</div>
+
+					<div class="h-px bg-slate-100"></div>
+
 					<!-- Question 1: Generated SOP -->
 					<div class="space-y-3">
 						<label class="block text-sm font-bold text-slate-900 uppercase tracking-wide">
