@@ -54,7 +54,9 @@ export const POST: RequestHandler = async ({ request, locals: { getSession }, ur
                 card: {
                     request_three_d_secure: 'automatic'
                 }
-            }
+            },
+            // Enable Stripe's built-in promo code field
+            allow_promotion_codes: true
         });
 
         console.log('✅ Stripe credit checkout session created successfully:', checkoutSession.id);
