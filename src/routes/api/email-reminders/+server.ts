@@ -70,7 +70,8 @@ function generateEmailTemplate(data: EmailReminderRequest['scholarshipData']) {
   </div>
   <div style="border-top:1px solid #e5e7eb;padding-top:20px;margin-top:30px;text-align:center;color:#6b7280;font-size:14px;">
     <p>This reminder was sent from your <strong>Abroaducate</strong> scholarship tracker.</p>
-    <p><a href="https://abroaducate.com/settings" style="color:#2563EB;text-decoration:none;">Manage email preferences</a></p>
+    <p style="font-size:11px;margin:8px 0 4px;">You're receiving this because you have an Abroaducate account.</p>
+    <p><a href="https://abroaducate.com/newsletter/unsubscribe" style="color:#f97316;text-decoration:underline;font-weight:600;">Unsubscribe</a> · <a href="https://abroaducate.com/privacy" style="color:#f97316;text-decoration:underline;font-weight:600;">Privacy Policy</a></p>
   </div>
 </body>
 </html>`;

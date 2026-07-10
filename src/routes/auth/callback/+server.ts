@@ -76,7 +76,10 @@ export const GET: RequestHandler = async (event) => {
 <div style="background:#f8fafc;padding:16px 32px;border-top:1px solid #e2e8f0;text-align:center">
 <p style="color:#64748b;font-size:13px;margin:0">Questions? Reply to this email — we read every one.</p>
 </div>
-<div class="footer"><a href="https://abroaducate.com/settings">Manage email preferences</a> &middot; <a href="https://abroaducate.com">abroaducate.com</a></div>
+<div class="footer">
+<p style="color:#64748b;font-size:11px;margin:0 0 6px;">You're receiving this because you have an Abroaducate account.</p>
+<a href="https://abroaducate.com/newsletter/unsubscribe" style="color:#f97316;text-decoration:underline;font-weight:600;">Unsubscribe</a> &middot; <a href="https://abroaducate.com/privacy" style="color:#f97316;text-decoration:underline;font-weight:600;">Privacy Policy</a>
+</div>
 </div></div></body></html>`,
                             text: `Welcome to Abroaducate!\n\nYou have 3 free credits to get started.\n\nWhat you can do:\n- Browse 2,500+ programs (free)\n- Scholarship matching (free)\n- Right-Fit AI Check (1 credit)\n- Generate documents (2 credits)\n\nGet started: https://abroaducate.com/programs\n\nQuestions? Reply to this email.`
                         }).catch(e => console.error('[WELCOME EMAIL] Failed:', e));

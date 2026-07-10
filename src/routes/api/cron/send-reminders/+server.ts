@@ -595,10 +595,13 @@ function generateScholarshipDigestHTML(scholarships: any[], source?: string): st
 
     <!-- Footer -->
     <div style="background:#f8fafc;padding:16px 32px;border-top:1px solid #e2e8f0;text-align:center;">
+      <p style="color:#64748b;font-size:12px;margin:0 0 8px;">
+        You're receiving this because you have an Abroaducate account.
+      </p>
       <p style="color:#64748b;font-size:12px;margin:0;">
-        <a href="https://abroaducate.com/settings" style="color:#64748b;text-decoration:none;">Manage email preferences</a>
+        <a href="https://abroaducate.com/newsletter/unsubscribe" style="color:#f97316;text-decoration:underline;font-weight:600;">Unsubscribe</a>
         &nbsp;·&nbsp;
-        <a href="https://abroaducate.com" style="color:#64748b;text-decoration:none;">abroaducate.com</a>
+        <a href="https://abroaducate.com/privacy" style="color:#f97316;text-decoration:underline;font-weight:600;">Privacy Policy</a>
       </p>
     </div>
 
@@ -679,10 +682,13 @@ function generateApplicationReminderHTML(app: any, daysUntil: number, urgency: s
 
     <!-- Footer -->
     <div style="background:#f8fafc;padding:16px 32px;border-top:1px solid #e2e8f0;text-align:center;">
+      <p style="color:#64748b;font-size:12px;margin:0 0 8px;">
+        You're receiving this because you have an Abroaducate account.
+      </p>
       <p style="color:#64748b;font-size:12px;margin:0;">
-        <a href="https://abroaducate.com/settings" style="color:#64748b;text-decoration:none;">Manage email preferences</a>
+        <a href="https://abroaducate.com/newsletter/unsubscribe" style="color:#f97316;text-decoration:underline;font-weight:600;">Unsubscribe</a>
         &nbsp;·&nbsp;
-        <a href="https://abroaducate.com" style="color:#64748b;text-decoration:none;">abroaducate.com</a>
+        <a href="https://abroaducate.com/privacy" style="color:#f97316;text-decoration:underline;font-weight:600;">Privacy Policy</a>
       </p>
     </div>
 

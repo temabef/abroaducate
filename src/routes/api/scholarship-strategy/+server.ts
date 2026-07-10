@@ -185,7 +185,10 @@ ${finalDocumentText || "No additional document provided. Perform a 'Lite Strateg
 </div>
 <div style="text-align:center;"><a href="https://abroaducate.com/pricing" style="display:inline-block;background:#f97316;color:#fff;font-weight:700;font-size:15px;padding:14px 32px;border-radius:8px;text-decoration:none;">Top up credits</a></div>
 </div>
-<div style="padding:16px 32px;text-align:center;border-top:1px solid #e2e8f0;"><a href="https://abroaducate.com/settings" style="color:#64748b;font-size:12px;text-decoration:none;">Manage email preferences</a></div>
+<div style="padding:16px 32px;text-align:center;border-top:1px solid #e2e8f0;">
+<p style="color:#64748b;font-size:11px;margin:0 0 6px;">You're receiving this because you have an Abroaducate account.</p>
+<a href="https://abroaducate.com/newsletter/unsubscribe" style="color:#f97316;font-size:12px;text-decoration:underline;font-weight:600;">Unsubscribe</a> &middot; <a href="https://abroaducate.com/privacy" style="color:#f97316;font-size:12px;text-decoration:underline;font-weight:600;">Privacy Policy</a>
+</div>
 </div></body></html>`,
 						text: `Abroaducate — 1 credit remaining\n\nTop up to keep generating strategies and documents.\n\nStarter: 20 credits — $4.99\nAccelerator: 50 credits — $9.99\nElite: 130 credits — $24.99\n\nhttps://abroaducate.com/pricing`
 					}).catch(e => console.error('[LOW CREDIT EMAIL] Failed:', e));
