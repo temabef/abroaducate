@@ -51,6 +51,7 @@
 
   // Database state
   let allScholarships: Scholarship[] = $state([]);
+  let totalScholarshipCount = $state(0); // Actual count from database
   let isLoading = $state(true);
   let error = $state('');
 
@@ -145,10 +146,12 @@
     if (searchQuery.trim()) {
       const query = searchQuery.trim().toLowerCase();
       filtered = filtered.filter(
-        s => s.title.toLowerCase().includes(query) || 
-             s.provider.toLowerCase().includes(query) || 
-             s.description.toLowerCase().includes(query)
+        s => (s.title && s.title.toLowerCase().includes(query)) || 
+             (s.provider && s.provider.toLowerCase().includes(query)) || 
+             (s.location && s.location.toLowerCase().includes(query)) ||
+             (s.field && s.field.toLowerCase().includes(query))
       );
+      console.log(`🔍 Search results: ${filtered.length} scholarships match "${query}"`);
     }
     
     // Apply dropdown filters when set
@@ -259,18 +262,24 @@
       let scholarshipData: any[] | null = null;
       let fetchError: any = null;
 
+      // First, get the total count for the badge display
+      const { count: scholarshipCount } = await supabase
+        .from('public_scholarships_decoded')
+        .select('id', { count: 'exact', head: true });
+
       {
         const res = await supabase
           .from('public_scholarships_decoded')
           .select(SCHOLARSHIP_LIST_COLS)
-          .order('created_at', { ascending: false });
+          .order('created_at', { ascending: false })
+          .limit(2000); // Fetch more than 1000 to get all active scholarships (~1055)
         scholarshipData = (res.data as any[] | null) ?? null;
         fetchError = res.error;
       }
 
       if (fetchError) {
         console.warn('⚠️ Decoded view ordered query failed; retrying without order.', fetchError);
-        const res2 = await supabase.from('public_scholarships_decoded').select(SCHOLARSHIP_LIST_COLS);
+        const res2 = await supabase.from('public_scholarships_decoded').select(SCHOLARSHIP_LIST_COLS).limit(2000);
         scholarshipData = (res2.data as any[] | null) ?? null;
         fetchError = res2.error;
       }
@@ -278,7 +287,7 @@
       // Fallback: base table (keeps list working even if view is unavailable/misconfigured)
       if (fetchError) {
         console.warn('⚠️ Decoded view query failed; falling back to scholarships table.', fetchError);
-        const res3 = await supabase.from('scholarships').select(SCHOLARSHIP_LIST_COLS).order('created_at', { ascending: false }).order('id', { ascending: false });
+        const res3 = await supabase.from('scholarships').select(SCHOLARSHIP_LIST_COLS).order('created_at', { ascending: false }).order('id', { ascending: false }).limit(2000);
         scholarshipData = (res3.data as any[] | null) ?? null;
         fetchError = res3.error;
       }
@@ -344,9 +353,13 @@
       
       console.log('✅ Scholarships loaded with interactions:', {
         total: allScholarships.length,
+        actualCount: scholarshipCount,
         saved: allScholarships.filter(s => s.saved).length,
         applied: allScholarships.filter(s => s.applied).length
       });
+
+      // Store the actual count for badge display
+      totalScholarshipCount = scholarshipCount || allScholarships.length;
 
       // Ensure deterministic ordering even if server ordering wasn't possible
       allScholarships.sort(
@@ -394,16 +407,26 @@
     // AdSense is now loaded globally via app.html
   });
 
-  // Watch for changes in search query - use a more controlled approach
-  let previousSearchQuery = $state('');
-  $effect(() => {
-    if (searchQuery !== previousSearchQuery && allScholarships.length > 0) {
+  // Debounced search input (like programs page)
+  let searchTimer: ReturnType<typeof setTimeout>;
+  function onSearchInput() {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => {
       console.log('🔍 Search query changed:', searchQuery);
-      previousSearchQuery = searchQuery;
+      currentPage = 1;
+      updateScholarships();
+    }, 300);
+  }
+
+  // Handle Enter key in search
+  function handleSearchKeydown(e: KeyboardEvent) {
+    if (e.key === 'Enter') {
+      clearTimeout(searchTimer);
+      console.log('🔍 Search triggered by Enter key:', searchQuery);
       currentPage = 1;
       updateScholarships();
     }
-  });
+  }
   
   // Watch for changes in filters - use a more controlled approach
   let previousFilters = $state('');
@@ -590,7 +613,7 @@
 		<div class="header-content">
 			<div class="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-slate-300 backdrop-blur-md mb-6 shadow-xl relative z-10">
 				<span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-				{allScholarships.length} Actively Monitored Scholarships
+				{totalScholarshipCount} Actively Monitored Scholarships
 			</div>
 			<h1 class="page-title">Scholarship Discovery</h1>
 			<p class="page-subtitle">Find merit, need-based, and research scholarships perfectly matched to your profile.</p>
@@ -599,10 +622,26 @@
 				<svg class="text-slate-400 w-5 h-5 flex-shrink-0 ml-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
 				<input 
 					type="text" 
-					bind:value={searchQuery} 
+					bind:value={searchQuery}
+					oninput={onSearchInput}
+					onkeydown={handleSearchKeydown}
 					placeholder="Search by scholarship title, provider, field, or location..." 
 					class="search-input"
+					autocomplete="off"
+					style="color: #0f172a !important;"
 				/>
+				{#if searchQuery}
+					<button 
+						onclick={() => { searchQuery = ''; onSearchInput(); }}
+						class="mr-3 p-1.5 hover:bg-slate-100 rounded-full transition-colors flex-shrink-0"
+						aria-label="Clear search"
+						type="button"
+					>
+						<svg class="w-5 h-5 text-slate-400 hover:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+						</svg>
+					</button>
+				{/if}
 			</div>
 		</div>
 	</div>
@@ -987,8 +1026,20 @@
 		outline: none;
 		padding: 1rem 1rem;
 		font-size: 1rem;
-		color: #0f172a;
+		color: #0f172a !important;
 		background: transparent;
+		-webkit-text-fill-color: #0f172a; /* For Safari */
+	}
+
+	.search-input::placeholder {
+		color: #94a3b8;
+		opacity: 1;
+	}
+
+	/* Ensure input text is visible in all states */
+	.search-input:focus {
+		color: #0f172a !important;
+		-webkit-text-fill-color: #0f172a;
 	}
 
 	.program-card {
