@@ -10,6 +10,10 @@
 		winEligibility = [],
 		winRubric = [],
 		winPlan = { topActions: [], evidence: [], redFlags: [] },
+		university = '',
+		program = '',
+		country = '',
+		scholarshipName = '',
 		onReveal
 	}: {
 		aiWinStrategy: any;
@@ -20,8 +24,31 @@
 		winEligibility: any[];
 		winRubric: any[];
 		winPlan: { topActions: string[]; evidence: string[]; redFlags: string[] };
+		university?: string;
+		program?: string;
+		country?: string;
+		scholarshipName?: string;
 		onReveal: () => void;
 	} = $props();
+
+	let sopUrl = $derived.by(() => {
+		const params = new URLSearchParams();
+		params.set('source', 'scholarship');
+		if (university) params.set('university', university);
+		if (program) params.set('program', program);
+		if (country) params.set('country', country);
+		if (scholarshipName) params.set('scholarship', scholarshipName);
+		return `/sop?${params.toString()}`;
+	});
+
+	let coverLetterUrl = $derived.by(() => {
+		const params = new URLSearchParams();
+		params.set('source', 'scholarship');
+		if (university) params.set('university', university);
+		if (program) params.set('program', program);
+		if (scholarshipName) params.set('scholarship', scholarshipName);
+		return `/cover-letters?${params.toString()}`;
+	});
 
 	function weightToLabel(w: number) {
 		if (w >= 0.8) return 'Critical';
@@ -203,6 +230,40 @@
 						</div>
 					</div>
 				{/if}
+			</div>
+
+			<!-- Guided Next Steps Handoff Card -->
+			<div class="mt-8 pt-8 border-t border-slate-800/80">
+				<div class="bg-slate-800/40 rounded-2xl p-6 border border-orange-500/10 relative overflow-hidden">
+					<div class="absolute top-0 right-0 w-32 h-32 bg-orange-500/5 rounded-full blur-2xl"></div>
+					<div class="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+						<div>
+							<h4 class="text-lg font-bold text-white flex items-center gap-2 mb-2">
+								<svg class="w-5.5 h-5.5 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+								</svg>
+								Ready to execute this Strategy?
+							</h4>
+							<p class="text-sm text-slate-400 max-w-xl">
+								Don't start from scratch. Use Abroaducate's AI tools to instantly draft application documents tailored to this scholarship's specific narrative angles.
+							</p>
+						</div>
+						<div class="flex flex-col sm:flex-row gap-3">
+							<a 
+								href={sopUrl} 
+								class="px-5 py-3 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold text-sm text-center transition-all shadow-md shadow-orange-500/10 whitespace-nowrap"
+							>
+								Draft Tailored SOP →
+							</a>
+							<a 
+								href={coverLetterUrl} 
+								class="px-5 py-3 rounded-xl bg-slate-850 hover:bg-slate-750 text-slate-200 border border-slate-750 font-bold text-sm text-center transition-all whitespace-nowrap"
+							>
+								Draft Motivation Letter
+							</a>
+						</div>
+					</div>
+				</div>
 			</div>
 		</div>
 	{/if}

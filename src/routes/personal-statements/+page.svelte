@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { page } from '$app/stores';
   import PersonalStatementGenerator from '$lib/components/PersonalStatementGenerator.svelte';
   import { PenLine, ArrowLeft, ShieldAlert, ScrollText, Mail, ClipboardList, ChevronRight, Zap, BookOpen, Target } from 'lucide-svelte';
 
@@ -9,6 +10,8 @@
   let existingUserData: any = $state(null);
   let existingSOPData: any = $state(null);
   let loading = $state(true);
+  let scholarshipName = $derived($page.url.searchParams.get('scholarship'));
+  let source = $derived($page.url.searchParams.get('source'));
 
   onMount(async () => {
     try {
@@ -53,6 +56,23 @@
         <div class="w-8 h-8 border-4 border-slate-200 border-t-orange-500 rounded-full animate-spin"></div>
       </div>
     {:else}
+      {#if source === 'scholarship'}
+        <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-4 mb-6 flex items-center gap-3 animate-in fade-in duration-300">
+          <div class="w-8 h-8 rounded-full bg-indigo-500 text-white flex items-center justify-center font-bold text-sm flex-shrink-0">
+            2
+          </div>
+          <div>
+            <span class="text-xs font-bold text-indigo-700 uppercase tracking-wider block mb-0.5">Step 2 of 3: Drafting your Personal Statement</span>
+            <span class="text-sm text-indigo-900 font-medium">
+              {#if scholarshipName}
+                Tailoring document narrative for the <strong class="text-indigo-950 font-bold">{scholarshipName}</strong> scholarship.
+              {:else}
+                Tailoring document narrative for your selected scholarship.
+              {/if}
+            </span>
+          </div>
+        </div>
+      {/if}
       <!-- Disclaimer -->
       <div class="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-5 py-4 mb-8">
         <ShieldAlert size={18} class="text-amber-600 flex-shrink-0 mt-0.5" />

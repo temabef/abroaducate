@@ -1,6 +1,7 @@
 <script lang="ts">
-    import { createEventDispatcher } from 'svelte';
+    import { createEventDispatcher, onMount } from 'svelte';
     import { goto } from '$app/navigation';
+    import { page } from '$app/stores';
     import { handleUpgradeRequired } from '$lib/services/upgradeService';
     import { personalStatementFormStore, savePersonalStatementStateToSessionStorage, personalStatementPendingGeneration } from '$lib/stores/personalStatementStore';
     import { get } from 'svelte/store';
@@ -9,6 +10,45 @@
     export let existingUserData: any = null;
     export let existingSOPData: any = null;
     const dispatch = createEventDispatcher();
+
+    onMount(() => {
+        if (typeof window !== 'undefined') {
+            const urlParams = new URLSearchParams(window.location.search);
+            const prefillUniv = urlParams.get('university');
+            const prefillProg = urlParams.get('program');
+            const prefillScholarship = urlParams.get('scholarship');
+
+            if (prefillProg || prefillUniv || prefillScholarship) {
+                personalStatementData.applicationType = 'scholarship';
+                personalStatementData.programName = prefillProg || '';
+                personalStatementData.institutionName = prefillUniv || '';
+                
+                if (prefillScholarship) {
+                    personalStatementData.customRequests = `Tailored for the ${prefillScholarship} scholarship.`;
+                }
+            }
+
+            const scholarshipId = urlParams.get('scholarshipId');
+            if (scholarshipId) {
+                const supabase = $page.data.supabase;
+                if (supabase) {
+                    supabase
+                        .from('scholarships')
+                        .select('university_name, program_name, title')
+                        .eq('id', scholarshipId)
+                        .maybeSingle()
+                        .then(({ data, error }) => {
+                            if (data && !error) {
+                                personalStatementData.applicationType = 'scholarship';
+                                personalStatementData.programName = data.program_name || '';
+                                personalStatementData.institutionName = data.university_name || '';
+                                personalStatementData.customRequests = `Tailored for the ${data.title} scholarship.`;
+                            }
+                        });
+                }
+            }
+        }
+    });
     
     interface PersonalStatementData {
         applicationType: 'undergraduate' | 'scholarship' | 'law_school' | 'medical_school' | 'study_abroad' | 'professional';

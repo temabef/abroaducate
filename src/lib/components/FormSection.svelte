@@ -4,6 +4,7 @@
     import { formStore, loadStateFromSessionStorage, saveStateToSessionStorage, pendingGeneration } from '$lib/stores';
     import { browser } from '$app/environment';
     import { goto } from '$app/navigation';
+    import { page } from '$app/stores';
     import { analytics } from '$lib/utils/posthog';
     import { programCatalog } from '$lib/copilot/data/program-catalog';
 
@@ -28,7 +29,6 @@
                 const prefillProgram = programCatalog.find(p => p.id === handoffProgramId);
                 if (prefillProgram) {
                     formStore.update(s => {
-                        // Create a defensive deep copy of universityData so we don't accidentally wipe inner fields if defined
                         return {
                             ...s,
                             universityData: {
@@ -39,6 +39,48 @@
                             }
                         };
                     });
+                }
+            }
+
+            // Direct URL Prefill parameters:
+            const prefillUniv = urlParams.get('university');
+            const prefillProg = urlParams.get('program');
+            const prefillCountry = urlParams.get('country');
+            if (prefillUniv || prefillProg || prefillCountry) {
+                formStore.update(s => ({
+                    ...s,
+                    universityData: {
+                        ...s.universityData,
+                        university: prefillUniv || s.universityData.university,
+                        program: prefillProg || s.universityData.program,
+                        country: prefillCountry || s.universityData.country
+                    }
+                }));
+            }
+
+            // Query prefill from scholarshipId if available:
+            const scholarshipId = urlParams.get('scholarshipId');
+            if (scholarshipId) {
+                const supabase = get(page).data.supabase;
+                if (supabase) {
+                    supabase
+                        .from('scholarships')
+                        .select('university_name, program_name, country')
+                        .eq('id', scholarshipId)
+                        .maybeSingle()
+                        .then(({ data, error }) => {
+                            if (data && !error) {
+                                formStore.update(s => ({
+                                    ...s,
+                                    universityData: {
+                                        ...s.universityData,
+                                        university: data.university_name || s.universityData.university,
+                                        program: data.program_name || s.universityData.program,
+                                        country: data.country || s.universityData.country
+                                    }
+                                }));
+                            }
+                        });
                 }
             }
 

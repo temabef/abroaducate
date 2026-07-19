@@ -911,6 +911,10 @@
                {winEligibility}
                {winRubric}
                {winPlan}
+               university={scholarship.university_name || ''}
+               program={scholarship.program_name || ''}
+               country={scholarship.country || ''}
+               scholarshipName={scholarship.title || ''}
                onReveal={initiateStrategyGeneration}
              />
           </div>

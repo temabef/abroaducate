@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
+  import { page } from '$app/stores';
   import CoverLetterGenerator from '$lib/components/CoverLetterGenerator.svelte';
   import { analytics } from '$lib/utils/posthog';
   import { Mail, ArrowLeft, ChevronRight, ScrollText, ClipboardList, PenLine, Download, Edit3, GraduationCap, Briefcase, Building2, FlaskConical } from 'lucide-svelte';
@@ -14,6 +15,8 @@
   let selectedSOP: any = $state(null);
   let showGenerator = $state(false);
   let savedCoverLetters = $state<any[]>([]);
+  let scholarshipName = $derived($page.url.searchParams.get('scholarship'));
+  let source = $derived($page.url.searchParams.get('source'));
 
   async function loadData() {
     if (!session?.user) return;
@@ -34,6 +37,14 @@
   onMount(async () => {
     analytics.trackPageView('Cover Letter Generator', { user_id: session?.user?.id });
     await loadData();
+    
+    // Auto-open generator if prefill parameters or scholarshipId is present:
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('university') || urlParams.get('program') || urlParams.get('scholarshipId') || urlParams.get('scholarship')) {
+        showGenerator = true;
+      }
+    }
   });
 
   function startGenerator(sopData: any = null) {
@@ -110,6 +121,23 @@
       <button onclick={() => (showGenerator = false)} class="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-slate-900 transition-colors mb-6">
         <ArrowLeft size={15} /> Back
       </button>
+      {#if source === 'scholarship'}
+        <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-4 mb-6 flex items-center gap-3">
+          <div class="w-8 h-8 rounded-full bg-indigo-500 text-white flex items-center justify-center font-bold text-sm flex-shrink-0">
+            2
+          </div>
+          <div>
+            <span class="text-xs font-bold text-indigo-700 uppercase tracking-wider block mb-0.5">Step 2 of 3: Drafting your Motivation Letter</span>
+            <span class="text-sm text-indigo-900 font-medium">
+              {#if scholarshipName}
+                Tailoring document narrative for the <strong class="text-indigo-950 font-bold">{scholarshipName}</strong> scholarship.
+              {:else}
+                Tailoring document narrative for your selected scholarship.
+              {/if}
+            </span>
+          </div>
+        </div>
+      {/if}
       <CoverLetterGenerator existingUserData={userData} existingSOPData={selectedSOP} on:coverLetterGenerated={handleGenerated} />
     {:else}
       <!-- Position type cards -->
