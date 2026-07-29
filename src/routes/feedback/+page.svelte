@@ -9,8 +9,9 @@
 	let usedScholarshipRadar = $state<boolean | null>(null);
 	let wasBeneficial = $state<number | null>(null);
 	let userName = $state('');
-	let whatWorked = $state('');
-	let whatToImprove = $state('');
+	let pricingFriction = $state('');
+	let confusingPart = $state('');
+	let convincingFactor = $state('');
 	let wouldRecommend = $state<string | null>(null);
 	let canFeatureTestimonial = $state(false);
 
@@ -181,33 +182,59 @@
 
 					<div class="h-px bg-slate-100"></div>
 
-					<!-- Question 4: What worked well -->
+					<!-- Question 4: Pricing Friction -->
 					<div class="space-y-3">
-						<label class="block text-sm font-bold text-slate-900 uppercase tracking-wide" for="whatWorked">
-							What worked well for you?
+						<label class="block text-sm font-bold text-slate-900 uppercase tracking-wide" for="pricingFriction">
+							Why haven't you purchased more credits?
 						</label>
-						<textarea 
-							id="whatWorked"
-							name="whatWorked"
-							bind:value={whatWorked}
-							rows="4"
-							class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all outline-none text-slate-800 resize-none"
-							placeholder="Tell us what you found most helpful..."
-						></textarea>
+						<select 
+							id="pricingFriction"
+							name="pricingFriction"
+							bind:value={pricingFriction}
+							class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all outline-none text-slate-800"
+						>
+							<option value="" disabled selected>Select a reason...</option>
+							<option value="Prices are too high">The prices are too high</option>
+							<option value="Not enough value">I didn't get enough value from the free credits</option>
+							<option value="Prefer subscription">I prefer a monthly subscription instead of pay-as-you-go</option>
+							<option value="Done applying">I am done applying to universities</option>
+							<option value="Other">Other</option>
+						</select>
 					</div>
 
-					<!-- Question 5: What to improve -->
+					<!-- Question 5: Product Friction -->
 					<div class="space-y-3">
-						<label class="block text-sm font-bold text-slate-900 uppercase tracking-wide" for="whatToImprove">
-							What should we improve?
+						<label class="block text-sm font-bold text-slate-900 uppercase tracking-wide" for="confusingPart">
+							What was the most confusing part of using Abroaducate?
+						</label>
+						<select 
+							id="confusingPart"
+							name="confusingPart"
+							bind:value={confusingPart}
+							class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all outline-none text-slate-800"
+						>
+							<option value="" disabled selected>Select an option...</option>
+							<option value="Finding programs">Finding and filtering programs</option>
+							<option value="Credit system">Understanding how the credit system works</option>
+							<option value="Document generator">Using the AI document generator</option>
+							<option value="None">It was all clear, no confusion</option>
+						</select>
+					</div>
+
+					<div class="h-px bg-slate-100"></div>
+
+					<!-- Question 6: Convincing Factor -->
+					<div class="space-y-3">
+						<label class="block text-sm font-bold text-slate-900 uppercase tracking-wide" for="convincingFactor">
+							What would convince you to buy a credit pack today?
 						</label>
 						<textarea 
-							id="whatToImprove"
-							name="whatToImprove"
-							bind:value={whatToImprove}
+							id="convincingFactor"
+							name="convincingFactor"
+							bind:value={convincingFactor}
 							rows="4"
-							class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all outline-none text-slate-800 resize-none"
-							placeholder="Share your suggestions for improvement..."
+							class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all outline-none text-slate-800 resize-none"
+							placeholder="E.g., If you added a feature that..."
 						></textarea>
 					</div>
 

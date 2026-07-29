@@ -30,8 +30,9 @@ export const actions: Actions = {
 		const usedSOP = formData.get('usedSOP') as string;
 		const usedScholarshipRadar = formData.get('usedScholarshipRadar') as string;
 		const rating = formData.get('rating') as string;
-		const whatWorked = formData.get('whatWorked') as string;
-		const whatToImprove = formData.get('whatToImprove') as string;
+		const pricingFriction = formData.get('pricingFriction') as string;
+		const confusingPart = formData.get('confusingPart') as string;
+		const convincingFactor = formData.get('convincingFactor') as string;
 		const wouldRecommend = formData.get('wouldRecommend') as string;
 		const canFeatureTestimonial = formData.get('canFeatureTestimonial') === 'on';
 
@@ -50,8 +51,9 @@ export const actions: Actions = {
 				used_sop: usedSOP === 'yes',
 				used_scholarship_radar: usedScholarshipRadar === 'yes',
 				rating: parseInt(rating),
-				what_worked: whatWorked || null,
-				what_to_improve: whatToImprove || null,
+				pricing_friction: pricingFriction || null,
+				confusing_part: confusingPart || null,
+				convincing_factor: convincingFactor || null,
 				would_recommend: wouldRecommend || null,
 				can_feature_testimonial: canFeatureTestimonial,
 				credits_awarded: true // Mark as awarded since we're doing it automatically
