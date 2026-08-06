@@ -12,6 +12,7 @@
   import AuthenticationFlow from '$lib/components/AuthenticationFlow.svelte';
   import CompactUpgradeModal from '$lib/components/CompactUpgradeModal.svelte';
   import { formatCurrencyAmount, formatScholarshipText, decodeHtmlEntities } from '$lib/utils/htmlEntities';
+  import { markdownToHtml } from '$lib/utils/markdownToHtml';
   import { subscriptionState } from '$lib/stores/subscription';
   import { loadQuickProfile, gpaMidpoint, type QuickProfile } from '$lib/services/quickProfile';
   import StrategyDocumentLinker from '$lib/components/StrategyDocumentLinker.svelte';
@@ -809,7 +810,7 @@
                 </h2>
                 <div class="mb-8 prose prose-slate max-w-none">
                   <div class="text-slate-700 text-lg leading-relaxed scholarship-description">
-                    {@html formatScholarshipText(scholarship.description)}
+                    {@html markdownToHtml(formatScholarshipText(scholarship.description))}
                   </div>
                 </div>
                 
