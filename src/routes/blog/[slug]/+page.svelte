@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { PageData } from './$types';
   import SEO from '$lib/components/SEO.svelte';
+  import BlogAdUnit from '$lib/components/BlogAdUnit.svelte';
   import { Twitter, Linkedin, Link2, ChevronRight, Calendar, Clock } from 'lucide-svelte';
   import { onMount } from 'svelte';
 
@@ -217,6 +218,9 @@
             {@html html}
           </div>
 
+          <!-- Middle Ad Unit -->
+          <BlogAdUnit slot="4565190252" />
+
           <!-- Share -->
           <div class="share-section">
             <h3 class="share-title">Share this article</h3>
@@ -232,6 +236,9 @@
               </button>
             </div>
           </div>
+
+          <!-- Bottom Ad Unit -->
+          <BlogAdUnit slot="3830693089" />
         </div>
 
         <!-- Sidebar -->
