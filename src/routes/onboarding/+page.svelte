@@ -122,7 +122,13 @@
 
   function canContinue(): boolean {
     if (step === 1) return onboardingData.preferred_countries.length > 0;
-    return onboardingData.field_of_study.trim().length > 0 && !!onboardingData.degree_level;
+    // Step 2: Field, degree level, AND GPA are now required for strategies later
+    return (
+      onboardingData.field_of_study.trim().length > 0 &&
+      !!onboardingData.degree_level &&
+      !!onboardingData.current_gpa_value && 
+      Number(onboardingData.current_gpa_value) > 0
+    );
   }
 
   function goNext() {
@@ -153,7 +159,7 @@
       if (nextAction === 'find_universities') goto('/universities?onboarding=true');
       else if (nextAction === 'explore_scholarships') goto('/scholarships?onboarding=true');
       else if (nextAction === 'generate_sop') goto('/sop?onboarding=true');
-      else goto('/plan?onboarding=complete');
+      else goto('/programs?onboarding=complete'); // Changed: Always show programs, not empty dashboard
     } catch (e) {
       console.error(e);
       error = 'An error occurred. Please try again.';
@@ -408,6 +414,33 @@
                   </button>
                 {/each}
               </div>
+            </div>
+
+            <div>
+              <label for="onboarding-gpa" class="block text-sm font-semibold text-slate-700 mb-2">Your GPA *</label>
+              <div class="grid grid-cols-2 gap-3">
+                <input
+                  id="onboarding-gpa"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  max="5"
+                  bind:value={onboardingData.current_gpa_value}
+                  placeholder="e.g. 3.5"
+                  class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#2C3580]/30"
+                />
+                <select
+                  bind:value={onboardingData.current_gpa_scale}
+                  class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#2C3580]/30"
+                >
+                  <option value="">Select scale</option>
+                  <option value="4.0">4.0 scale</option>
+                  <option value="5.0">5.0 scale</option>
+                  <option value="10.0">10.0 scale</option>
+                  <option value="100">100 scale</option>
+                </select>
+              </div>
+              <p class="mt-2 text-xs text-slate-500">Required for accurate scholarship matches and strategy generation.</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">

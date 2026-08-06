@@ -309,7 +309,12 @@
             if (data.user.email_confirmed_at) {
                 // User is already confirmed (email confirmation disabled) — auto-login
                 // Fire welcome email in the background before redirecting
-                fetch('/api/send-welcome-email', { method: 'POST' }).catch(() => {});
+                // Note: Profile is now auto-created by database trigger, but we still
+                // send welcome email for Customer.io sync and user communication
+                fetch('/api/send-welcome-email', { method: 'POST' }).catch((err) => {
+                    console.error('Welcome email failed:', err);
+                    // Non-fatal: trigger will create profile anyway
+                });
 
                 success = 'Account created successfully! Redirecting...';
                 setTimeout(async () => {
@@ -320,6 +325,8 @@
                 }, 1000);
             } else {
                 // Email confirmation required
+                // Profile will be auto-created by database trigger
+                // Welcome email will be sent after verification (handled by auth callback)
                 success = 'Account created! Please check your email to verify your account before signing in.';
                 
                 // Switch to login mode after successful signup
