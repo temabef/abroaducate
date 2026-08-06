@@ -342,7 +342,8 @@
       professor_name: formData.professor_name || null,
       professor_email: formData.professor_email || null,
       position_details: formData.position_details || null,
-      website: formData.website || null
+      website: formData.website || null,
+      video_url: formData.video_url || null
     };
 
     let result;
