@@ -17,7 +17,6 @@
   import { loadQuickProfile, gpaMidpoint, type QuickProfile } from '$lib/services/quickProfile';
   import StrategyDocumentLinker from '$lib/components/StrategyDocumentLinker.svelte';
   import ScholarshipStrategy from '$lib/components/ScholarshipStrategy.svelte';
-  import YouTubeEmbed from '$lib/components/YouTubeEmbed.svelte';
 
   
   let { data } = $props();
@@ -831,15 +830,54 @@
 
              <!-- Video Section (if video_url exists) -->
              {#if scholarship.video_url}
-               <div class="bg-white rounded-3xl p-10 border border-slate-200 shadow-sm">
-                 <h2 class="text-3xl font-bold text-slate-900 mb-6 flex items-center gap-3">
-                   <svg class="w-8 h-8 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+               <div class="bg-gradient-to-br from-orange-50 to-orange-100 rounded-3xl p-10 border-2 border-orange-200 shadow-sm">
+                 <div class="flex items-start gap-4 mb-6">
+                   <div class="w-14 h-14 bg-orange-500 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg">
+                     <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                       <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                     </svg>
+                   </div>
+                   <div class="flex-1">
+                     <h2 class="text-2xl font-bold text-slate-900 mb-2">
+                       Watch our complete video guide
+                     </h2>
+                     <p class="text-slate-700">
+                       Get the full breakdown of this scholarship, application tips, and insider strategies on our YouTube channel.
+                     </p>
+                   </div>
+                 </div>
+                 
+                 <a 
+                   href={scholarship.video_url.includes('youtube.com') || scholarship.video_url.includes('youtu.be') 
+                     ? scholarship.video_url 
+                     : `https://www.youtube.com/watch?v=${scholarship.video_url}`}
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   class="inline-flex items-center gap-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold px-8 py-4 rounded-xl shadow-lg shadow-red-500/30 transition-all transform hover:-translate-y-1 hover:shadow-xl"
+                 >
+                   <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                     <path d="M10 16.5l6-4.5-6-4.5v9zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
                    </svg>
-                   About this Scholarship (Video)
-                 </h2>
-                 <YouTubeEmbed url={scholarship.video_url} title={`${scholarship.title} - Video Guide`} />
+                   <span>Watch Video on YouTube</span>
+                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                   </svg>
+                 </a>
+                 
+                 <div class="mt-6 flex items-center gap-6 text-sm text-slate-600">
+                   <div class="flex items-center gap-2">
+                     <svg class="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                     </svg>
+                     <span>Step-by-step walkthrough</span>
+                   </div>
+                   <div class="flex items-center gap-2">
+                     <svg class="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                     </svg>
+                     <span>Application tips & strategies</span>
+                   </div>
+                 </div>
                </div>
              {/if}
 
