@@ -810,7 +810,7 @@
                 </h2>
                 <div class="mb-8 prose prose-slate max-w-none">
                   <div class="text-slate-700 text-lg leading-relaxed scholarship-description">
-                    {@html markdownToHtml(formatScholarshipText(scholarship.description))}
+                    {@html markdownToHtml(decodeHtmlEntities(scholarship.description))}
                   </div>
                 </div>
                 
