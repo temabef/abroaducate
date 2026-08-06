@@ -10,6 +10,37 @@
   let html = $derived(data.html);
   let related = $derived(data.related);
 
+  // Split HTML content to insert middle ad
+  function splitContentForAd(htmlContent: string): { firstHalf: string; secondHalf: string } {
+    if (!htmlContent) return { firstHalf: '', secondHalf: '' };
+    
+    // Find all paragraph tags
+    const paragraphs = htmlContent.match(/<p[^>]*>.*?<\/p>/gs) || [];
+    
+    if (paragraphs.length < 3) {
+      // Too short, don't split
+      return { firstHalf: htmlContent, secondHalf: '' };
+    }
+    
+    // Split at 50% mark (middle of content)
+    const splitPoint = Math.floor(paragraphs.length / 2);
+    
+    // Find the position of the split paragraph in original HTML
+    const splitParagraph = paragraphs[splitPoint];
+    const splitIndex = htmlContent.indexOf(splitParagraph);
+    
+    if (splitIndex === -1) {
+      return { firstHalf: htmlContent, secondHalf: '' };
+    }
+    
+    const firstHalf = htmlContent.substring(0, splitIndex);
+    const secondHalf = htmlContent.substring(splitIndex);
+    
+    return { firstHalf, secondHalf };
+  }
+  
+  const contentSplit = $derived(splitContentForAd(html));
+
   let scrollProgress = $state(0);
   let headings = $state<{ id: string; text: string; level: number }[]>([]);
   let activeHeadingId = $state<string>('');
@@ -215,11 +246,17 @@
           {/if}
 
           <div class="prose prose-lg max-w-none">
-            {@html html}
+            <!-- First half of content -->
+            {@html contentSplit.firstHalf}
+            
+            <!-- Middle Ad Unit - INSIDE content -->
+            {#if contentSplit.secondHalf}
+              <BlogAdUnit slot="4565190252" />
+            {/if}
+            
+            <!-- Second half of content -->
+            {@html contentSplit.secondHalf}
           </div>
-
-          <!-- Middle Ad Unit -->
-          <BlogAdUnit slot="4565190252" />
 
           <!-- Share -->
           <div class="share-section">
