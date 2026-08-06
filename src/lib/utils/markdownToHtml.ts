@@ -7,7 +7,7 @@
 
 /**
  * Convert Markdown to HTML
- * Supports: headers (###), bullets (-), bold (**text**)
+ * Supports: headers (###), bullets (-), numbered lists, bold (**text**)
  */
 export function markdownToHtml(text: string): string {
 	if (!text) return '';
@@ -20,7 +20,6 @@ export function markdownToHtml(text: string): string {
 		return text;
 	}
 
-	// Convert Markdown to HTML using simple regex replacements
 	let html = text;
 
 	// Convert headers: ### Header -> <h3>Header</h3>
@@ -31,35 +30,68 @@ export function markdownToHtml(text: string): string {
 	// Convert bold: **text** -> <strong>text</strong>
 	html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
 
-	// Convert bullet points: - item -> <ul><li>item</li></ul>
-	html = html.replace(/^- (.+)$/gm, '<li>$1</li>');
-	
-	// Wrap consecutive <li> tags in <ul>
-	html = html.replace(/(<li>.*?<\/li>\n?)+/gs, (match) => {
-		return '<ul>' + match + '</ul>';
-	});
+	// Process lists: we need to handle bullet and numbered lists separately
+	// Split into lines to process lists properly
+	const lines = html.split('\n');
+	const processed: string[] = [];
+	let inBulletList = false;
+	let inNumberedList = false;
 
-	// Convert numbered lists: 1. item -> <ol><li>item</li></ol>
-	html = html.replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
-	
-	// Wrap consecutive numbered <li> in <ol> (but not the ones already in <ul>)
-	html = html.replace(/(?<!<ul>)(<li>.*?<\/li>\n?)+(?!<\/ul>)/gs, (match) => {
-		if (!match.includes('<ul>')) {
-			return '<ol>' + match + '</ol>';
+	for (let i = 0; i < lines.length; i++) {
+		const line = lines[i];
+		const isBullet = /^- (.+)$/.test(line);
+		const isNumbered = /^\d+\. (.+)$/.test(line);
+
+		if (isBullet) {
+			if (!inBulletList) {
+				processed.push('<ul>');
+				inBulletList = true;
+			}
+			if (inNumberedList) {
+				processed.push('</ol>');
+				inNumberedList = false;
+			}
+			processed.push(line.replace(/^- (.+)$/, '<li>$1</li>'));
+		} else if (isNumbered) {
+			if (!inNumberedList) {
+				processed.push('<ol>');
+				inNumberedList = true;
+			}
+			if (inBulletList) {
+				processed.push('</ul>');
+				inBulletList = false;
+			}
+			processed.push(line.replace(/^\d+\. (.+)$/, '<li>$1</li>'));
+		} else {
+			// Not a list item - close any open lists
+			if (inBulletList) {
+				processed.push('</ul>');
+				inBulletList = false;
+			}
+			if (inNumberedList) {
+				processed.push('</ol>');
+				inNumberedList = false;
+			}
+			processed.push(line);
 		}
-		return match;
-	});
+	}
 
-	// Convert line breaks to paragraphs
+	// Close any remaining open lists
+	if (inBulletList) processed.push('</ul>');
+	if (inNumberedList) processed.push('</ol>');
+
+	html = processed.join('\n');
+
+	// Convert double line breaks to paragraph breaks
 	const paragraphs = html.split(/\n\n+/);
 	html = paragraphs.map(para => {
 		para = para.trim();
-		// Don't wrap if already wrapped in HTML tags
-		if (para.startsWith('<h') || para.startsWith('<ul') || para.startsWith('<ol')) {
+		// Don't wrap if already wrapped in HTML block tags
+		if (para.startsWith('<h') || para.startsWith('<ul') || para.startsWith('<ol') || para.startsWith('<p') || para.startsWith('<li')) {
 			return para;
 		}
 		return para ? `<p>${para}</p>` : '';
-	}).join('\n');
+	}).join('\n\n');
 
 	return html;
 }
