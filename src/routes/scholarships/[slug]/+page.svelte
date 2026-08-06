@@ -16,6 +16,7 @@
   import { loadQuickProfile, gpaMidpoint, type QuickProfile } from '$lib/services/quickProfile';
   import StrategyDocumentLinker from '$lib/components/StrategyDocumentLinker.svelte';
   import ScholarshipStrategy from '$lib/components/ScholarshipStrategy.svelte';
+
   
   let { data } = $props();
   let { session, scholarship, supabase } = $derived(data);
@@ -806,8 +807,10 @@
                   <svg class="w-8 h-8 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                   About this Scholarship
                 </h2>
-                <div class="mb-8">
-                  <p class="text-slate-700 text-lg leading-relaxed whitespace-pre-line">{formatScholarshipText(scholarship.description)}</p>
+                <div class="mb-8 prose prose-slate max-w-none">
+                  <div class="text-slate-700 text-lg leading-relaxed scholarship-description">
+                    {@html formatScholarshipText(scholarship.description)}
+                  </div>
                 </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-6 border-t border-slate-100">
@@ -1034,3 +1037,55 @@
     onProcessGeneration={processStrategyGeneration} 
   />
 </div> 
+
+<style>
+  /* Style HTML content in scholarship description */
+  :global(.scholarship-description h3) {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+  }
+  
+  :global(.scholarship-description ul) {
+    list-style: none;
+    padding-left: 0;
+    margin: 1rem 0;
+  }
+  
+  :global(.scholarship-description ul li) {
+    padding-left: 1.5rem;
+    margin-bottom: 0.75rem;
+    position: relative;
+  }
+  
+  :global(.scholarship-description ul li::before) {
+    content: "•";
+    color: #f97316;
+    font-weight: bold;
+    font-size: 1.2em;
+    position: absolute;
+    left: 0;
+  }
+  
+  :global(.scholarship-description ol) {
+    list-style: decimal;
+    padding-left: 1.5rem;
+    margin: 1rem 0;
+  }
+  
+  :global(.scholarship-description ol li) {
+    margin-bottom: 0.75rem;
+    padding-left: 0.5rem;
+  }
+  
+  :global(.scholarship-description p) {
+    margin-bottom: 1rem;
+  }
+  
+  :global(.scholarship-description strong) {
+    font-weight: 700;
+    color: #0f172a;
+  }
+</style> 
