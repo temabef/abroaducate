@@ -17,6 +17,7 @@
   import { loadQuickProfile, gpaMidpoint, type QuickProfile } from '$lib/services/quickProfile';
   import StrategyDocumentLinker from '$lib/components/StrategyDocumentLinker.svelte';
   import ScholarshipStrategy from '$lib/components/ScholarshipStrategy.svelte';
+  import YouTubeEmbed from '$lib/components/YouTubeEmbed.svelte';
 
   
   let { data } = $props();
@@ -827,6 +828,20 @@
                   </div>
                 </div>
              </div>
+
+             <!-- Video Section (if video_url exists) -->
+             {#if scholarship.video_url}
+               <div class="bg-white rounded-3xl p-10 border border-slate-200 shadow-sm">
+                 <h2 class="text-3xl font-bold text-slate-900 mb-6 flex items-center gap-3">
+                   <svg class="w-8 h-8 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                   </svg>
+                   About this Scholarship (Video)
+                 </h2>
+                 <YouTubeEmbed url={scholarship.video_url} title={`${scholarship.title} - Video Guide`} />
+               </div>
+             {/if}
 
              <!-- Scholarship Value Block -->
              <div class="bg-white rounded-3xl p-10 border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">

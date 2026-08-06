@@ -21,6 +21,7 @@
     description: string;
     requirements: string[];
     website?: string;
+    video_url?: string; // YouTube video URL or ID
     min_gpa?: number;
     min_ielts?: number;
     min_toefl?: number;
@@ -149,6 +150,7 @@
     description: '',
     requirements: '',
     website: '',
+    video_url: '',
     min_gpa: '',
     min_ielts: '',
     min_toefl: '',
@@ -453,6 +455,7 @@
       description: scholarship.description,
       requirements: scholarship.requirements?.join('\n') || '',
       website: scholarship.website || '',
+      video_url: scholarship.video_url || '',
       min_gpa: scholarship.min_gpa?.toString() || '',
       min_ielts: scholarship.min_ielts?.toString() || '',
       min_toefl: scholarship.min_toefl?.toString() || '',
@@ -513,7 +516,8 @@
       position_details: '',
       has_automatic_funding: false,
       full_description_text: '',
-      raw_requirements_text: ''
+      raw_requirements_text: '',
+      video_url: ''
     };
   }
 
@@ -1264,6 +1268,20 @@
                   placeholder="https://example.com/scholarship"
                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
+              </div>
+              <div>
+                <label for="video_url" class="block text-sm font-medium text-gray-700 mb-1">
+                  Video URL
+                  <span class="text-xs text-gray-500 font-normal">(YouTube - optional)</span>
+                </label>
+                <input
+                  id="video_url"
+                  type="text"
+                  bind:value={formData.video_url}
+                  placeholder="https://youtube.com/watch?v=... or video ID"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+                <p class="text-xs text-gray-500 mt-1">YouTube URL or video ID for embedded video on scholarship page</p>
               </div>
               <div>
                 <label for="min_gpa" class="block text-sm font-medium text-gray-700 mb-1">Minimum GPA</label>
