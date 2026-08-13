@@ -10,6 +10,7 @@
 	} from 'lucide-svelte';
 	import FundingGuidance from '$lib/components/FundingGuidance.svelte';
 	import WorkAndStay from '$lib/components/WorkAndStay.svelte';
+	import SampleStrategyModal from '$lib/components/SampleStrategyModal.svelte';
 
 	let { data } = $props();
 	let session = $derived(data.session);
@@ -18,6 +19,7 @@
 	let university = $derived(data.university);
 	let scholarships = $derived(data.scholarships || []);
 	let showAuthModal = $state(false);
+	let showSampleModal = $state(false);
 
 	function formatDegree(level: string) {
 		const normalized = (level || 'master').toLowerCase();
@@ -172,6 +174,80 @@
 					<span class="flex items-center gap-1.5"><MapPin size={16} /> {viewModel.location}</span>
 					<span class="w-1 h-1 rounded-full bg-slate-300"></span>
 					<span class="flex items-center gap-1.5"><Languages size={16} /> {viewModel.language} Taught</span>
+				</div>
+			</div>
+
+			<!-- 🎯 AI SCHOLARSHIP STRATEGY CARD (Priority 1 Activation Fix) -->
+			<div class="bg-gradient-to-br from-orange-50 via-white to-orange-50 rounded-3xl border-2 border-orange-200 p-8 shadow-xl relative overflow-hidden">
+				<!-- Background decoration -->
+				<div class="absolute top-0 right-0 w-64 h-64 bg-orange-100 rounded-full blur-3xl opacity-30 -z-10"></div>
+				
+				<div class="relative z-10">
+					<div class="flex items-start justify-between mb-6">
+						<div class="flex-1">
+							<div class="inline-flex items-center gap-2 bg-orange-500 text-white px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3">
+								<svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+								AI-Powered Match
+							</div>
+							<h3 class="text-3xl font-extrabold text-slate-900 mb-2" style="font-family: 'Outfit', sans-serif;">
+								Get Your Scholarship Match Score
+							</h3>
+							<p class="text-slate-600 text-lg leading-relaxed mb-6">
+								Find out how well you fit this program and discover which scholarships you qualify for — before you start writing applications.
+							</p>
+						</div>
+					</div>
+
+					<div class="grid md:grid-cols-3 gap-4 mb-8">
+						<div class="bg-white rounded-xl p-4 border border-orange-100 shadow-sm">
+							<div class="text-orange-500 mb-2">
+								<svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+							</div>
+							<div class="text-sm font-bold text-slate-900 mb-1">Your Fit Score</div>
+							<div class="text-xs text-slate-500">See your match: 0-100</div>
+						</div>
+						<div class="bg-white rounded-xl p-4 border border-orange-100 shadow-sm">
+							<div class="text-orange-500 mb-2">
+								<svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+							</div>
+							<div class="text-sm font-bold text-slate-900 mb-1">Top 5 Scholarships</div>
+							<div class="text-xs text-slate-500">With match percentages</div>
+						</div>
+						<div class="bg-white rounded-xl p-4 border border-orange-100 shadow-sm">
+							<div class="text-orange-500 mb-2">
+								<svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+							</div>
+							<div class="text-sm font-bold text-slate-900 mb-1">Application Tips</div>
+							<div class="text-xs text-slate-500">Specific to your profile</div>
+						</div>
+					</div>
+
+					<div class="flex flex-col sm:flex-row gap-4">
+						<button 
+							onclick={() => showSampleModal = true}
+							class="px-6 py-3 bg-white border-2 border-orange-500 text-orange-600 font-bold rounded-xl hover:bg-orange-50 transition-all flex items-center justify-center gap-2"
+						>
+							<svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+							See Sample Output
+						</button>
+						<button 
+							onclick={handleAction}
+							class="flex-1 px-8 py-4 bg-orange-500 hover:bg-orange-600 text-white font-extrabold rounded-xl transition-all hover:-translate-y-0.5 shadow-lg hover:shadow-orange-500/50 flex items-center justify-center gap-3 text-lg"
+						>
+							<span>Unlock My Strategy</span>
+							<ArrowRight size={24} strokeWidth={3} />
+						</button>
+					</div>
+
+					<div class="mt-6 flex items-center justify-between text-sm">
+						<div class="flex items-center gap-2 text-slate-600">
+							<svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path></svg>
+							<span><strong>Only 1 credit</strong> {#if session && data.userProfile?.credits}(you have {data.userProfile.credits} free){/if}</span>
+						</div>
+						<div class="text-slate-500">
+							<span class="text-emerald-600 font-bold">✓</span> Try risk-free
+						</div>
+					</div>
 				</div>
 			</div>
 
@@ -448,6 +524,9 @@
 	mode="signup"
 	returnUrl={`/dashboard?programId=${viewModel.id}`}
 />
+
+<!-- Sample Strategy Modal -->
+<SampleStrategyModal bind:show={showSampleModal} />
 
 <style>
 	.similar-card {

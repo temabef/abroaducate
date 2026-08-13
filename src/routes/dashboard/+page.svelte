@@ -910,6 +910,26 @@
 		</div>
 	</div>
 
+	<!-- 🎯 ACTIVATION BANNER (Priority 1.2 - Users with 3 credits who never activated) -->
+	{#if profile?.credits === 3 && (!manuallyUnlockedStrategies || Object.keys(manuallyUnlockedStrategies).length === 0)}
+	<div class="activation-banner">
+		<div class="activation-banner-left">
+			<div class="activation-banner-icon">
+				<Zap size={20} fill="currentColor" />
+			</div>
+			<div class="activation-banner-text">
+				<h3 class="activation-banner-title">Welcome! You have 3 free credits</h3>
+				<p class="activation-banner-desc">
+					Try this: Browse programs and unlock scholarship strategy on one you like. It only costs 1 credit and shows your exact fit score + scholarships.
+				</p>
+			</div>
+		</div>
+		<a href="/programs" class="activation-banner-cta">
+			Browse Programs <ArrowRight size={16} />
+		</a>
+	</div>
+	{/if}
+
 	<!-- Profile completion nudge -->
 	{#if (Math.round(([!!inlineGpa && inlineGpa !== '0', !!inlineLevel, !!inlineField, !!inlineNationality, !!inlineTargetLevel, !!inlineIelts && inlineIelts !== '0'].filter(Boolean).length / 6) * 100)) < 100}
 	{@const _fields = [
@@ -2248,4 +2268,78 @@
 		flex-shrink: 0;
 	}
 	.profile-nudge-cta:hover { background: #ea580c; transform: translateY(-1px); }
+
+	/* Activation banner */
+	.activation-banner {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1.5rem;
+		background: linear-gradient(135deg, #fef3c7 0%, #fde68a 50%, #fed7aa 100%);
+		border: 2px solid #fbbf24;
+		border-radius: 1rem;
+		padding: 1.25rem 1.5rem;
+		margin-bottom: 1.75rem;
+		box-shadow: 0 4px 12px rgba(251, 191, 36, 0.15);
+		flex-wrap: wrap;
+	}
+	.activation-banner-left {
+		display: flex;
+		align-items: flex-start;
+		gap: 1rem;
+		flex: 1;
+		min-width: 280px;
+	}
+	.activation-banner-icon {
+		width: 3rem;
+		height: 3rem;
+		border-radius: 0.75rem;
+		background: white;
+		color: #f59e0b;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+		box-shadow: 0 2px 8px rgba(245, 158, 11, 0.2);
+	}
+	.activation-banner-text {
+		display: flex;
+		flex-direction: column;
+		gap: 0.375rem;
+		flex: 1;
+	}
+	.activation-banner-title {
+		font-size: 1rem;
+		font-weight: 800;
+		color: #78350f;
+		letter-spacing: -0.01em;
+	}
+	.activation-banner-desc {
+		font-size: 0.875rem;
+		color: #92400e;
+		line-height: 1.5;
+		margin: 0;
+	}
+	.activation-banner-cta {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.75rem 1.5rem;
+		background: #f97316;
+		color: white;
+		text-decoration: none;
+		border-radius: 0.75rem;
+		font-size: 0.9375rem;
+		font-weight: 800;
+		cursor: pointer;
+		transition: all 0.2s;
+		white-space: nowrap;
+		flex-shrink: 0;
+		box-shadow: 0 2px 8px rgba(249, 115, 22, 0.3);
+	}
+	.activation-banner-cta:hover { 
+		background: #ea580c; 
+		transform: translateY(-2px); 
+		box-shadow: 0 4px 12px rgba(234, 88, 12, 0.4);
+	}
 </style>
