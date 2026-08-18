@@ -12,11 +12,14 @@
 
 	onMount(() => {
 		if (browser) {
-			try {
-				(window.adsbygoogle = window.adsbygoogle || []).push({});
-			} catch (e) {
-				console.error('AdSense error:', e);
-			}
+			const timer = setTimeout(() => {
+				try {
+					((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({});
+				} catch (e) {
+					console.warn('AdSense error:', e);
+				}
+			}, 100);
+			return () => clearTimeout(timer);
 		}
 	});
 </script>
