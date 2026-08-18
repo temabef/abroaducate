@@ -25,7 +25,6 @@ export const load: PageServerLoad = async ({ params, locals }) => {
     .select('*')
     .eq('slug', slug)
     .eq('status', 'published')
-    .lte('published_at', new Date().toISOString())
     .single();
 
   if (fetchErr || !post) {

@@ -29,6 +29,9 @@ const PAGE_SIZE = 30;
 export const load: PageServerLoad = async ({ locals, url, setHeaders }) => {
 	const supabase = locals.supabase;
 
+	console.log('🔍 [Programs Page] Loading...');
+	console.log('  Supabase client exists:', !!supabase);
+
 	// Cache for 5 minutes at the CDN edge — drastically reduces egress for
 	// crawlers and repeat visitors.
 	setHeaders({
@@ -123,11 +126,20 @@ export const load: PageServerLoad = async ({ locals, url, setHeaders }) => {
 
 			const { data, error, count } = await query;
 
+			console.log('  Query result:', { 
+				dataLength: data?.length, 
+				count, 
+				hasError: !!error,
+				errorCode: error?.code,
+				errorMessage: error?.message
+			});
+
 			if (error) {
 				console.error('Error fetching programs', error);
 			} else {
 				dbPrograms = data || [];
 				totalCount = count || 0;
+				console.log('  ✅ Returning', dbPrograms.length, 'programs');
 			}
 		}
 	} catch (err) {

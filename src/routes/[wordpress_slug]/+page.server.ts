@@ -1,5 +1,4 @@
-import { supabase } from '$lib/supabaseClient';
-import { error, redirect } from '@sveltejs/kit';
+import { error, redirect, isRedirect, isHttpError } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import MarkdownIt from 'markdown-it';
 import sanitizeHtml from 'sanitize-html';
@@ -90,8 +89,9 @@ function renderMarkdown(content: string): string {
 	}
 }
 
-export const load: PageServerLoad = async ({ params }) => {
+export const load: PageServerLoad = async ({ params, locals }) => {
 	const slug = params.wordpress_slug;
+	const supabase = locals.supabase;
 	
 	try {
 		// First, check if this slug exists in our blog_posts table
@@ -137,7 +137,6 @@ export const load: PageServerLoad = async ({ params }) => {
 			.order('published_at', { ascending: false })
 			.limit(4);
 
-		console.log('[related posts]', relatedRows?.length ?? 0, relatedErr?.message ?? 'ok');
 		const related = relatedRows ?? [];
 
 		return {
@@ -155,6 +154,9 @@ export const load: PageServerLoad = async ({ params }) => {
 			}
 		};
 	} catch (err) {
+		if (isRedirect(err) || isHttpError(err)) {
+			throw err;
+		}
 		console.error('Error loading WordPress post:', err);
 		throw error(404, 'Page not found');
 	}

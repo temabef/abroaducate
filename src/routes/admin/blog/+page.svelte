@@ -85,7 +85,7 @@
                       </a>
                     </div>
                     <div class="text-sm text-gray-500">
-                      /{post.slug}
+                      /blog/{post.slug}
                     </div>
                   </div>
                 </td>

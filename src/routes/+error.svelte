@@ -1,6 +1,8 @@
-<script>
-  export let error;
-  export let status;
+<script lang="ts">
+  import { page } from '$app/stores';
+
+  $: error = $page.error;
+  $: status = $page.status;
 </script>
 
 <div class="flex items-center justify-center min-h-screen bg-gray-100">

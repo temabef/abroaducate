@@ -50,7 +50,7 @@ export const GET: RequestHandler = async ({ url, locals }) => {
   const blogEntries = (posts || [])
     .map(
       (p) => `  <url>
-    <loc>${baseUrl}/${p.slug}</loc>
+    <loc>${baseUrl}/blog/${p.slug}</loc>
     <lastmod>${p.published_at ? new Date(p.published_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
