@@ -20,17 +20,15 @@
     }
 
 	onMount(() => {
-        // Dev-only: aggressively unregister any service workers and delete caches
+        // Unregister any legacy or conflicting service workers and delete stale navigation caches
         try {
-            if (import.meta.env.DEV) {
-                if ('serviceWorker' in navigator) {
-                    navigator.serviceWorker.getRegistrations().then((regs) => {
-                        regs.forEach((reg) => reg.unregister().catch(() => {}));
-                    }).catch(() => {});
-                }
-                if ('caches' in window) {
-                    caches.keys().then((keys) => keys.forEach((k) => caches.delete(k))).catch(() => {});
-                }
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then((regs) => {
+                    regs.forEach((reg) => reg.unregister().catch(() => {}));
+                }).catch(() => {});
+            }
+            if ('caches' in window) {
+                caches.keys().then((keys) => keys.forEach((k) => caches.delete(k))).catch(() => {});
             }
         } catch {}
 

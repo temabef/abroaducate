@@ -10,7 +10,9 @@ export default defineConfig({
 		SvelteKitPWA({
 			registerType: 'autoUpdate',
 			workbox: {
-				globPatterns: ['**/*.{js,css,html,ico,png,svg,webp}'],
+				globPatterns: ['**/*.{js,css,ico,png,svg,webp}'],
+				navigateFallback: null,
+				navigateFallbackDenylist: [/^\/blog/, /^\/admin/, /^\/scholarships/, /^\/programs/],
 				runtimeCaching: [
 					{
 						urlPattern: /^https:\/\/api\.abroaducate\.com\//,
