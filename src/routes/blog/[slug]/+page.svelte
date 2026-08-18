@@ -6,9 +6,9 @@
   import { onMount } from 'svelte';
 
   let { data }: { data: PageData } = $props();
-  let post = $derived(data.post);
-  let html = $derived(data.html);
-  let related = $derived(data.related);
+  let post = $derived(data?.post ?? {} as any);
+  let html = $derived(data?.html ?? '');
+  let related = $derived(data?.related ?? []);
 
   // Split HTML content to insert middle ad
   function splitContentForAd(htmlContent: string): { firstHalf: string; secondHalf: string } {
@@ -47,34 +47,44 @@
 
   // Scroll to top when navigating between posts
   $effect(() => {
-    post.id; // track post changes
-    window.scrollTo({ top: 0 });
+    if (post?.id && typeof window !== 'undefined') {
+      window.scrollTo({ top: 0 });
+    }
   });
 
   function formatDate(dateStr: string) {
-    return new Date(dateStr).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
+    if (!dateStr) return '';
+    try {
+      return new Date(dateStr).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    } catch {
+      return '';
+    }
   }
 
   function shareOnTwitter() {
-    const text = `Check out: ${post.title}`;
+    if (typeof window === 'undefined') return;
+    const text = `Check out: ${post?.title || ''}`;
     const url = encodeURIComponent(window.location.href);
     window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${url}`, '_blank');
   }
 
   function shareOnLinkedIn() {
+    if (typeof window === 'undefined') return;
     const url = encodeURIComponent(window.location.href);
     window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}`, '_blank');
   }
 
   function copyLink() {
+    if (typeof window === 'undefined' || !navigator.clipboard) return;
     navigator.clipboard.writeText(window.location.href);
   }
 
   function handleScroll() {
+    if (typeof window === 'undefined' || !document.documentElement) return;
     const scrollTop = window.scrollY;
     const docHeight = document.documentElement.scrollHeight - window.innerHeight;
     if (docHeight > 0) {
@@ -97,6 +107,8 @@
   $effect(() => {
     // Track html to re-run when post changes
     html;
+
+    if (typeof window === 'undefined') return;
 
     // Small delay to let the DOM update with new content
     const timer = setTimeout(() => {
@@ -160,9 +172,9 @@
 </script>
 
 <SEO
-  title={post.title}
-  description={post.excerpt || `Read ${post.title} on our study abroad blog`}
-  image={post.cover_image_url}
+  title={post?.title || 'Abroaducate Article'}
+  description={post?.excerpt || (post?.title ? `Read ${post.title} on our study abroad blog` : 'Study abroad article')}
+  image={post?.cover_image_url}
   schemaType="Article"
 />
 

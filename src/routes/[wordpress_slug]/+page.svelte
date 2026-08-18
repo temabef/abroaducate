@@ -3,10 +3,9 @@
 	import SEO from '$lib/components/SEO.svelte';
 	
 	export let data;
-	
-	$: post = data.post;
-	$: seo = data.seo;
-	$: related = data.related ?? [];
+	$: post = data?.post ?? {};
+	$: seo = data?.seo ?? {};
+	$: related = data?.related ?? [];
 	
 	// Handle image loading errors
 	function handleImageError(event: Event) {
@@ -222,10 +221,10 @@
 </script>
 
 <SEO
-	title={seo.title}
-	description={seo.description}
-	canonical={seo.canonicalUrl}
-	type={seo.type}
+	title={seo?.title || post?.title || 'Abroaducate'}
+	description={seo?.description || post?.excerpt || 'Study abroad article'}
+	canonical={seo?.canonicalUrl || ''}
+	type={seo?.type || 'article'}
 />
 
 <main class="min-h-screen bg-white">

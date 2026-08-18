@@ -120,7 +120,7 @@
       {#if cover_image_url}
         <div class="mt-2">
           <img src={cover_image_url} alt="Cover preview" class="w-32 h-20 object-cover rounded border" 
-               onerror={(e) => { e.target.style.display = 'none'; }} />
+               onerror={(e) => { const img = e.currentTarget as HTMLImageElement; if (img) img.style.display = 'none'; }} />
         </div>
       {/if}
     </div>

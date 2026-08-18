@@ -1,16 +1,35 @@
 <script lang="ts">
-	export let title: string;
-	export let description: string;
-	export let canonical: string = '';
-	export let image: string = 'https://abroaducate.com/og-image.png';
-	export let type: string = 'website';
-	export let keywords: string = '';
-	export let schemaType: 'WebSite' | 'WebPage' | 'Article' | 'Product' = 'WebPage';
-	export let structuredData: any = null;
+	interface Props {
+		title?: string;
+		description?: string;
+		canonical?: string;
+		image?: string;
+		type?: string;
+		keywords?: string;
+		schemaType?: 'WebSite' | 'WebPage' | 'Article' | 'Product';
+		structuredData?: any;
+	}
+
+	let {
+		title = 'Abroaducate',
+		description = 'Expert guides, tips, and insights for your study abroad journey.',
+		canonical = '',
+		image = 'https://abroaducate.com/og-image.png',
+		type = 'website',
+		keywords = '',
+		schemaType = 'WebPage',
+		structuredData = null
+	}: Props = $props();
 
 	// Default keywords for academic/study abroad platform
 	const defaultKeywords = 'study abroad, statement of purpose, SOP, university applications, scholarships, IELTS, academic writing, AI writing assistant';
-	const finalKeywords = keywords ? `${keywords}, ${defaultKeywords}` : defaultKeywords;
+	let finalKeywords = $derived(keywords ? `${keywords}, ${defaultKeywords}` : defaultKeywords);
+
+	// Safe title calculation
+	let safeTitle = $derived(title || 'Abroaducate');
+	let fullTitle = $derived(
+		safeTitle.includes('Abroaducate') ? safeTitle : `${safeTitle} | Abroaducate`
+	);
 
 	// Generate structured data based on page type
 	function generateStructuredData() {
@@ -19,9 +38,9 @@
 		const baseData = {
 			"@context": "https://schema.org",
 			"@type": schemaType,
-			"name": title,
-			"description": description,
-			"url": canonical || `https://abroaducate.com${typeof window !== 'undefined' ? window.location.pathname : ''}`,
+			"name": safeTitle,
+			"description": description || '',
+			"url": canonical || 'https://abroaducate.com',
 			"isPartOf": {
 				"@type": "WebSite",
 				"name": "Abroaducate",
@@ -43,8 +62,7 @@
 		return baseData;
 	}
 
-	const pageStructuredData = generateStructuredData();
-	const fullTitle = title.includes('Abroaducate') ? title : `${title} | Abroaducate`;
+	let pageStructuredData = $derived(generateStructuredData());
 </script>
 
 <svelte:head>
