@@ -11,6 +11,7 @@
 	import FundingGuidance from '$lib/components/FundingGuidance.svelte';
 	import WorkAndStay from '$lib/components/WorkAndStay.svelte';
 	import SampleStrategyModal from '$lib/components/SampleStrategyModal.svelte';
+	import StrategyUsageCounter from '$lib/components/StrategyUsageCounter.svelte';
 
 	let { data } = $props();
 	let session = $derived(data.session);
@@ -200,25 +201,25 @@
 
 					<div class="grid md:grid-cols-3 gap-4 mb-8">
 						<div class="bg-white rounded-xl p-4 border border-orange-100 shadow-sm">
-							<div class="text-orange-500 mb-2">
-								<svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-							</div>
-							<div class="text-sm font-bold text-slate-900 mb-1">Your Fit Score</div>
-							<div class="text-xs text-slate-500">See your match: 0-100</div>
-						</div>
-						<div class="bg-white rounded-xl p-4 border border-orange-100 shadow-sm">
-							<div class="text-orange-500 mb-2">
-								<svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-							</div>
-							<div class="text-sm font-bold text-slate-900 mb-1">Top 5 Scholarships</div>
-							<div class="text-xs text-slate-500">With match percentages</div>
-						</div>
-						<div class="bg-white rounded-xl p-4 border border-orange-100 shadow-sm">
-							<div class="text-orange-500 mb-2">
+							<div class="text-green-600 mb-2">
 								<svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
 							</div>
-							<div class="text-sm font-bold text-slate-900 mb-1">Application Tips</div>
-							<div class="text-xs text-slate-500">Specific to your profile</div>
+							<div class="text-sm font-bold text-slate-900 mb-1">Eligibility Match</div>
+							<div class="text-xs text-slate-500">Know if you qualify before applying</div>
+						</div>
+						<div class="bg-white rounded-xl p-4 border border-orange-100 shadow-sm">
+							<div class="text-blue-600 mb-2">
+								<svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+							</div>
+							<div class="text-sm font-bold text-slate-900 mb-1">Committee Rubric</div>
+							<div class="text-xs text-slate-500">What selection committees look for</div>
+						</div>
+						<div class="bg-white rounded-xl p-4 border border-orange-100 shadow-sm">
+							<div class="text-orange-500 mb-2">
+								<svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+							</div>
+							<div class="text-sm font-bold text-slate-900 mb-1">Action Path</div>
+							<div class="text-xs text-slate-500">Step-by-step roadmap for your profile</div>
 						</div>
 					</div>
 
@@ -240,12 +241,15 @@
 					</div>
 
 					<div class="mt-6 flex items-center justify-between text-sm">
-						<div class="flex items-center gap-2 text-slate-600">
-							<svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path></svg>
-							<span><strong>Only 1 credit</strong> {#if session && data.userProfile?.credits}(you have {data.userProfile.credits} free){/if}</span>
+						<div class="flex items-center gap-3">
+							<div class="flex items-center gap-2 text-slate-600">
+								<svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path></svg>
+								<span><strong>Only 1 credit</strong> {#if session && data.userProfile?.credits}(you have {data.userProfile.credits} free){/if}</span>
+							</div>
 						</div>
-						<div class="text-slate-500">
-							<span class="text-emerald-600 font-bold">✓</span> Try risk-free
+						<div class="flex items-center gap-3">
+							<StrategyUsageCounter />
+							<span class="text-emerald-600 font-bold text-slate-500">✓ Try risk-free</span>
 						</div>
 					</div>
 				</div>

@@ -319,9 +319,9 @@
                 success = 'Account created successfully! Redirecting...';
                 setTimeout(async () => {
                     close();
-                    // Check if user needs onboarding
-                    const redirectUrl = await getPostAuthRedirect(supabase, data.session, returnUrl);
-                    performRedirect(redirectUrl);
+                    // New users get welcome overlay on programs page
+                    const welcomeRedirect = '/programs?welcome=true';
+                    performRedirect(welcomeRedirect);
                 }, 1000);
             } else {
                 // Email confirmation required

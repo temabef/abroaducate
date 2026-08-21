@@ -1,8 +1,12 @@
 <script lang="ts">
-	import { Search, SlidersHorizontal, Filter, GraduationCap, Bookmark, MapPin, Banknote } from 'lucide-svelte';
+	import { Search, SlidersHorizontal, Filter, GraduationCap, Bookmark, MapPin, Banknote, Lightbulb } from 'lucide-svelte';
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
+	import { onMount } from 'svelte';
 	import { getProgramDeadlineLifecycle, getProgramDeadlineSortValue } from '$lib/utils/programDeadlines';
+	import SampleStrategyModal from '$lib/components/SampleStrategyModal.svelte';
+	import StrategyUsageCounter from '$lib/components/StrategyUsageCounter.svelte';
+	import WelcomeOverlay from '$lib/components/WelcomeOverlay.svelte';
 
 	let { data }: { data: any } = $props();
 	let session = $derived(data.session);
@@ -18,6 +22,19 @@
 	let searchQuery = $state(data.filters?.q || '');
 	let showMobileFilters = $state(false);
 	let selectedCountries = $state<string[]>(data.filters?.countries || []);
+	let showSampleModal = $state(false);
+	let showWelcome = $state(false);
+
+	// Show welcome overlay for new signups redirected with ?welcome=true
+	onMount(() => {
+		const url = new URL(window.location.href);
+		if (url.searchParams.get('welcome') === 'true') {
+			showWelcome = true;
+			// Clean URL without triggering navigation
+			url.searchParams.delete('welcome');
+			window.history.replaceState({}, '', url.toString());
+		}
+	});
 	let selectedLanguages = $state<string[]>(data.filters?.languages || []);
 	let selectedDegreeLevels = $state<string[]>(data.filters?.degreeLevels || []);
 	let selectedIntakes = $state<string[]>(data.filters?.intakes || []);
@@ -146,6 +163,21 @@
 					<SlidersHorizontal size={20} />
 				</button>
 			</div>
+		</div>
+	</div>
+
+	<!-- AI Strategy Banner -->
+	<div class="strategy-banner">
+		<div class="strategy-banner-icon"><Lightbulb size={20} /></div>
+		<div class="strategy-banner-content">
+			<p class="strategy-banner-title">Get an AI Scholarship Win Strategy for any program</p>
+			<p class="strategy-banner-desc">Eligibility match, committee rubric, essay angles & action path — tailored to your profile. Only 1 credit per scholarship.</p>
+		</div>
+		<div class="strategy-banner-right">
+			<StrategyUsageCounter />
+			<button onclick={() => showSampleModal = true} class="strategy-banner-btn">
+				See Sample →
+			</button>
 		</div>
 	</div>
 
@@ -708,4 +740,77 @@
 		background: #1e293b;
 		border-color: #1e293b;
 	}
+
+	/* Strategy Banner */
+	.strategy-banner {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		background: linear-gradient(135deg, #fff7ed, #fef9ee);
+		border: 1.5px solid #fed7aa;
+		border-radius: 1rem;
+		padding: 1rem 1.25rem;
+		margin: 0 1.5rem 1.25rem;
+	}
+	.strategy-banner-icon {
+		color: #ea580c;
+		shrink: 0;
+		margin-top: 0.125rem;
+	}
+	.strategy-banner-content {
+		flex: 1;
+		min-width: 0;
+	}
+	.strategy-banner-title {
+		font-weight: 700;
+		color: #0f172a;
+		font-size: 0.9375rem;
+		margin: 0 0 0.2rem;
+	}
+	.strategy-banner-desc {
+		font-size: 0.8125rem;
+		color: #64748b;
+		margin: 0;
+		line-height: 1.5;
+	}
+	.strategy-banner-right {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-end;
+		gap: 0.375rem;
+		shrink: 0;
+	}
+	.strategy-banner-btn {
+		padding: 0.5rem 1rem;
+		background: #ea580c;
+		color: white;
+		font-weight: 700;
+		font-size: 0.8125rem;
+		border: none;
+		border-radius: 0.5rem;
+		cursor: pointer;
+		transition: background 0.2s;
+		white-space: nowrap;
+	}
+	.strategy-banner-btn:hover {
+		background: #c2410c;
+	}
+
+	@media (max-width: 640px) {
+		.strategy-banner {
+			flex-direction: column;
+			align-items: flex-start;
+			margin: 0 1rem 1rem;
+		}
+		.strategy-banner-right {
+			align-items: flex-start;
+			flex-direction: row;
+		}
+	}
 </style>
+
+<!-- Sample Strategy Modal -->
+<SampleStrategyModal bind:show={showSampleModal} />
+
+<!-- Welcome Overlay — fires for new signups redirected with ?welcome=true -->
+<WelcomeOverlay bind:show={showWelcome} />

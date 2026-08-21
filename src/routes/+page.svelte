@@ -1,4 +1,4 @@
-﻿<script lang="ts">
+<script lang="ts">
 import { goto } from '$app/navigation';
 import { onMount } from 'svelte';
 import {
@@ -13,6 +13,9 @@ GraduationCap,
 BookOpen
 } from 'lucide-svelte';
 import AuthenticationFlow from '$lib/components/AuthenticationFlow.svelte';
+import SampleStrategyModal from '$lib/components/SampleStrategyModal.svelte';
+import ExitIntentModal from '$lib/components/ExitIntentModal.svelte';
+import StrategyUsageCounter from '$lib/components/StrategyUsageCounter.svelte';
 
 let { data } = $props();
 let { supabase, session } = $derived(data);
@@ -24,6 +27,12 @@ let finderDestination = $state('');
 // Auth modal state
 let showAuth = $state(false);
 let authMode = $state<'login' | 'signup'>('signup');
+
+// Sample strategy modal
+let showSampleModal = $state(false);
+
+// Exit intent modal
+let showExitIntent = $state(false);
 
 // Testimonial rotation
 let activeTestimonial = $state(0);
@@ -425,6 +434,88 @@ return () => clearInterval(interval);
 	</div>
 </section>
 
+<!-- ═══ AI SCHOLARSHIP STRATEGY TRUST SECTION ═══ -->
+<section class="section-ai-strategy" use:fadeUpOnScroll>
+	<div class="section-inner">
+		<div class="ai-strategy-card">
+			<div class="ai-strategy-left">
+				<span class="eyebrow">AI-POWERED</span>
+				<h2 class="section-heading section-heading-left" style="margin-bottom: 0.75rem;">Get a Scholarship Win Strategy in 30 seconds</h2>
+				<p style="color: var(--text-secondary); font-size: 1.05rem; line-height: 1.7; margin-bottom: 1.5rem;">
+					For every scholarship you find, unlock a personalised strategy that tells you exactly how to win it — based on your actual profile.
+				</p>
+				<div class="ai-strategy-features">
+					<div class="ai-feature-item">
+						<div class="ai-feature-icon" style="color: #16a34a;"><CheckCircle2 size={20} /></div>
+						<div>
+							<strong>Eligibility Match</strong>
+							<p>Know if you qualify before you apply</p>
+						</div>
+					</div>
+					<div class="ai-feature-item">
+						<div class="ai-feature-icon" style="color: #2563eb;"><Target size={20} /></div>
+						<div>
+							<strong>Committee Rubric</strong>
+							<p>Exactly what selection committees look for</p>
+						</div>
+					</div>
+					<div class="ai-feature-item">
+						<div class="ai-feature-icon" style="color: #9333ea;"><Route size={20} /></div>
+						<div>
+							<strong>Action Path</strong>
+							<p>Step-by-step roadmap tailored to your profile</p>
+						</div>
+					</div>
+				</div>
+				<div class="ai-strategy-actions">
+					<button onclick={() => showSampleModal = true} class="btn-ghost">
+						See Sample Strategy
+					</button>
+					<a href="/programs" class="btn-cta-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;">
+						Browse Programs <ChevronRight size={16} />
+					</a>
+				</div>
+				<div style="margin-top: 1rem;">
+					<StrategyUsageCounter />
+					<p style="font-size: 0.8rem; color: var(--text-muted, #94a3b8); margin-top: 0.25rem;">Start with 3 free credits · No card required</p>
+				</div>
+			</div>
+			<div class="ai-strategy-right">
+				<!-- Strategy preview mockup -->
+				<div class="strategy-preview-card">
+					<div class="sp-header">
+						<div class="sp-badge">Scholarship Win Strategy</div>
+						<div class="sp-scholarship">NHR Graduate Fellowship 2026</div>
+						<div class="sp-value">Full tuition + €2,200/month</div>
+					</div>
+					<div class="sp-rubric">
+						<div class="sp-rubric-title">Committee Rubric</div>
+						<div class="sp-rubric-row">
+							<span class="sp-badge-low">Below Range</span>
+							<span>GPA / Academic Strength</span>
+						</div>
+						<div class="sp-rubric-row">
+							<span class="sp-badge-missing">Not Provided</span>
+							<span>Language Requirements</span>
+						</div>
+						<div class="sp-rubric-row">
+							<span class="sp-badge-med">Medium</span>
+							<span>Field of Study Fit</span>
+						</div>
+					</div>
+					<div class="sp-action">
+						<div class="sp-action-title">Next Steps</div>
+						<div class="sp-step"><span class="sp-step-num">1</span> Schedule IELTS/TOEFL exam</div>
+						<div class="sp-step"><span class="sp-step-num">2</span> Draft your Statement of Purpose</div>
+						<div class="sp-step"><span class="sp-step-num">3</span> Reach out to potential supervisors</div>
+					</div>
+					<div class="sp-cost">1 credit · Generated in 30s</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
+
 <!-- ═══ FINAL CTA ═══ -->
 <section class="section-final-cta" use:fadeUpOnScroll>
 	<div class="section-inner">
@@ -439,6 +530,12 @@ return () => clearInterval(interval);
 
 <!-- Auth Modal -->
 <AuthenticationFlow bind:show={showAuth} {supabase} mode={authMode} returnUrl="/dashboard" />
+
+<!-- Sample Strategy Modal -->
+<SampleStrategyModal bind:show={showSampleModal} />
+
+<!-- Exit Intent Modal (auto-triggers on mouse leave toward browser chrome) -->
+<ExitIntentModal bind:show={showExitIntent} />
 
 <style>
 /* ═══════════════════════════════════════
@@ -1347,5 +1444,205 @@ return () => clearInterval(interval);
 		align-items: center;
 		gap: 0.75rem;
 	}
+	@media (max-width: 768px) {
+		.ai-strategy-card {
+			grid-template-columns: 1fr;
+		}
+		.ai-strategy-right {
+			display: none;
+		}
+	}
+}
+
+/* ═══════════════════════════════════════
+   AI STRATEGY TRUST SECTION
+   ═══════════════════════════════════════ */
+.section-ai-strategy {
+	background: linear-gradient(135deg, #fff7ed 0%, #fef3c7 50%, #fff7ed 100%);
+	padding: 5rem 1.5rem;
+	border-top: 1px solid #fed7aa;
+	border-bottom: 1px solid #fed7aa;
+}
+.ai-strategy-card {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 4rem;
+	align-items: center;
+	max-width: 1100px;
+	margin: 0 auto;
+}
+.ai-strategy-left {
+	display: flex;
+	flex-direction: column;
+}
+.ai-strategy-features {
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+	margin-bottom: 2rem;
+}
+.ai-feature-item {
+	display: flex;
+	align-items: flex-start;
+	gap: 0.875rem;
+}
+.ai-feature-icon {
+	width: 2rem;
+	height: 2rem;
+	border-radius: 8px;
+	background: white;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+	shrink: 0;
+}
+.ai-feature-item strong {
+	display: block;
+	font-weight: 700;
+	color: #0f172a;
+	font-size: 0.9375rem;
+	margin-bottom: 0.125rem;
+}
+.ai-feature-item p {
+	margin: 0;
+	color: #64748b;
+	font-size: 0.85rem;
+}
+.ai-strategy-actions {
+	display: flex;
+	gap: 1rem;
+	align-items: center;
+	flex-wrap: wrap;
+}
+.ai-strategy-right {
+	display: flex;
+	justify-content: center;
+}
+/* Strategy preview card */
+.strategy-preview-card {
+	background: #0f172a;
+	border-radius: 1.25rem;
+	padding: 1.5rem;
+	color: white;
+	width: 100%;
+	max-width: 360px;
+	box-shadow: 0 20px 60px rgba(15, 23, 42, 0.25);
+	position: relative;
+}
+.sp-header {
+	margin-bottom: 1.25rem;
+	padding-bottom: 1.25rem;
+	border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.sp-badge {
+	font-size: 0.65rem;
+	font-weight: 800;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	color: #f97316;
+	background: rgba(249, 115, 22, 0.15);
+	padding: 0.2rem 0.6rem;
+	border-radius: 99px;
+	display: inline-block;
+	margin-bottom: 0.5rem;
+}
+.sp-scholarship {
+	font-size: 1rem;
+	font-weight: 700;
+	margin-bottom: 0.25rem;
+}
+.sp-value {
+	font-size: 0.78rem;
+	color: #34d399;
+	font-weight: 600;
+}
+.sp-rubric {
+	margin-bottom: 1.25rem;
+}
+.sp-rubric-title {
+	font-size: 0.7rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: #94a3b8;
+	margin-bottom: 0.625rem;
+}
+.sp-rubric-row {
+	display: flex;
+	align-items: center;
+	gap: 0.625rem;
+	font-size: 0.8rem;
+	color: #cbd5e1;
+	margin-bottom: 0.5rem;
+}
+.sp-badge-low {
+	font-size: 0.65rem;
+	font-weight: 700;
+	background: #fecaca;
+	color: #991b1b;
+	padding: 0.15rem 0.45rem;
+	border-radius: 99px;
+	white-space: nowrap;
+}
+.sp-badge-missing {
+	font-size: 0.65rem;
+	font-weight: 700;
+	background: #e2e8f0;
+	color: #475569;
+	padding: 0.15rem 0.45rem;
+	border-radius: 99px;
+	white-space: nowrap;
+}
+.sp-badge-med {
+	font-size: 0.65rem;
+	font-weight: 700;
+	background: #fde68a;
+	color: #92400e;
+	padding: 0.15rem 0.45rem;
+	border-radius: 99px;
+	white-space: nowrap;
+}
+.sp-action {
+	background: rgba(255,255,255,0.05);
+	border-radius: 0.75rem;
+	padding: 1rem;
+	margin-bottom: 1rem;
+}
+.sp-action-title {
+	font-size: 0.7rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: #94a3b8;
+	margin-bottom: 0.625rem;
+}
+.sp-step {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	font-size: 0.8rem;
+	color: #e2e8f0;
+	margin-bottom: 0.375rem;
+}
+.sp-step-num {
+	width: 1.25rem;
+	height: 1.25rem;
+	border-radius: 50%;
+	background: #f97316;
+	color: white;
+	font-size: 0.65rem;
+	font-weight: 800;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	shrink: 0;
+}
+.sp-cost {
+	font-size: 0.75rem;
+	color: #64748b;
+	text-align: center;
+	padding-top: 0.75rem;
+	border-top: 1px solid rgba(255,255,255,0.08);
 }
 </style>
