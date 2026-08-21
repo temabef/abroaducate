@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { CheckCircle2, X } from 'lucide-svelte';
+	import { CheckCircle2, X, Sparkles } from 'lucide-svelte';
 	import SampleStrategyModal from './SampleStrategyModal.svelte';
 
 	let { show = $bindable(false) } = $props();
@@ -56,9 +56,11 @@
 					<X size={20} />
 				</button>
 
-				<!-- Emoji + Heading -->
+				<!-- Icon + Heading -->
 				<div class="text-center mb-6">
-					<div class="text-5xl mb-4">🎉</div>
+					<div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-500 text-white flex items-center justify-center mx-auto mb-4 shadow-lg shadow-orange-500/20">
+						<Sparkles size={30} />
+					</div>
 					<h2 id="welcome-overlay-title" class="text-3xl font-extrabold text-slate-900 mb-2" style="font-family: 'Outfit', sans-serif;">
 						Welcome to Abroaducate!
 					</h2>

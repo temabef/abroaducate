@@ -167,17 +167,21 @@
 	</div>
 
 	<!-- AI Strategy Banner -->
-	<div class="strategy-banner">
-		<div class="strategy-banner-icon"><Lightbulb size={20} /></div>
-		<div class="strategy-banner-content">
-			<p class="strategy-banner-title">Get an AI Scholarship Win Strategy for any program</p>
-			<p class="strategy-banner-desc">Eligibility match, committee rubric, essay angles & action path — tailored to your profile. Only 1 credit per scholarship.</p>
-		</div>
-		<div class="strategy-banner-right">
-			<StrategyUsageCounter />
-			<button onclick={() => showSampleModal = true} class="strategy-banner-btn">
-				See Sample →
-			</button>
+	<div class="strategy-banner-container">
+		<div class="strategy-banner">
+			<div class="strategy-banner-icon">
+				<Lightbulb size={22} />
+			</div>
+			<div class="strategy-banner-content">
+				<p class="strategy-banner-title">Get an AI Scholarship Win Strategy for any program</p>
+				<p class="strategy-banner-desc">Eligibility match, committee rubric, essay angles & action path — tailored to your profile. Only 1 credit per scholarship.</p>
+			</div>
+			<div class="strategy-banner-right">
+				<StrategyUsageCounter />
+				<button onclick={() => showSampleModal = true} class="strategy-banner-btn">
+					See Sample →
+				</button>
+			</div>
 		</div>
 	</div>
 
@@ -742,69 +746,99 @@
 	}
 
 	/* Strategy Banner */
+	.strategy-banner-container {
+		max-width: 80rem;
+		margin: 2rem auto 0;
+		padding: 0 1.5rem;
+		width: 100%;
+		box-sizing: border-box;
+	}
+
 	.strategy-banner {
 		display: flex;
 		align-items: center;
-		gap: 1rem;
-		background: linear-gradient(135deg, #fff7ed, #fef9ee);
-		border: 1.5px solid #fed7aa;
+		gap: 1.25rem;
+		background: linear-gradient(135deg, #fffaf5 0%, #fff7ed 100%);
+		border: 1px solid #fed7aa;
 		border-radius: 1rem;
-		padding: 1rem 1.25rem;
-		margin: 0 1.5rem 1.25rem;
+		padding: 1.125rem 1.5rem;
+		box-shadow: 0 4px 12px -2px rgba(249, 115, 22, 0.06);
 	}
+
 	.strategy-banner-icon {
+		width: 2.75rem;
+		height: 2.75rem;
+		border-radius: 0.75rem;
+		background: #ffedd5;
 		color: #ea580c;
-		shrink: 0;
-		margin-top: 0.125rem;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
 	}
+
 	.strategy-banner-content {
 		flex: 1;
 		min-width: 0;
 	}
+
 	.strategy-banner-title {
 		font-weight: 700;
 		color: #0f172a;
-		font-size: 0.9375rem;
-		margin: 0 0 0.2rem;
+		font-size: 0.975rem;
+		margin: 0 0 0.25rem;
+		letter-spacing: -0.01em;
 	}
+
 	.strategy-banner-desc {
 		font-size: 0.8125rem;
 		color: #64748b;
 		margin: 0;
-		line-height: 1.5;
+		line-height: 1.45;
 	}
+
 	.strategy-banner-right {
 		display: flex;
 		flex-direction: column;
 		align-items: flex-end;
-		gap: 0.375rem;
-		shrink: 0;
+		gap: 0.5rem;
+		flex-shrink: 0;
 	}
+
 	.strategy-banner-btn {
-		padding: 0.5rem 1rem;
+		padding: 0.55rem 1.25rem;
 		background: #ea580c;
 		color: white;
 		font-weight: 700;
 		font-size: 0.8125rem;
 		border: none;
-		border-radius: 0.5rem;
+		border-radius: 0.625rem;
 		cursor: pointer;
-		transition: background 0.2s;
+		transition: all 0.2s ease;
 		white-space: nowrap;
-	}
-	.strategy-banner-btn:hover {
-		background: #c2410c;
+		box-shadow: 0 2px 6px rgba(234, 88, 12, 0.25);
 	}
 
-	@media (max-width: 640px) {
+	.strategy-banner-btn:hover {
+		background: #c2410c;
+		transform: translateY(-1px);
+		box-shadow: 0 4px 10px rgba(234, 88, 12, 0.35);
+	}
+
+	@media (max-width: 768px) {
 		.strategy-banner {
 			flex-direction: column;
 			align-items: flex-start;
-			margin: 0 1rem 1rem;
+			gap: 1rem;
+			padding: 1.25rem;
 		}
 		.strategy-banner-right {
-			align-items: flex-start;
+			width: 100%;
 			flex-direction: row;
+			justify-content: space-between;
+			align-items: center;
+			padding-top: 0.5rem;
+			border-top: 1px solid #ffedd5;
 		}
 	}
 </style>

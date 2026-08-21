@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { X, CheckCircle2, AlertTriangle, Minus } from 'lucide-svelte';
+	import { X, CheckCircle2, AlertTriangle, Minus, Lightbulb } from 'lucide-svelte';
 	import { goto } from '$app/navigation';
 
 	let { show = $bindable(false) } = $props();
@@ -142,8 +142,8 @@
 					</h4>
 					<ul class="space-y-2">
 						{#each sopAngles as angle}
-							<li class="flex items-start gap-2 text-sm text-slate-700">
-								<span class="text-purple-500 mt-0.5 shrink-0">💡</span>
+							<li class="flex items-start gap-2.5 text-sm text-slate-700">
+								<Lightbulb size={16} class="text-purple-500 mt-0.5 shrink-0" />
 								<span>"{angle}"</span>
 							</li>
 						{/each}
@@ -173,12 +173,12 @@
 						Risks to Bridge Before Applying
 					</h4>
 					<ul class="space-y-2 text-sm text-slate-700">
-						<li class="flex items-start gap-2">
-							<span class="text-red-500 shrink-0">⚠</span>
+						<li class="flex items-start gap-2.5">
+							<AlertTriangle size={15} class="text-red-500 shrink-0 mt-0.5" />
 							<span>Missing language proficiency scores — applications without IELTS/TOEFL are typically rejected outright</span>
 						</li>
-						<li class="flex items-start gap-2">
-							<span class="text-red-500 shrink-0">⚠</span>
+						<li class="flex items-start gap-2.5">
+							<AlertTriangle size={15} class="text-red-500 shrink-0 mt-0.5" />
 							<span>GPA below typical admitted student range — consider supplementary evidence like research publications or strong recommendations</span>
 						</li>
 					</ul>

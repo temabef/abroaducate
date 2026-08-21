@@ -249,7 +249,9 @@
 						</div>
 						<div class="flex items-center gap-3">
 							<StrategyUsageCounter />
-							<span class="text-emerald-600 font-bold text-slate-500">✓ Try risk-free</span>
+							<span class="inline-flex items-center gap-1.5 text-slate-500 font-medium">
+								<CheckCircle2 size={15} class="text-emerald-500 shrink-0" /> Try risk-free
+							</span>
 						</div>
 					</div>
 				</div>

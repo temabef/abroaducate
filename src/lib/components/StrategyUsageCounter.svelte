@@ -1,18 +1,17 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
+	import { Flame, Sparkles } from 'lucide-svelte';
 
 	let count = $state(0);
 	let loading = $state(true);
 
 	onMount(async () => {
-		// onMount only runs in browser — but double-guard anyway
 		if (!browser) {
 			loading = false;
 			return;
 		}
 		try {
-			// Dynamically import supabase client only in browser
 			const { supabase } = await import('$lib/supabase');
 			const { count: result, error } = await supabase
 				.from('credit_transactions')
@@ -24,7 +23,7 @@
 				count = result;
 			}
 		} catch {
-			// silently fail — counter is non-critical
+			// silently fail
 		} finally {
 			loading = false;
 		}
@@ -32,11 +31,13 @@
 </script>
 
 {#if !loading && count > 0}
-	<p class="text-sm text-orange-600 font-medium flex items-center gap-1.5 animate-pulse">
-		🔥 <span>{count} students unlocked strategies today</span>
+	<p class="text-sm text-orange-600 font-semibold flex items-center gap-1.5 animate-pulse">
+		<Flame size={16} class="text-orange-500 shrink-0 fill-orange-500/20" />
+		<span>{count} students unlocked strategies today</span>
 	</p>
 {:else if !loading}
-	<p class="text-sm text-orange-600 font-medium flex items-center gap-1.5">
-		🔥 <span>Join 5,500+ students using Abroaducate</span>
+	<p class="text-sm text-orange-600 font-semibold flex items-center gap-1.5">
+		<Sparkles size={16} class="text-orange-500 shrink-0" />
+		<span>Join 5,500+ students using Abroaducate</span>
 	</p>
 {/if}
