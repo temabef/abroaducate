@@ -440,44 +440,44 @@ return () => clearInterval(interval);
 		<div class="ai-strategy-card">
 			<div class="ai-strategy-left">
 				<span class="eyebrow">AI-POWERED</span>
-				<h2 class="section-heading section-heading-left" style="margin-bottom: 0.75rem;">Get a Scholarship Win Strategy in 30 seconds</h2>
-				<p style="color: var(--text-secondary); font-size: 1.05rem; line-height: 1.7; margin-bottom: 1.5rem;">
+				<h2 class="section-heading section-heading-left">Get a Scholarship Win Strategy in 30 seconds</h2>
+				<p class="ai-strategy-desc">
 					For every scholarship you find, unlock a personalised strategy that tells you exactly how to win it — based on your actual profile.
 				</p>
 				<div class="ai-strategy-features">
 					<div class="ai-feature-item">
 						<div class="ai-feature-icon" style="color: #16a34a;"><CheckCircle2 size={20} /></div>
-						<div>
+						<div class="ai-feature-text">
 							<strong>Eligibility Match</strong>
 							<p>Know if you qualify before you apply</p>
 						</div>
 					</div>
 					<div class="ai-feature-item">
 						<div class="ai-feature-icon" style="color: #2563eb;"><Target size={20} /></div>
-						<div>
+						<div class="ai-feature-text">
 							<strong>Committee Rubric</strong>
 							<p>Exactly what selection committees look for</p>
 						</div>
 					</div>
 					<div class="ai-feature-item">
 						<div class="ai-feature-icon" style="color: #9333ea;"><Route size={20} /></div>
-						<div>
+						<div class="ai-feature-text">
 							<strong>Action Path</strong>
 							<p>Step-by-step roadmap tailored to your profile</p>
 						</div>
 					</div>
 				</div>
 				<div class="ai-strategy-actions">
-					<button onclick={() => showSampleModal = true} class="btn-ghost">
+					<button onclick={() => showSampleModal = true} class="btn-ghost btn-strategy-sample">
 						See Sample Strategy
 					</button>
-					<a href="/programs" class="btn-cta-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;">
+					<a href="/programs" class="btn-cta-primary btn-strategy-browse">
 						Browse Programs <ChevronRight size={16} />
 					</a>
 				</div>
-				<div style="margin-top: 1rem;">
+				<div class="ai-strategy-footer">
 					<StrategyUsageCounter />
-					<p style="font-size: 0.8rem; color: var(--text-muted, #94a3b8); margin-top: 0.25rem;">Start with 3 free credits · No card required</p>
+					<p class="ai-strategy-footnote">Start with 3 free credits · No card required</p>
 				</div>
 			</div>
 			<div class="ai-strategy-right">
@@ -1384,77 +1384,6 @@ return () => clearInterval(interval);
 }
 
 /* ═══════════════════════════════════════
-   RESPONSIVE
-   ═══════════════════════════════════════ */
-@media (max-width: 900px) {
-	.scholarships-grid {
-		grid-template-columns: repeat(2, 1fr);
-	}
-	.steps-grid {
-		flex-direction: column;
-		align-items: center;
-	}
-	.step-connector {
-		width: 2px;
-		height: 32px;
-		margin: 0;
-	}
-}
-@media (max-width: 768px) {
-	.hero {
-		padding: 5rem 1rem 3.5rem;
-	}
-	.finder-bar {
-		flex-direction: column;
-		border-radius: 1.25rem;
-		padding: 0.75rem;
-	}
-	.finder-divider {
-		width: 100%;
-		height: 1px;
-	}
-	.finder-btn {
-		border-radius: 0.75rem;
-		justify-content: center;
-		padding: 0.85rem;
-		width: 100%;
-	}
-	.solution-layout {
-		grid-template-columns: 1fr;
-	}
-	.strategy-mockup {
-		order: 2;
-	}
-	.solution-copy {
-		order: 1;
-	}
-	.proof-layout {
-		grid-template-columns: 1fr;
-	}
-	.scholarships-header {
-		flex-direction: column;
-		align-items: flex-start;
-		gap: 0.75rem;
-	}
-	.scholarships-grid {
-		grid-template-columns: 1fr;
-	}
-	.video-features {
-		flex-direction: column;
-		align-items: center;
-		gap: 0.75rem;
-	}
-	@media (max-width: 768px) {
-		.ai-strategy-card {
-			grid-template-columns: 1fr;
-		}
-		.ai-strategy-right {
-			display: none;
-		}
-	}
-}
-
-/* ═══════════════════════════════════════
    AI STRATEGY TRUST SECTION
    ═══════════════════════════════════════ */
 .section-ai-strategy {
@@ -1465,15 +1394,21 @@ return () => clearInterval(interval);
 }
 .ai-strategy-card {
 	display: grid;
-	grid-template-columns: 1fr 1fr;
-	gap: 4rem;
+	grid-template-columns: 1.15fr 0.85fr;
+	gap: 3.5rem;
 	align-items: center;
-	max-width: 1100px;
+	max-width: 1080px;
 	margin: 0 auto;
 }
 .ai-strategy-left {
 	display: flex;
 	flex-direction: column;
+}
+.ai-strategy-desc {
+	color: var(--text-secondary);
+	font-size: 1.05rem;
+	line-height: 1.7;
+	margin: 0 0 1.5rem;
 }
 .ai-strategy-features {
 	display: flex;
@@ -1487,27 +1422,28 @@ return () => clearInterval(interval);
 	gap: 0.875rem;
 }
 .ai-feature-icon {
-	width: 2rem;
-	height: 2rem;
-	border-radius: 8px;
+	width: 2.25rem;
+	height: 2.25rem;
+	border-radius: 10px;
 	background: white;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-	shrink: 0;
+	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+	flex-shrink: 0;
 }
-.ai-feature-item strong {
+.ai-feature-text strong {
 	display: block;
 	font-weight: 700;
 	color: #0f172a;
-	font-size: 0.9375rem;
-	margin-bottom: 0.125rem;
+	font-size: 0.95rem;
+	margin-bottom: 0.15rem;
 }
-.ai-feature-item p {
+.ai-feature-text p {
 	margin: 0;
 	color: #64748b;
 	font-size: 0.85rem;
+	line-height: 1.45;
 }
 .ai-strategy-actions {
 	display: flex;
@@ -1515,10 +1451,40 @@ return () => clearInterval(interval);
 	align-items: center;
 	flex-wrap: wrap;
 }
+.btn-strategy-sample {
+	padding: 0.85rem 1.5rem;
+	border-radius: 14px;
+	font-weight: 600;
+	font-size: 0.95rem;
+	cursor: pointer;
+	border: 1px solid var(--border-subtle);
+	background: white;
+	color: var(--brand-navy);
+	transition: all 0.2s ease;
+}
+.btn-strategy-sample:hover {
+	border-color: var(--brand-orange);
+	color: var(--brand-orange);
+}
+.btn-strategy-browse {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.4rem;
+	text-decoration: none;
+}
+.ai-strategy-footer {
+	margin-top: 1.25rem;
+}
+.ai-strategy-footnote {
+	font-size: 0.8rem;
+	color: #94a3b8;
+	margin: 0.25rem 0 0;
+}
 .ai-strategy-right {
 	display: flex;
 	justify-content: center;
 }
+
 /* Strategy preview card */
 .strategy-preview-card {
 	background: #0f172a;
@@ -1526,14 +1492,15 @@ return () => clearInterval(interval);
 	padding: 1.5rem;
 	color: white;
 	width: 100%;
-	max-width: 360px;
+	max-width: 380px;
 	box-shadow: 0 20px 60px rgba(15, 23, 42, 0.25);
 	position: relative;
+	box-sizing: border-box;
 }
 .sp-header {
 	margin-bottom: 1.25rem;
 	padding-bottom: 1.25rem;
-	border-bottom: 1px solid rgba(255,255,255,0.1);
+	border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 .sp-badge {
 	font-size: 0.65rem;
@@ -1551,9 +1518,10 @@ return () => clearInterval(interval);
 	font-size: 1rem;
 	font-weight: 700;
 	margin-bottom: 0.25rem;
+	line-height: 1.35;
 }
 .sp-value {
-	font-size: 0.78rem;
+	font-size: 0.8rem;
 	color: #34d399;
 	font-weight: 600;
 }
@@ -1604,7 +1572,7 @@ return () => clearInterval(interval);
 	white-space: nowrap;
 }
 .sp-action {
-	background: rgba(255,255,255,0.05);
+	background: rgba(255, 255, 255, 0.05);
 	border-radius: 0.75rem;
 	padding: 1rem;
 	margin-bottom: 1rem;
@@ -1636,13 +1604,232 @@ return () => clearInterval(interval);
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	shrink: 0;
+	flex-shrink: 0;
 }
 .sp-cost {
 	font-size: 0.75rem;
 	color: #64748b;
 	text-align: center;
 	padding-top: 0.75rem;
-	border-top: 1px solid rgba(255,255,255,0.08);
+	border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* ═══════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════ */
+@media (max-width: 900px) {
+	.scholarships-grid {
+		grid-template-columns: repeat(2, 1fr);
+	}
+	.steps-grid {
+		flex-direction: column;
+		align-items: center;
+	}
+	.step-connector {
+		width: 2px;
+		height: 32px;
+		margin: 0;
+	}
+	.ai-strategy-card {
+		grid-template-columns: 1fr;
+		gap: 2.5rem;
+	}
+	.ai-strategy-right {
+		width: 100%;
+		display: flex;
+		justify-content: center;
+	}
+	.strategy-preview-card {
+		max-width: 440px;
+	}
+}
+
+@media (max-width: 768px) {
+	.hero {
+		padding: 5rem 1rem 3rem;
+	}
+	.hero-actions {
+		flex-direction: column;
+		gap: 0.75rem;
+		width: 100%;
+		max-width: 320px;
+		margin-left: auto;
+		margin-right: auto;
+	}
+	.hero-actions .btn-cta-primary,
+	.hero-actions .btn-ghost {
+		width: 100%;
+		justify-content: center;
+		text-align: center;
+		box-sizing: border-box;
+	}
+	.finder-bar {
+		flex-direction: column;
+		border-radius: 1.25rem;
+		padding: 0.75rem;
+	}
+	.finder-divider {
+		width: 100%;
+		height: 1px;
+	}
+	.finder-btn {
+		border-radius: 0.75rem;
+		justify-content: center;
+		padding: 0.85rem;
+		width: 100%;
+	}
+	.section-problem,
+	.section-solution,
+	.section-how,
+	.section-video,
+	.section-proof,
+	.section-scholarships,
+	.section-final-cta {
+		padding: 4rem 1rem;
+	}
+	.solution-layout {
+		grid-template-columns: 1fr;
+		gap: 2.5rem;
+	}
+	.strategy-mockup {
+		order: 2;
+	}
+	.solution-copy {
+		order: 1;
+	}
+	.proof-layout {
+		grid-template-columns: 1fr;
+		gap: 2rem;
+	}
+	.scholarships-header {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 0.75rem;
+	}
+	.scholarships-grid {
+		grid-template-columns: 1fr;
+	}
+	.video-features {
+		flex-direction: column;
+		align-items: center;
+		gap: 0.75rem;
+	}
+
+	/* AI Strategy Mobile */
+	.section-ai-strategy {
+		padding: 3.5rem 1rem;
+	}
+	.ai-strategy-card {
+		display: flex;
+		flex-direction: column;
+		gap: 2.25rem;
+		width: 100%;
+	}
+	.ai-strategy-left {
+		width: 100%;
+	}
+	.ai-strategy-desc {
+		font-size: 0.95rem;
+		line-height: 1.6;
+		margin-bottom: 1.25rem;
+	}
+	.ai-strategy-features {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+		margin-bottom: 1.5rem;
+		width: 100%;
+	}
+	.ai-feature-item {
+		display: flex;
+		align-items: flex-start;
+		gap: 0.75rem;
+		background: rgba(255, 255, 255, 0.85);
+		border: 1px solid #fed7aa;
+		border-radius: 0.875rem;
+		padding: 0.875rem 1rem;
+		box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+		width: 100%;
+		box-sizing: border-box;
+	}
+	.ai-feature-icon {
+		width: 2rem;
+		height: 2rem;
+		border-radius: 8px;
+		flex-shrink: 0;
+	}
+	.ai-strategy-actions {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+		width: 100%;
+		margin-bottom: 0.5rem;
+	}
+	.btn-strategy-sample,
+	.btn-strategy-browse {
+		width: 100%;
+		justify-content: center;
+		text-align: center;
+		padding: 0.9rem 1.25rem;
+		box-sizing: border-box;
+		border-radius: 12px;
+	}
+	.ai-strategy-footer {
+		margin-top: 0.75rem;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		text-align: center;
+	}
+	.ai-strategy-right {
+		width: 100%;
+		display: flex;
+		justify-content: center;
+	}
+	.strategy-preview-card {
+		width: 100%;
+		max-width: 100%;
+		border-radius: 1rem;
+		padding: 1.25rem;
+		box-sizing: border-box;
+		box-shadow: 0 10px 30px rgba(15, 23, 42, 0.2);
+	}
+}
+
+@media (max-width: 480px) {
+	.hero {
+		padding: 4rem 0.875rem 2.5rem;
+	}
+	.hero-title {
+		font-size: 2.25rem;
+		line-height: 1.15;
+		margin-bottom: 1rem;
+	}
+	.hero-sub {
+		font-size: 1rem;
+		line-height: 1.6;
+		margin-bottom: 1.75rem;
+	}
+	.section-inner {
+		padding: 0 0.875rem;
+	}
+	.section-heading {
+		font-size: 1.65rem;
+		margin-bottom: 1.75rem;
+	}
+	.problem-card,
+	.proof-stats-card,
+	.proof-testimonial-card,
+	.step-card {
+		padding: 1.5rem 1.125rem;
+	}
+	.final-cta-title {
+		font-size: 1.85rem;
+	}
+	.btn-cta-orange {
+		width: 100%;
+		justify-content: center;
+		box-sizing: border-box;
+	}
 }
 </style>
