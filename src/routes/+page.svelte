@@ -204,8 +204,22 @@ return () => clearInterval(interval);
 			</div>
 		</div>
 
-		<!-- Trust line -->
-		<p class="hero-trust">100% Free &middot; No credit card required &middot; 2,500+ European programs &middot; Official Visa Toolkit</p>
+		<!-- Social Proof Avatars Footer (Replaces plain text) -->
+		<div class="hero-avatars-row mt-6 pt-2">
+			<div class="avatar-stack">
+				<img src="https://i.ibb.co/Cs7xfBMy/nigeria-ghana-blocked-account-cover-1787935987572.jpg" alt="Student Ada" class="avatar-img" />
+				<img src="https://i.ibb.co/bMbsNsFs/biotech-campus-study-1787935502813.jpg" alt="Student Maya" class="avatar-img" />
+				<img src="https://i.ibb.co/yBpq3Y50/austria-study-cover-1787937472288.jpg" alt="Student Julia" class="avatar-img" />
+				<img src="https://i.ibb.co/QjHhxjsR/italy-dsu-cover-1787935757791.jpg" alt="Student Marco" class="avatar-img" />
+			</div>
+			<div class="avatar-info-group">
+				<div class="avatar-stars-line">
+					<span class="avatar-star-glyphs">★★★★★</span>
+					<span class="avatar-score">4.9/5</span>
+				</div>
+				<p class="avatar-subtext">Trusted by <strong>4,500+ international students</strong> applying to European universities</p>
+			</div>
+		</div>
 	</div>
 </section>
 
@@ -710,6 +724,82 @@ return () => clearInterval(interval);
 	z-index: 1;
 	max-width: 860px;
 	margin: 0 auto;
+}
+
+/* Hero Social Proof Avatars Header */
+.hero-avatars-row {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.85rem;
+	margin-bottom: 1.25rem;
+	flex-wrap: wrap;
+}
+.avatar-stack {
+	display: flex;
+	align-items: center;
+}
+.avatar-img {
+	width: 34px;
+	height: 34px;
+	border-radius: 50%;
+	object-fit: cover;
+	border: 2.5px solid #ffffff;
+	box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12);
+	margin-left: -10px;
+	transition: transform 0.2s ease, z-index 0.2s ease;
+}
+.avatar-img:first-child {
+	margin-left: 0;
+}
+.avatar-img:hover {
+	transform: translateY(-2px) scale(1.1);
+	z-index: 5;
+}
+.avatar-info-group {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	text-align: left;
+	gap: 0.1rem;
+}
+.avatar-stars-line {
+	display: flex;
+	align-items: center;
+	gap: 0.35rem;
+}
+.avatar-star-glyphs {
+	color: #f59e0b;
+	font-size: 0.85rem;
+	letter-spacing: 0.05em;
+	line-height: 1;
+}
+.avatar-score {
+	font-size: 0.75rem;
+	font-weight: 800;
+	color: #0f172a;
+}
+.avatar-subtext {
+	font-size: 0.8rem;
+	color: #64748b;
+	margin: 0;
+	line-height: 1.2;
+}
+.avatar-subtext strong {
+	color: #1e293b;
+	font-weight: 700;
+}
+
+@media (max-width: 640px) {
+	.hero-avatars-row {
+		flex-direction: column;
+		gap: 0.5rem;
+		text-align: center;
+	}
+	.avatar-info-group {
+		align-items: center;
+		text-align: center;
+	}
 }
 
 /* Top Floating Trust Badge */
