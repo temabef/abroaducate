@@ -94,18 +94,19 @@ export const AFFILIATE_PARTNERS: AffiliatePartner[] = [
 	{
 		id: 'translated',
 		name: 'Translated.net',
-		tagline: 'Professional Document & Certificate Translation',
-		description: 'Professional human translation for university applications, financial statements, and administrative paperwork.',
+		tagline: 'Professional Translation (Pay After Delivery)',
+		description: 'Professional human translation for academic transcripts, certificates, and visa paperwork. Zero upfront risk: review your completed documents first and pay within 5 days of delivery.',
 		category: 'translation',
 		categoryLabel: 'Academic Translations',
 		url: 'https://www.translated.net/en/preventivo.php?refid=7247',
-		badge: 'Professional Network',
-		badgeColor: 'blue',
-		ctaText: 'Get Instant Quote →',
+		badge: 'Pay After Delivery',
+		badgeColor: 'emerald',
+		ctaText: 'Get Quote (Pay After Delivery) →',
 		features: [
-			'Native professional translators in 190+ languages',
-			'Instant online quote and secure upload',
-			'Ideal for CVs, recommendation letters, and research papers'
+			'Pay after delivery — review your documents before paying',
+			'Professional certified translators across 265 languages',
+			'Instant online quote and rapid delivery turnaround',
+			'Ideal for transcripts, recommendation letters, and certificates'
 		]
 	},
 	{
