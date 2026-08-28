@@ -149,18 +149,19 @@ export const AFFILIATE_PARTNERS: AffiliatePartner[] = [
 	{
 		id: 'preply',
 		name: 'Preply',
-		tagline: '1-on-1 Online Tutors for IELTS & German (A1-C1)',
-		description: 'Find top-rated native tutors for live 1-on-1 IELTS speaking prep or German language lessons to prepare for life and university in Germany.',
+		tagline: '50% Off 1-on-1 IELTS & German Tutors',
+		description: 'Find top-rated native tutors for live 1-on-1 IELTS speaking prep or German language lessons (A1–C1). Claim 50% off your first trial lesson through Abroaducate.',
 		category: 'prep',
 		categoryLabel: 'Language Tutoring',
 		url: 'https://preply.sjv.io/c/7684091/1987575/24422',
-		badge: 'Live 1-on-1 Coaching',
-		badgeColor: 'blue',
-		ctaText: 'Book 1-on-1 Tutor →',
+		badge: '50% Off First Lesson',
+		badgeColor: 'emerald',
+		ctaText: 'Claim 50% Off 1st Lesson →',
 		features: [
-			'Certified IELTS and German language coaches',
-			'Flexible hourly lessons starting at $10/hr',
-			'Practice speaking with real human feedback'
+			'50% discount automatically applied at checkout',
+			'Certified IELTS examiners and native German coaches',
+			'Practice speaking with real human feedback',
+			'Flexible hourly lessons tailored to your schedule'
 		]
 	}
 ];
