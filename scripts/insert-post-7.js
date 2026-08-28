@@ -23,7 +23,7 @@ async function main() {
   const { data: userData } = await supabase.auth.admin.listUsers({ limit: 1 });
   const authorId = userData && userData.users.length > 0 ? userData.users[0].id : null;
 
-  console.log("🚀 Inserting & Scheduling Post #7 (MOI & IELTS Waiver)...");
+  console.log("🚀 Updating Post #7 in Supabase with Free Gumroad IELTS Plan link...");
   const rawDraft7 = fs.readFileSync('./scratch/post_7_draft.json', 'utf8');
   const draft7 = JSON.parse(rawDraft7);
 
@@ -35,6 +35,14 @@ async function main() {
   let content7 = draft7.content;
   content7 = content7.replace('{{IMAGE_1_COVER}}', images7.cover);
   content7 = content7.replace('{{IMAGE_2_DOCUMENTS}}', images7.documents);
+
+  // Add the Gumroad ebook download callout box into Post #7
+  const gumroadCallout = `\n\n> [!TIP]\n> **Free 30-Day IELTS Band 7.5 Study Plan (PDF):** If your target faculty strictly requires an IELTS score, you can download our **[Free 1-Month IELTS 2.0 Band 7.5 Strategy Guide](https://solakolawole6.gumroad.com/l/ielts2)** on Gumroad (rated 4.8★ by 30+ international students). It includes daily section breakdowns and mock exercise schedules with zero guesswork.\n`;
+
+  content7 = content7.replace(
+    'If you must take IELTS:',
+    gumroadCallout + '\n### If You Must Take IELTS:'
+  );
 
   const { error } = await supabase.from('blog_posts').upsert({
     title: draft7.title,
@@ -50,14 +58,11 @@ async function main() {
   }, { onConflict: 'slug' });
 
   if (error) {
-    console.error("❌ Error scheduling Post #7:", error);
+    console.error("❌ Error updating Post #7:", error);
     process.exit(1);
   }
 
-  console.log("🎉 Post #7 successfully scheduled in Supabase!");
-  console.log("   Title:", draft7.title);
-  console.log("   Slug:", draft7.slug);
-  console.log("   Scheduled Live Date:", draft7.scheduled_at);
+  console.log("🎉 Post #7 successfully refreshed with Free Gumroad Ebook in Supabase!");
 }
 
 main();

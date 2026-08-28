@@ -97,8 +97,30 @@
 					<div class="flex items-center gap-1.5"><CheckCircle2 size={14} class="text-emerald-500 flex-shrink-0" /> 100% Free Forever</div>
 				</div>
 
+				<!-- Free Download Bonus Card -->
+				<div class="p-3.5 bg-amber-500/10 border border-amber-500/20 rounded-2xl flex items-center justify-between gap-3">
+					<div class="flex items-center gap-2.5">
+						<div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-700 flex items-center justify-center flex-shrink-0">
+							<BookOpen size={16} />
+						</div>
+						<div>
+							<p class="text-xs font-bold text-slate-800">Free 30-Day IELTS Band 7.5 Plan</p>
+							<p class="text-[11px] text-slate-500">Download the complete step-by-step PDF</p>
+						</div>
+					</div>
+					<a
+						href="https://solakolawole6.gumroad.com/l/ielts2"
+						target="_blank"
+						rel="noopener noreferrer"
+						class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl transition-colors shadow-sm flex items-center gap-1 flex-shrink-0"
+					>
+						<span>Get Free PDF</span>
+						<ExternalLink size={12} />
+					</a>
+				</div>
+
 				<!-- Action Buttons -->
-				<div class="space-y-2 pt-2">
+				<div class="space-y-2 pt-1">
 					<a
 						href="https://abroaducate.studyoverseas.ai"
 						target="_blank"
@@ -106,12 +128,12 @@
 						onclick={close}
 						class="w-full inline-flex items-center justify-center gap-2 py-3.5 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-sm rounded-2xl shadow-lg shadow-orange-500/25 transition-all hover:scale-[1.01]"
 					>
-						<span>Launch IELTS Prep Portal</span>
+						<span>Launch Online Mock Engine</span>
 						<ExternalLink size={16} />
 					</a>
 
 					<p class="text-center text-[11px] text-slate-400 font-medium">
-						Runs on the official Study Overseas AI test infrastructure
+						Free full mock exams & AI band predictions powered by Study Overseas AI
 					</p>
 				</div>
 			</div>
