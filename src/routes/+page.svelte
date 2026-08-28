@@ -553,7 +553,7 @@ return () => clearInterval(interval);
 			<div class="bg-slate-800/80 border border-slate-700 rounded-2xl p-6 flex flex-col justify-between hover:border-orange-500/50 transition-all">
 				<div>
 					<div class="flex items-center justify-between mb-4">
-						<span class="bg-blue-500/20 text-blue-400 text-xs font-bold px-2.5 py-1 rounded-full">100% Free AI Prep</span>
+						<span class="bg-blue-500/20 text-blue-400 text-xs font-bold px-2.5 py-1 rounded-full">Coming Soon • Launching Monday</span>
 					</div>
 					<h3 class="text-xl font-bold text-white mb-2">IELTS & GRE Mock Tests</h3>
 					<p class="text-slate-400 text-sm mb-4 leading-relaxed">
@@ -561,12 +561,10 @@ return () => clearInterval(interval);
 					</p>
 				</div>
 				<a 
-					href="https://abroaducate.studyoverseas.ai" 
-					target="_blank" 
-					rel="noopener noreferrer"
-					class="w-full inline-flex items-center justify-center gap-2 py-3 bg-slate-700 hover:bg-slate-600 text-white font-bold text-sm rounded-xl transition-colors"
+					href="/toolkit" 
+					class="w-full inline-flex items-center justify-center gap-2 py-3 bg-slate-700 hover:bg-slate-600 text-slate-300 font-bold text-sm rounded-xl transition-colors"
 				>
-					Start Free AI Mock Test <ChevronRight size={16} />
+					Launching Monday <ChevronRight size={16} />
 				</a>
 			</div>
 

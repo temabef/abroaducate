@@ -135,9 +135,9 @@ export const AFFILIATE_PARTNERS: AffiliatePartner[] = [
 		category: 'prep',
 		categoryLabel: 'Free Exam Prep',
 		url: 'https://abroaducate.studyoverseas.ai',
-		badge: '100% Free Partner Tool',
-		badgeColor: 'emerald',
-		ctaText: 'Start Free AI Mock Test →',
+		badge: 'Coming Soon • Launching Monday',
+		badgeColor: 'blue',
+		ctaText: 'Launching Monday — Free Access',
 		features: [
 			'Full-length IELTS & GRE mock tests with real exam simulation',
 			'AI-scored speaking practice with real-time band prediction',
