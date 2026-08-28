@@ -23,13 +23,13 @@ export const AFFILIATE_PARTNERS: AffiliatePartner[] = [
 		category: 'visa',
 		categoryLabel: 'Visa & Blocked Account',
 		url: 'https://www.expatrio.com?p=abroaducate123',
-		badge: 'Most Popular for Germany',
+		badge: '€49 Cashback • Most Popular',
 		badgeColor: 'emerald',
-		ctaText: 'Open Expatrio Value Package →',
+		ctaText: 'Claim Value Package & €49 Cashback →',
 		features: [
 			'100% German Federal Foreign Office approved',
 			'Official Techniker Krankenkasse (TK) Health Insurance',
-			'Instant digital blocked account confirmation for embassy',
+			'€49 setup fee refunded + Free €95 incoming travel insurance',
 			'Includes free German bank account & debit card'
 		],
 		countries: ['Germany'],

@@ -42,7 +42,7 @@
 					<div>
 						<div class="partner-name-row">
 							<span class="font-extrabold text-slate-900 text-base">Expatrio Value Package</span>
-							<span class="partner-pill">Recommended</span>
+							<span class="partner-pill">Recommended • €49 Fee Cashback</span>
 						</div>
 						<p class="text-xs text-slate-500 mt-0.5">Government-approved all-in-one German visa solution</p>
 					</div>
@@ -51,7 +51,7 @@
 				<div class="features-grid">
 					<div class="feature-item">
 						<CheckCircle2 size={16} class="text-emerald-600 shrink-0 mt-0.5" />
-						<span><strong>€11,904 Blocked Account</strong> with instant digital confirmation</span>
+						<span><strong>€11,904 Blocked Account</strong> with instant confirmation</span>
 					</div>
 					<div class="feature-item">
 						<CheckCircle2 size={16} class="text-emerald-600 shrink-0 mt-0.5" />
@@ -59,11 +59,11 @@
 					</div>
 					<div class="feature-item">
 						<CheckCircle2 size={16} class="text-emerald-600 shrink-0 mt-0.5" />
-						<span><strong>Free German Bank Account</strong> & digital debit card</span>
+						<span><strong>€49 Setup Fee Refunded</strong> + Free €95 Travel Insurance</span>
 					</div>
 					<div class="feature-item">
 						<CheckCircle2 size={16} class="text-emerald-600 shrink-0 mt-0.5" />
-						<span><strong>Free Travel/Incoming Insurance</strong> (worth €95)</span>
+						<span><strong>Free German Bank Account</strong> & digital debit card</span>
 					</div>
 				</div>
 

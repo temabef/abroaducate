@@ -901,11 +901,7 @@
 	<div class="hub-header">
 		<div class="hub-header-left"><div class="hub-brand"><div class="hub-brand-icon"><Rocket size={22} /></div><div><h1 class="hub-brand-title">My Study Abroad Hub</h1><p class="hub-brand-sub">Your centralized command center</p></div></div></div>
 		<div class="hub-header-right">
-			<a href="/pricing" class="hub-credits-badge" title="Buy more credits">
-				<Coins size={14} class="text-orange-400" />
-				<span class="hub-credits-count">{profile?.credits ?? 0}</span>
-				<span class="hub-credits-label">credits</span>
-			</a>
+			<a href="/toolkit" class="hub-action-btn hub-action-secondary" style="border-color: rgba(249,115,22,0.3); color: #ea580c; background: #fff7ed;"><Sparkles size={14} /> Relocation Toolkit</a>
 			<a href="/programs" class="hub-action-btn"><PlusCircle size={14} /> Add Program</a><a href="/scholarships" class="hub-action-btn hub-action-secondary"><Award size={14} /> Find Scholarships</a>
 		</div>
 	</div>
@@ -1430,7 +1426,7 @@
 																<span class="animate-pulse">Loading...</span>
 															{:else}
 																<Zap size={14} fill={isCached ? 'currentColor' : 'none'} class="text-emerald-500" />
-																{isCached ? 'View Strategy' : 'Reveal (1 Credit)'}
+																{isCached ? 'View Strategy' : 'Generate Strategy'}
 															{/if}
 														</button>
 													{/if}

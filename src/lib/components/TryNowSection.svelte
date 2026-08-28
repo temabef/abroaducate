@@ -13,10 +13,7 @@
             Try Now
         </button>
         <p class="credit-info">
-            Try it free with 1 credit.
-        </p>
-        <p class="plan-info">
-            Get an unlimited monthly plan starting at $5.99.
+            100% Free on Abroaducate.
         </p>
     </div>
 </section>

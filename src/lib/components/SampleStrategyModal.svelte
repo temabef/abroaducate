@@ -72,7 +72,7 @@
 					<h2 id="sample-modal-title" class="text-xl font-bold text-slate-900">
 						Sample Scholarship Win Strategy
 					</h2>
-					<p class="text-sm text-slate-500 mt-0.5">This is what you get for <strong class="text-orange-600">1 credit</strong> when you unlock a scholarship strategy</p>
+					<p class="text-sm text-slate-500 mt-0.5">This is what you get when you generate your free scholarship strategy</p>
 				</div>
 				<button
 					onclick={close}

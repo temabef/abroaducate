@@ -174,7 +174,7 @@
 			</div>
 			<div class="strategy-banner-content">
 				<p class="strategy-banner-title">Get an AI Scholarship Win Strategy for any program</p>
-				<p class="strategy-banner-desc">Eligibility match, committee rubric, essay angles & action path — tailored to your profile. Only 1 credit per scholarship.</p>
+				<p class="strategy-banner-desc">Eligibility match, committee rubric, essay angles & action path — tailored to your profile. 100% Free on Abroaducate.</p>
 			</div>
 			<div class="strategy-banner-right">
 				<StrategyUsageCounter />
