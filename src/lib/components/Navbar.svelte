@@ -104,13 +104,6 @@
 				Relocation Toolkit
 			</a>
 			<a
-				href="/toolkit"
-				class="nav-link flex items-center gap-1.5 text-orange-600 font-bold hover:text-orange-700"
-			>
-				<span>Free IELTS Prep</span>
-				<span class="bg-blue-100 text-blue-700 text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded-full">Coming Soon</span>
-			</a>
-			<a
 				href="/blog"
 				class="nav-link {isActive('/blog') ? 'nav-link-active' : ''}"
 			>
@@ -192,14 +185,6 @@
 				<button type="button" onclick={() => nav('/toolkit')} class="mobile-nav-link {isActive('/toolkit') ? 'mobile-nav-active' : ''}">
 					Relocation Toolkit
 				</button>
-				<button 
-					type="button" 
-					onclick={() => nav('/toolkit')} 
-					class="mobile-nav-link flex items-center justify-between text-orange-600 font-bold"
-				>
-					<span>Free IELTS & GRE Prep</span>
-					<span class="bg-blue-100 text-blue-700 text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full">Coming Soon</span>
-				</button>
 				<button type="button" onclick={() => nav('/blog')} class="mobile-nav-link {isActive('/blog') ? 'mobile-nav-active' : ''}">
 					Blog
 				</button>
@@ -267,9 +252,12 @@
 	}
 
 	.nav-link {
+		display: inline-flex;
+		align-items: center;
 		padding: 0.5rem 0.875rem;
 		font-size: 0.875rem;
 		font-weight: 500;
+		white-space: nowrap;
 		color: var(--text-secondary);
 		border-radius: 0.5rem;
 		transition: all 0.15s ease;
