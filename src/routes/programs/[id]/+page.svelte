@@ -8,6 +8,7 @@
 		Banknote, CalendarDays, GraduationCap, MapPin, 
 		Clock, Languages, CheckCircle2, ChevronLeft, ArrowRight
 	} from 'lucide-svelte';
+	import VisaRelocationCard from '$lib/components/VisaRelocationCard.svelte';
 	import FundingGuidance from '$lib/components/FundingGuidance.svelte';
 	import WorkAndStay from '$lib/components/WorkAndStay.svelte';
 	import SampleStrategyModal from '$lib/components/SampleStrategyModal.svelte';
@@ -235,7 +236,7 @@
 							onclick={handleAction}
 							class="flex-1 px-8 py-4 bg-orange-500 hover:bg-orange-600 text-white font-extrabold rounded-xl transition-all hover:-translate-y-0.5 shadow-lg hover:shadow-orange-500/50 flex items-center justify-center gap-3 text-lg"
 						>
-							<span>Unlock My Strategy</span>
+							<span>Start Free Strategy</span>
 							<ArrowRight size={24} strokeWidth={3} />
 						</button>
 					</div>
@@ -243,19 +244,19 @@
 					<div class="mt-6 flex items-center justify-between text-sm">
 						<div class="flex items-center gap-3">
 							<div class="flex items-center gap-2 text-slate-600">
-								<svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path></svg>
-								<span><strong>Only 1 credit</strong> {#if session && data.userProfile?.credits}(you have {data.userProfile.credits} free){/if}</span>
+								<CheckCircle2 size={16} class="text-emerald-500 shrink-0" />
+								<span><strong>100% Free</strong> • No credits or payment required</span>
 							</div>
 						</div>
 						<div class="flex items-center gap-3">
 							<StrategyUsageCounter />
-							<span class="inline-flex items-center gap-1.5 text-slate-500 font-medium">
-								<CheckCircle2 size={15} class="text-emerald-500 shrink-0" /> Try risk-free
-							</span>
 						</div>
 					</div>
 				</div>
 			</div>
+
+			<!-- 🌍 NATIVE VISA & RELOCATION CARD (Expatrio / Airalo / RushTranslate) -->
+			<VisaRelocationCard country={program.country} />
 
 			<!-- Quick Facts Grid -->
 			<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -451,16 +452,16 @@
 
 					<!-- Action CTA / Wall Trigger -->
 					<button onclick={handleAction} class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 px-6 rounded-xl flex items-center justify-between transition-all hover:-translate-y-1 shadow-lg hover:shadow-orange-500/30">
-						<span>Start Strategy & AI Fit Check</span>
+						<span>Start Free Application Plan</span>
 						<ArrowRight size={20} strokeWidth={2.5} />
 					</button>
 					
 					<div class="mt-6 space-y-3">
 						<div class="flex items-center gap-3 text-sm text-slate-300">
-							<CheckCircle2 size={16} class="text-emerald-400" /> Free signup & strategy board
+							<CheckCircle2 size={16} class="text-emerald-400" /> 100% Free Strategy & Board
 						</div>
 						<div class="flex items-center gap-3 text-sm text-slate-300">
-							<CheckCircle2 size={16} class="text-emerald-400" /> Includes 1 Free API Fit Check
+							<CheckCircle2 size={16} class="text-emerald-400" /> Real Eligibility Criteria Breakdown
 						</div>
 					</div>
 
@@ -475,6 +476,17 @@
 							<span>Admin / Union Fees</span>
 							<span class="font-medium text-white">{viewModel.adminFee}</span>
 						</div>
+					</div>
+
+					<!-- Toolkit Link -->
+					<div class="mt-6 pt-6 border-t border-slate-800">
+						<a 
+							href="/toolkit" 
+							class="flex items-center justify-between text-xs font-bold text-orange-400 hover:text-orange-300 transition-colors"
+						>
+							<span>Visa, Blocked Account & eSIM Toolkit</span>
+							<ArrowRight size={14} />
+						</a>
 					</div>
 				</div>
 			</div>

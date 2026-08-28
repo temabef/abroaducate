@@ -180,7 +180,7 @@ return () => clearInterval(interval);
 		</div>
 
 		<!-- Trust line -->
-		<p class="hero-trust">No credit card required &middot; 3 free credits on signup &middot; 2,500+ programs</p>
+		<p class="hero-trust">100% Free &middot; No credit card required &middot; 2,500+ European programs &middot; Official Visa Toolkit</p>
 	</div>
 </section>
 
@@ -477,7 +477,7 @@ return () => clearInterval(interval);
 				</div>
 				<div class="ai-strategy-footer">
 					<StrategyUsageCounter />
-					<p class="ai-strategy-footnote">Start with 3 free credits · No card required</p>
+					<p class="ai-strategy-footnote">100% Free for all students · No credit card required</p>
 				</div>
 			</div>
 			<div class="ai-strategy-right">
@@ -509,9 +509,98 @@ return () => clearInterval(interval);
 						<div class="sp-step"><span class="sp-step-num">2</span> Draft your Statement of Purpose</div>
 						<div class="sp-step"><span class="sp-step-num">3</span> Reach out to potential supervisors</div>
 					</div>
-					<div class="sp-cost">1 credit · Generated in 30s</div>
+					<div class="sp-cost">100% Free · Generated in 30s</div>
 				</div>
 			</div>
+		</div>
+	</div>
+</section>
+
+<!-- ═══ ESSENTIAL STUDENT RELOCATION & VISA SECTION ═══ -->
+<section class="section-relocation-home bg-slate-900 text-white py-20 px-6" use:fadeUpOnScroll>
+	<div class="max-w-6xl mx-auto">
+		<div class="text-center max-w-3xl mx-auto mb-14">
+			<span class="inline-flex items-center gap-2 bg-orange-500/20 text-orange-400 border border-orange-500/30 text-xs font-extrabold uppercase px-3.5 py-1.5 rounded-full mb-4">
+				Official Relocation Toolkit
+			</span>
+			<h2 class="text-3xl md:text-4xl font-extrabold text-white mb-4 tracking-tight" style="font-family: 'Outfit', sans-serif;">
+				Everything you need to relocate & study in Europe
+			</h2>
+			<p class="text-slate-400 text-base leading-relaxed">
+				We partner with embassy-approved providers to bring you blocked accounts, certified translations, travel eSIMs, and free AI test prep.
+			</p>
+		</div>
+
+		<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+			<!-- Expatrio Box -->
+			<div class="bg-slate-800/80 border border-slate-700 rounded-2xl p-6 flex flex-col justify-between hover:border-orange-500/50 transition-all">
+				<div>
+					<div class="flex items-center justify-between mb-4">
+						<span class="bg-emerald-500/20 text-emerald-400 text-xs font-bold px-2.5 py-1 rounded-full">Germany Visa Solution</span>
+					</div>
+					<h3 class="text-xl font-bold text-white mb-2">Expatrio Value Package</h3>
+					<p class="text-slate-400 text-sm mb-4 leading-relaxed">
+						Official €11,904 German Blocked Account, Techniker Krankenkasse (TK) statutory health insurance, and free German bank account.
+					</p>
+				</div>
+				<a 
+					href="https://www.expatrio.com?p=abroaducate123" 
+					target="_blank" 
+					rel="noopener noreferrer sponsored"
+					class="w-full inline-flex items-center justify-center gap-2 py-3 bg-orange-500 hover:bg-orange-600 text-white font-bold text-sm rounded-xl transition-colors"
+				>
+					Open Blocked Account <ChevronRight size={16} />
+				</a>
+			</div>
+
+			<!-- Free IELTS Prep Box -->
+			<div class="bg-slate-800/80 border border-slate-700 rounded-2xl p-6 flex flex-col justify-between hover:border-orange-500/50 transition-all">
+				<div>
+					<div class="flex items-center justify-between mb-4">
+						<span class="bg-blue-500/20 text-blue-400 text-xs font-bold px-2.5 py-1 rounded-full">100% Free AI Prep</span>
+					</div>
+					<h3 class="text-xl font-bold text-white mb-2">IELTS & GRE Mock Tests</h3>
+					<p class="text-slate-400 text-sm mb-4 leading-relaxed">
+						Full-length adaptive mock exams, instant AI-scored speaking band predictions, and video lessons powered by Study Overseas AI.
+					</p>
+				</div>
+				<a 
+					href="https://abroaducate.studyoverseas.ai" 
+					target="_blank" 
+					rel="noopener noreferrer"
+					class="w-full inline-flex items-center justify-center gap-2 py-3 bg-slate-700 hover:bg-slate-600 text-white font-bold text-sm rounded-xl transition-colors"
+				>
+					Start Free AI Mock Test <ChevronRight size={16} />
+				</a>
+			</div>
+
+			<!-- Airalo Europe eSIM Box -->
+			<div class="bg-slate-800/80 border border-slate-700 rounded-2xl p-6 flex flex-col justify-between hover:border-orange-500/50 transition-all">
+				<div>
+					<div class="flex items-center justify-between mb-4">
+						<span class="bg-purple-500/20 text-purple-400 text-xs font-bold px-2.5 py-1 rounded-full">Instant 4G/5G Data</span>
+					</div>
+					<h3 class="text-xl font-bold text-white mb-2">Airalo European eSIM</h3>
+					<p class="text-slate-400 text-sm mb-4 leading-relaxed">
+						Get connected across 39 European countries the second your flight lands. Keep your WhatsApp number active with zero roaming fees.
+					</p>
+				</div>
+				<a 
+					href="https://airalo.go.link/VyEma" 
+					target="_blank" 
+					rel="noopener noreferrer sponsored"
+					class="w-full inline-flex items-center justify-center gap-2 py-3 bg-slate-700 hover:bg-slate-600 text-white font-bold text-sm rounded-xl transition-colors"
+				>
+					Get European eSIM from $5 <ChevronRight size={16} />
+				</a>
+			</div>
+		</div>
+
+		<div class="text-center mt-10">
+			<a href="/toolkit" class="inline-flex items-center gap-2 text-orange-400 hover:text-orange-300 font-bold text-sm transition-colors">
+				<span>Explore Full International Student Relocation Toolkit (Translations, Banking, Housing)</span>
+				<ChevronRight size={16} />
+			</a>
 		</div>
 	</div>
 </section>

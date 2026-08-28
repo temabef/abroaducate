@@ -29,29 +29,30 @@
 			</div>
 
 			<!-- Links -->
-		<div class="footer-links-group">
-			<div class="footer-col">
-				<div class="footer-col-title">Product</div>
-				<a href="/programs" class="footer-link">Find Programs</a>
-				<a href="/scholarships" class="footer-link">Scholarships</a>
-				<a href="/dashboard" class="footer-link">Dashboard</a>
-				<a href="/pricing" class="footer-link">Pricing</a>
-			</div>
-			<div class="footer-col">
-				<div class="footer-col-title">Resources</div>
-				<a href="/blog" class="footer-link">Blog</a>
-				<a href="/privacy" class="footer-link">Privacy Policy</a>
-				<a href="/terms" class="footer-link">Terms of Service</a>
-				<a href="/refund-policy" class="footer-link">Refund Policy</a>
-			</div>
-			<div class="footer-col">
-				<div class="footer-col-title">Support</div>
-				<a href="/contact" class="footer-link">Contact us</a>
-				<a href="/book-a-call" class="footer-link">Book a free call</a>
+			<div class="footer-links-group">
+				<div class="footer-col">
+					<div class="footer-col-title">Platform</div>
+					<a href="/programs" class="footer-link">Find Programs</a>
+					<a href="/scholarships" class="footer-link">Scholarships</a>
+					<a href="/toolkit" class="footer-link font-semibold text-orange-600">Relocation Toolkit</a>
+					<a href="https://abroaducate.studyoverseas.ai" target="_blank" rel="noopener noreferrer" class="footer-link">Free IELTS & GRE Prep</a>
+					<a href="/dashboard" class="footer-link">Dashboard</a>
+				</div>
+				<div class="footer-col">
+					<div class="footer-col-title">Resources</div>
+					<a href="/blog" class="footer-link">Blog</a>
+					<a href="/privacy" class="footer-link">Privacy Policy</a>
+					<a href="/terms" class="footer-link">Terms of Service</a>
+					<a href="/refund-policy" class="footer-link">Refund Policy</a>
+				</div>
+				<div class="footer-col">
+					<div class="footer-col-title">Support</div>
+					<a href="/contact" class="footer-link">Contact us</a>
+					<a href="/book-a-call" class="footer-link">Book a free call</a>
+				</div>
 			</div>
 		</div>
 	</div>
-</div>
 	<div class="footer-bottom">
 		<span>&copy; {new Date().getFullYear()} Abroaducate. All rights reserved.</span>
 	</div>

@@ -89,7 +89,7 @@
 				href="/universities"
 				class="nav-link {isActive('/universities') ? 'nav-link-active' : ''}"
 			>
-				Find Universities
+				Universities
 			</a>
 			<a
 				href="/scholarships"
@@ -98,10 +98,19 @@
 				Scholarships
 			</a>
 			<a
-				href="/pricing"
-				class="nav-link {isActive('/pricing') ? 'nav-link-active' : ''}"
+				href="/toolkit"
+				class="nav-link {isActive('/toolkit') ? 'nav-link-active' : ''}"
 			>
-				Pricing
+				Relocation Toolkit
+			</a>
+			<a
+				href="https://abroaducate.studyoverseas.ai"
+				target="_blank"
+				rel="noopener noreferrer"
+				class="nav-link flex items-center gap-1.5 text-orange-600 font-bold hover:text-orange-700"
+			>
+				<span>Free IELTS Prep</span>
+				<span class="bg-orange-100 text-orange-700 text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded-full">New</span>
 			</a>
 			<a
 				href="/blog"
@@ -177,14 +186,23 @@
 					Find Programs
 				</button>
 				<button type="button" onclick={() => nav('/universities')} class="mobile-nav-link {isActive('/universities') ? 'mobile-nav-active' : ''}">
-					Find Universities
+					Universities
 				</button>
 				<button type="button" onclick={() => nav('/scholarships')} class="mobile-nav-link {isActive('/scholarships') ? 'mobile-nav-active' : ''}">
 					Scholarships
 				</button>
-				<button type="button" onclick={() => nav('/pricing')} class="mobile-nav-link {isActive('/pricing') ? 'mobile-nav-active' : ''}">
-					Pricing
+				<button type="button" onclick={() => nav('/toolkit')} class="mobile-nav-link {isActive('/toolkit') ? 'mobile-nav-active' : ''}">
+					Relocation Toolkit
 				</button>
+				<a 
+					href="https://abroaducate.studyoverseas.ai"
+					target="_blank"
+					rel="noopener noreferrer"
+					class="mobile-nav-link flex items-center justify-between text-orange-600 font-bold"
+				>
+					<span>Free IELTS & GRE Prep</span>
+					<span class="bg-orange-100 text-orange-700 text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full">Free</span>
+				</a>
 				<button type="button" onclick={() => nav('/blog')} class="mobile-nav-link {isActive('/blog') ? 'mobile-nav-active' : ''}">
 					Blog
 				</button>
