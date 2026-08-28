@@ -19,6 +19,7 @@ ShieldCheck
 import AuthenticationFlow from '$lib/components/AuthenticationFlow.svelte';
 import SampleStrategyModal from '$lib/components/SampleStrategyModal.svelte';
 import StrategyUsageCounter from '$lib/components/StrategyUsageCounter.svelte';
+import IeltsPrepModal from '$lib/components/IeltsPrepModal.svelte';
 
 let { data } = $props();
 let { supabase, session } = $derived(data);
@@ -31,8 +32,9 @@ let finderDestination = $state('');
 let showAuth = $state(false);
 let authMode = $state<'login' | 'signup'>('signup');
 
-// Sample strategy modal
+// Sample strategy modal & IELTS modal
 let showSampleModal = $state(false);
+let showIeltsModal = $state(false);
 
 // Testimonial rotation
 let activeTestimonial = $state(0);
@@ -230,23 +232,23 @@ return () => clearInterval(interval);
 <!-- ═══ PROBLEM SECTION ═══ -->
 <section class="section-problem" use:fadeUpOnScroll>
 	<div class="section-inner">
-		<span class="eyebrow">THE PROBLEM</span>
+		<span class="eyebrow">THE PLATFORM</span>
 		<h2 class="section-heading">Studying abroad shouldn't cost your future</h2>
 		<div class="problem-grid">
 			<div class="problem-card">
-				<div class="problem-icon-wrap"><Wallet size={24} /></div>
-				<h3>Hidden costs everywhere</h3>
-				<p>Tuition-free doesn't mean cost-free. Living costs, semester fees, and application fees add up fast with no transparency.</p>
+				<div class="problem-icon-wrap"><Landmark size={24} /></div>
+				<h3>0 EUR Tuition Pathways</h3>
+				<p>Discover 2,500+ tuition-free and affordable degree programs across Germany, Austria, Italy, Sweden, and France with complete cost transparency.</p>
 			</div>
 			<div class="problem-card">
 				<div class="problem-icon-wrap"><Target size={24} /></div>
-				<h3>Generic advice wastes your time</h3>
-				<p>Every student's profile is different. Cookie-cutter guidance leads to mismatched programs and rejected applications.</p>
+				<h3>Free AI Scholarship Radar</h3>
+				<p>Automatically match your academic profile with verified DAAD, Erasmus+, and university grants with zero subscription fees.</p>
 			</div>
 			<div class="problem-card">
-				<div class="problem-icon-wrap"><Route size={24} /></div>
-				<h3>No clear path to submission</h3>
-				<p>Between finding programs, matching scholarships, and writing documents — there's no single workflow that ties it together.</p>
+				<div class="problem-icon-wrap"><ShieldCheck size={24} /></div>
+				<h3>Embassy Relocation Toolkit</h3>
+				<p>Get official blocked accounts, statutory health insurance (TK), certified sworn translations, and travel eSIMs with exclusive student discounts.</p>
 			</div>
 		</div>
 	</div>
@@ -284,11 +286,11 @@ return () => clearInterval(interval);
 					<div class="mockup-divider"></div>
 					<div class="mockup-action">
 						<span class="mockup-action-dot"></span>
-						Generate SOP with AI
+						Generate Free SOP with AI
 					</div>
 					<div class="mockup-action">
 						<span class="mockup-action-dot"></span>
-						Review scholarship strategy
+						Review scholarship win strategy
 					</div>
 				</div>
 			</div>
@@ -300,8 +302,8 @@ return () => clearInterval(interval);
 				<ul class="solution-bullets">
 					<li><CheckCircle2 size={20} /> <span>Find affordable programs with real cost breakdowns</span></li>
 					<li><CheckCircle2 size={20} /> <span>Get auto-matched with relevant scholarships</span></li>
-					<li><CheckCircle2 size={20} /> <span>Generate tailored SOPs, cover letters, and personal statements</span></li>
-					<li><CheckCircle2 size={20} /> <span>Track deadlines and application progress</span></li>
+					<li><CheckCircle2 size={20} /> <span>Generate tailored SOPs, cover letters, and personal statements for free</span></li>
+					<li><CheckCircle2 size={20} /> <span>Access official blocked accounts and visa relocation tools</span></li>
 				</ul>
 				<a href="/programs" class="btn-cta-primary btn-cta-navy">Explore Programs <ChevronRight size={16} /></a>
 			</div>
@@ -318,19 +320,19 @@ return () => clearInterval(interval);
 			<div class="step-card">
 				<div class="step-number-wrap"><span class="step-number">01</span></div>
 				<h3>Find your program</h3>
-				<p>Search by field, country, and budget. See tuition, living costs, and language requirements upfront.</p>
+				<p>Search 2,500+ programs by field, country, and budget. See tuition, living costs, and language requirements upfront.</p>
 			</div>
 			<div class="step-connector"></div>
 			<div class="step-card">
 				<div class="step-number-wrap"><span class="step-number">02</span></div>
-				<h3>See matched scholarships</h3>
-				<p>Our engine matches you with relevant funding opportunities based on your profile and chosen programs.</p>
+				<h3>Auto-match scholarships</h3>
+				<p>Our engine matches you with relevant funding opportunities based on your academic background and chosen degree.</p>
 			</div>
 			<div class="step-connector"></div>
 			<div class="step-card">
 				<div class="step-number-wrap"><span class="step-number">03</span></div>
-				<h3>Get your strategy</h3>
-				<p>Generate AI-powered application documents and receive a personalized action plan for each program.</p>
+				<h3>Generate free application strategy</h3>
+				<p>Generate AI-powered application documents and action plans with zero credits or subscription fees.</p>
 			</div>
 		</div>
 	</div>
@@ -554,65 +556,88 @@ return () => clearInterval(interval);
 			</p>
 		</div>
 
-		<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
 			<!-- Expatrio Box -->
-			<div class="bg-slate-800/80 border border-slate-700 rounded-2xl p-6 flex flex-col justify-between hover:border-orange-500/50 transition-all">
+			<div class="bg-slate-800/80 border border-slate-700 rounded-2xl p-5 flex flex-col justify-between hover:border-orange-500/50 transition-all">
 				<div>
-					<div class="flex items-center justify-between mb-4">
-						<span class="bg-emerald-500/20 text-emerald-400 text-xs font-bold px-2.5 py-1 rounded-full">Germany Visa Solution</span>
+					<div class="flex items-center justify-between mb-3">
+						<span class="bg-emerald-500/20 text-emerald-400 text-xs font-bold px-2.5 py-0.5 rounded-full">€49 Fee Refunded</span>
 					</div>
-					<h3 class="text-xl font-bold text-white mb-2">Expatrio Value Package</h3>
-					<p class="text-slate-400 text-sm mb-4 leading-relaxed">
-						Official €11,904 German Blocked Account, Techniker Krankenkasse (TK) statutory health insurance, and free German bank account.
+					<h3 class="text-lg font-bold text-white mb-2">Expatrio Value Package</h3>
+					<p class="text-slate-400 text-xs mb-4 leading-relaxed">
+						Official €11,904 German Blocked Account, TK statutory health insurance, and free €95 incoming travel insurance.
 					</p>
 				</div>
 				<a 
 					href="https://www.expatrio.com?p=abroaducate123" 
 					target="_blank" 
 					rel="noopener noreferrer sponsored"
-					class="w-full inline-flex items-center justify-center gap-2 py-3 bg-orange-500 hover:bg-orange-600 text-white font-bold text-sm rounded-xl transition-colors"
+					class="w-full inline-flex items-center justify-center gap-1.5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs rounded-xl transition-colors"
 				>
-					Open Blocked Account <ChevronRight size={16} />
+					Claim €49 Cashback <ChevronRight size={14} />
 				</a>
 			</div>
 
-			<!-- Free IELTS Prep Box -->
-			<div class="bg-slate-800/80 border border-slate-700 rounded-2xl p-6 flex flex-col justify-between hover:border-orange-500/50 transition-all">
+			<!-- Translated.net Box -->
+			<div class="bg-slate-800/80 border border-slate-700 rounded-2xl p-5 flex flex-col justify-between hover:border-orange-500/50 transition-all">
 				<div>
-					<div class="flex items-center justify-between mb-4">
-						<span class="bg-blue-500/20 text-blue-400 text-xs font-bold px-2.5 py-1 rounded-full">Coming Soon • Launching Monday</span>
+					<div class="flex items-center justify-between mb-3">
+						<span class="bg-emerald-500/20 text-emerald-400 text-xs font-bold px-2.5 py-0.5 rounded-full">Pay After Delivery</span>
 					</div>
-					<h3 class="text-xl font-bold text-white mb-2">IELTS & GRE Mock Tests</h3>
-					<p class="text-slate-400 text-sm mb-4 leading-relaxed">
-						Full-length adaptive mock exams, instant AI-scored speaking band predictions, and video lessons powered by Study Overseas AI.
+					<h3 class="text-lg font-bold text-white mb-2">Certified Translations</h3>
+					<p class="text-slate-400 text-xs mb-4 leading-relaxed">
+						Professional sworn translation for academic transcripts, certificates, and visa dossiers across 265 languages.
 					</p>
 				</div>
 				<a 
-					href="/toolkit" 
-					class="w-full inline-flex items-center justify-center gap-2 py-3 bg-slate-700 hover:bg-slate-600 text-slate-300 font-bold text-sm rounded-xl transition-colors"
+					href="https://www.translated.net/en/preventivo.php?refid=7247" 
+					target="_blank" 
+					rel="noopener noreferrer sponsored"
+					class="w-full inline-flex items-center justify-center gap-1.5 py-2.5 bg-slate-700 hover:bg-slate-600 text-white font-bold text-xs rounded-xl transition-colors"
 				>
-					Launching Monday <ChevronRight size={16} />
+					Order Translation <ChevronRight size={14} />
 				</a>
 			</div>
 
 			<!-- Airalo Europe eSIM Box -->
-			<div class="bg-slate-800/80 border border-slate-700 rounded-2xl p-6 flex flex-col justify-between hover:border-orange-500/50 transition-all">
+			<div class="bg-slate-800/80 border border-slate-700 rounded-2xl p-5 flex flex-col justify-between hover:border-orange-500/50 transition-all">
 				<div>
-					<div class="flex items-center justify-between mb-4">
-						<span class="bg-purple-500/20 text-purple-400 text-xs font-bold px-2.5 py-1 rounded-full">Instant 4G/5G Data</span>
+					<div class="flex items-center justify-between mb-3">
+						<span class="bg-purple-500/20 text-purple-400 text-xs font-bold px-2.5 py-0.5 rounded-full">€3.00 Off Voucher</span>
 					</div>
-					<h3 class="text-xl font-bold text-white mb-2">Airalo European eSIM</h3>
-					<p class="text-slate-400 text-sm mb-4 leading-relaxed">
-						Get connected across 39 European countries the second your flight lands. Keep your WhatsApp number active with zero roaming fees.
+					<h3 class="text-lg font-bold text-white mb-2">Airalo Europe eSIM</h3>
+					<p class="text-slate-400 text-xs mb-4 leading-relaxed">
+						Get instant 4G/5G data across 39 European countries the second you land. Keep your WhatsApp number active.
 					</p>
 				</div>
 				<a 
 					href="https://airalo.go.link/VyEma" 
 					target="_blank" 
 					rel="noopener noreferrer sponsored"
-					class="w-full inline-flex items-center justify-center gap-2 py-3 bg-slate-700 hover:bg-slate-600 text-white font-bold text-sm rounded-xl transition-colors"
+					class="w-full inline-flex items-center justify-center gap-1.5 py-2.5 bg-slate-700 hover:bg-slate-600 text-white font-bold text-xs rounded-xl transition-colors"
 				>
-					Get European eSIM from $5 <ChevronRight size={16} />
+					Claim €3 Off eSIM <ChevronRight size={14} />
+				</a>
+			</div>
+
+			<!-- Grey.co African Student Banking -->
+			<div class="bg-slate-800/80 border border-slate-700 rounded-2xl p-5 flex flex-col justify-between hover:border-orange-500/50 transition-all">
+				<div>
+					<div class="flex items-center justify-between mb-3">
+						<span class="bg-orange-500/20 text-orange-400 text-xs font-bold px-2.5 py-0.5 rounded-full">Virtual EUR IBAN</span>
+					</div>
+					<h3 class="text-lg font-bold text-white mb-2">Grey.co Global Banking</h3>
+					<p class="text-slate-400 text-xs mb-4 leading-relaxed">
+						Open virtual EUR & GBP accounts from Nigeria, Ghana, and Kenya to easily pay European university fees.
+					</p>
+				</div>
+				<a 
+					href="https://app.grey.co/auth/register?referral=IAUZLT" 
+					target="_blank" 
+					rel="noopener noreferrer sponsored"
+					class="w-full inline-flex items-center justify-center gap-1.5 py-2.5 bg-slate-700 hover:bg-slate-600 text-white font-bold text-xs rounded-xl transition-colors"
+				>
+					Open Free Account <ChevronRight size={14} />
 				</a>
 			</div>
 		</div>
@@ -643,6 +668,9 @@ return () => clearInterval(interval);
 
 <!-- Sample Strategy Modal -->
 <SampleStrategyModal bind:show={showSampleModal} />
+
+<!-- IELTS Prep Modal -->
+<IeltsPrepModal bind:show={showIeltsModal} />
 
 <style>
 /* ═══════════════════════════════════════

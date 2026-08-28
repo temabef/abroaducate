@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Search, SlidersHorizontal, Filter, GraduationCap, Bookmark, MapPin, Banknote, Lightbulb } from 'lucide-svelte';
+	import { Search, SlidersHorizontal, Filter, GraduationCap, Bookmark, MapPin, Banknote, Lightbulb, Globe, Sparkles, Compass } from 'lucide-svelte';
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
@@ -162,6 +162,42 @@
 				<button class="mobile-filter-btn" onclick={() => showMobileFilters = !showMobileFilters}>
 					<SlidersHorizontal size={20} />
 				</button>
+			</div>
+
+			<!-- Popular Destinations & Curated Collections Quick Switcher -->
+			<div class="mt-4 flex items-center justify-center gap-2 flex-wrap">
+				<a href="/programs/country/germany" class="inline-flex items-center gap-1.5 px-3 py-1 bg-white/10 hover:bg-white/20 text-white border border-white/10 rounded-full text-xs font-semibold transition-all">
+					<Globe size={13} class="text-orange-400" />
+					<span>Germany (€0)</span>
+				</a>
+				<a href="/programs/country/italy" class="inline-flex items-center gap-1.5 px-3 py-1 bg-white/10 hover:bg-white/20 text-white border border-white/10 rounded-full text-xs font-semibold transition-all">
+					<Globe size={13} class="text-emerald-400" />
+					<span>Italy (DSU)</span>
+				</a>
+				<a href="/programs/country/austria" class="inline-flex items-center gap-1.5 px-3 py-1 bg-white/10 hover:bg-white/20 text-white border border-white/10 rounded-full text-xs font-semibold transition-all">
+					<Globe size={13} class="text-sky-400" />
+					<span>Austria (€727)</span>
+				</a>
+				<a href="/programs/country/sweden" class="inline-flex items-center gap-1.5 px-3 py-1 bg-white/10 hover:bg-white/20 text-white border border-white/10 rounded-full text-xs font-semibold transition-all">
+					<Globe size={13} class="text-blue-400" />
+					<span>Sweden</span>
+				</a>
+				<a href="/programs/country/france" class="inline-flex items-center gap-1.5 px-3 py-1 bg-white/10 hover:bg-white/20 text-white border border-white/10 rounded-full text-xs font-semibold transition-all">
+					<Globe size={13} class="text-indigo-400" />
+					<span>France</span>
+				</a>
+				<a href="/programs/country/poland" class="inline-flex items-center gap-1.5 px-3 py-1 bg-white/10 hover:bg-white/20 text-white border border-white/10 rounded-full text-xs font-semibold transition-all">
+					<Globe size={13} class="text-rose-400" />
+					<span>Poland</span>
+				</a>
+				<a href="/programs/category/tuition-free" class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 rounded-full text-xs font-bold transition-all">
+					<Sparkles size={13} />
+					<span>0 EUR Tuition Free</span>
+				</a>
+				<a href="/programs/category/english-taught-masters" class="inline-flex items-center gap-1.5 px-3 py-1 bg-orange-500/20 hover:bg-orange-500/30 text-orange-300 border border-orange-500/30 rounded-full text-xs font-bold transition-all">
+					<GraduationCap size={13} />
+					<span>English Master's</span>
+				</a>
 			</div>
 		</div>
 	</div>

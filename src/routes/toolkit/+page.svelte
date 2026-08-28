@@ -6,9 +6,11 @@
 	} from 'lucide-svelte';
 	import { AFFILIATE_PARTNERS, type AffiliatePartner } from '$lib/config/affiliates';
 	import SEO from '$lib/components/SEO.svelte';
+	import IeltsPrepModal from '$lib/components/IeltsPrepModal.svelte';
 
 	let activeCategory = $state<'all' | 'visa' | 'translation' | 'connectivity' | 'banking' | 'prep'>('all');
 	let searchQuery = $state('');
+	let showIeltsModal = $state(false);
 
 	const filteredPartners = $derived(
 		AFFILIATE_PARTNERS.filter(p => {
@@ -165,19 +167,32 @@
 
 					<!-- CTA Button -->
 					<div class="partner-footer">
-						<a 
-							href={partner.url}
-							target="_blank"
-							rel="noopener noreferrer sponsored"
-							class="btn-partner-cta"
-						>
-							<span>{partner.ctaText}</span>
-							<ExternalLink size={15} />
-						</a>
+						{#if partner.id === 'studyoverseas-ai'}
+							<button 
+								onclick={() => showIeltsModal = true}
+								class="btn-partner-cta cursor-pointer w-full text-center"
+							>
+								<span>{partner.ctaText}</span>
+								<ExternalLink size={15} />
+							</button>
+						{:else}
+							<a 
+								href={partner.url}
+								target="_blank"
+								rel="noopener noreferrer sponsored"
+								class="btn-partner-cta"
+							>
+								<span>{partner.ctaText}</span>
+								<ExternalLink size={15} />
+							</a>
+						{/if}
 					</div>
 				</div>
 			{/each}
 		</div>
+
+		<!-- IELTS Prep Bridge Modal -->
+		<IeltsPrepModal bind:show={showIeltsModal} />
 
 		<!-- Disclosure Box -->
 		<div class="mt-14 p-4 rounded-xl bg-slate-50 border border-slate-200 text-center text-xs text-slate-500 leading-relaxed">

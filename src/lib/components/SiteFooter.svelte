@@ -40,10 +40,11 @@
 				</div>
 				<div class="footer-col">
 					<div class="footer-col-title">Resources</div>
-					<a href="/blog" class="footer-link">Blog</a>
+					<a href="/blog" class="footer-link">Blog & Guides</a>
+					<a href="/blog/german-blocked-account-expatrio-fintiba-guide-2026" class="footer-link">German Blocked Account 2026</a>
+					<a href="/pricing" class="footer-link">Why We Are 100% Free</a>
 					<a href="/privacy" class="footer-link">Privacy Policy</a>
 					<a href="/terms" class="footer-link">Terms of Service</a>
-					<a href="/refund-policy" class="footer-link">Refund Policy</a>
 				</div>
 				<div class="footer-col">
 					<div class="footer-col-title">Support</div>

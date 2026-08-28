@@ -130,20 +130,20 @@ export const AFFILIATE_PARTNERS: AffiliatePartner[] = [
 	},
 	{
 		id: 'studyoverseas-ai',
-		name: 'Abroaducate IELTS & GRE Prep',
-		tagline: 'Free AI-Powered IELTS, GRE & SAT Mock Tests',
-		description: 'Practice with full-length adaptive mock tests, instant AI speaking band scores, 2,000+ vocabulary words, and expert video lessons at zero cost.',
+		name: 'Abroaducate AI IELTS Prep',
+		tagline: 'Free AI-Powered IELTS Mock Exams & Speaking Evaluation',
+		description: 'Full-length adaptive IELTS mock exams, instant AI speaking band scores, writing evaluations, and expert practice modules at zero cost.',
 		category: 'prep',
 		categoryLabel: 'Free Exam Prep',
 		url: 'https://abroaducate.studyoverseas.ai',
-		badge: 'Coming Soon • Launching Monday',
-		badgeColor: 'blue',
-		ctaText: 'Launching Monday — Free Access',
+		badge: '100% Free Access',
+		badgeColor: 'emerald',
+		ctaText: 'Access Free IELTS Prep →',
 		features: [
-			'Full-length IELTS & GRE mock tests with real exam simulation',
+			'Full-length IELTS Academic & General mock exams',
 			'AI-scored speaking practice with real-time band prediction',
-			'Adaptive practice and personalized study planner',
-			'Completely free for Abroaducate community members'
+			'Writing evaluations and vocabulary drills',
+			'100% free for all Abroaducate students'
 		],
 		highlighted: true
 	},
