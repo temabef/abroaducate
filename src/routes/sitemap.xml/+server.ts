@@ -7,34 +7,41 @@ export const GET: RequestHandler = async ({ url, locals }) => {
   // Static pages with their priorities and change frequencies
   const staticPages = [
     { url: '', priority: '1.0', changefreq: 'daily' }, // Homepage
-    { url: '/pricing', priority: '0.9', changefreq: 'weekly' },
+    { url: '/programs', priority: '1.0', changefreq: 'daily' },
+    { url: '/toolkit', priority: '0.9', changefreq: 'daily' },
     { url: '/universities', priority: '0.9', changefreq: 'daily' },
     { url: '/scholarships', priority: '0.9', changefreq: 'daily' },
+    { url: '/blog', priority: '0.9', changefreq: 'daily' },
+    { url: '/pricing', priority: '0.7', changefreq: 'monthly' },
     { url: '/sop', priority: '0.8', changefreq: 'weekly' },
     { url: '/cover-letters', priority: '0.8', changefreq: 'weekly' },
     { url: '/personal-statements', priority: '0.8', changefreq: 'weekly' },
     { url: '/academic-cv', priority: '0.8', changefreq: 'weekly' },
-    { url: '/academic-analyzer', priority: '0.8', changefreq: 'weekly' },
     { url: '/document-checklists', priority: '0.8', changefreq: 'weekly' },
-    { url: '/practice/ielts/reading', priority: '0.8', changefreq: 'weekly' },
-    { url: '/gpa-converter', priority: '0.7', changefreq: 'monthly' },
-    { url: '/visa-interview-practice', priority: '0.7', changefreq: 'weekly' },
-    { url: '/word-optimization', priority: '0.6', changefreq: 'monthly' },
-    { url: '/sop-review', priority: '0.6', changefreq: 'monthly' },
-    { url: '/ai-features-demo', priority: '0.6', changefreq: 'monthly' },
-    { url: '/cold-email-generator', priority: '0.6', changefreq: 'monthly' },
     { url: '/privacy', priority: '0.3', changefreq: 'yearly' },
     { url: '/terms', priority: '0.3', changefreq: 'yearly' }
   ];
 
-  // Fetch latest published blog posts (limit to 100 for sitemap)
+  // 1. Fetch published blog posts
   const { data: posts } = await supabase
     .from('blog_posts')
     .select('slug, published_at')
     .eq('status', 'published')
     .lte('published_at', new Date().toISOString())
     .order('published_at', { ascending: false })
-    .limit(100);
+    .limit(200);
+
+  // 2. Fetch programs (index all active programs)
+  const { data: programs } = await supabase
+    .from('programs')
+    .select('id, updated_at')
+    .limit(2500);
+
+  // 3. Fetch scholarships
+  const { data: scholarships } = await supabase
+    .from('scholarships')
+    .select('id, slug, updated_at')
+    .limit(1000);
 
   const staticEntries = staticPages
     .map(
@@ -58,16 +65,35 @@ export const GET: RequestHandler = async ({ url, locals }) => {
     )
     .join('\n');
 
+  const programEntries = (programs || [])
+    .map(
+      (prg) => `  <url>
+    <loc>${baseUrl}/programs/${prg.id}</loc>
+    <lastmod>${prg.updated_at ? new Date(prg.updated_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>`
+    )
+    .join('\n');
+
+  const scholarshipEntries = (scholarships || [])
+    .map(
+      (sch) => `  <url>
+    <loc>${baseUrl}/scholarships/${sch.slug || sch.id}</loc>
+    <lastmod>${sch.updated_at ? new Date(sch.updated_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>`
+    )
+    .join('\n');
+
   // Generate XML sitemap
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"
-        xmlns:xhtml="http://www.w3.org/1999/xhtml"
-        xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0"
-        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
-        xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${staticEntries}
 ${blogEntries}
+${programEntries}
+${scholarshipEntries}
 </urlset>`;
 
   return new Response(sitemap, {
@@ -76,4 +102,4 @@ ${blogEntries}
       'Cache-Control': 'max-age=3600' // Cache for 1 hour
     }
   });
-}; 
+};
