@@ -10,7 +10,11 @@ ChevronRight,
 Quote,
 Landmark,
 GraduationCap,
-BookOpen
+BookOpen,
+Sparkles,
+Globe,
+Building2,
+ShieldCheck
 } from 'lucide-svelte';
 import AuthenticationFlow from '$lib/components/AuthenticationFlow.svelte';
 import SampleStrategyModal from '$lib/components/SampleStrategyModal.svelte';
@@ -133,46 +137,69 @@ return () => clearInterval(interval);
 	<div class="hero-glow hero-glow-orange"></div>
 	<div class="hero-glow hero-glow-blue"></div>
 	<div class="hero-inner" use:fadeUpOnScroll>
+		<!-- Top Floating Trust Badge -->
+		<div class="hero-badge-container">
+			<a href="/pricing" class="hero-badge-pill">
+				<span class="badge-dot"></span>
+				<span class="badge-text">100% Free Platform &bull; 2,500+ Degree Programs &bull; Visa Toolkit</span>
+				<ChevronRight size={14} class="badge-chevron" />
+			</a>
+		</div>
+
 		<h1 class="hero-title">
 			Study in Europe<br />
-			<span class="hero-highlight">without breaking the bank</span>
+			<span class="hero-highlight">Without Breaking the Bank</span>
 		</h1>
 		<p class="hero-sub">
-			Discover 2,500+ affordable programs across 10 European countries. Get matched with scholarships and generate application documents with AI.
+			Discover 2,500+ tuition-free and affordable degree programs across Europe. Match with fully funded scholarships and access embassy-approved relocation tools.
 		</p>
 
 		<!-- Finder Bar -->
-		<div class="finder-bar">
-			<div class="finder-field">
-				<BookOpen size={18} />
-				<input
-					type="text"
-					placeholder="Field of study (e.g. Computer Science)"
-					bind:value={finderField}
-					onkeydown={(e) => { if (e.key === 'Enter') goToPrograms(); }}
-				/>
+		<div class="finder-bar-wrapper">
+			<div class="finder-bar">
+				<div class="finder-field">
+					<BookOpen size={18} class="finder-icon" />
+					<input
+						type="text"
+						placeholder="Field of study (e.g. Computer Science)"
+						bind:value={finderField}
+						onkeydown={(e) => { if (e.key === 'Enter') goToPrograms(); }}
+					/>
+				</div>
+				<div class="finder-divider"></div>
+				<div class="finder-field">
+					<Landmark size={18} class="finder-icon" />
+					<input
+						type="text"
+						placeholder="Destination (e.g. Germany, Italy)"
+						bind:value={finderDestination}
+						onkeydown={(e) => { if (e.key === 'Enter') goToPrograms(); }}
+					/>
+				</div>
+				<button class="finder-btn" onclick={goToPrograms}>
+					<span>Search programs</span>
+					<ChevronRight size={16} />
+				</button>
 			</div>
-			<div class="finder-divider"></div>
-			<div class="finder-field">
-				<Landmark size={18} />
-				<input
-					type="text"
-					placeholder="Destination (e.g. Germany)"
-					bind:value={finderDestination}
-					onkeydown={(e) => { if (e.key === 'Enter') goToPrograms(); }}
-				/>
-			</div>
-			<button class="finder-btn" onclick={goToPrograms}>
-				Search programs <ChevronRight size={16} />
-			</button>
 		</div>
 
-		<!-- CTAs -->
-		<div class="hero-actions">
-			<button class="btn-cta-primary" onclick={openSignup}>
-				Start Exploring Free <ChevronRight size={16} />
-			</button>
-			<a href="#how-it-works" class="btn-ghost">See how it works</a>
+		<!-- Popular Quick Search Shortcuts -->
+		<div class="hero-shortcuts">
+			<span class="shortcuts-title">Popular searches:</span>
+			<div class="shortcuts-list">
+				<button class="shortcut-pill" onclick={() => { finderDestination = 'Germany'; goToPrograms(); }}>
+					<Building2 size={13} class="shortcut-icon" /> Germany €0 Tuition
+				</button>
+				<button class="shortcut-pill" onclick={() => { finderDestination = 'Italy'; goToPrograms(); }}>
+					<GraduationCap size={13} class="shortcut-icon" /> Italy DSU Grants
+				</button>
+				<button class="shortcut-pill" onclick={() => { finderDestination = 'Sweden'; goToPrograms(); }}>
+					<Globe size={13} class="shortcut-icon" /> Sweden Master's
+				</button>
+				<a href="/toolkit" class="shortcut-pill shortcut-pill-relocation">
+					<ShieldCheck size={13} class="shortcut-icon text-orange-500" /> Relocation Toolkit
+				</a>
+			</div>
 		</div>
 
 		<!-- Trust line -->
@@ -619,170 +646,255 @@ return () => clearInterval(interval);
 
 <style>
 /* ═══════════════════════════════════════
-   HERO — Light background with radial glows
+   HERO — Light background with radial glows & premium layout
    ═══════════════════════════════════════ */
 .hero {
 	position: relative;
 	background: #ffffff;
-	padding: 8rem 1.5rem 5rem;
+	padding: 7rem 1.5rem 4.5rem;
 	text-align: center;
 	overflow: hidden;
 }
 .hero-glow {
 	position: absolute;
 	border-radius: 50%;
-	filter: blur(120px);
-	opacity: 0.35;
+	filter: blur(140px);
 	pointer-events: none;
 }
 .hero-glow-orange {
-	width: 500px;
-	height: 500px;
+	width: 550px;
+	height: 550px;
 	background: #f97316;
-	top: -100px;
+	top: -120px;
 	right: -100px;
-	opacity: 0.12;
+	opacity: 0.14;
 }
 .hero-glow-blue {
-	width: 600px;
-	height: 600px;
+	width: 650px;
+	height: 650px;
 	background: #3b82f6;
 	bottom: -150px;
 	left: -150px;
-	opacity: 0.08;
+	opacity: 0.10;
 }
 .hero-inner {
 	position: relative;
 	z-index: 1;
-	max-width: 760px;
+	max-width: 860px;
 	margin: 0 auto;
 }
+
+/* Top Floating Trust Badge */
+.hero-badge-container {
+	display: flex;
+	justify-content: center;
+	margin-bottom: 1.5rem;
+}
+.hero-badge-pill {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.5rem;
+	background: rgba(248, 250, 252, 0.9);
+	border: 1px solid #e2e8f0;
+	backdrop-filter: blur(8px);
+	padding: 0.4rem 1rem;
+	border-radius: 9999px;
+	font-size: 0.85rem;
+	font-weight: 600;
+	color: #334155;
+	text-decoration: none;
+	box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+	transition: all 0.2s ease;
+}
+.hero-badge-pill:hover {
+	border-color: #cbd5e1;
+	background: #ffffff;
+	transform: translateY(-1px);
+	box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+}
+.badge-dot {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: #10b981;
+	box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+}
+.badge-chevron {
+	color: #94a3b8;
+	transition: transform 0.2s ease;
+}
+.hero-badge-pill:hover .badge-chevron {
+	transform: translateX(2px);
+	color: #f97316;
+}
+
+/* Hero Typography */
 .hero-title {
 	font-family: 'Outfit', sans-serif;
-	font-size: clamp(2.8rem, 6vw, 4.2rem);
+	font-size: clamp(2.6rem, 5.5vw, 4.2rem);
 	font-weight: 800;
-	line-height: 1.1;
-	color: var(--brand-navy);
-	margin-bottom: 1.5rem;
-	letter-spacing: -0.03em;
+	line-height: 1.12;
+	color: #0f172a;
+	margin-bottom: 1.25rem;
+	letter-spacing: -0.035em;
+	text-wrap: balance;
 }
 .hero-highlight {
-	background: linear-gradient(135deg, #f97316, #f59e0b);
+	background: linear-gradient(135deg, #f97316 0%, #ea580c 50%, #f59e0b 100%);
 	-webkit-background-clip: text;
 	-webkit-text-fill-color: transparent;
 	background-clip: text;
+	display: inline-block;
 }
 .hero-sub {
 	font-size: 1.15rem;
-	color: var(--text-secondary);
-	line-height: 1.75;
-	max-width: 580px;
-	margin: 0 auto 2.5rem;
+	color: #475569;
+	line-height: 1.7;
+	max-width: 620px;
+	margin: 0 auto 2.25rem;
+	text-wrap: balance;
 }
 
-/* Finder Bar — pill-shaped white card */
+/* Finder Bar */
+.finder-bar-wrapper {
+	max-width: 680px;
+	margin: 0 auto 1.5rem;
+}
 .finder-bar {
 	display: flex;
 	align-items: center;
 	background: #ffffff;
-	border: 1px solid var(--border-subtle);
-	border-radius: 100px;
+	border: 1.5px solid #e2e8f0;
+	border-radius: 9999px;
 	padding: 0.4rem 0.5rem 0.4rem 1.25rem;
-	box-shadow: 0 4px 24px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.04);
-	max-width: 640px;
-	margin: 0 auto 2.5rem;
+	box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.04);
+	transition: all 0.25s ease;
+}
+.finder-bar:focus-within {
+	border-color: #f97316;
+	box-shadow: 0 12px 36px rgba(249, 115, 22, 0.15), 0 0 0 3px rgba(249, 115, 22, 0.1);
 }
 .finder-field {
 	flex: 1;
 	display: flex;
 	align-items: center;
-	gap: 0.6rem;
-	padding: 0.6rem 0.5rem;
-	color: var(--text-muted);
+	gap: 0.65rem;
+	padding: 0.5rem 0.5rem;
+	color: #94a3b8;
+}
+:global(.finder-icon) {
+	color: #94a3b8;
+	flex-shrink: 0;
+}
+.finder-bar:focus-within .finder-field:focus-within :global(.finder-icon) {
+	color: #f97316;
 }
 .finder-field input {
 	border: none;
 	outline: none;
 	background: transparent;
-	font-size: 0.92rem;
+	font-size: 0.95rem;
+	font-weight: 500;
 	width: 100%;
-	color: var(--text-primary);
+	color: #0f172a;
 }
 .finder-field input::placeholder {
-	color: var(--text-muted);
+	color: #94a3b8;
+	font-weight: 400;
 }
 .finder-divider {
 	width: 1px;
-	height: 28px;
-	background: var(--border-subtle);
+	height: 32px;
+	background: #e2e8f0;
 	flex-shrink: 0;
+	margin: 0 0.25rem;
 }
 .finder-btn {
 	display: flex;
 	align-items: center;
-	gap: 0.35rem;
-	padding: 0.75rem 1.5rem;
-	background: var(--brand-orange);
+	gap: 0.4rem;
+	padding: 0.85rem 1.6rem;
+	background: linear-gradient(135deg, #f97316, #ea580c);
 	color: white;
 	border: none;
-	border-radius: 100px;
-	font-weight: 600;
-	font-size: 0.9rem;
+	border-radius: 9999px;
+	font-weight: 700;
+	font-size: 0.95rem;
 	white-space: nowrap;
-	transition: background 0.2s, transform 0.15s;
+	cursor: pointer;
+	box-shadow: 0 4px 14px rgba(249, 115, 22, 0.35);
+	transition: all 0.2s ease;
 }
 .finder-btn:hover {
-	background: var(--brand-orange-hover);
 	transform: translateY(-1px);
+	box-shadow: 0 6px 18px rgba(249, 115, 22, 0.45);
+	background: linear-gradient(135deg, #ea580c, #c2410c);
 }
 
-/* Hero Actions */
-.hero-actions {
+/* Quick Search Shortcuts */
+.hero-shortcuts {
 	display: flex;
-	gap: 1.5rem;
-	justify-content: center;
 	align-items: center;
+	justify-content: center;
+	gap: 0.6rem;
 	flex-wrap: wrap;
-	margin-bottom: 1.75rem;
+	margin-bottom: 2rem;
 }
-.btn-cta-primary {
+.shortcuts-title {
+	font-size: 0.82rem;
+	font-weight: 600;
+	color: #94a3b8;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+}
+.shortcuts-list {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	flex-wrap: wrap;
+	justify-content: center;
+}
+.shortcut-pill {
 	display: inline-flex;
 	align-items: center;
-	gap: 0.4rem;
-	padding: 0.9rem 1.85rem;
-	background: var(--brand-navy);
-	color: white;
-	border: none;
-	border-radius: 14px;
+	gap: 0.35rem;
+	background: #f8fafc;
+	border: 1px solid #e2e8f0;
+	border-radius: 9999px;
+	padding: 0.35rem 0.85rem;
+	font-size: 0.82rem;
 	font-weight: 600;
-	font-size: 1rem;
+	color: #334155;
 	text-decoration: none;
-	transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+	cursor: pointer;
+	transition: all 0.15s ease;
 }
-.btn-cta-primary:hover {
-	background: #1e293b;
-	transform: translateY(-2px);
-	box-shadow: 0 8px 24px rgba(15, 23, 42, 0.15);
+.shortcut-pill:hover {
+	background: #ffffff;
+	border-color: #cbd5e1;
+	color: #f97316;
+	transform: translateY(-1px);
+	box-shadow: 0 2px 6px rgba(15, 23, 42, 0.05);
 }
-.btn-cta-navy {
-	background: var(--brand-navy);
+.shortcut-pill-relocation {
+	background: #fff7ed;
+	border-color: #ffedd5;
+	color: #ea580c;
 }
-.btn-cta-navy:hover {
-	background: #1e293b;
+.shortcut-pill-relocation:hover {
+	background: #ffedd5;
+	border-color: #fdba74;
+	color: #c2410c;
 }
-.btn-ghost {
-	color: var(--text-secondary);
-	font-weight: 500;
-	font-size: 0.95rem;
-	text-decoration: none;
-	transition: color 0.2s;
+:global(.shortcut-icon) {
+	color: #64748b;
+	flex-shrink: 0;
 }
-.btn-ghost:hover {
-	color: var(--brand-navy);
-}
+
 .hero-trust {
 	font-size: 0.82rem;
-	color: var(--text-muted);
+	color: #64748b;
+	font-weight: 500;
 	letter-spacing: 0.01em;
 }
 
