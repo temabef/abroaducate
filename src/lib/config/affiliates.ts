@@ -56,19 +56,19 @@ export const AFFILIATE_PARTNERS: AffiliatePartner[] = [
 	{
 		id: 'airalo',
 		name: 'Airalo Europe eSIM',
-		tagline: 'Instant Mobile Data Upon Arrival in Europe',
-		description: 'Never worry about roaming charges or searching for airport SIM kiosks. Download an eSIM to your phone before boarding and get connected immediately across 39 European countries.',
+		tagline: 'Instant Mobile Data (€3.00 Off 1st eSIM)',
+		description: 'Never worry about roaming charges or searching for airport SIM kiosks. Download an eSIM to your phone before boarding and get €3.00 off your first package with instant 4G/5G connection across 39 European countries.',
 		category: 'connectivity',
 		categoryLabel: 'Travel & Mobile Data',
 		url: 'https://airalo.go.link/VyEma',
-		badge: 'Instant Activation',
-		badgeColor: 'orange',
-		ctaText: 'Get European eSIM from $5 →',
+		badge: '€3.00 Discount Voucher',
+		badgeColor: 'emerald',
+		ctaText: 'Claim €3 Off European eSIM →',
 		features: [
-			'Works across 39 European countries with one eSIM',
-			'No physical SIM swapping required',
-			'High-speed 4G/5G data packages from 1GB to 20GB',
-			'Keep your local WhatsApp number active'
+			'€3.00 discount automatically applied on your first eSIM',
+			'Works across 39 European countries with one digital eSIM',
+			'High-speed 4G/5G data packages from just €2 after discount',
+			'Keep your original WhatsApp number and SIM active'
 		],
 		highlighted: true
 	},
