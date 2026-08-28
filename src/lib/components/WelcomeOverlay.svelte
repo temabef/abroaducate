@@ -23,9 +23,9 @@
 	}
 
 	const steps = [
-		{ n: 1, text: 'Browse programs below and find one you\'re interested in' },
-		{ n: 2, text: 'Click a program → then click "Start Strategy & AI Fit Check"' },
-		{ n: 3, text: 'Browse matched scholarships and unlock a win strategy (1 credit each)' },
+		{ n: 1, text: 'Browse 2,500+ low and tuition-free European degree programs' },
+		{ n: 2, text: 'Check your eligibility and generate an application strategy for free' },
+		{ n: 3, text: 'Use our Relocation Toolkit to sort your visa blocked account & travel eSIM' },
 	];
 
 	const features = [
@@ -33,7 +33,7 @@
 		'Committee rubric breakdown',
 		'Essay narrative angles tailored to you',
 		'Step-by-step action path (6-7 steps)',
-		'Risks to bridge before applying',
+		'Official Visa & Blocked Account guidelines',
 	];
 </script>
 
@@ -65,13 +65,13 @@
 						Welcome to Abroaducate!
 					</h2>
 					<p class="text-lg text-slate-600">
-						You have <span class="font-bold text-orange-600">3 free credits</span> ready to use.
+						Everything on Abroaducate is <span class="font-bold text-emerald-600">100% Free</span> — no credit limits or cards required.
 					</p>
 				</div>
 
-				<!-- How to use your first credit -->
+				<!-- How to get started -->
 				<div class="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-6 mb-5 border border-orange-100">
-					<p class="font-semibold text-slate-900 mb-4 text-center">Here's how to use your first credit:</p>
+					<p class="font-semibold text-slate-900 mb-4 text-center">How to get started:</p>
 					<ol class="space-y-3">
 						{#each steps as s}
 							<li class="flex items-start gap-3">
@@ -84,9 +84,9 @@
 					</ol>
 				</div>
 
-				<!-- What you'll get -->
+				<!-- What you get -->
 				<div class="bg-white border-2 border-orange-200 rounded-xl p-5 mb-6">
-					<p class="font-semibold text-slate-900 mb-3">What you'll get for each credit:</p>
+					<p class="font-semibold text-slate-900 mb-3">What you get for free:</p>
 					<ul class="space-y-2">
 						{#each features as f}
 							<li class="flex items-center gap-2 text-sm text-slate-700">
@@ -95,7 +95,7 @@
 							</li>
 						{/each}
 					</ul>
-					<p class="text-xs text-slate-500 mt-3 text-center">All in 30 seconds, tailored to your profile.</p>
+					<p class="text-xs text-slate-500 mt-3 text-center">Instant, tailored guidance for your study abroad journey.</p>
 				</div>
 
 				<!-- CTAs -->

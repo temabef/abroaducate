@@ -214,7 +214,7 @@
 					</div>
 					<div class="border-t border-slate-700 pt-4">
 						<p class="text-center text-slate-400 text-sm mb-4">
-							This strategy costs <span class="font-bold text-orange-400">1 credit</span>. You start with <span class="font-bold text-white">3 free credits</span> — no card required.
+							This strategy is <span class="font-bold text-emerald-400">100% Free</span> on Abroaducate — no card or credits required.
 						</p>
 						<div class="flex gap-3">
 							<button
@@ -227,7 +227,7 @@
 								onclick={goToPrograms}
 								class="flex-2 flex-grow py-3 px-6 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-lg transition-all text-sm"
 							>
-								Browse Programs & Unlock Strategy →
+								Browse Programs & Get Free Strategy →
 							</button>
 						</div>
 					</div>

@@ -14,7 +14,6 @@ BookOpen
 } from 'lucide-svelte';
 import AuthenticationFlow from '$lib/components/AuthenticationFlow.svelte';
 import SampleStrategyModal from '$lib/components/SampleStrategyModal.svelte';
-import ExitIntentModal from '$lib/components/ExitIntentModal.svelte';
 import StrategyUsageCounter from '$lib/components/StrategyUsageCounter.svelte';
 
 let { data } = $props();
@@ -30,9 +29,6 @@ let authMode = $state<'login' | 'signup'>('signup');
 
 // Sample strategy modal
 let showSampleModal = $state(false);
-
-// Exit intent modal
-let showExitIntent = $state(false);
 
 // Testimonial rotation
 let activeTestimonial = $state(0);
@@ -613,7 +609,7 @@ return () => clearInterval(interval);
 		<button class="btn-cta-orange" onclick={openSignup}>
 			Start Discovering <ChevronRight size={18} />
 		</button>
-		<p class="final-cta-note">Start exploring for free &middot; 3 credits on signup &middot; Pay-as-you-go after that.</p>
+		<p class="final-cta-note">100% Free &middot; No credit card required &middot; 2,500+ European programs.</p>
 	</div>
 </section>
 
@@ -622,9 +618,6 @@ return () => clearInterval(interval);
 
 <!-- Sample Strategy Modal -->
 <SampleStrategyModal bind:show={showSampleModal} />
-
-<!-- Exit Intent Modal (auto-triggers on mouse leave toward browser chrome) -->
-<ExitIntentModal bind:show={showExitIntent} />
 
 <style>
 /* ═══════════════════════════════════════

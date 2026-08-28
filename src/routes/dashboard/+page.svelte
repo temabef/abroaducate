@@ -910,17 +910,17 @@
 		</div>
 	</div>
 
-	<!-- 🎯 ACTIVATION BANNER (Priority 1.2 - Users with 3 credits who never activated) -->
-	{#if profile?.credits === 3 && (!manuallyUnlockedStrategies || Object.keys(manuallyUnlockedStrategies).length === 0)}
+	<!-- 🎯 ACTIVATION BANNER -->
+	{#if (!manuallyUnlockedStrategies || Object.keys(manuallyUnlockedStrategies).length === 0)}
 	<div class="activation-banner">
 		<div class="activation-banner-left">
 			<div class="activation-banner-icon">
 				<Zap size={20} fill="currentColor" />
 			</div>
 			<div class="activation-banner-text">
-				<h3 class="activation-banner-title">Welcome! You have 3 free credits</h3>
+				<h3 class="activation-banner-title">Welcome to Abroaducate!</h3>
 				<p class="activation-banner-desc">
-					Try this: Browse programs and unlock scholarship strategy on one you like. It only costs 1 credit and shows your exact fit score + scholarships.
+					Explore 2,500+ low and zero-tuition European programs, check your eligibility for free, and use our Relocation Toolkit for your visa and travel essentials.
 				</p>
 			</div>
 		</div>

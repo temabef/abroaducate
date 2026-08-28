@@ -163,7 +163,7 @@
 	const faqs = [
 		{ q: 'How quickly will you respond?', a: 'We aim to respond within 24–48 hours. Billing and technical issues get priority.' },
 		{ q: 'I\'m having trouble logging in. What should I do?', a: 'Try resetting your password using the "Forgot Password" link. If that doesn\'t work, contact us with your registered email.' },
-		{ q: 'How do credits work?', a: 'Every new account gets 3 free credits. Credits are spent on AI-powered features like strategy generation and document creation. Browsing programs and scholarships is always free. Top up by buying a credit pack from the Pricing page.' },
+		{ q: 'Is Abroaducate free to use?', a: 'Yes! Abroaducate is 100% free for all students. You can search 2,500+ programs, find scholarships, check your eligibility, and explore our relocation toolkit without paying any subscriptions or credit fees.' },
 		{ q: 'My AI-generated document seems off. Can you help?', a: 'Try being more specific in your inputs. If you\'re still having issues, send us your inputs and we\'ll help.' },
 		{ q: 'Is my personal information secure?', a: 'Yes. We use industry-standard encryption and never share your personal information. You can export or delete your data anytime.' }
 	];
