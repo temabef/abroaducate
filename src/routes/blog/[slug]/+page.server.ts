@@ -1,5 +1,6 @@
 import type { PageServerLoad } from './$types';
 import { error, redirect } from '@sveltejs/kit';
+import { marked } from 'marked';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
   const supabase = locals.supabase;
@@ -83,70 +84,11 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 };
 
 function renderMarkdown(text: string): string {
-  // First, let's process the text line by line to handle paragraphs better
-  const lines = text.split('\n');
-  const processedLines: string[] = [];
-  
-  for (let i = 0; i < lines.length; i++) {
-    let line = lines[i].trim();
-    
-    if (!line) {
-      processedLines.push(''); // Keep empty lines for paragraph breaks
-      continue;
-    }
-    
-    // Headers
-    if (line.match(/^### /)) {
-      line = line.replace(/^### (.*)$/, '<h3>$1</h3>');
-    } else if (line.match(/^## /)) {
-      line = line.replace(/^## (.*)$/, '<h2>$1</h2>');
-    } else if (line.match(/^# /)) {
-      line = line.replace(/^# (.*)$/, '<h1>$1</h1>');
-    }
-    // Images (process before other inline elements)
-    else if (line.match(/!\[.*\]\(.*\)/)) {
-      line = line.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" style="max-width: 100%; height: auto; border-radius: 0.5rem; margin: 1rem 0;" />');
-    }
-    // Lists
-    else if (line.match(/^- /)) {
-      // Apply inline formatting to list items too
-      let content = line.replace(/^- /, '');
-      content = content
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\*(.*?)\*/g, '<em>$1</em>')
-        .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
-      line = `<li>${content}</li>`;
-    }
-    // Regular paragraph content
-    else {
-      // Apply inline formatting (bold, italic, links)
-      line = line
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\*(.*?)\*/g, '<em>$1</em>')
-        .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
-      
-      // Wrap in paragraph tags if it's not already a special element
-      if (!line.match(/^<(h[1-6]|img|li)/)) {
-        line = `<p>${line}</p>`;
-      }
-    }
-    
-    processedLines.push(line);
+  if (!text) return '';
+  try {
+    return marked.parse(text, { gfm: true, breaks: true }) as string;
+  } catch (err) {
+    console.error('Error parsing markdown:', err);
+    return text;
   }
-  
-  // Join lines and clean up
-  let html = processedLines.join('\n');
-  
-  // Wrap consecutive <li> elements in <ul> tags
-  html = html.replace(/(<li>.*<\/li>\s*)+/gs, (match) => {
-    return `<ul>${match}</ul>`;
-  });
-  
-  // Clean up extra newlines and empty paragraphs
-  html = html
-    .replace(/\n\s*\n/g, '\n') // Remove extra newlines
-    .replace(/<p><\/p>/g, '') // Remove empty paragraphs
-    .replace(/\n/g, ' '); // Convert remaining newlines to spaces
-  
-  return html;
 }

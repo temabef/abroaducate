@@ -590,6 +590,81 @@
   :global(.prose li::marker) {
     color: #94a3b8;
   }
+
+  /* ── Tables ── */
+  :global(.prose table) {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 2rem 0;
+    font-size: 0.95rem;
+    background: white;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+  }
+  :global(.prose th) {
+    background: #f8fafc;
+    font-weight: 700;
+    color: #0f172a;
+    text-align: left;
+    padding: 0.875rem 1rem;
+    border-bottom: 2px solid #e2e8f0;
+  }
+  :global(.prose td) {
+    padding: 0.875rem 1rem;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+    vertical-align: top;
+  }
+  :global(.prose tr:last-child td) {
+    border-bottom: none;
+  }
+  :global(.prose tr:hover td) {
+    background: #f8fafc;
+  }
+
+  /* ── Blockquotes ── */
+  :global(.prose blockquote) {
+    border-left: 4px solid #f97316;
+    background: #fff7ed;
+    padding: 1rem 1.25rem;
+    border-radius: 0 0.75rem 0.75rem 0;
+    margin: 1.75rem 0;
+    color: #9a3412;
+    font-style: normal;
+  }
+  :global(.prose blockquote p) {
+    margin: 0;
+    font-size: 0.95rem;
+  }
+
+  /* ── Code & Pre ── */
+  :global(.prose pre) {
+    background: #0f172a;
+    color: #e2e8f0;
+    padding: 1.25rem;
+    border-radius: 0.75rem;
+    overflow-x: auto;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    margin: 1.75rem 0;
+  }
+  :global(.prose code) {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.875em;
+    background: #f1f5f9;
+    color: #0f172a;
+    padding: 0.2em 0.4em;
+    border-radius: 0.25rem;
+  }
+  :global(.prose pre code) {
+    background: transparent;
+    color: inherit;
+    padding: 0;
+  }
+
   /* Prevent any stray resize handles inside prose */
   :global(.prose *) {
     resize: none;
