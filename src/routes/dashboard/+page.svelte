@@ -39,7 +39,8 @@
 		PenLine,
 		ScrollText,
 		Plane,
-		Coins
+		Coins,
+		Sparkles
 	} from 'lucide-svelte';
 	import type { PageData } from './$types';
 	import { createDefaultDocumentSlots, computePhase } from '$lib/copilot/handoff-packet';
