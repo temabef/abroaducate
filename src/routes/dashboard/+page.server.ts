@@ -26,7 +26,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 			.from('programs')
 			.select('*')
 			.eq('id', incomingProgramId)
-			.single();
+			.maybeSingle();
 		if (error) {
 			console.error(`[DASHBOARD] ERROR fetching program '${incomingProgramId}':`, error.message, error.code);
 		} else {

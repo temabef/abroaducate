@@ -15,31 +15,44 @@ export const GET: RequestHandler = async ({ locals: { supabase, getSession } }) 
             .select('plan_type, status, created_at, updated_at')
             .eq('user_id', session.user.id)
             .in('status', ['active','trialing'])
-            .single();
+            .maybeSingle();
 
-        if (subError && subError.code !== 'PGRST116') { // PGRST116 is "no rows returned"
+        if (subError) {
             console.error('Subscription query error:', subError);
         }
 
         // Get user's current usage
-        const { data: usageData, error: usageError } = await supabase.rpc('get_current_usage', {
-            user_uuid: session.user.id
-        });
-
-        if (usageError) {
-            console.error('Usage query error:', usageError);
+        let usageData: any = null;
+        try {
+            const { data, error: usageError } = await supabase.rpc('get_current_usage', {
+                user_uuid: session.user.id
+            });
+            if (usageError) {
+                console.error('Usage query error:', usageError);
+            } else {
+                usageData = data;
+            }
+        } catch (e) {
+            console.error('RPC get_current_usage threw:', e);
         }
 
         // Get plan limits
         const planType = subscription?.plan_type || 'free';
-        const { data: planLimits, error: limitsError } = await supabase
-            .from('plan_limits')
-            .select('*')
-            .eq('plan_type', planType)
-            .single();
+        let planLimits: any = null;
+        try {
+            const { data: limits, error: limitsError } = await supabase
+                .from('plan_limits')
+                .select('*')
+                .eq('plan_type', planType)
+                .maybeSingle();
 
-        if (limitsError) {
-            console.error('Plan limits query error:', limitsError);
+            if (limitsError) {
+                console.error('Plan limits query error:', limitsError);
+            } else {
+                planLimits = limits;
+            }
+        } catch (e) {
+            console.error('Plan limits fetch threw:', e);
         }
 
         const userProfile = {
