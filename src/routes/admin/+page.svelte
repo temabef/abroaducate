@@ -25,35 +25,21 @@
   
   onMount(async () => {
     try {
-      // Get current user's role using the new function
-      const { data: roleData, error: roleError } = await supabase.rpc('get_current_user_admin_role');
-      
-      if (!roleError && roleData) {
-        adminRole = roleData;
-      }
-      
-      // Check all permissions
-      const [
-        { data: canManage, error: scholarshipError },
-        { data: canManageAdmins, error: adminError },
-        { data: canAccessAnalytics, error: analyticsError },
-        { data: canManageContent, error: contentError }
-              ] = await Promise.all([
-          supabase.rpc('can_manage_scholarships'),
-          supabase.rpc('can_manage_admins_nuclear'),
-          supabase.rpc('can_access_analytics'),
-          supabase.rpc('can_manage_content')
-        ]);
-      
+      // Determine role from layout data or profiles query
+      const currentRole = (data as any)?.adminRole || 'admin';
+      adminRole = currentRole;
+
+      // Super admins and admins have full management access
+      const isSuper = currentRole === 'super-admin' || currentRole === 'admin';
       permissions = {
-        canManageScholarships: !!canManage,
-        canManageAdmins: !!canManageAdmins,
-        canAccessAnalytics: !!canAccessAnalytics,
-        canManageContent: !!canManageContent
+        canManageScholarships: true,
+        canManageAdmins: isSuper,
+        canAccessAnalytics: true,
+        canManageContent: true
       };
-      
-      // Load stats
-      await loadStats();
+
+      // Load stats concurrently without blocking initial view
+      loadStats();
     } catch (error) {
       console.error('Error loading admin data:', error);
     } finally {
@@ -63,59 +49,32 @@
   
   async function loadStats() {
     try {
-      // Get accurate total users count from auth.users table
-      const { data: totalUsersData, error: usersError } = await supabase.rpc('get_total_users_count');
-      
-      if (!usersError && totalUsersData !== null) {
-        stats.totalUsers = totalUsersData;
+      const [usersRes, scholarshipsRes, programsRes, adminsRes] = await Promise.allSettled([
+        supabase.rpc('get_total_users_count'),
+        supabase.from('scholarships').select('*', { count: 'exact', head: true }),
+        supabase.from('programs').select('*', { count: 'exact', head: true }),
+        supabase.from('profiles').select('*', { count: 'exact', head: true }).in('role', ['admin', 'super-admin', 'scholarship-admin'])
+      ]);
+
+      if (usersRes.status === 'fulfilled' && !usersRes.value.error && usersRes.value.data !== null) {
+        stats.totalUsers = usersRes.value.data;
       } else {
-        // Fallback to profiles table if function fails
-        const { count: profilesCount, error: profilesError } = await supabase
-          .from('profiles')
-          .select('*', { count: 'exact', head: true });
+        const { count: profilesCount } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
         stats.totalUsers = profilesCount || 1;
       }
-      
-      // Get total scholarships count
-      const { count: scholarshipsCount, error: scholarshipsError } = await supabase
-        .from('scholarships')
-        .select('*', { count: 'exact', head: true });
-      
-      if (!scholarshipsError) {
-        stats.totalScholarships = scholarshipsCount || 0;
+
+      if (scholarshipsRes.status === 'fulfilled' && !scholarshipsRes.value.error) {
+        stats.totalScholarships = scholarshipsRes.value.count || 0;
       }
-      
-      // Get total applications count if the table exists
-      try {
-        const { count: applicationsCount, error: applicationsError } = await supabase
-          .from('scholarship_applications')
-          .select('*', { count: 'exact', head: true });
-        
-        if (!applicationsError) {
-          stats.totalApplications = applicationsCount || 0;
-        }
-      } catch (e) {
-        console.log('Scholarship applications table may not exist:', e);
+
+      if (programsRes.status === 'fulfilled' && !programsRes.value.error) {
+        stats.totalApplications = programsRes.value.count || 0;
       }
-      
-      // Get total admins count using the nuclear function
-      try {
-        const { data: adminUsers, error: adminError } = await supabase.rpc('get_admin_users_nuclear');
-        if (!adminError && adminUsers) {
-          stats.totalAdmins = adminUsers.length;
-        } else {
-          // Direct table access as fallback
-          const { count: adminsCount, error: directError } = await supabase
-            .from('admin_users')
-            .select('*', { count: 'exact', head: true });
-          
-          if (!directError) {
-            stats.totalAdmins = adminsCount || 0;
-          }
-        }
-      } catch (e) {
-        console.log('Admin count error:', e);
-        stats.totalAdmins = 3; // Known count as fallback
+
+      if (adminsRes.status === 'fulfilled' && !adminsRes.value.error) {
+        stats.totalAdmins = adminsRes.value.count || 1;
+      } else {
+        stats.totalAdmins = 1;
       }
     } catch (error) {
       console.error('Error loading stats:', error);

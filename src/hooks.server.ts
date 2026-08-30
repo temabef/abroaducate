@@ -55,13 +55,13 @@ export const handle: Handle = async ({ event, resolve }) => {
       return name === 'content-range' || name === 'x-supabase-api-version'
     },
   }).then((response) => {
-    // Add CSP header to allow Cloudflare Turnstile
+    // Add CSP header to allow Cloudflare Turnstile and Google Analytics
     response.headers.set(
       'Content-Security-Policy',
       [
         "default-src 'self'",
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.supabase.co https://us.i.posthog.com https://us-assets.i.posthog.com https://www.googletagmanager.com https://pagead2.googlesyndication.com https://www.google-analytics.com https://accounts.google.com https://*.adtrafficquality.google https://assets.calendly.com https://challenges.cloudflare.com",
-        "connect-src 'self' https://*.supabase.co https://us.i.posthog.com https://us-assets.i.posthog.com https://www.google-analytics.com https://api.ipify.org https://api.openai.com https://api.stripe.com https://api.sendgrid.com https://*.google https://*.adtrafficquality.google https://accounts.google.com https://oauth2.googleapis.com https://challenges.cloudflare.com",
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.supabase.co https://us.i.posthog.com https://us-assets.i.posthog.com https://*.googletagmanager.com https://googletagmanager.com https://pagead2.googlesyndication.com https://*.google-analytics.com https://google-analytics.com https://accounts.google.com https://*.adtrafficquality.google https://assets.calendly.com https://challenges.cloudflare.com",
+        "connect-src 'self' https://*.supabase.co https://us.i.posthog.com https://us-assets.i.posthog.com https://*.google-analytics.com https://google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://api.ipify.org https://api.openai.com https://api.stripe.com https://api.sendgrid.com https://*.google https://*.adtrafficquality.google https://accounts.google.com https://oauth2.googleapis.com https://challenges.cloudflare.com",
         "frame-src 'self' https://challenges.cloudflare.com https://accounts.google.com https://guideless.ai https://*.guideless.ai https://www.youtube.com https://www.youtube-nocookie.com https://*.doubleclick.net https://*.googlesyndication.com https://*.adtrafficquality.google https://*.google.com https://*.google.com.ng https://calendly.com https://*.calendly.com",
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
         "font-src 'self' https://fonts.gstatic.com",

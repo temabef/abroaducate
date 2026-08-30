@@ -155,21 +155,28 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 	// --- Step 6: Fetch user's generated documents -----------------------
 	let userDocuments: any[] = [];
 	try {
-		const [sopsRes, clRes, psRes, cvRes] = await Promise.all([
+		const [sopsRes, clRes, psRes, cvRes] = await Promise.allSettled([
 			supabase.from('sops').select('id, university_name, program_name, status, word_count, updated_at').eq('user_id', userId).order('updated_at', { ascending: false }),
 			supabase.from('cover_letters').select('id, university_name, program_name, status, word_count, updated_at').eq('user_id', userId).order('updated_at', { ascending: false }),
 			supabase.from('personal_statements').select('id, university_name, program_name, status, word_count, updated_at').eq('user_id', userId).order('updated_at', { ascending: false }),
 			supabase.from('academic_cvs').select('id, university_name, program_name, status, word_count, updated_at').eq('user_id', userId).order('updated_at', { ascending: false })
 		]);
+
+		const sopsData = sopsRes.status === 'fulfilled' && sopsRes.value.data ? sopsRes.value.data : [];
+		const clData = clRes.status === 'fulfilled' && clRes.value.data ? clRes.value.data : [];
+		const psData = psRes.status === 'fulfilled' && psRes.value.data ? psRes.value.data : [];
+		const cvData = cvRes.status === 'fulfilled' && cvRes.value.data ? cvRes.value.data : [];
+
 		userDocuments = [
-			...(sopsRes.data || []).map((s: any) => ({ ...s, type: 'sop', typeName: 'Statement of Purpose', icon: '📝' })),
-			...(clRes.data || []).map((c: any) => ({ ...c, type: 'cover-letter', typeName: 'Cover Letter', icon: '📄' })),
-			...(psRes.data || []).map((p: any) => ({ ...p, type: 'personal-statement', typeName: 'Personal Statement', icon: '✍️' })),
-			...(cvRes.data || []).map((v: any) => ({ ...v, type: 'academic-cv', typeName: 'Academic CV', icon: '🎓' }))
-		].sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
+			...sopsData.map((s: any) => ({ ...s, type: 'sop', typeName: 'Statement of Purpose', icon: '📝' })),
+			...clData.map((c: any) => ({ ...c, type: 'cover-letter', typeName: 'Cover Letter', icon: '📄' })),
+			...psData.map((p: any) => ({ ...p, type: 'personal-statement', typeName: 'Personal Statement', icon: '✍️' })),
+			...cvData.map((v: any) => ({ ...v, type: 'academic-cv', typeName: 'Academic CV', icon: '🎓' }))
+		].sort((a, b) => new Date(b.updated_at || 0).getTime() - new Date(a.updated_at || 0).getTime());
 		console.log(`[DASHBOARD] Documents loaded: ${userDocuments.length}`);
 	} catch (err) {
 		console.error('[DASHBOARD] documents fetch ERROR:', err);
+		userDocuments = [];
 	}
 
 	return {
