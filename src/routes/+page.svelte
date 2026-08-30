@@ -665,6 +665,90 @@ return () => clearInterval(interval);
 	</div>
 </section>
 
+<!-- ═══ MEET THE FOUNDER & MISSION ═══ -->
+<section class="section-founder" use:fadeUpOnScroll>
+	<!-- Ambient glows mirroring the hero -->
+	<div class="founder-glow founder-glow-orange"></div>
+	<div class="founder-glow founder-glow-blue"></div>
+
+	<div class="section-inner" style="position: relative; z-index: 1;">
+		<!-- Top eyebrow label -->
+		<div class="founder-eyebrow-row">
+			<span class="founder-eyebrow-pill">
+				<Sparkles size={13} />
+				Our Story & Mission
+			</span>
+		</div>
+
+		<div class="founder-card-container">
+			<!-- Left: Photo Column -->
+			<div class="founder-image-col">
+				<!-- Decorative rings -->
+				<div class="founder-ring founder-ring-1"></div>
+				<div class="founder-ring founder-ring-2"></div>
+				<div class="founder-image-wrapper">
+					<img src="/images/saheed-kolawole.jpg" alt="Saheed Kolawole — Founder of Abroaducate" class="founder-portrait" />
+				</div>
+				<!-- Credential chip below photo -->
+				<div class="founder-chip">
+					<span class="founder-chip-dot"></span>
+					<div>
+						<p class="founder-chip-name">Saheed Kolawole</p>
+						<p class="founder-chip-title">Founder &amp; Lead Strategist &bull; Europe Alum</p>
+					</div>
+				</div>
+			</div>
+
+			<!-- Right: Story Content -->
+			<div class="founder-content-col">
+				<h2 class="founder-heading">
+					"Studying in Europe should be <span class="founder-heading-accent">transparent, affordable,</span> and accessible to everyone."
+				</h2>
+
+				<div class="founder-letter">
+					<p>
+						When I first embarked on my journey to study in Europe, I was confronted with predatory agency fees of $3,000+, confusing foreign portals, and the constant anxiety of making a minor document error that could derail a visa.
+					</p>
+					<p>
+						I built <strong>Abroaducate</strong> with a simple mission: ensure that no ambitious student ever has to pay a fortune just to find an accredited <strong>€0 tuition degree</strong> in Germany, win a <strong>€7,000 regional grant</strong> in Italy, or navigate embassy requirements with complete confidence.
+					</p>
+					<p>
+						Every program in our database and every partner in our toolkit is curated from real experience — so you can apply directly, save thousands on tuition, and relocate with clarity.
+					</p>
+				</div>
+
+				<!-- Highlight Pills -->
+				<div class="founder-highlights-grid">
+					<div class="founder-highlight-item">
+						<CheckCircle2 size={15} class="flex-shrink-0" style="color: #10b981;" />
+						<span>100% Free Self-Serve Search</span>
+					</div>
+					<div class="founder-highlight-item">
+						<CheckCircle2 size={15} class="flex-shrink-0" style="color: #10b981;" />
+						<span>2,800+ Verified Public Degrees</span>
+					</div>
+					<div class="founder-highlight-item">
+						<CheckCircle2 size={15} class="flex-shrink-0" style="color: #10b981;" />
+						<span>Official Embassy-Approved Tools</span>
+					</div>
+				</div>
+
+				<!-- Actions -->
+				<div class="founder-actions-row">
+					<a href="/programs" class="founder-btn-primary">
+						<span>Explore Programs</span>
+						<ChevronRight size={16} />
+					</a>
+					<a href="/toolkit" class="founder-btn-ghost">
+						<span>Relocation Toolkit</span>
+						<ChevronRight size={14} />
+					</a>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
+
 <!-- ═══ FINAL CTA ═══ -->
 <section class="section-final-cta" use:fadeUpOnScroll>
 	<div class="section-inner">
@@ -2091,11 +2175,6 @@ return () => clearInterval(interval);
 		align-items: center;
 		text-align: center;
 	}
-	.ai-strategy-right {
-		width: 100%;
-		display: flex;
-		justify-content: center;
-	}
 	.strategy-preview-card {
 		width: 100%;
 		max-width: 100%;
@@ -2104,6 +2183,250 @@ return () => clearInterval(interval);
 		box-sizing: border-box;
 		box-shadow: 0 10px 30px rgba(15, 23, 42, 0.2);
 	}
+}
+
+/* ═══════════════════════════════════════
+   FOUNDER & MISSION SECTION
+   ═══════════════════════════════════════ */
+.section-founder {
+	position: relative;
+	padding: 6rem 1.5rem;
+	background: #0c1120;
+	overflow: hidden;
+}
+/* Ambient glow orbs mirroring the hero */
+.founder-glow {
+	position: absolute;
+	border-radius: 50%;
+	filter: blur(80px);
+	pointer-events: none;
+	z-index: 0;
+}
+.founder-glow-orange {
+	width: 500px;
+	height: 500px;
+	background: #f97316;
+	top: -80px;
+	right: -60px;
+	opacity: 0.10;
+}
+.founder-glow-blue {
+	width: 600px;
+	height: 600px;
+	background: #3b82f6;
+	bottom: -120px;
+	left: -120px;
+	opacity: 0.08;
+}
+/* Eyebrow label */
+.founder-eyebrow-row {
+	display: flex;
+	justify-content: center;
+	margin-bottom: 2.5rem;
+}
+.founder-eyebrow-pill {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.5rem;
+	padding: 0.4rem 1rem;
+	background: rgba(249, 115, 22, 0.12);
+	border: 1px solid rgba(249, 115, 22, 0.3);
+	color: #fb923c;
+	font-size: 0.78rem;
+	font-weight: 800;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	border-radius: 9999px;
+}
+/* Two-column grid */
+.founder-card-container {
+	display: grid;
+	grid-template-columns: 300px 1fr;
+	gap: 4rem;
+	align-items: center;
+}
+/* Left — photo */
+.founder-image-col {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 1.25rem;
+}
+.founder-ring {
+	position: absolute;
+	border-radius: 50%;
+	border: 1px solid rgba(249, 115, 22, 0.15);
+	pointer-events: none;
+}
+.founder-ring-1 {
+	width: 340px;
+	height: 340px;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+}
+.founder-ring-2 {
+	width: 400px;
+	height: 400px;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	border-color: rgba(249, 115, 22, 0.07);
+}
+.founder-image-wrapper {
+	position: relative;
+	width: 260px;
+	height: 300px;
+	border-radius: 9999px;
+	overflow: hidden;
+	border: 4px solid rgba(249, 115, 22, 0.4);
+	box-shadow: 0 0 0 8px rgba(249, 115, 22, 0.08), 0 20px 50px -10px rgba(0, 0, 0, 0.5);
+	background: #1e293b;
+	flex-shrink: 0;
+}
+.founder-portrait {
+	width: 100%;
+	height: 100%;
+	display: block;
+	object-fit: cover;
+	object-position: top center;
+}
+.founder-chip {
+	display: flex;
+	align-items: center;
+	gap: 0.6rem;
+	background: rgba(255, 255, 255, 0.06);
+	border: 1px solid rgba(255, 255, 255, 0.12);
+	border-radius: 9999px;
+	padding: 0.55rem 1rem;
+	backdrop-filter: blur(8px);
+	text-align: left;
+}
+.founder-chip-dot {
+	width: 7px;
+	height: 7px;
+	border-radius: 50%;
+	background: #10b981;
+	box-shadow: 0 0 0 3px rgba(16,185,129,0.25);
+	flex-shrink: 0;
+}
+.founder-chip-name {
+	font-size: 0.82rem;
+	font-weight: 800;
+	color: #f1f5f9;
+	margin: 0;
+	line-height: 1.2;
+}
+.founder-chip-title {
+	font-size: 0.68rem;
+	color: #94a3b8;
+	margin: 0;
+	line-height: 1.2;
+}
+/* Right — content */
+.founder-content-col {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	text-align: left;
+}
+.founder-heading {
+	font-family: 'Outfit', sans-serif;
+	font-size: clamp(1.5rem, 2.4vw, 2.1rem);
+	font-weight: 800;
+	color: #f1f5f9;
+	line-height: 1.25;
+	margin-bottom: 1.25rem;
+	letter-spacing: -0.02em;
+}
+.founder-heading-accent {
+	color: #fb923c;
+}
+.founder-letter {
+	font-size: 0.94rem;
+	color: #94a3b8;
+	line-height: 1.75;
+	display: flex;
+	flex-direction: column;
+	gap: 0.85rem;
+	margin-bottom: 1.75rem;
+}
+.founder-letter strong {
+	color: #e2e8f0;
+	font-weight: 700;
+}
+.founder-highlights-grid {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.6rem 1.5rem;
+	margin-bottom: 2rem;
+	font-size: 0.84rem;
+	font-weight: 600;
+	color: #cbd5e1;
+}
+.founder-highlight-item {
+	display: flex;
+	align-items: center;
+	gap: 0.45rem;
+}
+.founder-actions-row {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+	flex-wrap: wrap;
+}
+.founder-btn-primary {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.45rem;
+	padding: 0.8rem 1.6rem;
+	background: #f97316;
+	color: #ffffff;
+	font-weight: 700;
+	font-size: 0.88rem;
+	border-radius: 9999px;
+	text-decoration: none;
+	box-shadow: 0 4px 16px rgba(249, 115, 22, 0.35);
+	transition: all 0.2s ease;
+}
+.founder-btn-primary:hover {
+	background: #ea580c;
+	transform: translateY(-1px);
+	box-shadow: 0 6px 20px rgba(249, 115, 22, 0.45);
+}
+.founder-btn-ghost {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.45rem;
+	padding: 0.8rem 1.4rem;
+	background: transparent;
+	color: #94a3b8;
+	border: 1px solid rgba(255,255,255,0.12);
+	font-weight: 600;
+	font-size: 0.88rem;
+	border-radius: 9999px;
+	text-decoration: none;
+	transition: all 0.2s ease;
+}
+.founder-btn-ghost:hover {
+	border-color: rgba(255,255,255,0.28);
+	color: #e2e8f0;
+	transform: translateY(-1px);
+}
+
+@media (max-width: 900px) {
+	.founder-card-container {
+		grid-template-columns: 1fr;
+		gap: 3rem;
+	}
+	.founder-image-wrapper {
+		width: 220px;
+		height: 255px;
+	}
+	.founder-ring-1 { width: 280px; height: 280px; }
+	.founder-ring-2 { width: 340px; height: 340px; }
+	.founder-heading { font-size: 1.55rem; }
 }
 
 @media (max-width: 480px) {
