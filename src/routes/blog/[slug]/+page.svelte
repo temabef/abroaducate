@@ -314,9 +314,6 @@
               </button>
             </div>
           </div>
-
-          <!-- Bottom Ad Unit -->
-          <BlogAdUnit slot="3830693089" />
         </div>
 
         <!-- Sidebar -->
