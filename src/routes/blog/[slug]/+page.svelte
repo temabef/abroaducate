@@ -71,6 +71,60 @@
     };
   });
 
+  // Split article content to inject mid-article ad naturally after the first few paragraphs
+  function splitContentForAds(htmlContent: string): { topHtml: string; restHtml: string } {
+    if (!htmlContent) return { topHtml: '', restHtml: '' };
+
+    let splitIndex = -1;
+
+    // Prefer splitting after the 2nd or 3rd closing paragraph </p>
+    let pCount = 0;
+    const pRegex = /<\/p>/gi;
+    let match: RegExpExecArray | null;
+    while ((match = pRegex.exec(htmlContent)) !== null) {
+      pCount++;
+      if (pCount === 3) {
+        splitIndex = match.index + match[0].length;
+        break;
+      }
+    }
+
+    // Fallback: if fewer than 3 paragraphs, split after 2nd paragraph
+    if (splitIndex === -1 && pCount >= 2) {
+      pRegex.lastIndex = 0;
+      let count = 0;
+      while ((match = pRegex.exec(htmlContent)) !== null) {
+        count++;
+        if (count === 2) {
+          splitIndex = match.index + match[0].length;
+          break;
+        }
+      }
+    }
+
+    // Fallback: split right before first <h2> if found after some initial content
+    if (splitIndex === -1) {
+      const h2Match = htmlContent.search(/<h2/i);
+      if (h2Match > 100) {
+        splitIndex = h2Match;
+      }
+    }
+
+    if (splitIndex !== -1 && splitIndex < htmlContent.length - 100) {
+      return {
+        topHtml: htmlContent.substring(0, splitIndex),
+        restHtml: htmlContent.substring(splitIndex)
+      };
+    }
+
+    return {
+      topHtml: htmlContent,
+      restHtml: ''
+    };
+  }
+
+  let contentParts = $derived(splitContentForAds(html));
+
   // Extract headings for TOC — re-runs when html changes (new post loaded)
   let tocObserver: IntersectionObserver | null = null;
   $effect(() => {
@@ -87,9 +141,9 @@
         tocObserver = null;
       }
 
-      const proseContainer = document.querySelector('.prose');
-      if (proseContainer) {
-        const headingElements = proseContainer.querySelectorAll('h2, h3');
+      const articleBody = document.querySelector('.article-body') || document.querySelector('.main-col');
+      if (articleBody) {
+        const headingElements = articleBody.querySelectorAll('h2, h3');
         const extractedHeadings: typeof headings = [];
 
         headingElements.forEach((el, index) => {
@@ -226,12 +280,24 @@
             </div>
           {/if}
 
-          <div class="prose prose-lg max-w-none">
-            {@html html}
+          <!-- Article Body with In-Article Ad -->
+          <div class="article-body">
+            <div class="prose prose-lg max-w-none">
+              {@html contentParts.topHtml}
+            </div>
+
+            <!-- In-Article Ad (Naturally placed after opening intro paragraphs) -->
+            {#if contentParts.restHtml}
+              <BlogAdUnit slot="4565190252" label="Advertisement" minHeight="250px" />
+
+              <div class="prose prose-lg max-w-none">
+                {@html contentParts.restHtml}
+              </div>
+            {/if}
           </div>
 
-          <!-- Middle Ad Unit -->
-          <BlogAdUnit slot="4565190252" />
+          <!-- Bottom Ad Unit (Above Share & Related Articles) -->
+          <BlogAdUnit slot="3830693089" label="Advertisement" minHeight="250px" />
 
           <!-- Share -->
           <div class="share-section">

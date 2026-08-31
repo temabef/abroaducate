@@ -14,7 +14,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
     .eq('slug', slug)
     .eq('status', 'published')
     .lt('created_at', '2025-08-17T00:00:00Z')
-    .single();
+    .maybeSingle();
 
   if (wordpressPost) {
     throw redirect(301, `/${slug}`);
@@ -26,7 +26,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
     .select('*')
     .eq('slug', slug)
     .eq('status', 'published')
-    .single();
+    .maybeSingle();
 
   if (fetchErr || !post) {
     throw error(404, 'Blog post not found');
