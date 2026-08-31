@@ -305,6 +305,11 @@
             </a>
           </div>
 
+          <!-- Desktop Sidebar Ad Unit -->
+          <div class="sidebar-card" style="padding: 1rem 0.5rem; background: #f8fafc; border: 1px solid #e2e8f0;">
+            <BlogAdUnit slot="4565190252" format="rectangle" minHeight="250px" label="Sponsor" />
+          </div>
+
           <!-- Navigation -->
           <div class="sidebar-card">
             <h3 class="sidebar-heading">Navigation</h3>
