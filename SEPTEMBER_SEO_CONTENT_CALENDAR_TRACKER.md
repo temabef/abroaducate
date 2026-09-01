@@ -45,6 +45,7 @@ All 15 evergreen SEO blog articles have been written, formatted, equipped with v
 
 ## 🛠️ Affiliate Tracking Reference Cheat-Sheet
 
+* **Amber (Student Accommodation & Rooms):** `https://amberstudent.com/flex/abroaducate-1788253425`
 * **Expatrio (€49 Cashback Value Package):** `https://www.expatrio.com?p=abroaducate123`
 * **Grey.co (Virtual EUR IBAN & FX):** `https://app.grey.co/auth/register?referral=IAUZLT`
 * **Translated.net (Certified Human Translation):** `https://www.translated.net/en/preventivo.php?refid=7247`

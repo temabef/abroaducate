@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { 
 		ShieldCheck, Globe, FileText, CheckCircle2, 
-		ExternalLink, CreditCard, Sparkles, Building2
+		ExternalLink, CreditCard, Sparkles, Building2, Home
 	} from 'lucide-svelte';
 	import { AFFILIATE_PARTNERS } from '$lib/config/affiliates';
 
@@ -13,6 +13,7 @@
 	const airalo = AFFILIATE_PARTNERS.find(p => p.id === 'airalo')!;
 	const rushTranslate = AFFILIATE_PARTNERS.find(p => p.id === 'rushtranslate')!;
 	const grey = AFFILIATE_PARTNERS.find(p => p.id === 'grey')!;
+	const amber = AFFILIATE_PARTNERS.find(p => p.id === 'amber')!;
 </script>
 
 <div class="relocation-wrapper">
@@ -108,6 +109,24 @@
 					</div>
 				</a>
 
+				<!-- Amber Student Accommodation -->
+				<a 
+					href={amber.url} 
+					target="_blank" 
+					rel="noopener noreferrer sponsored"
+					class="essential-card group"
+				>
+					<div class="essential-icon text-amber-600 bg-amber-50">
+						<Home size={18} />
+					</div>
+					<div class="min-w-0">
+						<div class="essential-title group-hover:text-orange-600 transition-colors">
+							Student Housing <ExternalLink size={12} class="inline ml-0.5" />
+						</div>
+						<p class="essential-desc">Verified student rooms & flats near German campuses.</p>
+					</div>
+				</a>
+
 				<!-- Airalo -->
 				<a 
 					href={airalo.url} 
@@ -144,10 +163,34 @@
 				Relocation & Document Essentials for {country}
 			</h3>
 			<p class="relocation-subtitle">
-				Applying to university in {country}? Prepare your verified paperwork, international tuition payments, and travel connectivity in advance.
+				Applying to university in {country}? Prepare your verified paperwork, student accommodation, international tuition payments, and travel connectivity in advance.
 			</p>
 
 			<div class="general-grid">
+				<!-- Amber Student Accommodation -->
+				<div class="general-card">
+					<div class="general-header">
+						<div class="general-icon text-amber-600 bg-amber-50">
+							<Home size={20} />
+						</div>
+						<div>
+							<h4 class="font-bold text-slate-900 text-sm">Verified Student Housing</h4>
+							<p class="text-xs text-slate-500">Amber • Price Match Guarantee</p>
+						</div>
+					</div>
+					<p class="text-xs text-slate-600 my-2 leading-relaxed">
+						Book verified student apartments and private rooms near top university campuses across Europe with 0% booking fees.
+					</p>
+					<a 
+						href={amber.url}
+						target="_blank"
+						rel="noopener noreferrer sponsored"
+						class="btn-general"
+					>
+						Search Student Rooms <ExternalLink size={14} />
+					</a>
+				</div>
+
 				<!-- RushTranslate -->
 				<div class="general-card">
 					<div class="general-header">

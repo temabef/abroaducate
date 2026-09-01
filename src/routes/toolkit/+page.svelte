@@ -2,13 +2,13 @@
 	import { 
 		ShieldCheck, Globe, FileText, CheckCircle2, 
 		ExternalLink, CreditCard, Sparkles, GraduationCap, 
-		BookOpen, ArrowRight, Check, Search, AlertCircle
+		BookOpen, ArrowRight, Check, Search, AlertCircle, Building2
 	} from 'lucide-svelte';
 	import { AFFILIATE_PARTNERS, type AffiliatePartner } from '$lib/config/affiliates';
 	import SEO from '$lib/components/SEO.svelte';
 	import IeltsPrepModal from '$lib/components/IeltsPrepModal.svelte';
 
-	let activeCategory = $state<'all' | 'visa' | 'translation' | 'connectivity' | 'banking' | 'prep'>('all');
+	let activeCategory = $state<'all' | 'visa' | 'housing' | 'translation' | 'connectivity' | 'banking' | 'prep'>('all');
 	let searchQuery = $state('');
 	let showIeltsModal = $state(false);
 
@@ -26,6 +26,7 @@
 	const categories = [
 		{ id: 'all', label: 'All Essentials' },
 		{ id: 'visa', label: 'Visa & Blocked Accounts' },
+		{ id: 'housing', label: 'Student Housing' },
 		{ id: 'translation', label: 'Certified Translations' },
 		{ id: 'connectivity', label: 'Travel eSIM Data' },
 		{ id: 'banking', label: 'Cross-Border Tuition' },
@@ -117,6 +118,8 @@
 							<div class="partner-avatar">
 								{#if partner.category === 'visa'}
 									<ShieldCheck size={22} class="text-orange-600" />
+								{:else if partner.category === 'housing'}
+									<Building2 size={22} class="text-amber-600" />
 								{:else if partner.category === 'translation'}
 									<FileText size={22} class="text-blue-600" />
 								{:else if partner.category === 'connectivity'}
@@ -386,6 +389,16 @@
 		text-transform: uppercase;
 		background: #fff7ed;
 		color: #ea580c;
+		padding: 0.15rem 0.5rem;
+		border-radius: 9999px;
+	}
+
+	.badge-amber {
+		font-size: 0.65rem;
+		font-weight: 800;
+		text-transform: uppercase;
+		background: #fef3c7;
+		color: #d97706;
 		padding: 0.15rem 0.5rem;
 		border-radius: 9999px;
 	}

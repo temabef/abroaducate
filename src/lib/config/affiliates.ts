@@ -164,6 +164,25 @@ export const AFFILIATE_PARTNERS: AffiliatePartner[] = [
 			'Practice speaking with real human feedback',
 			'Flexible hourly lessons tailored to your schedule'
 		]
+	},
+	{
+		id: 'amber',
+		name: 'Amber (Student Accommodation)',
+		tagline: 'Verified Student Housing & Private Rooms Across Europe & UK',
+		description: 'Find and book verified student apartments, private studios, and shared flats near top European universities (Germany, UK, Ireland, France, Spain & more) with price match guarantee, zero booking fees, and 24/7 student support.',
+		category: 'housing',
+		categoryLabel: 'Student Housing & Rooms',
+		url: 'https://amberstudent.com/flex/abroaducate-1788253425',
+		badge: 'Price Match Guarantee',
+		badgeColor: 'amber',
+		ctaText: 'Search Verified Student Rooms →',
+		features: [
+			'100% verified student apartments & private rooms near campuses',
+			'Zero booking fees & price match guarantee',
+			'Virtual property viewings & direct paperwork assistance',
+			'24/7 dedicated international student booking support'
+		],
+		highlighted: true
 	}
 ];
 
