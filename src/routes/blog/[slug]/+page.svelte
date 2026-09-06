@@ -369,7 +369,7 @@
           </div>
 
           <!-- Desktop Sidebar Ad Unit -->
-          <div class="sidebar-card" style="padding: 1rem 0.5rem; background: #f8fafc; border: 1px solid #e2e8f0;">
+          <div class="sidebar-card sidebar-ad-card" style="padding: 1rem 0.5rem; background: #f8fafc; border: 1px solid #e2e8f0;">
             <BlogAdUnit slot="4565190252" format="rectangle" minHeight="250px" label="Sponsor" />
           </div>
 
@@ -547,27 +547,41 @@
     color: #64748b;
   }
 
+  /* ── Post Article Wrapper ── */
+  .post-article {
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: clip;
+  }
+
   /* ── Content ── */
   .content-wrap {
     background: #f8fafc;
     padding: 3rem 1.5rem 5rem;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: clip;
   }
   .content-inner {
     max-width: 72rem;
     margin: 0 auto;
+    width: 100%;
   }
   .content-grid {
     display: grid;
     grid-template-columns: 1fr 240px;
     gap: 3rem;
     align-items: start;
+    width: 100%;
   }
   .main-col {
     min-width: 0;
+    max-width: 100%;
     background: white;
     border: 1px solid #e2e8f0;
     border-radius: 1rem;
     padding: 2.5rem;
+    overflow-x: clip;
   }
 
   /* ── Excerpt ── */
@@ -590,7 +604,9 @@
   :global(.prose) {
     color: #374151;
     line-height: 1.75;
-    overflow: hidden;
+    max-width: 100%;
+    word-break: break-word;
+    overflow-wrap: break-word;
   }
   /* Kill any stray resize handles that browsers may render inside rendered HTML */
   :global(.prose *) {
@@ -659,37 +675,99 @@
     color: #94a3b8;
   }
 
-  /* ── Tables ── */
-  :global(.prose table) {
-    width: 100%;
-    border-collapse: collapse;
+  /* ── Responsive Table System ── */
+  :global(.table-responsive-wrapper) {
     margin: 2rem 0;
-    font-size: 0.95rem;
-    background: white;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  :global(.table-scroll-hint) {
+    display: none;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #c2410c;
+    background: #fff7ed;
+    border: 1px solid #ffedd5;
+    padding: 0.35rem 0.75rem;
+    border-radius: 9999px;
+    margin-bottom: 0.6rem;
+    width: fit-content;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  :global(.table-scroll-hint .hint-icon) {
+    font-size: 0.85rem;
+    color: #ea580c;
+  }
+
+  :global(.table-responsive) {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
     border-radius: 0.75rem;
-    overflow: hidden;
     border: 1px solid #e2e8f0;
+    background: white;
     box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
   }
+
+  :global(.table-responsive::-webkit-scrollbar) {
+    height: 6px;
+  }
+  :global(.table-responsive::-webkit-scrollbar-track) {
+    background: #f1f5f9;
+    border-radius: 3px;
+  }
+  :global(.table-responsive::-webkit-scrollbar-thumb) {
+    background: #cbd5e1;
+    border-radius: 3px;
+  }
+
+  /* Fallback for un-wrapped tables */
+  :global(.prose table) {
+    width: 100%;
+    min-width: 580px;
+    border-collapse: collapse;
+    margin: 0 !important;
+    font-size: 0.925rem;
+    background: white;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
   :global(.prose th) {
     background: #f8fafc;
     font-weight: 700;
     color: #0f172a;
     text-align: left;
-    padding: 0.875rem 1rem;
+    padding: 0.85rem 1rem;
     border-bottom: 2px solid #e2e8f0;
+    white-space: nowrap;
+    letter-spacing: -0.01em;
   }
+
   :global(.prose td) {
-    padding: 0.875rem 1rem;
+    padding: 0.85rem 1rem;
     border-bottom: 1px solid #f1f5f9;
     color: #334155;
     vertical-align: top;
+    line-height: 1.55;
   }
+
   :global(.prose tr:last-child td) {
     border-bottom: none;
   }
+
   :global(.prose tr:hover td) {
-    background: #f8fafc;
+    background: #fafafa;
+  }
+
+  @media (max-width: 768px) {
+    :global(.table-scroll-hint) {
+      display: inline-flex;
+    }
   }
 
   /* ── Blockquotes ── */
@@ -786,6 +864,9 @@
     border: 1px solid #e2e8f0;
     border-radius: 1rem;
     padding: 1.5rem;
+  }
+  .sidebar-ad-card:has(ins[data-ad-status="unfilled"]) {
+    display: none !important;
   }
   .sidebar-heading {
     font-family: 'Outfit', sans-serif;
@@ -1041,10 +1122,11 @@
   }
   @media (max-width: 640px) {
     .main-col {
-      padding: 1.5rem;
+      padding: 1.25rem 1rem;
+      border-radius: 0.75rem;
     }
     .content-wrap {
-      padding: 1.5rem 1rem 4rem;
+      padding: 1.25rem 0.75rem 3.5rem;
     }
   }
 

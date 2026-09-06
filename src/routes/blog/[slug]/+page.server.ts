@@ -86,7 +86,15 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 function renderMarkdown(text: string): string {
   if (!text) return '';
   try {
-    return marked.parse(text, { gfm: true, breaks: true }) as string;
+    const rawHtml = marked.parse(text, { gfm: true, breaks: true }) as string;
+    
+    // Wrap tables in responsive wrapper so mobile view never extends wide & tables can be scrolled smoothly
+    const wrappedHtml = rawHtml.replace(
+      /<table(?:\s[^>]*)?>[\s\S]*?<\/table>/gi,
+      (match) => `<div class="table-responsive-wrapper"><div class="table-scroll-hint"><span class="hint-icon">⇄</span> Scroll horizontally to view full table</div><div class="table-responsive">${match}</div></div>`
+    );
+
+    return wrappedHtml;
   } catch (err) {
     console.error('Error parsing markdown:', err);
     return text;

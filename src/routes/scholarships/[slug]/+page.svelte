@@ -17,6 +17,7 @@
   import { loadQuickProfile, gpaMidpoint, type QuickProfile } from '$lib/services/quickProfile';
   import StrategyDocumentLinker from '$lib/components/StrategyDocumentLinker.svelte';
   import ScholarshipStrategy from '$lib/components/ScholarshipStrategy.svelte';
+  import BlogAdUnit from '$lib/components/BlogAdUnit.svelte';
 
   
   let { data } = $props();
@@ -1019,6 +1020,11 @@
                  </button>
                </div>
             </div>
+
+            <!-- Sidebar Sponsored Ad Unit -->
+            <div class="bg-white rounded-3xl p-4 border border-slate-200 mt-6 shadow-sm overflow-hidden">
+              <BlogAdUnit slot="4565190252" format="rectangle" minHeight="250px" label="Sponsored" />
+            </div>
             
             {#if scholarship.program_name && scholarship.university_name}
               <!-- Supplementary sticky block for grad program info if applicable -->
@@ -1046,6 +1052,11 @@
               </div>
             {/if}
           </div>
+       </div>
+
+       <!-- Sponsored Banner Above Related -->
+       <div class="my-10">
+         <BlogAdUnit slot="3830693089" label="Sponsored" minHeight="120px" />
        </div>
       
       <!-- Related Scholarships -->
