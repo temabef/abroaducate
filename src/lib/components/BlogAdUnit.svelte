@@ -5,51 +5,24 @@
 	type Props = {
 		slot: string;
 		format?: string;
-		layout?: string;
 		label?: string;
 		minHeight?: string;
-		responsive?: boolean;
 	};
 
 	let { 
 		slot, 
 		format = 'auto', 
-		layout = '',
-		label = 'Advertisement',
-		minHeight = '250px',
-		responsive = true
+		label = 'Sponsored',
+		minHeight = '250px'
 	}: Props = $props();
-
-	let insElement: HTMLElement | null = $state(null);
-	let adPushed = $state(false);
-
-	function pushAd() {
-		if (!browser || adPushed || !insElement) return;
-
-		try {
-			// Avoid duplicate push on an already processed ins element
-			if (insElement.getAttribute('data-adsbygoogle-status')) {
-				adPushed = true;
-				return;
-			}
-
-			if ((window as any).adsbygoogle) {
-				((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({});
-				adPushed = true;
-			} else {
-				// Retry if Google script is still initializing
-				setTimeout(pushAd, 250);
-			}
-		} catch (e) {
-			console.warn('[AdSense] Unit push note:', e);
-		}
-	}
 
 	onMount(() => {
 		if (browser) {
-			// Small tick ensures DOM element has non-zero computed layout
-			const timer = setTimeout(pushAd, 150);
-			return () => clearTimeout(timer);
+			try {
+				((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({});
+			} catch (e) {
+				console.warn('[AdSense] Unit push note:', e);
+			}
 		}
 	});
 </script>
@@ -59,14 +32,12 @@
 		<span class="ad-label">{label}</span>
 	{/if}
 	<ins
-		bind:this={insElement}
 		class="adsbygoogle"
-		style="display:block; min-height: 250px; width: 100%;"
+		style="display:block; width: 100%; text-align: center;"
 		data-ad-client="ca-pub-9343038264406927"
 		data-ad-slot={slot}
 		data-ad-format={format}
-		data-ad-layout={layout || undefined}
-		data-full-width-responsive={responsive && format === 'auto' ? 'true' : 'false'}
+		data-full-width-responsive="true"
 	></ins>
 </div>
 
@@ -74,7 +45,7 @@
 	.blog-ad-container {
 		width: 100%;
 		max-width: 100%;
-		margin: 2.5rem auto;
+		margin: 2rem auto;
 		text-align: center;
 		display: flex;
 		flex-direction: column;
@@ -82,14 +53,6 @@
 		justify-content: center;
 		position: relative;
 		clear: both;
-	}
-
-	/* Gracefully collapse container if AdSense reports unfilled */
-	.blog-ad-container:has(ins[data-ad-status="unfilled"]) {
-		display: none !important;
-		min-height: 0 !important;
-		margin: 0 !important;
-		padding: 0 !important;
 	}
 
 	.ad-label {
@@ -102,10 +65,9 @@
 		font-weight: 600;
 	}
 
-	/* Responsive spacing */
 	@media (max-width: 768px) {
 		.blog-ad-container {
-			margin: 1.75rem auto;
+			margin: 1.5rem auto;
 			min-height: 120px !important;
 		}
 	}

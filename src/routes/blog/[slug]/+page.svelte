@@ -370,7 +370,7 @@
 
           <!-- Desktop Sidebar Ad Unit -->
           <div class="sidebar-card sidebar-ad-card" style="padding: 1rem 0.5rem; background: #f8fafc; border: 1px solid #e2e8f0;">
-            <BlogAdUnit slot="4565190252" format="rectangle" minHeight="250px" label="Sponsor" />
+            <BlogAdUnit slot="4565190252" format="auto" minHeight="250px" label="Sponsored" />
           </div>
 
           <!-- Navigation -->
@@ -569,7 +569,7 @@
   }
   .content-grid {
     display: grid;
-    grid-template-columns: 1fr 240px;
+    grid-template-columns: 1fr 300px;
     gap: 3rem;
     align-items: start;
     width: 100%;

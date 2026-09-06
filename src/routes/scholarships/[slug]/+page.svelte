@@ -451,6 +451,59 @@
     if (aiWinStrategy) isPremium = true;
   });
 
+  // Natural in-text content splitting for long scholarship descriptions (~2k to 7k chars)
+  function splitScholarshipDescription(html: string): { top: string; mid: string; bot: string } {
+    if (!html || html.length < 800) return { top: html, mid: '', bot: '' };
+
+    const boundaryRegex = /<\/(ul|ol|p)>/gi;
+    const points: number[] = [];
+    let m: RegExpExecArray | null;
+    while ((m = boundaryRegex.exec(html)) !== null) {
+      points.push(m.index + m[0].length);
+    }
+
+    if (points.length < 2) return { top: html, mid: '', bot: '' };
+
+    // Point 1: After 1st or 2nd major section (~25-35% of text)
+    const target1 = Math.floor(html.length * 0.3);
+    let split1 = points[0];
+    for (const pt of points) {
+      if (pt >= target1) {
+        split1 = pt;
+        break;
+      }
+    }
+
+    // Point 2: Around 65-75% of text for long descriptions (> 1800 chars)
+    if (html.length >= 1800) {
+      const target2 = Math.floor(html.length * 0.65);
+      let split2 = -1;
+      for (const pt of points) {
+        if (pt >= target2 && pt > split1 + 300 && pt < html.length - 200) {
+          split2 = pt;
+          break;
+        }
+      }
+
+      if (split2 !== -1) {
+        return {
+          top: html.substring(0, split1),
+          mid: html.substring(split1, split2),
+          bot: html.substring(split2)
+        };
+      }
+    }
+
+    return {
+      top: html.substring(0, split1),
+      mid: html.substring(split1),
+      bot: ''
+    };
+  }
+
+  let descHtml = $derived(markdownToHtml(decodeHtmlEntities(scholarship?.description || '')));
+  let descParts = $derived(splitScholarshipDescription(descHtml));
+
   // Get the scholarship ID from the URL parameter
   // Data is loaded on the server via +page.server.ts; avoid overriding it here to prevent double-fetch/mismatch
   onMount(() => {
@@ -809,11 +862,37 @@
                   <svg class="w-8 h-8 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                   About this Scholarship
                 </h2>
-                <div class="mb-8 prose prose-slate max-w-none">
-                  <div class="text-slate-700 text-lg leading-relaxed scholarship-description">
-                    {@html markdownToHtml(decodeHtmlEntities(scholarship.description))}
-                  </div>
-                </div>
+                 <div class="mb-6 prose prose-slate max-w-none">
+                   <div class="text-slate-700 text-lg leading-relaxed scholarship-description">
+                     {@html descParts.top}
+                   </div>
+                 </div>
+
+                 {#if descParts.mid}
+                   <!-- In-Text Sponsored Unit #1 -->
+                   <div class="my-8">
+                     <BlogAdUnit slot="4565190252" format="auto" minHeight="250px" label="Sponsored" />
+                   </div>
+
+                   <div class="mb-6 prose prose-slate max-w-none">
+                     <div class="text-slate-700 text-lg leading-relaxed scholarship-description">
+                       {@html descParts.mid}
+                     </div>
+                   </div>
+                 {/if}
+
+                 {#if descParts.bot}
+                   <!-- In-Text Sponsored Unit #2 -->
+                   <div class="my-8">
+                     <BlogAdUnit slot="3830693089" format="auto" minHeight="250px" label="Sponsored" />
+                   </div>
+
+                   <div class="mb-6 prose prose-slate max-w-none">
+                     <div class="text-slate-700 text-lg leading-relaxed scholarship-description">
+                       {@html descParts.bot}
+                     </div>
+                   </div>
+                 {/if}
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-6 border-t border-slate-100">
                   <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100">
@@ -1023,7 +1102,7 @@
 
             <!-- Sidebar Sponsored Ad Unit -->
             <div class="bg-white rounded-3xl p-4 border border-slate-200 mt-6 shadow-sm overflow-hidden">
-              <BlogAdUnit slot="4565190252" format="rectangle" minHeight="250px" label="Sponsored" />
+              <BlogAdUnit slot="4565190252" format="auto" minHeight="250px" label="Sponsored" />
             </div>
             
             {#if scholarship.program_name && scholarship.university_name}
@@ -1052,11 +1131,6 @@
               </div>
             {/if}
           </div>
-       </div>
-
-       <!-- Sponsored Banner Above Related -->
-       <div class="my-10">
-         <BlogAdUnit slot="3830693089" label="Sponsored" minHeight="120px" />
        </div>
       
       <!-- Related Scholarships -->
