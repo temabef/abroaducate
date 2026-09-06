@@ -1056,9 +1056,9 @@
              />
           </div>
           
-          <!-- Right Column: Sticky Sidebar CTA -->
+          <!-- Right Column: Sticky Sidebar CTA (Desktop only sticky) -->
           <div>
-            <div class="bg-slate-900 rounded-3xl p-8 text-white shadow-xl sticky top-28 border border-slate-800">
+            <div class="bg-slate-900 rounded-3xl p-8 text-white shadow-xl lg:sticky lg:top-28 border border-slate-800 z-10">
                <h3 class="text-xl font-bold mb-8 text-slate-300 uppercase tracking-widest pt-1">
                  Funding Details
                </h3>
@@ -1100,8 +1100,8 @@
                </div>
             </div>
 
-            <!-- Sidebar Sponsored Ad Unit -->
-            <div class="bg-white rounded-3xl p-4 border border-slate-200 mt-6 shadow-sm overflow-hidden">
+            <!-- Desktop-Only Sidebar Sponsored Ad Unit -->
+            <div class="hidden lg:block bg-white rounded-3xl p-4 border border-slate-200 mt-6 shadow-sm overflow-hidden">
               <BlogAdUnit slot="4565190252" format="auto" minHeight="250px" label="Sponsored" />
             </div>
             
