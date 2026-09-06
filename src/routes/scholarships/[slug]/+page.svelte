@@ -1056,9 +1056,9 @@
              />
           </div>
           
-          <!-- Right Column: Sticky Sidebar CTA (Desktop only sticky) -->
-          <div>
-            <div class="bg-slate-900 rounded-3xl p-8 text-white shadow-xl lg:sticky lg:top-28 border border-slate-800 z-10">
+          <!-- Right Column: Sidebar CTA & Details -->
+          <div class="space-y-6">
+            <div class="bg-slate-900 rounded-3xl p-8 text-white shadow-xl border border-slate-800">
                <h3 class="text-xl font-bold mb-8 text-slate-300 uppercase tracking-widest pt-1">
                  Funding Details
                </h3>
@@ -1101,13 +1101,13 @@
             </div>
 
             <!-- Desktop-Only Sidebar Sponsored Ad Unit -->
-            <div class="hidden lg:block bg-white rounded-3xl p-4 border border-slate-200 mt-6 shadow-sm overflow-hidden">
+            <div class="hidden lg:block bg-white rounded-3xl p-4 border border-slate-200 shadow-sm overflow-hidden">
               <BlogAdUnit slot="4565190252" format="auto" minHeight="250px" label="Sponsored" />
             </div>
             
             {#if scholarship.program_name && scholarship.university_name}
-              <!-- Supplementary sticky block for grad program info if applicable -->
-              <div class="bg-white rounded-3xl p-8 border border-slate-200 mt-8 shadow-sm">
+              <!-- Supplementary block for grad program info if applicable -->
+              <div class="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm">
                 <h3 class="font-bold text-slate-900 mb-4 flex items-center gap-2">
                   <svg class="w-5 h-5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
                   Program Details
