@@ -23,16 +23,19 @@ export const POST: RequestHandler = async ({ request, platform }) => {
 		throw error(401, 'Unauthorized');
 	}
 
-	const url =
+	const rawUrl =
 		(platform?.env as any)?.PUBLIC_SUPABASE_URL ||
 		publicEnv.PUBLIC_SUPABASE_URL ||
 		'https://yiubrielkgrzcwdabepp.supabase.co';
 
-	const key =
-		env.SUPABASE_SERVICE_ROLE_KEY ||
+	const rawKey =
 		(platform?.env as any)?.SUPABASE_SERVICE_ROLE_KEY ||
 		(platform?.env as any)?.SUPABASE_SERVICE_ROLE ||
+		env.SUPABASE_SERVICE_ROLE_KEY ||
 		(env as any)?.SUPABASE_SERVICE_ROLE;
+
+	const url = (rawUrl || '').replace(/^["']|["']$/g, '').trim();
+	const key = (rawKey || '').replace(/^["']|["']$/g, '').trim();
 
 	if (!url || !key) {
 		return json(
