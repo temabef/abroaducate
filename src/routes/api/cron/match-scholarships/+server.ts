@@ -23,9 +23,29 @@ export const POST: RequestHandler = async ({ request, platform }) => {
 		throw error(401, 'Unauthorized');
 	}
 
-	const url = publicEnv.PUBLIC_SUPABASE_URL || (platform?.env as any)?.PUBLIC_SUPABASE_URL;
-	const key = env.SUPABASE_SERVICE_ROLE_KEY || (platform?.env as any)?.SUPABASE_SERVICE_ROLE_KEY;
-	if (!url || !key) throw error(500, 'Missing Supabase credentials');
+	const url =
+		(platform?.env as any)?.PUBLIC_SUPABASE_URL ||
+		publicEnv.PUBLIC_SUPABASE_URL ||
+		'https://yiubrielkgrzcwdabepp.supabase.co';
+
+	const key =
+		env.SUPABASE_SERVICE_ROLE_KEY ||
+		(platform?.env as any)?.SUPABASE_SERVICE_ROLE_KEY ||
+		(platform?.env as any)?.SUPABASE_SERVICE_ROLE ||
+		(env as any)?.SUPABASE_SERVICE_ROLE;
+
+	if (!url || !key) {
+		return json(
+			{
+				ok: false,
+				error: 'Missing Supabase credentials',
+				hasUrl: !!url,
+				hasKey: !!key,
+				platformKeys: platform?.env ? Object.keys(platform.env) : []
+			},
+			{ status: 500 }
+		);
+	}
 
 	try {
 		const supabase = createClient(url, key, {
