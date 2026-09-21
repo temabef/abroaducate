@@ -19,7 +19,7 @@ async function sendEmailViaSendGrid(
   return sendEmail({ to, subject, html: htmlContent, text: textContent });
 }
 
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async ({ request, platform }) => {
   try {
     // Production-safe authorization logic with x-authorization fallback
     let authHeader = request.headers.get('authorization');
@@ -27,8 +27,8 @@ export const POST: RequestHandler = async ({ request }) => {
     if (!authHeader && xAuthHeader) {
       authHeader = xAuthHeader;
     }
-    // Verify cron authorization (use runtime env so Vercel env vars work)
-    const cronSecret = env.CRON_SECRET;
+    // Verify cron authorization (check runtime env or Cloudflare platform.env)
+    const cronSecret = env.CRON_SECRET || (platform?.env as any)?.CRON_SECRET;
     if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
       return json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -771,9 +771,9 @@ The Abroaducate Team
 }
 
 // GET endpoint for manual testing
-export const GET: RequestHandler = async ({ request }) => {
+export const GET: RequestHandler = async ({ request, platform }) => {
   const authHeader = request.headers.get('authorization');
-  const cronSecret = env.CRON_SECRET;
+  const cronSecret = env.CRON_SECRET || (platform?.env as any)?.CRON_SECRET;
   if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
     return json({ error: 'Unauthorized' }, { status: 401 });
   }

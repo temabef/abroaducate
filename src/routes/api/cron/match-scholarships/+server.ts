@@ -16,14 +16,15 @@ import { rollForwardIso, scoreMatch, TOP_N, MIN_SCORE, type ProgramRow, type Sch
  *
  * Auth: requires `Authorization: Bearer <CRON_SECRET>`.
  */
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async ({ request, platform }) => {
 	const auth = request.headers.get('authorization') ?? '';
-	if (!env.CRON_SECRET || auth !== `Bearer ${env.CRON_SECRET}`) {
+	const cronSecret = env.CRON_SECRET || (platform?.env as any)?.CRON_SECRET;
+	if (!cronSecret || auth !== `Bearer ${cronSecret}`) {
 		throw error(401, 'Unauthorized');
 	}
 
-	const url = publicEnv.PUBLIC_SUPABASE_URL;
-	const key = env.SUPABASE_SERVICE_ROLE_KEY;
+	const url = publicEnv.PUBLIC_SUPABASE_URL || (platform?.env as any)?.PUBLIC_SUPABASE_URL;
+	const key = env.SUPABASE_SERVICE_ROLE_KEY || (platform?.env as any)?.SUPABASE_SERVICE_ROLE_KEY;
 	if (!url || !key) throw error(500, 'Missing Supabase credentials');
 	const supabase = createClient(url, key);
 

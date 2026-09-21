@@ -6,3 +6,7 @@ compatibility_flags = ["nodejs_compat"]
 [assets]
 directory = ".svelte-kit/cloudflare"
 binding = "ASSETS"
+
+[vars]
+APP_URL = "https://www.abroaducate.com"
+CUSTOMER_IO_SITE_ID = "eb9a57e20d1cb3575cb7"
