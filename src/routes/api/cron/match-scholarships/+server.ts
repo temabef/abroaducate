@@ -35,7 +35,7 @@ export const POST: RequestHandler = async ({ request, platform }) => {
 		(env as any)?.SUPABASE_SERVICE_ROLE;
 
 	const url = (rawUrl || '').replace(/^["']|["']$/g, '').trim();
-	const key = (rawKey || '').replace(/^["']|["']$/g, '').trim();
+	const key = (rawKey || '').replace(/[^A-Za-z0-9\-_.]/g, '');
 
 	if (!url || !key) {
 		return json(

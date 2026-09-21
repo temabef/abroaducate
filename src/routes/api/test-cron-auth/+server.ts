@@ -11,7 +11,14 @@ export const GET: RequestHandler = async ({ platform, request }) => {
   
   const url = ((platform?.env as any)?.PUBLIC_SUPABASE_URL || 'https://yiubrielkgrzcwdabepp.supabase.co').trim();
   const rawKey = (platform?.env as any)?.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_SERVICE_ROLE_KEY || '';
-  const cleanKey = rawKey.replace(/^["']|["']$/g, '').trim();
+  const cleanKey = rawKey.replace(/[^A-Za-z0-9\-_.]/g, '');
+
+  const invalidChars: { index: number; code: number; char: string }[] = [];
+  for (let i = 0; i < rawKey.length; i++) {
+    if (!/^[A-Za-z0-9\-_.]/.test(rawKey[i])) {
+      invalidChars.push({ index: i, code: rawKey.charCodeAt(i), char: JSON.stringify(rawKey[i]) });
+    }
+  }
 
   let testResult: any = null;
   try {
@@ -28,11 +35,9 @@ export const GET: RequestHandler = async ({ platform, request }) => {
     hasPlatformCronSecret: !!(platform?.env as any)?.CRON_SECRET,
     authMatches: !!cronSecret && auth === `Bearer ${cronSecret}`,
     url,
-    keyLength: rawKey.length,
+    rawKeyLength: rawKey.length,
     cleanKeyLength: cleanKey.length,
-    keyPrefix: rawKey.slice(0, 15),
-    keySuffix: rawKey.slice(-10),
-    hasLeadingTrailingQuotes: rawKey !== cleanKey,
+    invalidChars,
     testResult
   });
 };
