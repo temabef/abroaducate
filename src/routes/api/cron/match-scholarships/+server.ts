@@ -35,7 +35,13 @@ export const POST: RequestHandler = async ({ request, platform }) => {
 		(env as any)?.SUPABASE_SERVICE_ROLE;
 
 	const url = (rawUrl || '').replace(/^["']|["']$/g, '').trim();
-	const key = (rawKey || '').replace(/[^A-Za-z0-9\-_.]/g, '');
+	let key = (rawKey || '').replace(/[^A-Za-z0-9\-_.]/g, '');
+	if (key.includes('eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlpdWJyaWVsa2dyemN3ZGFiZXBwIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0OTE2ODQyMSwiZXhwIjoyMDY0NzQ0NDQyMX0')) {
+		key = key.replace(
+			'eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlpdWJyaWVsa2dyemN3ZGFiZXBwIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0OTE2ODQyMSwiZXhwIjoyMDY0NzQ0NDQyMX0',
+			'eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlpdWJyaWVsa2dyemN3ZGFiZXBwIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0OTE2ODQyMSwiZXhwIjoyMDY0NzQ0NDIxfQ'
+		);
+	}
 
 	if (!url || !key) {
 		return json(

@@ -11,7 +11,13 @@ export const GET: RequestHandler = async ({ platform, request }) => {
   
   const url = ((platform?.env as any)?.PUBLIC_SUPABASE_URL || 'https://yiubrielkgrzcwdabepp.supabase.co').trim();
   const rawKey = (platform?.env as any)?.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_SERVICE_ROLE_KEY || '';
-  const cleanKey = rawKey.replace(/[^A-Za-z0-9\-_.]/g, '');
+  let cleanKey = rawKey.replace(/[^A-Za-z0-9\-_.]/g, '');
+  if (cleanKey.includes('eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlpdWJyaWVsa2dyemN3ZGFiZXBwIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0OTE2ODQyMSwiZXhwIjoyMDY0NzQ0NDQyMX0')) {
+    cleanKey = cleanKey.replace(
+      'eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlpdWJyaWVsa2dyemN3ZGFiZXBwIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0OTE2ODQyMSwiZXhwIjoyMDY0NzQ0NDQyMX0',
+      'eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlpdWJyaWVsa2dyemN3ZGFiZXBwIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0OTE2ODQyMSwiZXhwIjoyMDY0NzQ0NDIxfQ'
+    );
+  }
   const parts = cleanKey.split('.');
   let payloadDecoded: any = null;
   if (parts.length >= 2) {
@@ -34,7 +40,7 @@ export const GET: RequestHandler = async ({ platform, request }) => {
   }
 
   return json({
-    deployTimestamp: '2026-09-21T18:50:00Z',
+    deployTimestamp: '2026-09-21T18:55:00Z',
     hasEnvCronSecret: !!env.CRON_SECRET,
     hasPlatformCronSecret: !!(platform?.env as any)?.CRON_SECRET,
     authMatches: !!cronSecret && auth === `Bearer ${cronSecret}`,
