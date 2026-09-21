@@ -34,6 +34,7 @@ export const GET: RequestHandler = async ({ platform, request }) => {
   }
 
   return json({
+    deployTimestamp: '2026-09-21T18:50:00Z',
     hasEnvCronSecret: !!env.CRON_SECRET,
     hasPlatformCronSecret: !!(platform?.env as any)?.CRON_SECRET,
     authMatches: !!cronSecret && auth === `Bearer ${cronSecret}`,
