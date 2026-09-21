@@ -26,24 +26,31 @@ export const POST: RequestHandler = async ({ request, platform }) => {
 	const url = publicEnv.PUBLIC_SUPABASE_URL || (platform?.env as any)?.PUBLIC_SUPABASE_URL;
 	const key = env.SUPABASE_SERVICE_ROLE_KEY || (platform?.env as any)?.SUPABASE_SERVICE_ROLE_KEY;
 	if (!url || !key) throw error(500, 'Missing Supabase credentials');
-	const supabase = createClient(url, key);
 
-	const today = new Date().toISOString().slice(0, 10);
+	try {
+		const supabase = createClient(url, key, {
+			auth: {
+				persistSession: false,
+				autoRefreshToken: false
+			}
+		});
 
-	async function fetchAll<T>(table: string, columns: string): Promise<T[]> {
-		const PAGE = 1000;
-		const all: T[] = [];
-		let from = 0;
-		while (true) {
-			const { data, error: e } = await supabase.from(table).select(columns).range(from, from + PAGE - 1);
-			if (e) throw e;
-			if (!data || data.length === 0) break;
-			all.push(...(data as T[]));
-			if (data.length < PAGE) break;
-			from += PAGE;
+		const today = new Date().toISOString().slice(0, 10);
+
+		async function fetchAll<T>(table: string, columns: string): Promise<T[]> {
+			const PAGE = 1000;
+			const all: T[] = [];
+			let from = 0;
+			while (true) {
+				const { data, error: e } = await supabase.from(table).select(columns).range(from, from + PAGE - 1);
+				if (e) throw e;
+				if (!data || data.length === 0) break;
+				all.push(...(data as T[]));
+				if (data.length < PAGE) break;
+				from += PAGE;
+			}
+			return all;
 		}
-		return all;
-	}
 
 	const programs = await fetchAll<ProgramRow>(
 		'programs',
@@ -148,15 +155,24 @@ export const POST: RequestHandler = async ({ request, platform }) => {
 		}
 	}
 
-	return json({
-		ok: true,
-		date: today,
-		programs: programs.length,
-		scholarships: scholarships.length,
-		deadlines_rolled: rolledIds.length,
-		matches_inserted: inserted,
-		programs_with_matches: matchedProgramIds.length,
-		paid_promoted: promoted,
-		funded_demoted: demoted
-	});
+		return json({
+			ok: true,
+			date: today,
+			programs: programs.length,
+			scholarships: scholarships.length,
+			deadlines_rolled: rolledIds.length,
+			matches_inserted: inserted,
+			programs_with_matches: matchedProgramIds.length,
+			paid_promoted: promoted,
+			funded_demoted: demoted
+		});
+	} catch (err: any) {
+		console.error('Error in match-scholarships cron:', err);
+		return json({
+			ok: false,
+			error: err?.message || String(err),
+			stack: err?.stack
+		}, { status: 500 });
+	}
 };
+
