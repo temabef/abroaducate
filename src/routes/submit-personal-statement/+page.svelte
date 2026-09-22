@@ -42,11 +42,6 @@
 
 			const genResult = await genRes.json();
 
-			if (genRes.status === 402) {
-				status = 'error';
-				errorMessage = 'You don\'t have enough credits. Top up at abroaducate.com/pricing.';
-				return;
-			}
 
 			if (!genRes.ok || genResult.error) {
 				status = 'error';
@@ -124,14 +119,6 @@
 				>
 					Go back and try again
 				</a>
-				{#if errorMessage.includes('credits')}
-					<a
-						href="/pricing"
-						class="inline-block bg-slate-900 hover:bg-slate-800 text-white font-bold px-6 py-3 rounded-xl text-sm transition-colors"
-					>
-						Top up credits
-					</a>
-				{/if}
 			</div>
 		{/if}
 	</div>

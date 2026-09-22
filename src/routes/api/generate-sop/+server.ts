@@ -200,43 +200,6 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
             return json({ error: 'Invalid input', details: parsed.error.flatten() }, { status: 400, headers: securityHeaders });
         }
         const data = parsed.data;
-        
-        // Spend 2 credits — blocks if the user has insufficient credits
-        const { data: creditSpent, error: creditError } = await supabase.rpc('spend_credits', {
-            user_uid: session.user.id,
-            required_credits: 2,
-            action_name: 'SOP_GENERATION'
-        });
-
-        if (creditError) {
-            console.error('[SOP] Credit RPC error:', creditError);
-            return json({ error: 'Could not process credit. Please try again.' }, { status: 500, headers: securityHeaders });
-        }
-
-        if (!creditSpent) {
-            return json({ error: 'Insufficient credits. Top up to continue.', upgradeRequired: true }, { status: 402, headers: securityHeaders });
-        }
-
-        // Check remaining balance — send low-credit warning if down to 1
-        const { data: balanceRow } = await supabase
-            .from('user_profiles')
-            .select('credits')
-            .eq('user_id', session.user.id)
-            .maybeSingle();
-
-        if (balanceRow?.credits === 1) {
-            const userEmail = session.user.email;
-            if (userEmail) {
-                import('$lib/server/email.server').then(({ sendEmail }) => {
-                    sendEmail({
-                        to: userEmail,
-                        subject: 'You have 1 credit left',
-                        html: `<p>You have 1 credit remaining. <a href="https://abroaducate.com/pricing">Top up here</a>.</p>`,
-                        text: `You have 1 credit remaining. Top up at https://abroaducate.com/pricing`
-                    }).catch(() => {});
-                }).catch(() => {});
-            }
-        }
 
         // Generate SOP using OpenAI
         const generatedSopText = await generateSOPWithAI(data, supabase, session.user.id);

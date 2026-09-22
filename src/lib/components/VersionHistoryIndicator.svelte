@@ -62,32 +62,9 @@
     </div>
   {/if}
   
-  {#if stats.upgradeRecommended && showUpgradePrompt}
-    <div class="bg-blue-50 border border-blue-200 rounded-md p-2 mt-2">
-      <div class="flex items-center gap-2">
-        <span class="text-blue-600">💡</span>
-        <span class="text-xs text-blue-700">{upgradeMessage}</span>
-      </div>
-      <button 
-        onclick={() => window.location.href = '/pricing'}
-        class="text-xs bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700 transition-colors mt-2"
-      >
-        Upgrade Now
-      </button>
-    </div>
-  {/if}
-  
   <!-- Plan Limits Info -->
   <div class="text-xs text-gray-500 mt-2 space-y-1">
-    {#if planType === 'free'}
-      <div>• Cover letters only</div>
-      <div>• 30-day retention</div>
-    {:else if planType === 'professional'}
-      <div>• All document types</div>
-      <div>• 90-day retention</div>
-    {:else if planType === 'elite'}
-      <div>• All document types</div>
-      <div>• 1-year retention</div>
-    {/if}
+    <div>• All document types supported</div>
+    <div>• 1-year version retention</div>
   </div>
 </div> 

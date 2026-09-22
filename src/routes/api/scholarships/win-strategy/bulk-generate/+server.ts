@@ -39,23 +39,6 @@ export const POST: RequestHandler = async ({
 
   const { scholarship_ids } = parsed.data;
 
-  // Paid gating: free = 0
-  const initialUsage = await checkComprehensiveUsageLimit(
-    session.user.id,
-    'scholarship_win_strategy'
-  );
-  if (!initialUsage.allowed) {
-    return json(
-      {
-        error: 'Upgrade required',
-        message: initialUsage.message || 'This feature requires a paid plan.',
-        planType: initialUsage.planType,
-        upgradeRequired: true
-      },
-      { status: 403 }
-    );
-  }
-
   const model = await getAIModelForUser(supabaseServiceRole as any, session.user.id);
   const results: { scholarship_id: string; success: boolean; cached?: boolean; error?: string }[] =
     [];

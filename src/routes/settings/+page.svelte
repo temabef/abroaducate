@@ -221,37 +221,30 @@
 
 				{:else if activeTab === 'subscription'}
 					<div class="bg-white rounded-2xl p-8 shadow-sm border border-slate-200">
-						<h2 class="text-xl font-bold text-slate-900 mb-6 border-b border-slate-100 pb-4">Subscription Plan</h2>
+						<h2 class="text-xl font-bold text-slate-900 mb-6 border-b border-slate-100 pb-4">Platform Access</h2>
 						
 						<div class="mt-4 p-6 border border-slate-200 rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100">
 							<div class="text-xs text-slate-500 font-bold tracking-widest mb-1.5 uppercase">Current Plan</div>
-							<div class="text-3xl font-extrabold text-slate-900 capitalize" style="font-family: 'Outfit', sans-serif;">{subscription ? subscription.plan_type : 'Free Plan'}</div>
-							{#if subscription?.status}
-								<div class="mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
-									<div class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
-									{subscription.status}
-								</div>
-							{/if}
+							<div class="text-3xl font-extrabold text-slate-900 capitalize" style="font-family: 'Outfit', sans-serif;">100% Free Lifetime Access</div>
+							<div class="mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
+								<div class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+								Active • No Paywalls
+							</div>
 							
 							<div class="mt-6 pt-6 border-t border-slate-200">
-								<div class="text-xs text-slate-500 font-bold tracking-widest mb-1.5 uppercase">Available Credits</div>
-								<div class="text-2xl font-bold text-slate-900">{profile.credits !== undefined ? profile.credits : 3}</div>
-								{#if !subscription}
-									<p class="text-sm font-medium text-slate-500 mt-2">You receive 3 free credits to test the AI Strategy Engine.</p>
-								{/if}
+								<p class="text-sm font-medium text-slate-600 leading-relaxed">
+									You have full, unrestricted access to all Abroaducate tools — program searches, scholarship matching, AI SOP & cover letter generation, and our relocation guides. No credit cards, subscriptions, or credit pack purchases required.
+								</p>
 							</div>
 						</div>
 						
-						<div class="mt-8 flex gap-4">
-							{#if subscription}
-								<a href="/pricing" class="px-6 py-3 bg-white border-2 border-slate-200 text-slate-800 rounded-xl font-bold hover:bg-slate-50 transition-colors">
-									Manage Billing
-								</a>
-							{:else}
-								<a href="/pricing" class="px-6 py-3 bg-slate-900 hover:bg-black text-white rounded-xl font-bold transition-all shadow-lg shadow-slate-900/20">
-									Upgrade & Get Credits
-								</a>
-							{/if}
+						<div class="mt-8 flex flex-wrap gap-4">
+							<a href="/programs" class="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-bold transition-all shadow-lg shadow-orange-500/20">
+								Browse Programs
+							</a>
+							<a href="/toolkit" class="px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold transition-colors">
+								Relocation Toolkit
+							</a>
 						</div>
 					</div>
 

@@ -2,7 +2,6 @@ import { json } from '@sveltejs/kit';
 import { OPENAI_API_KEY } from '$env/static/private';
 import type { RequestHandler } from './$types';
 import { z } from 'zod';
-import { checkComprehensiveUsageLimit, incrementComprehensiveUsage } from '$lib/comprehensive-usage-limits.server';
 
 export const POST: RequestHandler = async ({ request, locals: { supabase, getSession } }) => {
     const session = await getSession();
@@ -38,28 +37,6 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
         // Validate required fields
         if (!data.professorName || !data.professorResearch || !data.studentResearch || !data.studentName) {
             return json({ error: 'Missing required fields' }, { status: 400 });
-        }
-
-        // Grandfather logic & Securely spend 1 credit
-        const { data: sub } = await supabase
-            .from('user_subscriptions')
-            .select('status')
-            .eq('user_id', session.user.id)
-            .eq('status', 'active')
-            .maybeSingle();
-
-        if (!sub) {
-            const { data: creditSpent, error: creditError } = await supabase.rpc('spend_credits', {
-                user_uid: session.user.id,
-                required_credits: 1,
-                action_name: 'COLD_EMAIL_GENERATION'
-            });
-
-            if (creditError || !creditSpent) {
-                return json({ error: 'Insufficient credits. Please top up your balance.' }, { status: 402 });
-            }
-        } else {
-            console.log(`[GRANDFATHER] User ${session.user.id} has active subscription, bypassing credit deduction.`);
         }
 
         // Analyze research overlap using simple keyword matching

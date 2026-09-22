@@ -1,17 +1,9 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { Settings, User, CreditCard, LogOut, Receipt, History } from 'lucide-svelte';
+	import { Settings, User, Sparkles, LogOut, CheckCircle, ShieldCheck } from 'lucide-svelte';
 
 	let { data } = $props();
 	let { session, supabase } = $derived(data);
-	
-	// Mocking credit history for the UI
-	const transactions = [
-		{ date: 'Oct 24, 2026', action: 'Motivation Letter Review', amount: -2, balance: 13 },
-		{ date: 'Oct 21, 2026', action: 'Accelerator Pack Purchase', amount: 15, balance: 15 },
-		{ date: 'Oct 15, 2026', action: 'Right-Fit Competitiveness Score', amount: -1, balance: 0 },
-		{ date: 'Oct 14, 2026', action: 'Signup Welcome Bonus', amount: 1, balance: 1 }
-	];
 
 	async function handleSignOut() {
 		await supabase.auth.signOut();
@@ -20,14 +12,14 @@
 </script>
 
 <svelte:head>
-	<title>Settings & Billing | Strategy Board</title>
+	<title>Account & Settings | Abroaducate Copilot</title>
 </svelte:head>
 
 <div class="max-w-4xl mx-auto space-y-8">
 	
 	<div class="mb-8">
-		<h1 class="text-3xl font-bold text-slate-900 mb-2" style="font-family: 'Outfit', sans-serif;">Settings & Billing</h1>
-		<p class="text-slate-500">Manage your profile, API credits, and transaction history.</p>
+		<h1 class="text-3xl font-bold text-slate-900 mb-2" style="font-family: 'Outfit', sans-serif;">Account & Settings</h1>
+		<p class="text-slate-500">Manage your profile and platform preferences.</p>
 	</div>
 
 	<!-- Profile Section -->
@@ -51,60 +43,64 @@
 
 	<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
 		
-		<!-- Credit Balance -->
-		<section class="bg-[#0f172a] rounded-3xl p-8 shadow-lg relative overflow-hidden text-white">
+		<!-- Free Access Status -->
+		<section class="bg-[#0f172a] rounded-3xl p-8 shadow-lg relative overflow-hidden text-white flex flex-col justify-between">
 			<!-- Glow -->
-			<div class="absolute -right-20 -top-20 w-64 h-64 bg-orange-500 rounded-full blur-[80px] opacity-20 pointer-events-none"></div>
+			<div class="absolute -right-20 -top-20 w-64 h-64 bg-emerald-500 rounded-full blur-[80px] opacity-20 pointer-events-none"></div>
 
-			<div class="relative z-10 flex flex-col h-full">
+			<div class="relative z-10">
 				<div class="flex items-center justify-between mb-8">
 					<h2 class="text-lg font-bold text-slate-300 flex items-center gap-2">
-						<CreditCard size={20} class="text-orange-400" /> API Credits
+						<Sparkles size={20} class="text-emerald-400" /> Platform Access
 					</h2>
-					<span class="bg-white/10 px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase text-emerald-400 border border-white/10">Pay-As-You-Go</span>
+					<span class="bg-emerald-500/20 px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase text-emerald-400 border border-emerald-500/30">Free Tier</span>
 				</div>
 
-				<div class="mb-8">
-					<div class="text-6xl font-extrabold tracking-tighter" style="font-family: 'Outfit', sans-serif;">13</div>
-					<div class="text-slate-400 text-sm mt-2">Available Credits</div>
+				<div class="mb-6">
+					<div class="text-4xl font-extrabold tracking-tight text-white mb-2" style="font-family: 'Outfit', sans-serif;">100% Free</div>
+					<div class="text-slate-400 text-sm">Full Lifetime Access Included</div>
 				</div>
 
-				<div class="mt-auto">
-					<a href="/pricing" class="block w-full text-center bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-4 rounded-xl transition-colors shadow-lg shadow-orange-500/30">
-						Buy Credit Pack
-					</a>
-				</div>
+				<p class="text-slate-400 text-sm leading-relaxed mb-6">
+					All AI strategy tools, SOP writers, personal statements, and scholarship recommendations are completely free to use.
+				</p>
+			</div>
+
+			<div class="relative z-10 pt-4 border-t border-white/10 flex items-center gap-2 text-emerald-400 text-xs font-semibold">
+				<ShieldCheck size={16} /> No credit cards, limits, or paywalls
 			</div>
 		</section>
 
-		<!-- Transaction History -->
-		<section class="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm flex flex-col h-full">
-			<div class="flex items-center justify-between mb-6">
-				<h2 class="text-lg font-bold text-slate-900 flex items-center gap-2" style="font-family: 'Outfit', sans-serif;">
-					<History size={20} class="text-slate-400" /> Recent Usage
+		<!-- Platform Features Included -->
+		<section class="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm flex flex-col justify-between">
+			<div>
+				<h2 class="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2" style="font-family: 'Outfit', sans-serif;">
+					Included Tools
 				</h2>
+
+				<ul class="space-y-4 text-sm text-slate-600">
+					<li class="flex items-start gap-3">
+						<CheckCircle size={18} class="text-emerald-500 shrink-0 mt-0.5" />
+						<span><strong>SOP & Cover Letter Generator:</strong> AI-powered drafts tailored to your profile.</span>
+					</li>
+					<li class="flex items-start gap-3">
+						<CheckCircle size={18} class="text-emerald-500 shrink-0 mt-0.5" />
+						<span><strong>Scholarship Strategy Board:</strong> Win strategies and requirement breakdown.</span>
+					</li>
+					<li class="flex items-start gap-3">
+						<CheckCircle size={18} class="text-emerald-500 shrink-0 mt-0.5" />
+						<span><strong>Cold Email Outreach:</strong> Tailored professor outreach emails.</span>
+					</li>
+					<li class="flex items-start gap-3">
+						<CheckCircle size={18} class="text-emerald-500 shrink-0 mt-0.5" />
+						<span><strong>Relocation & Partner Hub:</strong> Direct access to vetted visa, bank, and insurance partners.</span>
+					</li>
+				</ul>
 			</div>
 
-			<div class="space-y-4 flex-1">
-				{#each transactions as tx}
-					<div class="flex items-center justify-between pb-4 border-b border-slate-100 last:border-0 last:pb-0">
-						<div>
-							<div class="font-semibold text-sm text-slate-800">{tx.action}</div>
-							<div class="text-xs text-slate-400 mt-0.5">{tx.date}</div>
-						</div>
-						<div class="text-right">
-							<div class={`text-sm font-bold ${tx.amount > 0 ? 'text-emerald-600' : 'text-slate-600'}`}>
-								{tx.amount > 0 ? '+' : ''}{tx.amount}
-							</div>
-							<div class="text-xs text-slate-400">Bal: {tx.balance}</div>
-						</div>
-					</div>
-				{/each}
+			<div class="mt-8 pt-6 border-t border-slate-100 text-xs text-slate-400">
+				Abroaducate is committed to keeping admissions accessible to all international students.
 			</div>
-
-			<button class="mt-6 w-full py-3 text-sm font-semibold text-slate-600 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors border border-slate-200">
-				View Full History
-			</button>
 		</section>
 
 	</div>

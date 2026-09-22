@@ -363,14 +363,7 @@
           </a>
         </div>
         
-        {#if userTier === 'free'}
-          <div class="text-xs text-amber-600 text-center">
-            🔒 Upgrade for email notifications
-          </div>
-          <a href="/pricing" class="block text-center text-xs bg-amber-50 text-amber-700 border border-amber-200 rounded py-2 hover:bg-amber-100 transition-colors">
-            Upgrade to {getTierDisplayName('professional')} →
-          </a>
-        {:else if !emailPreferences.email_enabled || !emailPreferences.email_deadlines}
+        {#if !emailPreferences.email_enabled || !emailPreferences.email_deadlines}
           <button
             onclick={toggleEmailNotifications}
             class="w-full text-xs bg-green-50 text-green-700 border border-green-200 rounded py-2 hover:bg-green-100 transition-colors"

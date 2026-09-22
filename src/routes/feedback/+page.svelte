@@ -44,7 +44,7 @@
 				<MessageCircle size={32} class="text-white" />
 			</div>
 			<h1 class="text-4xl font-extrabold text-slate-900 mb-3">Help Us Build Something Amazing</h1>
-			<p class="text-slate-600 text-lg">Your feedback shapes Abroaducate's future. As a thank you, we'll add <span class="font-bold text-orange-600">20 free credits</span> to your account.</p>
+			<p class="text-slate-600 text-lg">Your feedback shapes Abroaducate's future. Help us build the best free study-abroad companion for students worldwide.</p>
 		</div>
 
 		{#if submitted}
@@ -54,7 +54,7 @@
 					<Award size={48} class="text-emerald-600" />
 				</div>
 				<h2 class="text-2xl font-bold text-slate-900 mb-3">Thank You!</h2>
-				<p class="text-slate-600 mb-2">Your feedback has been received and <span class="font-bold text-emerald-600">20 credits have been added</span> to your account.</p>
+				<p class="text-slate-600 mb-2">Your feedback has been received. Thank you for helping us improve Abroaducate for everyone!</p>
 				<p class="text-sm text-slate-500 mb-6">Account: <span class="font-mono text-sm bg-slate-100 px-2 py-1 rounded">{session?.user?.email}</span></p>
 				<a href="/dashboard" class="inline-flex items-center gap-2 px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold transition-all">
 					Go to Dashboard
@@ -182,10 +182,10 @@
 
 					<div class="h-px bg-slate-100"></div>
 
-					<!-- Question 4: Pricing Friction -->
+					<!-- Question 4: Platform Improvement -->
 					<div class="space-y-3">
 						<label class="block text-sm font-bold text-slate-900 uppercase tracking-wide" for="pricingFriction">
-							Why haven't you purchased more credits?
+							What can we improve about Abroaducate?
 						</label>
 						<select 
 							id="pricingFriction"
@@ -193,11 +193,11 @@
 							bind:value={pricingFriction}
 							class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all outline-none text-slate-800"
 						>
-							<option value="" disabled selected>Select a reason...</option>
-							<option value="Prices are too high">The prices are too high</option>
-							<option value="Not enough value">I didn't get enough value from the free credits</option>
-							<option value="Prefer subscription">I prefer a monthly subscription instead of pay-as-you-go</option>
-							<option value="Done applying">I am done applying to universities</option>
+							<option value="" disabled selected>Select an area...</option>
+							<option value="More programs">Need more universities and programs</option>
+							<option value="Document quality">Improve AI document generator outputs</option>
+							<option value="Scholarship coverage">More scholarship opportunities</option>
+							<option value="Visa & relocation guides">More relocation & visa guidance</option>
 							<option value="Other">Other</option>
 						</select>
 					</div>
@@ -215,7 +215,7 @@
 						>
 							<option value="" disabled selected>Select an option...</option>
 							<option value="Finding programs">Finding and filtering programs</option>
-							<option value="Credit system">Understanding how the credit system works</option>
+							<option value="Platform navigation">Navigating between tools and dashboards</option>
 							<option value="Document generator">Using the AI document generator</option>
 							<option value="None">It was all clear, no confusion</option>
 						</select>
@@ -223,10 +223,10 @@
 
 					<div class="h-px bg-slate-100"></div>
 
-					<!-- Question 6: Convincing Factor -->
+					<!-- Question 6: Feature wishlist -->
 					<div class="space-y-3">
 						<label class="block text-sm font-bold text-slate-900 uppercase tracking-wide" for="convincingFactor">
-							What would convince you to buy a credit pack today?
+							What features or improvements would you love to see next?
 						</label>
 						<textarea 
 							id="convincingFactor"

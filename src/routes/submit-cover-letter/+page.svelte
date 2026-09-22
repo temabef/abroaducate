@@ -41,12 +41,6 @@
 
 			const result = await res.json();
 
-			if (res.status === 402) {
-				// Insufficient credits
-				status = 'error';
-				errorMessage = 'You don\'t have enough credits. Top up at abroaducate.com/pricing.';
-				return;
-			}
 
 			if (!res.ok || result.error) {
 				status = 'error';
@@ -102,14 +96,6 @@
 				>
 					Go back and try again
 				</a>
-				{#if errorMessage.includes('credits')}
-					<a
-						href="/pricing"
-						class="inline-block bg-slate-900 hover:bg-slate-800 text-white font-bold px-6 py-3 rounded-xl text-sm transition-colors"
-					>
-						Top up credits
-					</a>
-				{/if}
 			</div>
 		{/if}
 	</div>

@@ -49,43 +49,6 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			return json({ error: 'Program not found' }, { status: 404 });
 		}
 
-		// Spend 1 credit — blocks if the user has none left
-		const { data: creditSpent, error: creditError } = await supabase.rpc('spend_credits', {
-			user_uid: userId,
-			required_credits: 1,
-			action_name: 'WIN_STRATEGY_GENERATION'
-		});
-
-		if (creditError) {
-			console.error('[WIN STRATEGY] Credit RPC error:', creditError);
-			return json({ error: 'Could not process credit. Please try again.' }, { status: 500 });
-		}
-
-		if (!creditSpent) {
-			return json({ error: 'Insufficient credits. Top up to continue.' }, { status: 402 });
-		}
-
-		// Check remaining balance — send low-credit warning if down to 1
-		const { data: balanceRow } = await supabase
-			.from('user_profiles')
-			.select('credits')
-			.eq('user_id', userId)
-			.maybeSingle();
-
-		if (balanceRow?.credits === 1) {
-			const userEmail = session.user.email;
-			if (userEmail) {
-				import('$lib/server/email.server').then(({ sendEmail }) => {
-					sendEmail({
-						to: userEmail,
-						subject: 'You have 1 credit left',
-						html: `<p>You have 1 credit remaining. <a href="https://abroaducate.com/pricing">Top up here</a>.</p>`,
-						text: `You have 1 credit remaining. Top up at https://abroaducate.com/pricing`
-					}).catch(() => {});
-				}).catch(() => {});
-			}
-		}
-
 		if (!OPENAI_API_KEY) {
 			console.error("[WIN STRATEGY] Missing OPENAI_API_KEY in environment");
 			return json({ error: 'System configuration error' }, { status: 500 });

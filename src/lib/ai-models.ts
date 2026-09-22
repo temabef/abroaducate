@@ -20,20 +20,18 @@ export async function getAIModelForUser(
 
         const planType = subscription?.plan_type || 'free';
 
-        // Return appropriate model based on plan
+        // Return modern, fast, low-cost gpt-4o-mini for all users
         switch (planType) {
-            case 'free':
-                return 'gpt-3.5-turbo'; // Low cost for free users
-            case 'professional':
-                return 'gpt-4o-mini'; // Better quality for paying customers
             case 'elite':
-                return 'gpt-4o'; // Best quality for premium customers
+                return 'gpt-4o'; // Best quality if specified
+            case 'professional':
+            case 'free':
             default:
-                return 'gpt-3.5-turbo'; // Default to free tier
+                return 'gpt-4o-mini'; // Modern, fast, and high quality
         }
     } catch (error) {
         console.error('Error getting AI model for user:', error);
-        return 'gpt-3.5-turbo'; // Default to free tier on error
+        return 'gpt-4o-mini'; // Default to gpt-4o-mini on error
     }
 }
 

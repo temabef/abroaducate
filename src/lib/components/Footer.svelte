@@ -28,7 +28,7 @@
     <div>
       <h3 class="text-sm font-semibold text-gray-900 mb-3">Company</h3>
       <ul class="space-y-2 text-sm">
-        <li><a href="/pricing" class="text-gray-600 hover:text-gray-900">Pricing</a></li>
+        <li><a href="/pricing" class="text-gray-600 hover:text-gray-900">Why We Are Free</a></li>
         <li><a href="/privacy" class="text-gray-600 hover:text-gray-900">Privacy</a></li>
         <li><a href="/terms" class="text-gray-600 hover:text-gray-900">Terms</a></li>
       </ul>

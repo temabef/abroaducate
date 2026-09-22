@@ -117,21 +117,5 @@
       </p>
     {/if}
     
-    {#if usage.planType === 'free' && getUsagePercentage() >= 80}
-      <div class="mt-3 p-3 bg-purple-50 rounded-lg border border-purple-200">
-        <p class="text-sm text-purple-800 mb-2">
-          ⚡ Running low on edits? Upgrade for more AI-powered improvements!
-        </p>
-        <a 
-          href="/pricing" 
-          class="inline-flex items-center gap-1 text-xs bg-purple-600 text-white px-3 py-1 rounded-md hover:bg-purple-700 transition-colors"
-        >
-          Upgrade Now
-          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
-          </svg>
-        </a>
-      </div>
-    {/if}
   </div>
 {/if} 

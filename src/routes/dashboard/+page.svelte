@@ -306,7 +306,6 @@
 	let activeScholarshipId = $state<string | null>(null);
 	let isGeneratingScholarshipStrategy = $state<Record<string, boolean>>({});
 	let scholarshipStrategyError = $state<string | null>(null);
-	let showBillingModal = $state(false);
 	let generationPhase = $state<string>('');
 	let strategyActiveTab = $state<'overview' | 'audit' | 'action'>('overview');
 	let detailStrategyTab = $state<'overview' | 'audit' | 'action'>('overview');
@@ -432,11 +431,7 @@
 			});
 			const result = await res.json();
 			if (result.error) {
-				if (result.error.includes('credit') || result.error.includes('Credit')) {
-					showBillingModal = true;
-				} else {
-					scholarshipStrategyError = result.error;
-				}
+				scholarshipStrategyError = result.error;
 			} else {
 				activeScholarshipStrategy = result.strategy;
 				// Add to local state for instant reactivity
@@ -1787,102 +1782,6 @@
 
 <AddDocumentModal bind:show={showAddDocModal} onCreated={handleDocCreated} />
 
-<!-- Billing / Out of Credits Modal -->
-{#if showBillingModal}
-	<div
-		class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50"
-	>
-		<div
-			class="bg-white rounded-3xl w-full max-w-md overflow-hidden flex flex-col shadow-2xl transform transition-all"
-		>
-			<div
-				class="bg-gradient-to-r from-orange-500 to-orange-600 p-6 text-center relative overflow-hidden"
-			>
-				<!-- background pattern -->
-				<div class="absolute inset-0 opacity-20">
-					<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-						<defs>
-							<pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
-								<circle cx="2" cy="2" r="1.5" fill="#fff" />
-							</pattern>
-						</defs>
-						<rect width="100%" height="100%" fill="url(#grid)" />
-					</svg>
-				</div>
-				<div class="relative z-10">
-					<div
-						class="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-4 backdrop-blur-md"
-					>
-						<svg
-							width="32"
-							height="32"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							stroke-width="2"
-							class="text-white"
-							><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg
-						>
-					</div>
-					<h3 class="text-2xl font-bold text-white mb-2" style="font-family: 'Outfit', sans-serif;">
-						Unlock AI Strategies
-					</h3>
-					<p class="text-orange-100 text-sm">
-						You need Intelligence Credits to generate personalized admission workflows.
-					</p>
-				</div>
-			</div>
-
-			<div class="p-6">
-				<div class="space-y-4 mb-8">
-					<div class="flex items-start gap-3 p-4 bg-slate-50 border border-slate-100 rounded-2xl">
-						<div class="mt-0.5 text-emerald-500">
-							<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
-								><path d="M20 6L9 17l-5-5" /></svg
-							>
-						</div>
-						<div>
-							<div class="font-bold text-slate-800 text-sm">Tailored "Win" Strategy</div>
-							<div class="text-xs text-slate-500">
-								Finds red flags in your profile relative to the exact program rubric.
-							</div>
-						</div>
-					</div>
-					<div class="flex items-start gap-3 p-4 bg-slate-50 border border-slate-100 rounded-2xl">
-						<div class="mt-0.5 text-emerald-500">
-							<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
-								><path d="M20 6L9 17l-5-5" /></svg
-							>
-						</div>
-						<div>
-							<div class="font-bold text-slate-800 text-sm">Document Generation</div>
-							<div class="text-xs text-slate-500">
-								Use credits to generate motivation letters and CVs perfectly aligned with the
-								program.
-							</div>
-						</div>
-					</div>
-				</div>
-
-				<div class="space-y-3">
-					<a
-						href="/pricing"
-						class="block text-center w-full py-4 bg-slate-900 hover:bg-black text-white rounded-xl font-bold transition-colors shadow-lg shadow-slate-900/20"
-					>
-						Get Intelligence Credits
-					</a>
-					<button
-						onclick={() => (showBillingModal = false)}
-						class="w-full py-3 text-slate-500 hover:text-slate-800 font-semibold text-sm transition-colors"
-					>
-						Maybe Later
-					</button>
-				</div>
-			</div>
-		</div>
-	</div>
-{/if}
-
 <style>
 	.main-empty {
 		flex: 1;
@@ -2093,10 +1992,6 @@
 	.hub-brand-title { font-family: 'Outfit', sans-serif; font-size: 1.5rem; font-weight: 800; color: #0f172a; }
 	.hub-brand-sub { font-size: 0.8125rem; color: #64748b; font-weight: 500; }
 	.hub-header-right { display: flex; align-items: center; gap: 0.5rem; }
-	.hub-credits-badge { display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.4rem 0.875rem; font-size: 0.8125rem; font-weight: 700; border-radius: 0.625rem; text-decoration: none; transition: all 0.2s; background: #fff7ed; color: #ea580c; border: 1px solid #fed7aa; }
-	.hub-credits-badge:hover { background: #ffedd5; border-color: #f97316; transform: translateY(-1px); }
-	.hub-credits-count { font-size: 0.9375rem; font-weight: 800; color: #0f172a; }
-	.hub-credits-label { color: #94a3b8; font-weight: 600; }
 	.hub-action-btn { display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.5rem 1rem; font-size: 0.8125rem; font-weight: 700; border-radius: 0.625rem; text-decoration: none; transition: all 0.2s; background: #0f172a; color: white; }
 	.hub-action-btn:hover { background: #1e293b; transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0,0,0,0.15); }
 	.hub-action-secondary { background: white; color: #64748b; border: 1px solid #e2e8f0; }

@@ -10,7 +10,6 @@
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
   import AuthenticationFlow from '$lib/components/AuthenticationFlow.svelte';
-  import CompactUpgradeModal from '$lib/components/CompactUpgradeModal.svelte';
   import { formatCurrencyAmount, formatScholarshipText, decodeHtmlEntities } from '$lib/utils/htmlEntities';
   import { markdownToHtml } from '$lib/utils/markdownToHtml';
   import { subscriptionState } from '$lib/stores/subscription';
@@ -36,8 +35,7 @@
   let playbookRouteType = $state<string>('Direct scholarship application');
   let playbookSteps = $state<PlaybookStep[]>([]);
   
-  // Paid gating + lightweight personalization
-  let showBillingModal = $state(false);
+  // Lightweight personalization
   let aiWinStrategy = $state<any>((data as any).userStrategy || (data as any).winStrategy || null);
   // isPremium is $state (not $derived) so it can be upgraded by the subscription store.
   // It is initialized from SSR data so a returning-user always sees their strategy immediately.
@@ -365,10 +363,6 @@
       });
       const j = await res.json().catch(() => ({}));
       if (!res.ok) {
-        if (j?.error === 'Insufficient credits' || j?.error === 'Insufficient credits or billing error') {
-             showBillingModal = true;
-             return;
-        }
         throw new Error(j?.message || j?.error || `Failed to generate (${res.status})`);
       }
       aiWinStrategy = j?.strategy || null;
@@ -1163,11 +1157,6 @@
     mode={authMode} 
     returnUrl={$page.url.pathname}
     on:success={handleAuthSuccess}
-  />
-  <CompactUpgradeModal
-    isOpen={showBillingModal}
-    on:close={() => showBillingModal = false}
-    on:upgrade={() => goto('/pricing')}
   />
   <StrategyDocumentLinker 
     bind:show={showStrategyLinker} 

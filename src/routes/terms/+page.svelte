@@ -59,16 +59,13 @@
 			</section>
 
 			<section>
-				<h2>4. Credits and Payment</h2>
-				<p>Abroaducate operates on a <strong>pay-as-you-go credit system</strong> — there are no monthly subscriptions.</p>
+				<h2>4. Free Access and Fair Use</h2>
+				<p>Abroaducate is a <strong>100% free platform</strong> for international students. We do not charge subscriptions, credit pack fees, or document generation fees for our core tools.</p>
 				<ul>
-					<li><strong>Free Credits:</strong> 3 lifetime credits on signup — no credit card required</li>
-					<li><strong>Starter Pack:</strong> 20 credits for $4.99</li>
-					<li><strong>Standard Pack:</strong> 50 credits for $9.99</li>
-					<li><strong>Pro Pack:</strong> 130 credits for $24.99</li>
+					<li><strong>Free Lifetime Access:</strong> All core platform features, AI generators, and scholarship strategy boards are accessible without payment or credit cards.</li>
+					<li><strong>Fair Use Policy:</strong> Access is provided for personal, non-commercial educational use. We reserve the right to apply rate limits or suspend accounts that engage in automated abuse, scraping, or excessive bulk generation that strains platform infrastructure.</li>
+					<li><strong>Affiliate Partnerships:</strong> To support our operational infrastructure, Abroaducate may partner with trusted relocation, banking, health insurance, and SIM card providers. Using these partner services is optional.</li>
 				</ul>
-				<p>Credits are lifetime — they do not expire and are not tied to a monthly subscription. Credits are consumed when generating AI documents or running strategy tools. All payments are processed securely through Stripe.</p>
-				<p>For refund terms, see our <a href="/refund-policy">Refund Policy</a>.</p>
 			</section>
 
 			<section>

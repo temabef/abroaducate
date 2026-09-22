@@ -22,20 +22,6 @@ export const POST: RequestHandler = async ({ request, locals: { getSession, supa
 
   const { scholarship_id, force } = parsed.data;
 
-  // Paid gating via limits table: free = 0
-  const usage = await checkComprehensiveUsageLimit(session.user.id, 'scholarship_win_strategy');
-  if (!usage.allowed) {
-    return json(
-      {
-        error: 'Upgrade required',
-        message: usage.message || 'This feature requires a paid plan.',
-        planType: usage.planType,
-        upgradeRequired: true
-      },
-      { status: 403 }
-    );
-  }
-
   // Fetch scholarship from public decoded view
   const { data: scholarship, error: sErr } = await supabaseServiceRole
     .from('public_scholarships_decoded')

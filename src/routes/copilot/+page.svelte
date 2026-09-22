@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { ArrowRight, BookMarked, Wallet, Zap, Clock, TrendingUp } from 'lucide-svelte';
+	import { ArrowRight, BookMarked, Sparkles, Zap, Clock, TrendingUp } from 'lucide-svelte';
 	import { programCatalog } from '$lib/copilot/data/program-catalog';
 
 	let { data }: { data: any } = $props();
@@ -37,11 +37,11 @@
 	<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
 		<div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex items-center gap-4">
 			<div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-500 flex items-center justify-center shrink-0">
-				<Wallet size={24} />
+				<Sparkles size={24} />
 			</div>
 			<div>
-				<div class="text-2xl font-black text-slate-900 leading-none" style="font-family: 'Outfit', sans-serif;">13</div>
-				<div class="text-xs font-semibold text-slate-500 mt-1 uppercase tracking-wide">API Credits</div>
+				<div class="text-2xl font-black text-slate-900 leading-none" style="font-family: 'Outfit', sans-serif;">Free</div>
+				<div class="text-xs font-semibold text-slate-500 mt-1 uppercase tracking-wide">Full Access</div>
 			</div>
 		</div>
 		

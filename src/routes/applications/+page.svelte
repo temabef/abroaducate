@@ -54,14 +54,7 @@
                 console.error('Error loading profile:', error);
             } else {
                 subscriptionTier = profile?.subscription_tier || 'free';
-                
-                // Set limits based on tier
-                const limits = {
-                    free: 12,
-                    professional: 1000,
-                    elite: Infinity
-                };
-                applicationLimit = limits[subscriptionTier as keyof typeof limits] || 12;
+                applicationLimit = Infinity;
             }
         } catch (error) {
             console.error('Error:', error);
@@ -182,18 +175,9 @@
                 <div>
                     <h1 class="text-3xl font-bold text-gray-900">My Applications</h1>
                     <p class="text-gray-600">Track your university applications and deadlines</p>
-                    {#if applicationLimit === Infinity}
-                        <p class="text-sm text-blue-600 font-medium mt-1">
-                            {applications.length} applications • Unlimited (Elite Plan)
-                        </p>
-                    {:else}
-                        <p class="text-sm {applications.length >= applicationLimit ? 'text-red-600' : 'text-blue-600'} font-medium mt-1">
-                            {applications.length} of {applicationLimit} applications used
-                            {#if subscriptionTier === 'free' && applications.length >= applicationLimit * 0.8}
-                                • <a href="/pricing" class="text-blue-600 hover:underline">Upgrade for more</a>
-                            {/if}
-                        </p>
-                    {/if}
+                    <p class="text-sm text-blue-600 font-medium mt-1">
+                        {applications.length} {applications.length === 1 ? 'application' : 'applications'} tracked
+                    </p>
                 </div>
                 <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto mt-4 sm:mt-0">
                     <button

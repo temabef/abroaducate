@@ -3,8 +3,8 @@
 </script>
 
 <svelte:head>
-	<title>Refund Policy — Abroaducate</title>
-	<meta name="description" content="Abroaducate Refund Policy — how refunds work for credit pack purchases on our platform." />
+	<title>Refund & Billing Policy — Abroaducate</title>
+	<meta name="description" content="Abroaducate Billing Policy — Abroaducate is 100% free with no fees or subscriptions." />
 	<meta name="robots" content="index, follow" />
 </svelte:head>
 
@@ -22,10 +22,10 @@
 		<!-- Header (no card) -->
 		<div class="page-header">
 			<span class="eyebrow">Legal</span>
-			<h1 class="page-title">Refund Policy</h1>
-			<p class="page-date">Last updated: May 2026</p>
+			<h1 class="page-title">Billing & Refund Policy</h1>
+			<p class="page-date">Last updated: September 2026</p>
 			<p class="page-intro">
-				This Refund Policy explains when and how Abroaducate issues refunds for credit pack purchases made on our platform. By purchasing credits on Abroaducate, you agree to this policy.
+				Abroaducate is a 100% free platform for students worldwide. We do not charge subscription fees or sell credit packs. This policy outlines our free access model and handling of any historical billing.
 			</p>
 		</div>
 
@@ -33,64 +33,35 @@
 		<div class="body-card">
 
 			<section>
-				<h2>1. What We Sell</h2>
-				<p>Abroaducate operates on a <strong>pay-as-you-go credit system</strong> — there are no monthly subscriptions. Credits are used to generate AI-powered application documents and run strategy tools.</p>
-				<p>Available credit packs:</p>
-				<ul>
-					<li><strong>Starter Pack</strong> — 20 credits for $4.99</li>
-					<li><strong>Standard Pack</strong> — 50 credits for $9.99</li>
-					<li><strong>Pro Pack</strong> — 130 credits for $24.99</li>
-				</ul>
-				<p>Every new account also receives <strong>3 free lifetime credits</strong> on signup — no credit card required.</p>
+				<h2>1. 100% Free Platform</h2>
+				<p>Abroaducate provides all AI-powered document generators, scholarship strategy boards, and application tools completely free of charge. No credit card is required to register or use any of our features.</p>
 			</section>
 
 			<section>
-				<h2>2. General Refund Policy</h2>
+				<h2>2. No Subscriptions or Software Fees</h2>
 				<div class="callout-blue">
-					<strong>Credit packs are eligible for a full refund within 14 days of purchase, no questions asked.</strong> If you purchased a credit pack and are not satisfied, contact us within 14 days and we will refund you in full.
+					<strong>You will never be charged for using Abroaducate core tools.</strong> We do not operate recurring monthly subscriptions, credit packs, or hidden fees.
 				</div>
-				<p>After 14 days, credit pack purchases are generally non-refundable. Credits do not expire — they remain in your account indefinitely until used.</p>
+				<p>Because there are no charges or ongoing billing for software access, recurring refund requests are not applicable to current platform users.</p>
 			</section>
 
 			<section>
-				<h2>3. When We Issue Refunds</h2>
-				<p>We will issue a full refund in the following circumstances:</p>
-				<ul>
-					<li><strong>Within 14 days of purchase:</strong> Full refund, no questions asked.</li>
-					<li><strong>Duplicate charge:</strong> If you were charged more than once for the same purchase due to a payment processing error, we will refund the duplicate charge in full.</li>
-					<li><strong>Unauthorised transaction:</strong> If you believe a purchase was made on your account without your authorisation, contact us immediately. We will investigate and, if confirmed, issue a full refund.</li>
-					<li><strong>Service unavailability:</strong> If a platform issue prevented you from using credits you purchased, we will consider a refund or credit restoration on a case-by-case basis.</li>
-				</ul>
+				<h2>3. Historical Purchases</h2>
+				<p>If you previously purchased a credit pack prior to our pivot to a free model and have questions regarding your past transactions or require historical receipts, our support team will gladly assist you. Contact us at <a href="mailto:hello@abroaducate.com">hello@abroaducate.com</a> with your account details.</p>
 			</section>
 
 			<section>
-				<h2>4. How to Request a Refund</h2>
-				<p>To request a refund, contact us as soon as possible after the purchase:</p>
+				<h2>4. Third-Party Partner Services</h2>
+				<p>Abroaducate may connect users to optional third-party service providers (such as blocked account providers, health insurance companies, or visa assistance services). Any financial transactions conducted directly with these partners are subject to the individual partner's refund policies and terms of service. Abroaducate does not process payments or manage refunds on behalf of third-party partners.</p>
+			</section>
+
+			<section>
+				<h2>5. Contact Us</h2>
+				<p>If you have any questions about this policy or your account, please reach out:</p>
 				<div class="contact-box">
+					<p><strong>Platform:</strong> Abroaducate</p>
 					<p><strong>Email:</strong> <a href="mailto:hello@abroaducate.com">hello@abroaducate.com</a></p>
 					<p><strong>Contact form:</strong> <a href="/contact">abroaducate.com/contact</a></p>
-				</div>
-				<p>Please include your account email address, the date of the charge, and the reason for your refund request. We aim to respond within 2 business days.</p>
-			</section>
-
-			<section>
-				<h2>5. Refund Processing</h2>
-				<p>Approved refunds are processed within <strong>5–10 business days</strong> and returned to the original payment method. Processing times may vary depending on your bank or card issuer.</p>
-				<p>Refunds are issued in the same currency as the original purchase. We are not responsible for any currency conversion fees charged by your bank.</p>
-			</section>
-
-			<section>
-				<h2>6. Changes to This Policy</h2>
-				<p>We may update this Refund Policy from time to time. Any changes will be posted on this page with an updated date. Continued use of the platform after changes constitutes acceptance of the revised policy.</p>
-			</section>
-
-			<section>
-				<h2>7. Contact Us</h2>
-				<p>If you have any questions about this Refund Policy, please contact us:</p>
-				<div class="contact-box">
-					<p><strong>Company:</strong> Abroaducate, Inc.</p>
-					<p><strong>Email:</strong> <a href="mailto:hello@abroaducate.com">hello@abroaducate.com</a></p>
-					<p><strong>Address:</strong> 111SB Governor Ave, Dover, Delaware, USA</p>
 				</div>
 			</section>
 
@@ -204,19 +175,6 @@
 	}
 	section p:last-child {
 		margin-bottom: 0;
-	}
-	section ul {
-		list-style: disc;
-		padding-left: 1.25rem;
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
-		margin: 0.5rem 0;
-	}
-	section li {
-		font-size: 0.9375rem;
-		color: #475569;
-		line-height: 1.7;
 	}
 
 	/* Blue callout */

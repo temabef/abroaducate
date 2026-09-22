@@ -103,11 +103,11 @@
 			</div>
 			
 			<div class="flex items-center gap-6">
-				<!-- Mocked Credit Balance -->
-				<a href="/pricing" class="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-full transition-colors border border-slate-200">
-					<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-					<span class="text-sm font-bold text-slate-700">1 Credit</span>
-				</a>
+				<!-- Free Access Badge -->
+				<div class="flex items-center gap-2 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-200">
+					<span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+					<span class="text-xs font-bold text-emerald-700">100% Free Access</span>
+				</div>
 
 				<div class="h-6 w-px bg-slate-200"></div>
 

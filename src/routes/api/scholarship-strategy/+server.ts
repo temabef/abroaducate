@@ -137,65 +137,6 @@ Amount: ${scholarship.amount || 'Not specified'}
 The user has optionally provided the following document (e.g. SOP, CV) for audit:
 ${finalDocumentText || "No additional document provided. Perform a 'Lite Strategy' based purely on user stats."}`;
 
-		// Spend 1 credit — blocks if the user has none left
-		const { data: creditSpent, error: creditError } = await supabase.rpc('spend_credits', {
-			user_uid: userId,
-			required_credits: 1,
-			action_name: 'SCHOLARSHIP_STRATEGY_GENERATION'
-		});
-
-		if (creditError) {
-			console.error('[SCHOLARSHIP STRATEGY] Credit RPC error:', creditError);
-			return json({ error: 'Could not process credit. Please try again.' }, { status: 500 });
-		}
-
-		if (!creditSpent) {
-			return json({ error: 'Insufficient credits. Top up to continue.' }, { status: 402 });
-		}
-
-		// Check remaining balance — send low-credit warning email if down to 1
-		const { data: balanceRow } = await supabase
-			.from('user_profiles')
-			.select('credits')
-			.eq('user_id', userId)
-			.maybeSingle();
-
-		if (balanceRow?.credits === 1) {
-			// Fire-and-forget — don't block the strategy generation
-			const userEmail = session.user.email;
-			if (userEmail) {
-				import('$lib/server/email.server').then(({ sendEmail }) => {
-					sendEmail({
-						to: userEmail,
-						subject: 'You have 1 credit left',
-						html: `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:20px;background:#f1f5f9;">
-<div style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
-<div style="background:#0f172a;padding:24px 32px;text-align:center;"><p style="color:#fff;font-size:20px;font-weight:800;margin:0;">Abroaducate</p></div>
-<div style="padding:32px;">
-<div style="background:#fffbeb;border:1px solid #f59e0b;border-radius:8px;padding:16px;margin-bottom:24px;">
-<p style="color:#92400e;font-weight:700;font-size:14px;margin:0 0 4px 0;">1 credit remaining</p>
-<p style="color:#78350f;font-size:13px;margin:0;">Top up to keep generating strategies and documents.</p>
-</div>
-<h2 style="color:#0f172a;font-size:20px;font-weight:800;margin:0 0 8px 0;">Top up your credits</h2>
-<p style="color:#475569;font-size:15px;margin:0 0 24px 0;">Credits are used for AI strategies, documents, and Right-Fit checks. Browsing programs and scholarships is always free.</p>
-<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:24px;">
-<div style="border:1px solid #e2e8f0;border-radius:8px;padding:16px;text-align:center;"><div style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;margin-bottom:8px;">Starter</div><div style="font-size:26px;font-weight:800;color:#0f172a;">20</div><div style="font-size:12px;color:#94a3b8;margin-bottom:6px;">credits</div><div style="font-size:14px;font-weight:700;color:#059669;">$4.99</div></div>
-<div style="border:2px solid #f97316;border-radius:8px;padding:16px;text-align:center;background:#fff7ed;"><div style="font-size:11px;font-weight:600;color:#ea580c;text-transform:uppercase;margin-bottom:8px;">Popular</div><div style="font-size:26px;font-weight:800;color:#0f172a;">50</div><div style="font-size:12px;color:#94a3b8;margin-bottom:6px;">credits</div><div style="font-size:14px;font-weight:700;color:#059669;">$9.99</div></div>
-<div style="border:1px solid #e2e8f0;border-radius:8px;padding:16px;text-align:center;"><div style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;margin-bottom:8px;">Elite</div><div style="font-size:26px;font-weight:800;color:#0f172a;">130</div><div style="font-size:12px;color:#94a3b8;margin-bottom:6px;">credits</div><div style="font-size:14px;font-weight:700;color:#059669;">$24.99</div></div>
-</div>
-<div style="text-align:center;"><a href="https://abroaducate.com/pricing" style="display:inline-block;background:#f97316;color:#fff;font-weight:700;font-size:15px;padding:14px 32px;border-radius:8px;text-decoration:none;">Top up credits</a></div>
-</div>
-<div style="padding:16px 32px;text-align:center;border-top:1px solid #e2e8f0;">
-<p style="color:#64748b;font-size:11px;margin:0 0 6px;">You're receiving this because you have an Abroaducate account.</p>
-<a href="https://abroaducate.com/newsletter/unsubscribe" style="color:#f97316;font-size:12px;text-decoration:underline;font-weight:600;">Unsubscribe</a> &middot; <a href="https://abroaducate.com/privacy" style="color:#f97316;font-size:12px;text-decoration:underline;font-weight:600;">Privacy Policy</a>
-</div>
-</div></body></html>`,
-						text: `Abroaducate — 1 credit remaining\n\nTop up to keep generating strategies and documents.\n\nStarter: 20 credits — $4.99\nAccelerator: 50 credits — $9.99\nElite: 130 credits — $24.99\n\nhttps://abroaducate.com/pricing`
-					}).catch(e => console.error('[LOW CREDIT EMAIL] Failed:', e));
-				}).catch(() => {});
-			}
-		}
-
 		// Call OpenAI
 		const strategy = await generateScholarshipWinStrategy({
 			scholarship: payloadForAI,

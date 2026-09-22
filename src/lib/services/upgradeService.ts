@@ -80,9 +80,8 @@ export function handleUpgradeRequired(errorData: {
     message: string;
     usageType?: string;
 }): boolean {
-    if (!errorData.upgradeRequired) {
-        return false;
-    }
+    // Abroaducate is 100% free — never prompt for upgrades
+    return false;
     
     // Mark that user has interacted with the app
     hasUserInteracted = true;

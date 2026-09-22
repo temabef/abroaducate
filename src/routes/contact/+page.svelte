@@ -153,7 +153,7 @@
 
 	const categories = [
 		{ value: 'technical', label: 'Technical Issue', desc: 'Login problems, bugs, feature not working', icon: Wrench },
-		{ value: 'billing', label: 'Billing & Credits', desc: 'Payment issues, credit packs, refunds', icon: CreditCard },
+		{ value: 'billing', label: 'Account & Billing', desc: 'Past transactions, account status, receipts', icon: CreditCard },
 		{ value: 'account', label: 'Account Support', desc: 'Profile settings, data, account deletion', icon: User },
 		{ value: 'documents', label: 'Document Help', desc: 'SOP generation, editing, formatting', icon: FileText },
 		{ value: 'universities', label: 'Program Questions', desc: 'Programs, scholarships, deadlines', icon: GraduationCap },
@@ -161,7 +161,7 @@
 	];
 
 	const faqs = [
-		{ q: 'How quickly will you respond?', a: 'We aim to respond within 24–48 hours. Billing and technical issues get priority.' },
+		{ q: 'How quickly will you respond?', a: 'We aim to respond within 24–48 hours. Urgent technical issues get priority.' },
 		{ q: 'I\'m having trouble logging in. What should I do?', a: 'Try resetting your password using the "Forgot Password" link. If that doesn\'t work, contact us with your registered email.' },
 		{ q: 'Is Abroaducate free to use?', a: 'Yes! Abroaducate is 100% free for all students. You can search 2,500+ programs, find scholarships, check your eligibility, and explore our relocation toolkit without paying any subscriptions or credit fees.' },
 		{ q: 'My AI-generated document seems off. Can you help?', a: 'Try being more specific in your inputs. If you\'re still having issues, send us your inputs and we\'ll help.' },

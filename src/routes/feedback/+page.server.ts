@@ -1,8 +1,6 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 
-const FEEDBACK_REWARD_CREDITS = 20;
-
 export const load: PageServerLoad = async ({ locals, url }) => {
 	const session = await locals.getSession();
 	const supabase = locals.supabase;
@@ -56,54 +54,16 @@ export const actions: Actions = {
 				convincing_factor: convincingFactor || null,
 				would_recommend: wouldRecommend || null,
 				can_feature_testimonial: canFeatureTestimonial,
-				credits_awarded: true // Mark as awarded since we're doing it automatically
+				credits_awarded: true
 			});
 
 		if (insertError) {
 			// Check if it's a duplicate submission (UNIQUE constraint violation)
 			if (insertError.code === '23505') {
-				return fail(400, { error: 'You have already submitted feedback and received your credits.' });
+				return fail(400, { error: 'You have already submitted feedback. Thank you!' });
 			}
 			console.error('[FEEDBACK] Insert error:', insertError);
 			return fail(500, { error: 'Failed to submit feedback. Please try again.' });
-		}
-
-		// Add 25 credits to user's account
-		try {
-			// Get current credits
-			const { data: profile, error: profileError } = await supabase
-				.from('user_profiles')
-				.select('credits')
-				.eq('user_id', session.user.id)
-				.single();
-
-			if (profileError) {
-				console.error('[FEEDBACK] Error fetching profile:', profileError);
-				// Don't fail the whole operation - feedback is saved
-				return { success: true, creditError: true };
-			}
-
-			const currentCredits = profile?.credits ?? 0;
-			const newCredits = currentCredits + FEEDBACK_REWARD_CREDITS;
-
-			// Update credits
-			const { error: updateError } = await supabase
-				.from('user_profiles')
-				.update({ credits: newCredits })
-				.eq('user_id', session.user.id);
-
-			if (updateError) {
-				console.error('[FEEDBACK] Error updating credits:', updateError);
-				// Don't fail - feedback is saved, just credits didn't update
-				return { success: true, creditError: true };
-			}
-
-			console.log(`[FEEDBACK] ✅ Added ${FEEDBACK_REWARD_CREDITS} credits to ${session.user.email} (${currentCredits} → ${newCredits})`);
-			
-		} catch (err: any) {
-			console.error('[FEEDBACK] Credit addition failed:', err);
-			// Don't fail the form submission - feedback is already saved
-			return { success: true, creditError: true };
 		}
 
 		return { success: true };

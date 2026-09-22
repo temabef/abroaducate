@@ -18,18 +18,18 @@ export interface VersionLimits {
 // Plan-based version history limits (matches your pricing page)
 const VERSION_LIMITS: Record<string, VersionLimits> = {
   free: {
-    maxVersions: 3,
-    allowedDocumentTypes: ['cover_letter'], // Only cover letters as per pricing page
-    retentionDays: 30
+    maxVersions: 50,
+    allowedDocumentTypes: ['cover_letter', 'personal_statement', 'sop', 'cv'],
+    retentionDays: 365
   },
   professional: {
     maxVersions: 50,
-    allowedDocumentTypes: ['cover_letter', 'personal_statement', 'sop', 'cv'], // All document types
-    retentionDays: 90
+    allowedDocumentTypes: ['cover_letter', 'personal_statement', 'sop', 'cv'],
+    retentionDays: 365
   },
   elite: {
     maxVersions: 100,
-    allowedDocumentTypes: ['cover_letter', 'personal_statement', 'sop', 'cv'], // All document types
+    allowedDocumentTypes: ['cover_letter', 'personal_statement', 'sop', 'cv'],
     retentionDays: 365
   }
 };
@@ -42,16 +42,6 @@ export function isVersionHistoryAllowed(config: VersionHistoryConfig): {
   reason?: string;
   upgradeRequired?: boolean;
 } {
-  const limits = VERSION_LIMITS[config.planType] || VERSION_LIMITS.free;
-  
-  if (!limits.allowedDocumentTypes.includes(config.documentType)) {
-    return {
-      allowed: false,
-      reason: `Version history for ${config.documentType} is not available on the ${config.planType} plan. Upgrade to Professional for complete version history.`,
-      upgradeRequired: true
-    };
-  }
-  
   return { allowed: true };
 }
 
@@ -295,7 +285,7 @@ export function getVersionUsageStats(
     usage: `${currentVersionCount} / ${limits.maxVersions}`,
     percentage: Math.min(100, percentage),
     isNearLimit: percentage >= 80,
-    upgradeRecommended: planType === 'free' && percentage >= 70
+    upgradeRecommended: false
   };
 }
 
@@ -303,15 +293,5 @@ export function getVersionUsageStats(
  * Generate plan comparison message for version history
  */
 export function getVersionHistoryUpgradeMessage(currentPlan: string, documentType: string): string {
-  if (currentPlan === 'free') {
-    if (documentType !== 'cover_letter') {
-      return `📚 Version history for ${documentType}s is available with Professional plan. Upgrade to track changes across all your documents!`;
-    } else {
-      return `📚 Upgrade to Professional for 10 versions instead of 3, plus version history for all document types!`;
-    }
-  } else if (currentPlan === 'professional') {
-    return `🚀 Elite plan offers 20 versions with 1-year retention vs your current 10 versions with 90-day retention.`;
-  }
-  
   return '';
 } 

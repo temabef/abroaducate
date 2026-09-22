@@ -20,7 +20,7 @@
 	const GREETING = "Hi! I'm the Abroaducate assistant. I can help you find programs, understand scholarships, or navigate the platform. What would you like to know?";
 
 	const SUGGESTIONS = [
-		'How do credits work?',
+		'Is Abroaducate free?',
 		'What countries do you cover?',
 		'How do I find a scholarship?',
 		'What documents do I need?'

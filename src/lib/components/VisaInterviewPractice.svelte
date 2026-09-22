@@ -66,14 +66,7 @@
             if (response.ok) {
                 const data = await response.json();
                 subscriptionTier = data.profile?.subscription_tier || 'free';
-                
-                // Updated question limits based on new structure
-                const limits = {
-                    free: 6,        // 1 question from each of the 6 categories
-                    professional: 50,  // Updated to 50 questions
-                    elite: 80       // Updated to 80+ questions
-                };
-                questionLimit = limits[subscriptionTier as keyof typeof limits] || 6;
+                questionLimit = 80;
             }
         } catch (error) {
             console.error('Error loading user profile:', error);
