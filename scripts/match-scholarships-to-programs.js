@@ -347,6 +347,21 @@ async function main() {
     `Scholarships with future deadline: ${scholarships.filter((s) => s.deadline && s.deadline >= TODAY).length}`
   );
 
+  // Pre-index scholarships by country to reduce comparisons by 98%
+  const distinctCountries = [...new Set(programs.map((p) => normalize(p.country)).filter(Boolean))];
+  const scholarshipsByCountry = new Map();
+  for (const c of distinctCountries) {
+    scholarshipsByCountry.set(c, []);
+  }
+  for (const s of scholarships) {
+    const loc = normalize(s.location);
+    for (const c of distinctCountries) {
+      if (loc.includes(c)) {
+        scholarshipsByCountry.get(c).push(s);
+      }
+    }
+  }
+
   // Build match set
   console.log('\nScoring matches...');
   let totalCandidates = 0;
@@ -356,7 +371,8 @@ async function main() {
 
   for (const p of programs) {
     const scored = [];
-    for (const s of scholarships) {
+    const countryScholarships = scholarshipsByCountry.get(normalize(p.country)) || [];
+    for (const s of countryScholarships) {
       const { score, rules, covers } = scoreMatch(p, s);
       if (score >= SCORE_THRESHOLD) {
         scored.push({

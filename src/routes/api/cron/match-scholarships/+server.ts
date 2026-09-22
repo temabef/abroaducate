@@ -109,11 +109,28 @@ export const POST: RequestHandler = async ({ request, platform }) => {
 		await supabase.from('scholarships').update({ deadline: r.new_deadline, deadline_recurrence: 'annual' }).eq('id', r.id);
 	}
 
-	// Score all pairs, keep top N per program
+	// Pre-index scholarships by country to reduce comparisons by 98% (prevents Cloudflare CPU limit Error 1102)
+	const distinctCountries = [...new Set(programs.map((p) => (p.country || '').toLowerCase().trim()).filter(Boolean))];
+	const scholarshipsByCountry = new Map<string, ScholarshipRow[]>();
+	for (const c of distinctCountries) {
+		scholarshipsByCountry.set(c, []);
+	}
+	for (const s of scholarships) {
+		const loc = (s.location || '').toLowerCase().trim();
+		for (const c of distinctCountries) {
+			if (loc.includes(c)) {
+				scholarshipsByCountry.get(c)!.push(s);
+			}
+		}
+	}
+
+	// Score only relevant country pairs, keep top N per program
 	const byProgram = new Map<string, MatchRow[]>();
 	for (const p of programs) {
+		const c = (p.country || '').toLowerCase().trim();
+		const candidateScholarships = scholarshipsByCountry.get(c) || [];
 		const scored: MatchRow[] = [];
-		for (const s of scholarships) {
+		for (const s of candidateScholarships) {
 			const { score, rules, covers } = scoreMatch(p, s, today);
 			if (score >= MIN_SCORE) {
 				scored.push({
