@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { sendEmail } from '$lib/server/email.server';
+import { sendEmail, identifyUser } from '$lib/server/email.server';
 
 export const POST: RequestHandler = async ({ request, locals: { supabase } }) => {
 	try {
@@ -44,17 +44,11 @@ export const POST: RequestHandler = async ({ request, locals: { supabase } }) =>
 		}
 
 		// Identify user in Customer.io so they receive future broadcasts
-		try {
-			const { APIClient, RegionEU } = await import('customerio-node');
-			const { env } = await import('$env/dynamic/private');
-			if (env.CUSTOMER_IO_API_KEY) {
-				const cio = new APIClient(env.CUSTOMER_IO_API_KEY, { region: RegionEU });
-				await cio.identify(userId, { email: userEmail, user_type: 'registered', created_at: Math.floor(Date.now() / 1000) });
-				console.log(`[WELCOME] Identified in Customer.io: ${userEmail}`);
-			}
-		} catch (cioErr: any) {
-			console.error('[WELCOME] Customer.io identify failed (non-fatal):', cioErr?.message);
-		}
+		await identifyUser(userId, {
+			email: userEmail,
+			user_type: 'registered',
+			created_at: Math.floor(Date.now() / 1000)
+		});
 
 		await sendEmail({
 			to: userEmail,

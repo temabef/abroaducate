@@ -26,10 +26,10 @@ const supabase = createClient(
 );
 
 const CIO_SITE_ID = process.env.CUSTOMER_IO_SITE_ID;
-const CIO_API_KEY = process.env.CUSTOMER_IO_API_KEY;
+const CIO_API_KEY = process.env.CUSTOMER_IO_TRACK_API_KEY || process.env.CUSTOMER_IO_API_KEY;
 
 if (!CIO_SITE_ID || !CIO_API_KEY) {
-  console.error('Missing CUSTOMER_IO_SITE_ID or CUSTOMER_IO_API_KEY in .env');
+  console.error('Missing CUSTOMER_IO_SITE_ID or CUSTOMER_IO_TRACK_API_KEY in .env');
   process.exit(1);
 }
 

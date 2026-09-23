@@ -1,7 +1,7 @@
 import { redirect } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { getPostAuthRedirect } from '$lib/services/authRedirectService';
-import { sendEmail } from '$lib/server/email.server';
+import { sendEmail, identifyUser } from '$lib/server/email.server';
 
 export const GET: RequestHandler = async (event) => {
     const {
@@ -41,13 +41,20 @@ export const GET: RequestHandler = async (event) => {
 
                     if (!existingProfile) {
                         // Brand new user — create profile and send welcome email
-                        await supabase
+                        const { error: profErr } = await supabase
                             .from('user_profiles')
                             .insert({
                                 user_id: userId,
                                 workspace_data: {}
-                            })
-                            .catch(e => console.error('[CALLBACK] Failed to create user_profiles:', e));
+                            });
+                        if (profErr) console.error('[CALLBACK] Failed to create user_profiles:', profErr);
+
+                        // Identify in Customer.io so they appear in People for broadcasts
+                        identifyUser(userId, {
+                            email: userEmail,
+                            user_type: 'registered',
+                            created_at: Math.floor(Date.now() / 1000)
+                        }).catch(e => console.error('[CALLBACK] Customer.io identify failed:', e));
 
                         // Send welcome email (fire-and-forget)
                         sendEmail({

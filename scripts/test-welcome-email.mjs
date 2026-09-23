@@ -14,6 +14,7 @@ config();
 
 const CUSTOMER_IO_API_KEY = process.env.CUSTOMER_IO_API_KEY;
 const CUSTOMER_IO_SITE_ID = process.env.CUSTOMER_IO_SITE_ID;
+const CUSTOMER_IO_TRACK_API_KEY = process.env.CUSTOMER_IO_TRACK_API_KEY;
 
 console.log('\n🔍 Welcome Email Diagnostics\n');
 console.log('='.repeat(60));
@@ -22,6 +23,7 @@ console.log('='.repeat(60));
 console.log('\n1. Environment Variables:');
 console.log(`   CUSTOMER_IO_API_KEY: ${CUSTOMER_IO_API_KEY ? '✅ Set' : '❌ Missing'}`);
 console.log(`   CUSTOMER_IO_SITE_ID: ${CUSTOMER_IO_SITE_ID ? '✅ Set' : '❌ Missing'}`);
+console.log(`   CUSTOMER_IO_TRACK_API_KEY: ${CUSTOMER_IO_TRACK_API_KEY ? '✅ Set' : '❌ Missing'}`);
 
 if (!CUSTOMER_IO_API_KEY || !CUSTOMER_IO_SITE_ID) {
 	console.log('\n❌ Customer.io credentials are missing!');
@@ -36,10 +38,11 @@ if (!CUSTOMER_IO_API_KEY || !CUSTOMER_IO_SITE_ID) {
 }
 
 // Test Customer.io API connectivity
-console.log('\n2. Testing Customer.io API:');
+console.log('\n2. Testing Customer.io Track API:');
 try {
-	const { APIClient, RegionEU } = await import('customerio-node');
-	const cio = new APIClient(CUSTOMER_IO_API_KEY, { region: RegionEU });
+	const { TrackClient, RegionEU } = await import('customerio-node');
+	const trackKey = CUSTOMER_IO_TRACK_API_KEY || CUSTOMER_IO_API_KEY;
+	const cio = new TrackClient(CUSTOMER_IO_SITE_ID, trackKey, { region: RegionEU });
 	
 	// Try to identify a test user
 	const testUserId = 'test-' + Date.now();
@@ -49,15 +52,16 @@ try {
 		created_at: Math.floor(Date.now() / 1000)
 	});
 	
-	console.log('   ✅ Customer.io API is accessible');
+	console.log('   ✅ Customer.io Track API is accessible and working');
 	
 	// Clean up test user
 	await cio.destroy(testUserId);
+	console.log('   ✅ Test user cleaned up');
 	
 } catch (err) {
-	console.log('   ❌ Customer.io API failed:', err.message);
+	console.log('   ❌ Customer.io Track API failed:', err.message);
 	console.log('\n   Possible causes:');
-	console.log('   - Wrong API key or site ID');
+	console.log('   - Wrong Track API key or site ID');
 	console.log('   - Network/firewall blocking request');
 	console.log('   - Customer.io service is down');
 	process.exit(1);
