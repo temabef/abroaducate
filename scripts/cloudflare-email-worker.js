@@ -4,10 +4,9 @@
  * This worker runs 100% free on Cloudflare.
  * Whenever an email is sent to hello@abroaducate.com,
  * Cloudflare triggers this worker, which:
- *  1. Extracts the sender, subject, and text body.
+ *  1. Forwards a copy to abroaducate@gmail.com so you always have the email in Gmail.
  *  2. Posts the payload to the Abroaducate AI Agent webhook.
- *  3. Uses ctx.waitUntil to guarantee Cloudflare keeps the worker alive until
- *     the webhook finishes processing and returns.
+ *  3. The AI agent responds to the student autonomously in clean, human-like text.
  */
 
 export default {
@@ -15,6 +14,17 @@ export default {
 		const task = (async () => {
 			const webhookUrl = env.WEBHOOK_URL || 'https://www.abroaducate.com/api/ai-email-agent/webhook';
 			const secretToken = env.AI_EMAIL_AGENT_SECRET || 'df688903-b6c7-436a-93a8-0bad926288c9';
+			const forwardAddress = env.FORWARD_TO || 'abroaducate@gmail.com';
+
+			// 1. Forward a copy of the incoming email to abroaducate@gmail.com
+			if (forwardAddress && message.from.toLowerCase() !== forwardAddress.toLowerCase()) {
+				try {
+					await message.forward(forwardAddress);
+					console.log(`[EMAIL_WORKER] ✅ Forwarded copy to ${forwardAddress}`);
+				} catch (fwdErr) {
+					console.warn(`[EMAIL_WORKER] Forwarding copy to ${forwardAddress} skipped/failed:`, fwdErr);
+				}
+			}
 
 			const fromAddress = message.headers.get('from') || message.from;
 			const toAddress = message.to;
@@ -57,7 +67,7 @@ export default {
 			};
 
 			try {
-				console.log(`[EMAIL_WORKER] Forwarding email to webhook: ${fromAddress} - "${subject}"`);
+				console.log(`[EMAIL_WORKER] Forwarding to webhook: ${fromAddress} - "${subject}"`);
 				const res = await fetch(webhookUrl, {
 					method: 'POST',
 					headers: {
@@ -66,7 +76,6 @@ export default {
 					},
 					body: JSON.stringify(payload)
 				});
-
 				const resData = await res.text();
 				console.log(`[EMAIL_WORKER] Webhook response [${res.status}]: ${resData}`);
 			} catch (postErr) {
