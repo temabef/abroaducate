@@ -25,6 +25,10 @@ export interface SendEmailOptions {
 	fromName?: string;
 	fromEmail?: string;
 	replyTo?: string;
+	bcc?: string;
+	inReplyTo?: string;
+	references?: string | string[];
+	headers?: Record<string, string>;
 }
 
 /**
@@ -92,8 +96,52 @@ export async function sendEmail(opts: SendEmailOptions): Promise<{ success: bool
 			body: opts.html,
 			identifiers: { email: opts.to }
 		};
+
+		if (opts.text) {
+			reqPayload.body_plain = opts.text;
+		}
+
 		if (opts.replyTo) {
 			reqPayload.reply_to = opts.replyTo;
+		}
+
+		// Attach BCC only if different from recipient
+		if (opts.bcc && opts.bcc.toLowerCase().trim() !== opts.to.toLowerCase().trim()) {
+			reqPayload.bcc = opts.bcc.trim();
+		}
+
+		// Email thread chaining headers (In-Reply-To, References) for Gmail/Apple/Outlook
+		const headers: Record<string, string> = { ...(opts.headers || {}) };
+
+		const formatMsgId = (id?: string): string | undefined => {
+			if (!id) return undefined;
+			const trimmed = id.trim();
+			if (!trimmed) return undefined;
+			return trimmed.startsWith('<') && trimmed.endsWith('>') ? trimmed : `<${trimmed}>`;
+		};
+
+		if (opts.inReplyTo) {
+			const formattedInReplyTo = formatMsgId(opts.inReplyTo);
+			if (formattedInReplyTo) {
+				headers['In-Reply-To'] = formattedInReplyTo;
+			}
+		}
+
+		if (opts.references) {
+			const refList = Array.isArray(opts.references)
+				? opts.references
+				: opts.references.split(/\s+/);
+			const formattedRefs = refList
+				.map((r) => formatMsgId(r))
+				.filter(Boolean)
+				.join(' ');
+			if (formattedRefs) {
+				headers['References'] = formattedRefs;
+			}
+		}
+
+		if (Object.keys(headers).length > 0) {
+			reqPayload.headers = headers;
 		}
 
 		const res = await fetch(`${CIO_API_URL}/send/email`, {

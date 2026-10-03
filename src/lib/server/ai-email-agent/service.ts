@@ -6,7 +6,23 @@ import { ABROADUCATE_KNOWLEDGE_BASE, getStudentProfileByEmail } from './knowledg
 import { executeLLM, type ChatMessage } from './llm';
 import { buildAbroaducateEmailHtml, buildEscalationAlertEmail } from './templates';
 import { sendEmail } from '../email.server';
+import { env } from '$env/dynamic/private';
 import type { IncomingEmail, EmailAgentResult, EmailClassification, EmailAgentSettings } from './types';
+
+/**
+ * Ensures any hallucinated or outdated /dashboard/ or /calculator paths are cleanly mapped to their canonical routes.
+ */
+function sanitizeAbroaducateUrls(text: string): string {
+	if (!text) return '';
+	return text
+		.replace(/https?:\/\/(?:www\.)?abroaducate\.com\/dashboard\/sop/gi, 'https://www.abroaducate.com/sop')
+		.replace(/https?:\/\/(?:www\.)?abroaducate\.com\/dashboard\/scholarships/gi, 'https://www.abroaducate.com/scholarships')
+		.replace(/https?:\/\/(?:www\.)?abroaducate\.com\/dashboard\/cold-email/gi, 'https://www.abroaducate.com/cold-email')
+		.replace(/https?:\/\/(?:www\.)?abroaducate\.com\/dashboard\/academic-cv/gi, 'https://www.abroaducate.com/academic-cv')
+		.replace(/https?:\/\/(?:www\.)?abroaducate\.com\/dashboard\/toolkit/gi, 'https://www.abroaducate.com/toolkit')
+		.replace(/https?:\/\/(?:www\.)?abroaducate\.com\/dashboard\/visa-interview/gi, 'https://www.abroaducate.com/toolkit')
+		.replace(/https?:\/\/(?:www\.)?abroaducate\.com\/calculator/gi, 'https://www.abroaducate.com/toolkit');
+}
 
 const DEFAULT_SETTINGS: EmailAgentSettings = {
 	agentEnabled: true,
@@ -177,7 +193,7 @@ INSTRUCTIONS FOR YOUR RESPONSE:
 1. Tone: Warm, empathetic, human, and helpful — exactly like an experienced human advisor writing an email. Never refer to yourself as an AI, bot, or automated system.
 2. Address the student warmly: If their name is known, greet them by their first name (e.g. "Hi Sarah,").
 3. Directly answer every specific question asked in the email.
-4. Helpful links: Reference relevant Abroaducate tools naturally in the text (e.g., [Explore Scholarships](https://www.abroaducate.com/scholarships), [AI SOP Reviewer](https://www.abroaducate.com/dashboard/sop)).
+4. Helpful links: Reference relevant Abroaducate tools naturally in the text (e.g., [Explore Scholarships](https://www.abroaducate.com/scholarships), [AI SOP Builder](https://www.abroaducate.com/sop), [Student Relocation Toolkit](https://www.abroaducate.com/toolkit), [Professor Cold Email](https://www.abroaducate.com/cold-email)).
 5. If they ask about Germany, mention €0 tuition at public universities, the €11,904 blocked account requirement, and English-taught programs.
 6. Escalation criteria: Mark shouldEscalate = true if:
    - They report a severe technical glitch or payment error/charge dispute
@@ -198,10 +214,10 @@ ${email.text || email.html || '(No body text)'}
 
 Analyze this email and generate:
 1. Classification: category ('scholarships' | 'admissions_sop' | 'visa_finance' | 'subscription_billing' | 'urgent_human_needed' | 'general_inquiry'), urgency ('low' | 'normal' | 'high' | 'critical'), confidence (0.0 to 1.0), summary (1-2 sentences), shouldEscalate (boolean), escalationReason (if escalated).
-2. replySubject: Proper reply subject line (e.g. "Re: ${email.subject.replace(/^Re:\s*/i, '')}").
+2. replySubject: Proper reply subject line (e.g. "Re: ${email.subject.replace(/^(?:Re:\s*|Fwd:\s*)+/i, '')}").
 3. replyMarkdown: Your comprehensive, professional email response formatted cleanly. Do NOT use markdown header hashtags (# or ## or ###); use bold text (**Section Title**) for section headers.
-4. suggestedCtaUrl: Most relevant platform URL for this student (e.g. "https://www.abroaducate.com/scholarships", "https://www.abroaducate.com/dashboard/sop", "https://www.abroaducate.com/dashboard/visa-interview", "https://www.abroaducate.com/calculator", or "https://www.abroaducate.com/pricing").
-5. suggestedCtaText: Action button text (e.g. "Explore Scholarships on Abroaducate", "Review My Statement of Purpose", "Launch Visa Interview Simulator").`;
+4. suggestedCtaUrl: Most relevant platform URL for this student (e.g. "https://www.abroaducate.com/scholarships", "https://www.abroaducate.com/sop", "https://www.abroaducate.com/toolkit", "https://www.abroaducate.com/cold-email", or "https://www.abroaducate.com/academic-cv").
+5. suggestedCtaText: Action button text (e.g. "Explore Scholarships on Abroaducate", "Build Your SOP on Abroaducate", "View Relocation Toolkit").`;
 
 	const messages: ChatMessage[] = [
 		{ role: 'system', content: systemPrompt },
@@ -231,11 +247,18 @@ Analyze this email and generate:
 			keyQuestions: parsedJson.classification?.keyQuestions || []
 		};
 
-		const replySubject = parsedJson.replySubject || `Re: ${email.subject.replace(/^Re:\s*/i, '')}`;
+		// Enforce standard Re: <Subject> to ensure Gmail and email clients thread messages correctly
+		const cleanSubject = (email.subject || 'Abroaducate Inquiry')
+			.replace(/^(?:Re:\s*|Fwd:\s*)+/i, '')
+			.trim() || 'Abroaducate Inquiry';
+		const replySubject = `Re: ${cleanSubject}`;
+
 		// Sanitize any stray markdown header hashtags (#, ##, ###) into clean bold text for human readability
 		const rawReply = parsedJson.replyMarkdown || '';
-		const replyMarkdown = rawReply.replace(/^#{1,6}\s*(.+)$/gm, '**$1**').trim();
-		const ctaUrl = parsedJson.suggestedCtaUrl || 'https://www.abroaducate.com';
+		const replyMarkdown = sanitizeAbroaducateUrls(
+			rawReply.replace(/^#{1,6}\s*(.+)$/gm, '**$1**').trim()
+		);
+		const ctaUrl = sanitizeAbroaducateUrls(parsedJson.suggestedCtaUrl || 'https://www.abroaducate.com');
 		const ctaText = parsedJson.suggestedCtaText || 'Visit Abroaducate';
 
 		// Build branded Abroaducate HTML email
@@ -254,17 +277,46 @@ Analyze this email and generate:
 		let dispatchError = '';
 
 		if (shouldSendAutonomously) {
+			const inReplyToId =
+				email.messageId ||
+				email.headers?.['message-id'] ||
+				email.headers?.['Message-ID'];
+
+			const referencesList: string[] = [];
+			const incomingRef =
+				email.headers?.['references'] ||
+				email.headers?.['References'];
+			if (incomingRef) {
+				referencesList.push(...incomingRef.trim().split(/\s+/));
+			}
+			if (inReplyToId && !referencesList.includes(inReplyToId)) {
+				referencesList.push(inReplyToId);
+			}
+
+			// Destination for thread-syncing BCC: abroaducate@gmail.com
+			const forwardInbox =
+				env.EMAIL_FORWARD_INBOX ||
+				env.ADMIN_EMAIL ||
+				'abroaducate@gmail.com';
+
+			// Only BCC if the sender is not already abroaducate@gmail.com
+			const shouldBcc =
+				forwardInbox &&
+				email.fromEmail.toLowerCase().trim() !== forwardInbox.toLowerCase().trim();
+			const bccAddress = shouldBcc ? forwardInbox : undefined;
+
 			// Try sending via Zoho SMTP first (so it lands in Zoho Sent folder)
 			let sendSuccess = false;
 			try {
 				const { sendZohoEmail } = await import('./zoho-client');
 				const zohoResult = await sendZohoEmail({
 					to: email.fromEmail,
+					bcc: bccAddress,
 					subject: replySubject,
 					html: replyHtml,
 					text: replyMarkdown,
-					inReplyTo: email.messageId,
-					references: email.messageId ? [email.messageId] : undefined
+					inReplyTo: inReplyToId,
+					references: referencesList.length > 0 ? referencesList : undefined
 				});
 				if (zohoResult.success) {
 					sendSuccess = true;
@@ -280,12 +332,15 @@ Analyze this email and generate:
 			if (!sendSuccess) {
 				const sendResult = await sendEmail({
 					to: email.fromEmail,
+					bcc: bccAddress,
 					fromName: 'Abroaducate',
 					fromEmail: 'hello@abroaducate.com',
 					replyTo: 'hello@abroaducate.com',
 					subject: replySubject,
 					html: replyHtml,
-					text: replyMarkdown
+					text: replyMarkdown,
+					inReplyTo: inReplyToId,
+					references: referencesList.length > 0 ? referencesList : undefined
 				});
 				sendSuccess = Boolean(sendResult.success);
 				if (!sendSuccess) {

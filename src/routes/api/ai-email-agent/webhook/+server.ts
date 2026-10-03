@@ -100,6 +100,16 @@ async function parseIncomingPayload(request: Request): Promise<IncomingEmail | n
 			headersMap = body.headers;
 		}
 
+		const resolvedMessageId =
+			body.messageId ||
+			body['Message-Id'] ||
+			body['message-id'] ||
+			body.MessageID ||
+			headersMap?.['message-id'] ||
+			headersMap?.['Message-Id'] ||
+			headersMap?.['Message-ID'] ||
+			undefined;
+
 		return {
 			from: rawFrom,
 			fromEmail: parsedSender.email,
@@ -108,7 +118,7 @@ async function parseIncomingPayload(request: Request): Promise<IncomingEmail | n
 			subject: body.subject || body.Subject || '(No Subject)',
 			text: body.text || body.Text || body.body || body.message || '',
 			html: body.html || body.Html || undefined,
-			messageId: body.messageId || body['Message-Id'] || body['message-id'],
+			messageId: resolvedMessageId,
 			headers: headersMap
 		};
 	}

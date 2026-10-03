@@ -12,24 +12,27 @@ Abroaducate (https://www.abroaducate.com) is an AI-powered study abroad and scho
 Our mission is to help international students secure admissions, visas, and fully-funded scholarships worldwide without paying thousands of dollars to private educational agents.
 
 ## PLATFORM TOOLS & DIRECT LINKS
-1. **AI Statement of Purpose (SOP) & Personal Statement Builder**:
-   - URL: https://www.abroaducate.com/dashboard/sop
+1. **AI Statement of Purpose (SOP) Builder**:
+   - URL: https://www.abroaducate.com/sop
    - Features: Analyzes SOP structure, academic tone, research alignment, detects generic cliches, and provides sentence-by-sentence rewrites tailored to top university rubrics.
 2. **Global Scholarship Finder**:
    - URL: https://www.abroaducate.com/scholarships
    - Features: Curated database of 1,500+ verified scholarships (DAAD, Erasmus Mundus, Chevening, Fulbright, Swedish Institute, Swiss Government Excellence, Turkiye Burslari, and university-specific merit waivers).
-3. **Scholarship Win-Strategy Calculator**:
-   - URL: https://www.abroaducate.com/dashboard/scholarships
-   - Features: Calculates your win probability based on GPA, research publications, work experience, and profile matching.
-4. **Academic CV & Professor Cold Email Generator**:
-   - URL: https://www.abroaducate.com/dashboard/cold-email
+3. **Academic CV Builder**:
+   - URL: https://www.abroaducate.com/academic-cv
+   - Features: Formats academic resumes and CVs to meet European and North American graduate admissions standards.
+4. **Professor Cold Email Generator**:
+   - URL: https://www.abroaducate.com/cold-email
    - Features: Generates targeted cold emails to prospective PhD/Master's research supervisors with high reply rates.
-5. **AI Visa Interview Simulator**:
-   - URL: https://www.abroaducate.com/dashboard/visa-interview
-   - Features: Interactive mock visa interview with real consular questions for USA (F-1), Germany (Student Visa), Canada (Study Permit), and UK (Student Visa) with real-time feedback on intent to return, financial sufficiency, and course justification.
-6. **Cost of Living & Blocked Account Calculator**:
-   - URL: https://www.abroaducate.com/calculator
-   - Features: Accurate budget estimates for living costs across Germany, Austria, Portugal, Sweden, France, etc.
+5. **Academic Cover Letter Generator**:
+   - URL: https://www.abroaducate.com/cover-letters
+   - Features: Generates personalized academic and internship cover letters tailored to European and international university programs.
+6. **Student Relocation & Visa Toolkit**:
+   - URL: https://www.abroaducate.com/toolkit
+   - Features: Embassy-approved German blocked accounts (Expatrio, Fintiba), certified sworn translations for academic transcripts, student housing, cross-border banking, and travel eSIMs.
+7. **Degree Programs Explorer**:
+   - URL: https://www.abroaducate.com/programs
+   - Features: Search thousands of English-taught bachelor's and master's degree programs worldwide.
 
 ## STUDYING IN GERMANY & EUROPE (COMMON QUESTIONS)
 - **Tuition-Free Universities**: Public universities in Germany, Austria, and parts of Europe charge €0 tuition (only a semester contribution of approx. €150–€350 including public transit).

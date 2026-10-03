@@ -1,6 +1,6 @@
 import { redirect, error } from '@sveltejs/kit';
 
-export async function load({ url }) {
+export async function load({ url }: { url: URL }) {
   const path = url.pathname;
 
   // Handle old WordPress scholarship URLs
@@ -25,6 +25,13 @@ export async function load({ url }) {
     '/cover-letter': '/cover-letters',
     '/personal-statement': '/personal-statements',
     '/academic-cv': '/academic-cv',
+    '/dashboard/sop': '/sop',
+    '/dashboard/scholarships': '/scholarships',
+    '/dashboard/cold-email': '/cold-email',
+    '/dashboard/academic-cv': '/academic-cv',
+    '/dashboard/toolkit': '/toolkit',
+    '/dashboard/visa-interview': '/toolkit',
+    '/calculator': '/toolkit',
     '/ielts-practice': '/practice/ielts',
     '/visa-practice': '/visa-interview-practice',
     '/tools/gpa-converter': '/gpa-converter',

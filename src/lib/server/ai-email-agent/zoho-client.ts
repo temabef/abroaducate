@@ -76,6 +76,7 @@ function createSmtpTransport(config: ZohoConfig) {
  */
 export async function sendZohoEmail(opts: {
 	to: string;
+	bcc?: string;
 	subject: string;
 	html: string;
 	text?: string;
@@ -92,6 +93,7 @@ export async function sendZohoEmail(opts: {
 		await transporter.sendMail({
 			from: `"Abroaducate" <${config.email}>`,
 			to: opts.to,
+			bcc: opts.bcc,
 			subject: opts.subject,
 			html: opts.html,
 			text: opts.text,
