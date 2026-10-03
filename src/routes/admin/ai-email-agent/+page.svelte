@@ -856,7 +856,7 @@ ZOHO_SMTP_HOST=smtp.zoho.eu</pre>
 						</div>
 					{/if}
 
-					{#if selectedLog.error_message}
+					{#if selectedLog.status === 'failed' && selectedLog.error_message}
 						<div class="p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700">
 							<strong>Error / Reason:</strong> {selectedLog.error_message}
 						</div>

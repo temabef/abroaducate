@@ -346,7 +346,7 @@ Analyze this email and generate:
 				processingMs,
 				studentProfileFound: studentProfile.found,
 				studentUserId: studentProfile.userId,
-				errorMessage: dispatchError || undefined
+				errorMessage: finalStatus === 'failed' ? (dispatchError || undefined) : undefined
 			});
 		}
 
