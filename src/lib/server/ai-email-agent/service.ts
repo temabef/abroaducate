@@ -247,7 +247,7 @@ Analyze this email and generate:
 
 		let finalStatus: 'replied' | 'drafted' | 'escalated' | 'failed' = 'drafted';
 
-		if (shouldSendAutonomously) {
+			let dispatchError = '';
 			// Try sending via Zoho SMTP first (so it lands in Zoho Sent folder)
 			let sendSuccess = false;
 			try {
@@ -262,8 +262,11 @@ Analyze this email and generate:
 				});
 				if (zohoResult.success) {
 					sendSuccess = true;
+				} else {
+					dispatchError = `Zoho SMTP: ${zohoResult.error || 'Failed'}`;
 				}
-			} catch (zohoErr) {
+			} catch (zohoErr: any) {
+				dispatchError = `Zoho exception: ${zohoErr?.message || String(zohoErr)}`;
 				console.warn('[AI_EMAIL_AGENT] Zoho SMTP attempt skipped/failed, using Customer.io fallback:', zohoErr);
 			}
 
@@ -279,10 +282,13 @@ Analyze this email and generate:
 					text: replyMarkdown
 				});
 				sendSuccess = Boolean(sendResult.success);
+				if (!sendSuccess) {
+					dispatchError += ` | Customer.io: ${sendResult.error || 'Failed'}`;
+				}
 			}
 
 			if (!sendSuccess) {
-				console.error('[AI_EMAIL_AGENT] Failed to dispatch reply email via all providers');
+				console.error('[AI_EMAIL_AGENT] Failed to dispatch reply email via all providers:', dispatchError);
 				finalStatus = 'failed';
 			} else {
 				finalStatus = classification.shouldEscalate ? 'escalated' : 'replied';
@@ -335,7 +341,8 @@ Analyze this email and generate:
 				modelUsed: llmResponse.modelUsed,
 				processingMs,
 				studentProfileFound: studentProfile.found,
-				studentUserId: studentProfile.userId
+				studentUserId: studentProfile.userId,
+				errorMessage: dispatchError || undefined
 			});
 		}
 
