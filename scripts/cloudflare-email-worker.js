@@ -8,6 +8,15 @@
 
 export default {
 	async email(message, env, ctx) {
+		// 1. Automatically forward incoming email to monitoring inbox
+		const forwardAddress = env.FORWARD_EMAIL || 'abroaducate@gmail.com';
+		try {
+			await message.forward(forwardAddress);
+		} catch (fwdErr) {
+			console.warn(`[EMAIL_WORKER] Forwarding to ${forwardAddress} skipped/failed:`, fwdErr);
+		}
+
+		// 2. Dispatch to Abroaducate AI Webhook
 		ctx.waitUntil((async () => {
 			const webhookUrl = env.WEBHOOK_URL || 'https://www.abroaducate.com/api/ai-email-agent/webhook';
 			const secretToken = env.AI_EMAIL_AGENT_SECRET || 'df688903-b6c7-436a-93a8-0bad926288c9';

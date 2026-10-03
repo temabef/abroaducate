@@ -171,6 +171,33 @@ export async function processIncomingEmail(
 	// 2. Fetch student profile context from Supabase (if available)
 	const studentProfile = await getStudentProfileByEmail(email.fromEmail);
 
+	// 2b. Fetch prior email exchanges with this student to maintain continuous conversation context
+	let priorConversationContext = '';
+	if (PUBLIC_SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY && email.fromEmail) {
+		try {
+			const supabase = createClient(PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+			const { data: recentLogs } = await supabase
+				.from('ai_email_logs')
+				.select('created_at, incoming_body, reply_body')
+				.ilike('sender_email', email.fromEmail.trim().toLowerCase())
+				.order('created_at', { ascending: false })
+				.limit(2);
+
+			if (recentLogs && recentLogs.length > 0) {
+				const historySnippets = recentLogs
+					.reverse()
+					.map(
+						(log, i) =>
+							`[Exchange ${i + 1} (${new Date(log.created_at).toLocaleDateString()})]:\nStudent wrote: "${(log.incoming_body || '').slice(0, 400).trim()}"\nAdvisor replied: "${(log.reply_body || '').slice(0, 400).trim()}"`
+					)
+					.join('\n\n');
+				priorConversationContext = `\nPRIOR CONVERSATION HISTORY WITH THIS STUDENT:\n${historySnippets}\n`;
+			}
+		} catch (err) {
+			console.warn('[AI_EMAIL_AGENT] Could not fetch prior email logs:', err);
+		}
+	}
+
 	// 3. Construct System Prompt & Instructions
 	const systemPrompt = `You are a Senior Student Admissions & Scholarship Advisor at Abroaducate.
 Your job is to read incoming emails from international students, prospective applicants, or website visitors, and write a helpful, compassionate, highly accurate, natural, and personal response as a human team member. Never introduce yourself as an AI or mention that you are an artificial intelligence.
@@ -188,21 +215,26 @@ ${
 - Current Plan: ${studentProfile.subscriptionTier}`
 		: `- Registered Student: No record found (Prospective student or guest)`
 }
-
+${priorConversationContext}
 INSTRUCTIONS FOR YOUR RESPONSE:
 1. Tone: Warm, empathetic, human, and helpful — exactly like an experienced human advisor writing an email. Never refer to yourself as an AI, bot, or automated system.
 2. Address the student warmly: If their name is known, greet them by their first name (e.g. "Hi Sarah,").
 3. Directly answer every specific question asked in the email.
-4. Helpful links: Reference relevant Abroaducate tools naturally in the text (e.g., [Explore Scholarships](https://www.abroaducate.com/scholarships), [AI SOP Builder](https://www.abroaducate.com/sop), [Student Relocation Toolkit](https://www.abroaducate.com/toolkit), [Professor Cold Email](https://www.abroaducate.com/cold-email)).
-5. If they ask about Germany, mention €0 tuition at public universities, the €11,904 blocked account requirement, and English-taught programs.
-6. Escalation criteria: Mark shouldEscalate = true if:
+4. Continuing Conversations & Follow-ups:
+   - If this is a follow-up or reply in an ongoing email chain: maintain full context from prior messages. Do NOT re-introduce yourself or re-explain things already covered unless asked.
+   - If the student is simply saying thank you, acknowledging previous advice (e.g. "good to know thanks", "thank you so much", "got it"), without asking new questions:
+     Write a warm, concise 1-2 sentence response (e.g. "You're very welcome, [Name]! Wishing you the very best with your applications. If any other questions come up as you prepare, feel free to reach out anytime!"). Do NOT repeat links or send long essays.
+   - If the student asks a new or clarifying question, answer it directly and thoroughly while staying grounded in Abroaducate's knowledge base.
+5. Helpful links: When relevant to their new questions, reference Abroaducate tools naturally in the text (e.g., [Explore Scholarships](https://www.abroaducate.com/scholarships), [AI SOP Builder](https://www.abroaducate.com/sop), [Student Relocation Toolkit](https://www.abroaducate.com/toolkit), [Professor Cold Email](https://www.abroaducate.com/cold-email)).
+6. If they ask about Germany, mention €0 tuition at public universities, the €11,904 blocked account requirement, and English-taught programs.
+7. Escalation criteria: Mark shouldEscalate = true if:
    - They report a severe technical glitch or payment error/charge dispute
    - They request a formal partnership, legal inquiry, or express anger/frustration
    - They require manual document verification that requires admin intervention
-7. Formatting: Write the email naturally and conversationally. NEVER use markdown header hashtags (# or ## or ###). For section titles or key points, use bold text (e.g. **DAAD Scholarship Requirements**). Use bullet points and paragraphs cleanly. Sign off naturally:
+8. Formatting: Write the email naturally and conversationally. NEVER use markdown header hashtags (# or ## or ###). For section titles or key points, use bold text (e.g. **DAAD Scholarship Requirements**). Use bullet points and paragraphs cleanly. Sign off naturally:
 Best regards,
 The Abroaducate Team
-8. JSON Output: Return a strictly valid JSON object matching the requested schema.`;
+9. JSON Output: Return a strictly valid JSON object matching the requested schema.`;
 
 	const userPrompt = `Incoming Email:
 From: "${email.fromName || ''}" <${email.fromEmail}>
