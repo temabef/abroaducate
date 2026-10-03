@@ -2,8 +2,8 @@ name: Daily Scholarship Match Refresh
 
 on:
   schedule:
-    # 03:00 UTC daily — rolls past deadlines forward and rescores all pairs
-    - cron: '0 3 * * *'
+    # 03:00 UTC Sunday & Wednesday — rolls past deadlines forward and rescores pairs
+    - cron: '0 3 * * 0,3'
   workflow_dispatch:
 
 jobs:

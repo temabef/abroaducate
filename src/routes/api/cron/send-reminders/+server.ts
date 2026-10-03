@@ -109,6 +109,19 @@ export const POST: RequestHandler = async ({ request, platform }) => {
     // has_more tracks whether there are more users beyond this batch (for the cron loop)
     let hasMore = false;
 
+    // Pre-fetch recent scholarships once for this batch to prevent thousands of duplicate DB queries
+    let cachedScholarships: any[] = [];
+    if (isMonday || forceDigestAllRegistered) {
+      const twoWeeksAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
+      const { data: scholarships } = await supabase
+        .from('scholarships')
+        .select('id, title, provider, deadline, amount, description')
+        .gte('created_at', twoWeeksAgo.toISOString())
+        .order('created_at', { ascending: false })
+        .limit(10);
+      cachedScholarships = scholarships || [];
+    }
+
     if (isMonday || forceDigestAllRegistered) {
       // Fetch only the current page of users using Supabase's page/perPage pagination.
       // The cron workflow calls this endpoint repeatedly with increasing offsets until
@@ -128,7 +141,7 @@ export const POST: RequestHandler = async ({ request, platform }) => {
       for (const authUser of usersInBatch) {
         if (!authUser.email) continue;
         try {
-          const emailSent = await sendScholarshipDigest(authUser.email, authUser.id);
+          const emailSent = await sendScholarshipDigest(authUser.email, authUser.id, undefined, cachedScholarships);
           if (emailSent) {
             emailsProcessed.scholarship_digest++;
             totalEmailsSent++;
@@ -252,25 +265,29 @@ export const POST: RequestHandler = async ({ request, platform }) => {
 
         console.log(`📧 Sending digest to newsletter batch: ${dedupedBatch.length} subscribers (offset ${nlOffset})`);
 
+        const sentSubscriberIds: any[] = [];
         for (const subscriber of dedupedBatch) {
           try {
-            const emailSent = await sendScholarshipDigest(subscriber.email, null, subscriber.source);
+            const emailSent = await sendScholarshipDigest(subscriber.email, null, subscriber.source, cachedScholarships);
             if (emailSent) {
               emailsProcessed.newsletter_emails++;
               totalEmailsSent++;
               totalNlSubscribers++;
-
-              // Update subscriber stats (fire-and-forget, don't block the loop)
-              supabase
-                .from('newsletter_subscribers')
-                .update({ last_email_sent: new Date().toISOString() })
-                .eq('id', subscriber.id)
-                .then(() => {})
-                .catch(() => {});
+              sentSubscriberIds.push(subscriber.id);
             }
           } catch (error) {
             console.error(`Error sending newsletter to ${subscriber.email}:`, error);
           }
+        }
+
+        // Batch update subscriber stats in 1 query per batch instead of 500 individual queries
+        if (sentSubscriberIds.length > 0) {
+          supabase
+            .from('newsletter_subscribers')
+            .update({ last_email_sent: new Date().toISOString() })
+            .in('id', sentSubscriberIds)
+            .then(() => {})
+            .catch(() => {});
         }
 
         if (nlBatch.length < NL_PAGE) break; // last page
@@ -333,17 +350,25 @@ export const POST: RequestHandler = async ({ request, platform }) => {
 
 // ============ EMAIL SENDING FUNCTIONS WITH SENDGRID ============
 
-async function sendScholarshipDigest(email: string, userId: string | null, source?: string): Promise<boolean> {
+async function sendScholarshipDigest(
+  email: string,
+  userId: string | null,
+  source?: string,
+  preloadedScholarships?: any[]
+): Promise<boolean> {
   try {
-    // Get new/recent scholarships from the last 2 weeks (curated digest, up to 10)
-    const twoWeeksAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
-    
-    const { data: scholarships } = await supabase
-      .from('scholarships')
-      .select('id, title, provider, deadline, amount, description')
-      .gte('created_at', twoWeeksAgo.toISOString())
-      .order('created_at', { ascending: false })
-      .limit(10);
+    let scholarships = preloadedScholarships;
+    if (!scholarships || scholarships.length === 0) {
+      // Fallback: Get new/recent scholarships from the last 2 weeks if not preloaded
+      const twoWeeksAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
+      const { data } = await supabase
+        .from('scholarships')
+        .select('id, title, provider, deadline, amount, description')
+        .gte('created_at', twoWeeksAgo.toISOString())
+        .order('created_at', { ascending: false })
+        .limit(10);
+      scholarships = data || [];
+    }
 
     if (!scholarships || scholarships.length === 0) {
       console.log(`📊 No new scholarships for ${email}, skipping digest`);

@@ -62,6 +62,7 @@ export interface SendEmailOptions {
 	text?: string;
 	fromName?: string;
 	fromEmail?: string;
+	replyTo?: string;
 }
 
 /**
@@ -71,13 +72,17 @@ export interface SendEmailOptions {
 export async function sendEmail(opts: SendEmailOptions): Promise<{ success: boolean; error?: string }> {
 	try {
 		const client = getClient();
-		const req = new SendEmailRequest({
+		const reqPayload: Record<string, any> = {
 			to: opts.to,
 			from: `${opts.fromName ?? FROM_NAME} <${opts.fromEmail ?? FROM_EMAIL}>`,
 			subject: opts.subject,
 			body: opts.html,
 			identifiers: { email: opts.to },
-		});
+		};
+		if (opts.replyTo) {
+			reqPayload.reply_to = opts.replyTo;
+		}
+		const req = new SendEmailRequest(reqPayload as any);
 		await client.sendEmail(req);
 		console.log(`[EMAIL] ✅ Sent to ${opts.to}: ${opts.subject}`);
 		return { success: true };

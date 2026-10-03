@@ -113,6 +113,12 @@
               
               {#if permissions.canManageAdmins}
                 <a 
+                  href="/admin/ai-email-agent" 
+                  class="px-3 py-2 rounded-md text-sm font-medium {$page.url.pathname.includes('/ai-email-agent') ? 'bg-yellow-100 text-yellow-700' : 'text-gray-600 hover:text-gray-900'}"
+                >
+                  AI Email Agent
+                </a>
+                <a 
                   href="/admin/settings" 
                   class="px-3 py-2 rounded-md text-sm font-medium {$page.url.pathname.includes('/settings') ? 'bg-yellow-100 text-yellow-700' : 'text-gray-600 hover:text-gray-900'}"
                 >
@@ -209,6 +215,10 @@
             <a href="/admin/newsletter" class="flex items-center px-4 py-2 hover:bg-gray-700 {$page.url.pathname === '/admin/newsletter' ? 'bg-gray-700' : ''}">
               <span class="mr-2">📧</span>
               <span>Newsletter</span>
+            </a>
+            <a href="/admin/ai-email-agent" class="flex items-center px-4 py-2 hover:bg-gray-700 {$page.url.pathname.startsWith('/admin/ai-email-agent') ? 'bg-amber-700' : ''}">
+              <span class="mr-2">🤖</span>
+              <span>AI Email Agent</span>
             </a>
           {/if}
           
