@@ -246,8 +246,9 @@ Analyze this email and generate:
 			(settings.autonomousMode || options.forceAutonomous) && !options.isSimulation;
 
 		let finalStatus: 'replied' | 'drafted' | 'escalated' | 'failed' = 'drafted';
+		let dispatchError = '';
 
-			let dispatchError = '';
+		if (shouldSendAutonomously) {
 			// Try sending via Zoho SMTP first (so it lands in Zoho Sent folder)
 			let sendSuccess = false;
 			try {
