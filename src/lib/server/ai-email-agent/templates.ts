@@ -91,97 +91,22 @@ export interface BuildEmailHtmlOptions {
 /**
  * Builds the complete branded Abroaducate responsive HTML email template.
  */
+/**
+ * Builds a natural, human-like HTML email reply without AI badges, dark banners, or marketing cards.
+ */
 export function buildAbroaducateEmailHtml(options: BuildEmailHtmlOptions): string {
 	const bodyHtml = markdownToEmailHtml(options.bodyMarkdown);
-	const ctaUrl = options.ctaUrl || 'https://www.abroaducate.com/dashboard';
-	const ctaText = options.ctaText || 'Open Abroaducate Dashboard';
-
-	const escalationNotice = options.isEscalated
-		? `<div style="background-color: #fef3c7; border-left: 4px solid #d97706; padding: 12px 16px; border-radius: 6px; margin: 20px 0;">
-				<p style="margin: 0; color: #92400e; font-size: 13px; font-weight: 500;">
-					📌 <strong>Note:</strong> A copy of this inquiry has also been notified to our admissions team for personalized follow-up if needed.
-				</p>
-		   </div>`
-		: '';
 
 	return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Abroaducate Support</title>
 </head>
-<body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
-  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; padding: 30px 12px;">
-    <tr>
-      <td align="center">
-        <!-- Main Card Container -->
-        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 620px; background-color: #ffffff; border-radius: 14px; overflow: hidden; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05); border: 1px solid #e2e8f0;">
-          
-          <!-- Header Banner -->
-          <tr>
-            <td style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); padding: 28px 36px; text-align: left;">
-              <table width="100%" border="0" cellspacing="0" cellpadding="0">
-                <tr>
-                  <td>
-                    <span style="font-size: 22px; font-weight: 800; color: #ffffff; letter-spacing: -0.5px;">Abroaducate</span>
-                    <span style="display: inline-block; background-color: #d97706; color: #ffffff; font-size: 11px; font-weight: 700; text-transform: uppercase; padding: 2px 8px; border-radius: 12px; margin-left: 8px; vertical-align: middle;">AI Academic Advisor</span>
-                  </td>
-                </tr>
-                <tr>
-                  <td style="padding-top: 4px;">
-                    <span style="color: #94a3b8; font-size: 13px;">Admissions & Scholarship Support</span>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-
-          <!-- Email Content Body -->
-          <tr>
-            <td style="padding: 36px 36px 28px;">
-              ${bodyHtml}
-
-              ${escalationNotice}
-
-              <!-- Action Button -->
-              <table border="0" cellspacing="0" cellpadding="0" style="margin: 28px 0 16px;">
-                <tr>
-                  <td align="center" style="border-radius: 8px; background-color: #d97706;">
-                    <a href="${ctaUrl}" target="_blank" style="font-size: 14px; font-weight: 600; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 8px; display: inline-block;">
-                      ${ctaText} &rarr;
-                    </a>
-                  </td>
-                </tr>
-              </table>
-
-              <hr style="border: none; border-top: 1px solid #f1f5f9; margin: 28px 0;" />
-
-              <!-- Sign-off block -->
-              <p style="margin: 0; color: #64748b; font-size: 14px; line-height: 1.5;">
-                Warm regards,<br />
-                <strong style="color: #0f172a;">The Abroaducate Support Team</strong><br />
-                <span style="color: #94a3b8; font-size: 12px;">Empowering students to study abroad worldwide</span>
-              </p>
-            </td>
-          </tr>
-
-          <!-- Footer -->
-          <tr>
-            <td style="background-color: #f8fafc; padding: 20px 36px; border-top: 1px solid #e2e8f0; text-align: center;">
-              <p style="margin: 0 0 8px; font-size: 12px; color: #94a3b8;">
-                Have questions or need to add more details? Just reply directly to this email.
-              </p>
-              <p style="margin: 0; font-size: 11px; color: #cbd5e1;">
-                &copy; ${new Date().getFullYear()} Abroaducate. All rights reserved. &bull; <a href="https://www.abroaducate.com" style="color: #94a3b8; text-decoration: underline;">abroaducate.com</a>
-              </p>
-            </td>
-          </tr>
-
-        </table>
-      </td>
-    </tr>
-  </table>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 15px; line-height: 1.6; color: #1e293b; background-color: #ffffff;">
+  <div style="max-width: 650px; padding: 8px 0;">
+    ${bodyHtml}
+  </div>
 </body>
 </html>`;
 }
