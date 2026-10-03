@@ -33,16 +33,6 @@ export default {
 		const subject = message.headers.get('subject') || '(No Subject)';
 		const messageId = message.headers.get('message-id') || '';
 
-		// Optional: Forward a copy to personal email if FORWARD_TO is configured
-		if (env.FORWARD_TO) {
-			try {
-				await message.forward(env.FORWARD_TO);
-				console.log(`[EMAIL_WORKER] Forwarded copy to ${env.FORWARD_TO}`);
-			} catch (fwdErr) {
-				console.warn('[EMAIL_WORKER] Forward error:', fwdErr);
-			}
-		}
-
 		// Read the raw email text
 		let rawContent = '';
 		try {
