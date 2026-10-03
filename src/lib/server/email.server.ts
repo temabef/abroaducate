@@ -1,59 +1,21 @@
 /**
  * Shared Customer.io email helper.
  *
- * Uses the Transactional API (APIClient + SendEmailRequest) for all
- * one-off and batch emails. This replaces every SendGrid usage on the platform.
+ * Uses the Transactional API & Track API via standard Web fetch for Cloudflare Workers compatibility.
+ * This completely avoids Node.js `https.request` / `unenv` polyfill limitations on Cloudflare Workers.
  *
  * Required env vars:
  *   CUSTOMER_IO_SITE_ID   — from Customer.io → Settings → API Credentials
  *   CUSTOMER_IO_API_KEY   — same page (the "App API Key", not the tracking key)
- *
- * Customer.io transactional docs:
- *   https://customer.io/docs/api/app/#operation/sendEmail
+ *   CUSTOMER_IO_TRACK_API_KEY — tracking key (optional, falls back to API key)
  */
 
-import { APIClient, SendEmailRequest, RegionEU, TrackClient } from 'customerio-node';
 import { env } from '$env/dynamic/private';
 
 const FROM_NAME = 'Abroaducate';
 const FROM_EMAIL = 'hello@abroaducate.com';
-
-function getClient(): APIClient {
-	const apiKey = env.CUSTOMER_IO_API_KEY;
-	if (!apiKey) throw new Error('CUSTOMER_IO_API_KEY is not set');
-	return new APIClient(apiKey, { region: RegionEU });
-}
-
-function getTrackClient(): TrackClient | null {
-	const siteId = env.CUSTOMER_IO_SITE_ID;
-	const trackKey = env.CUSTOMER_IO_TRACK_API_KEY || env.CUSTOMER_IO_API_KEY;
-	if (!siteId || !trackKey) return null;
-	return new TrackClient(siteId, trackKey, { region: RegionEU });
-}
-
-/**
- * Identify or update a customer profile in Customer.io Track API.
- * This ensures the user is visible under Customer.io "People" for broadcasts and campaigns.
- */
-export async function identifyUser(
-	userId: string,
-	attributes: Record<string, any>
-): Promise<{ success: boolean; error?: string }> {
-	try {
-		const client = getTrackClient();
-		if (!client) {
-			console.warn('[CUSTOMER.IO] ⚠️ Cannot identify user: missing CUSTOMER_IO_SITE_ID or track key');
-			return { success: false, error: 'Missing Customer.io credentials' };
-		}
-		await client.identify(userId, attributes);
-		console.log(`[CUSTOMER.IO] ✅ Identified user ${userId} (${attributes.email ?? ''})`);
-		return { success: true };
-	} catch (err: any) {
-		const msg = err?.message ?? String(err);
-		console.error(`[CUSTOMER.IO] ❌ Failed to identify user ${userId}:`, msg);
-		return { success: false, error: msg };
-	}
-}
+const CIO_API_URL = 'https://api-eu.customer.io/v1';
+const CIO_TRACK_URL = 'https://track-eu.customer.io/api/v1';
 
 export interface SendEmailOptions {
 	to: string;
@@ -66,24 +28,88 @@ export interface SendEmailOptions {
 }
 
 /**
+ * Helper to encode credentials for Basic Auth across environments.
+ */
+function getBasicAuth(siteId: string, apiKey: string): string {
+	if (typeof btoa === 'function') {
+		return 'Basic ' + btoa(`${siteId}:${apiKey}`);
+	}
+	return 'Basic ' + Buffer.from(`${siteId}:${apiKey}`).toString('base64');
+}
+
+/**
+ * Identify or update a customer profile in Customer.io Track API.
+ * This ensures the user is visible under Customer.io "People" for broadcasts and campaigns.
+ */
+export async function identifyUser(
+	userId: string,
+	attributes: Record<string, any>
+): Promise<{ success: boolean; error?: string }> {
+	try {
+		const siteId = env.CUSTOMER_IO_SITE_ID;
+		const trackKey = env.CUSTOMER_IO_TRACK_API_KEY || env.CUSTOMER_IO_API_KEY;
+		if (!siteId || !trackKey) {
+			console.warn('[CUSTOMER.IO] ⚠️ Cannot identify user: missing CUSTOMER_IO_SITE_ID or track key');
+			return { success: false, error: 'Missing Customer.io credentials' };
+		}
+
+		const res = await fetch(`${CIO_TRACK_URL}/customers/${encodeURIComponent(userId)}`, {
+			method: 'PUT',
+			headers: {
+				Authorization: getBasicAuth(siteId, trackKey),
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify(attributes)
+		});
+
+		if (!res.ok) {
+			const errText = await res.text();
+			throw new Error(`Customer.io Track API error [${res.status}]: ${errText}`);
+		}
+
+		console.log(`[CUSTOMER.IO] ✅ Identified user ${userId} (${attributes.email ?? ''})`);
+		return { success: true };
+	} catch (err: any) {
+		const msg = err?.message ?? String(err);
+		console.error(`[CUSTOMER.IO] ❌ Failed to identify user ${userId}:`, msg);
+		return { success: false, error: msg };
+	}
+}
+
+/**
  * Send a single transactional email via Customer.io.
  * Returns { success: true } or { success: false, error: string }.
  */
 export async function sendEmail(opts: SendEmailOptions): Promise<{ success: boolean; error?: string }> {
 	try {
-		const client = getClient();
+		const apiKey = env.CUSTOMER_IO_API_KEY;
+		if (!apiKey) throw new Error('CUSTOMER_IO_API_KEY is not set');
+
 		const reqPayload: Record<string, any> = {
 			to: opts.to,
 			from: `${opts.fromName ?? FROM_NAME} <${opts.fromEmail ?? FROM_EMAIL}>`,
 			subject: opts.subject,
 			body: opts.html,
-			identifiers: { email: opts.to },
+			identifiers: { email: opts.to }
 		};
 		if (opts.replyTo) {
 			reqPayload.reply_to = opts.replyTo;
 		}
-		const req = new SendEmailRequest(reqPayload as any);
-		await client.sendEmail(req);
+
+		const res = await fetch(`${CIO_API_URL}/send/email`, {
+			method: 'POST',
+			headers: {
+				Authorization: `Bearer ${apiKey}`,
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify(reqPayload)
+		});
+
+		if (!res.ok) {
+			const errText = await res.text();
+			throw new Error(`Customer.io Send API error [${res.status}]: ${errText}`);
+		}
+
 		console.log(`[EMAIL] ✅ Sent to ${opts.to}: ${opts.subject}`);
 		return { success: true };
 	} catch (err: any) {
