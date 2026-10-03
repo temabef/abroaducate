@@ -28,7 +28,7 @@ export default {
 		const webhookUrl = env.WEBHOOK_URL || 'https://www.abroaducate.com/api/ai-email-agent/webhook';
 		const secretToken = env.AI_EMAIL_AGENT_SECRET || 'df688903-b6c7-436a-93a8-0bad926288c9';
 
-		const fromAddress = message.from;
+		const fromAddress = message.headers.get('from') || message.from;
 		const toAddress = message.to;
 		const subject = message.headers.get('subject') || '(No Subject)';
 		const messageId = message.headers.get('message-id') || '';

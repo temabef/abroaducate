@@ -166,21 +166,42 @@ export function checkEmailSafety(email: IncomingEmail): GuardCheckResult {
 export function parseSenderAddress(fromHeader: string): { name: string; email: string } {
 	if (!fromHeader) return { name: '', email: '' };
 
-	const match = fromHeader.match(/^(?:["']?([^"']*)["']?\s*)?<?([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})>?$/);
-	if (match) {
-		const name = (match[1] || '').trim();
-		const email = (match[2] || '').trim().toLowerCase();
+	const trimmed = fromHeader.trim();
+
+	// Case 1: Has angle brackets: "Name" <email@domain.com> or Name <email@domain.com>
+	const angleMatch = trimmed.match(/^(.*?)\s*<([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})>$/);
+	if (angleMatch) {
+		const rawName = angleMatch[1].trim().replace(/^["']|["']$/g, '').trim();
+		const email = angleMatch[2].trim().toLowerCase();
+		return {
+			name: rawName || email.split('@')[0],
+			email
+		};
+	}
+
+	// Case 2: Plain email address: email@domain.com or "email@domain.com"
+	const plainEmailMatch = trimmed.replace(/^["']|["']$/g, '').trim().match(/^([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})$/);
+	if (plainEmailMatch) {
+		const email = plainEmailMatch[1].toLowerCase();
+		return {
+			name: email.split('@')[0],
+			email
+		};
+	}
+
+	// Fallback regex for standard email extraction anywhere in string
+	const fallbackMatch = trimmed.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+	if (fallbackMatch) {
+		const email = fallbackMatch[0].toLowerCase();
+		const name = trimmed.replace(fallbackMatch[0], '').replace(/[<>"']/g, '').trim();
 		return {
 			name: name || email.split('@')[0],
 			email
 		};
 	}
 
-	// Fallback regex for standard email extraction
-	const emailMatch = fromHeader.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
-	const email = emailMatch ? emailMatch[0].toLowerCase() : fromHeader.trim().toLowerCase();
 	return {
-		name: email.split('@')[0],
-		email
+		name: trimmed.split('@')[0],
+		email: trimmed.toLowerCase()
 	};
 }

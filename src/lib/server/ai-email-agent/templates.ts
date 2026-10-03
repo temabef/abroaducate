@@ -21,6 +21,9 @@ export function markdownToEmailHtml(markdown: string): string {
 		'<a href="$2" style="color: #2563eb; text-decoration: underline; font-weight: 500;">$1</a>'
 	);
 
+	// Convert any markdown headers (#, ##, ###) into clean bold headers
+	text = text.replace(/^#{1,6}\s*(.+)$/gm, '<strong>$1</strong>');
+
 	// Split by double newlines into blocks
 	const blocks = text.split(/\n{2,}/);
 	const htmlBlocks: string[] = [];

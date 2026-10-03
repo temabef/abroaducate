@@ -183,7 +183,8 @@ INSTRUCTIONS FOR YOUR RESPONSE:
    - They report a severe technical glitch or payment error/charge dispute
    - They request a formal partnership, legal inquiry, or express anger/frustration
    - They require manual document verification that an AI cannot perform
-7. JSON Output: Return a strictly valid JSON object matching the requested schema.`;
+7. Formatting: Write the email naturally and conversationally. NEVER use markdown header hashtags (# or ## or ###). For section titles or key points, use bold text (e.g. **DAAD Scholarship Requirements**). Use bullet points and paragraphs cleanly.
+8. JSON Output: Return a strictly valid JSON object matching the requested schema.`;
 
 	const userPrompt = `Incoming Email:
 From: "${email.fromName || ''}" <${email.fromEmail}>
@@ -196,7 +197,7 @@ ${email.text || email.html || '(No body text)'}
 Analyze this email and generate:
 1. Classification: category ('scholarships' | 'admissions_sop' | 'visa_finance' | 'subscription_billing' | 'urgent_human_needed' | 'general_inquiry'), urgency ('low' | 'normal' | 'high' | 'critical'), confidence (0.0 to 1.0), summary (1-2 sentences), shouldEscalate (boolean), escalationReason (if escalated).
 2. replySubject: Proper reply subject line (e.g. "Re: ${email.subject.replace(/^Re:\s*/i, '')}").
-3. replyMarkdown: Your comprehensive, professional email response formatted in clean Markdown.
+3. replyMarkdown: Your comprehensive, professional email response formatted cleanly. Do NOT use markdown header hashtags (# or ## or ###); use bold text (**Section Title**) for section headers.
 4. suggestedCtaUrl: Most relevant platform URL for this student (e.g. "https://www.abroaducate.com/scholarships", "https://www.abroaducate.com/dashboard/sop", "https://www.abroaducate.com/dashboard/visa-interview", "https://www.abroaducate.com/calculator", or "https://www.abroaducate.com/pricing").
 5. suggestedCtaText: Action button text (e.g. "Explore Scholarships on Abroaducate", "Review My Statement of Purpose", "Launch Visa Interview Simulator").`;
 
@@ -229,7 +230,9 @@ Analyze this email and generate:
 		};
 
 		const replySubject = parsedJson.replySubject || `Re: ${email.subject.replace(/^Re:\s*/i, '')}`;
-		const replyMarkdown = parsedJson.replyMarkdown || '';
+		// Sanitize any stray markdown header hashtags (#, ##, ###) into clean bold text for human readability
+		const rawReply = parsedJson.replyMarkdown || '';
+		const replyMarkdown = rawReply.replace(/^#{1,6}\s*(.+)$/gm, '**$1**').trim();
 		const ctaUrl = parsedJson.suggestedCtaUrl || 'https://www.abroaducate.com';
 		const ctaText = parsedJson.suggestedCtaText || 'Visit Abroaducate';
 
