@@ -325,17 +325,42 @@ Analyze this email and generate:
 				referencesList.push(inReplyToId);
 			}
 
-			// Destination for thread-syncing BCC: abroaducate@gmail.com
+			// Destination for thread-syncing BCC & inbound copy: abroaducate@gmail.com
 			const forwardInbox =
 				env.EMAIL_FORWARD_INBOX ||
 				env.ADMIN_EMAIL ||
 				'abroaducate@gmail.com';
 
-			// Only BCC if the sender is not already abroaducate@gmail.com
+			// Only forward/BCC if the sender is not already abroaducate@gmail.com
 			const shouldBcc =
 				forwardInbox &&
 				email.fromEmail.toLowerCase().trim() !== forwardInbox.toLowerCase().trim();
 			const bccAddress = shouldBcc ? forwardInbox : undefined;
+
+			// Forward a clean copy of the incoming student email to abroaducate@gmail.com
+			// so the inbox always receives the incoming email and chains the reply into the thread
+			if (forwardInbox && shouldBcc) {
+				try {
+					await sendEmail({
+						to: forwardInbox,
+						fromName: `${email.fromName || 'Prospective Student'} via Abroaducate`,
+						fromEmail: 'hello@abroaducate.com',
+						replyTo: email.fromEmail,
+						subject: email.subject,
+						html: `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 15px; color: #1e293b; max-width: 650px; line-height: 1.6;">
+							<div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px 16px; margin-bottom: 16px; font-size: 13px; color: #64748b;">
+								<strong>Inbound inquiry from:</strong> ${email.fromName ? email.fromName + ' ' : ''}&lt;<a href="mailto:${email.fromEmail}" style="color: #2563eb;">${email.fromEmail}</a>&gt;<br />
+								<strong>Subject:</strong> ${email.subject}
+							</div>
+							<div style="white-space: pre-wrap; color: #0f172a;">${(email.text || email.html || '').trim()}</div>
+						</div>`,
+						text: `Inbound inquiry from: ${email.fromName || ''} <${email.fromEmail}>\nSubject: ${email.subject}\n\n${email.text || ''}`,
+						headers: inReplyToId ? { 'Message-ID': inReplyToId } : undefined
+					});
+				} catch (fwdErr) {
+					console.warn('[AI_EMAIL_AGENT] Forwarding inbound copy to admin inbox failed:', fwdErr);
+				}
+			}
 
 			// Try sending via Zoho SMTP first (so it lands in Zoho Sent folder)
 			let sendSuccess = false;
