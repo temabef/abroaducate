@@ -73,6 +73,25 @@ export const AFFILIATE_PARTNERS: AffiliatePartner[] = [
 		highlighted: true
 	},
 	{
+		id: 'immitranslate',
+		name: 'ImmiTranslate',
+		tagline: 'Certified Academic & Visa Document Translations',
+		description: 'Official ATA-certified translations of academic transcripts, diplomas, and visa documents. 100% guaranteed acceptance by US & European universities, WES, and embassies with rapid 24-hour delivery.',
+		category: 'translation',
+		categoryLabel: 'Academic Translations',
+		url: 'https://immitranslate.com/?ref=543dj3rd',
+		badge: '100% Guaranteed Acceptance',
+		badgeColor: 'emerald',
+		ctaText: 'Order Certified Translation →',
+		features: [
+			'100% guaranteed acceptance by universities, WES & USCIS',
+			'ATA-certified and notarized translation options',
+			'Fast 24-hour turnaround with certified digital stamp',
+			'Ideal for transcripts, degree certificates & civil documents'
+		],
+		highlighted: true
+	},
+	{
 		id: 'rushtranslate',
 		name: 'RushTranslate',
 		tagline: 'Official Certified Sworn Translations for Universities',
