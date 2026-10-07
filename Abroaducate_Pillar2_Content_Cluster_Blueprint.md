@@ -50,7 +50,7 @@ This blueprint outlines the 12 targeted, high-intent SEO articles scheduled for 
   - How to leverage free applications to diversify school reach.
 
 #### Post 2: US Universities That Waive Application Fees for Attending Info Sessions (Fall 2026)
-- **Scheduled Date:** October 9, 2026
+- **Scheduled Date:** October 9, 2026 (Scheduled in Supabase)
 - **Slug:** `us-universities-waive-application-fee-info-sessions`
 - **Target Keywords:** application fee waiver info session, attend webinar get fee waiver graduate, university open house fee waiver code 2026.
 - **Article Scope:**
@@ -60,7 +60,7 @@ This blueprint outlines the 12 targeted, high-intent SEO articles scheduled for 
   - Timing: ensuring codes are applied before final department priority deadlines.
 
 #### Post 3: How to Request a Grad School Application Fee Waiver: Email Templates That Work
-- **Scheduled Date:** October 11, 2026
+- **Scheduled Date:** October 11, 2026 (Scheduled in Supabase)
 - **Slug:** `how-to-request-grad-school-application-fee-waiver-email-templates`
 - **Target Keywords:** how to ask for application fee waiver email, graduate admissions fee waiver email template, sample email requesting fee waiver.
 - **Article Scope:**
@@ -71,7 +71,7 @@ This blueprint outlines the 12 targeted, high-intent SEO articles scheduled for 
   - Common pitfalls that guarantee a polite rejection.
 
 #### Post 4: Top 10 US Universities with No Application Fee for STEM Master's & PhD Programs
-- **Scheduled Date:** October 13, 2026
+- **Scheduled Date:** October 13, 2026 (Scheduled in Supabase)
 - **Slug:** `top-10-us-universities-no-application-fee-stem-programs`
 - **Target Keywords:** free application STEM masters USA, PhD application fee waiver engineering computer science, no application fee universities USA STEM.
 - **Article Scope:**
@@ -85,7 +85,7 @@ This blueprint outlines the 12 targeted, high-intent SEO articles scheduled for 
 ### Cluster 2: European Fully-Funded & Tuition-Free Pathways
 
 #### Post 5: Top 12 English-Taught Universities in Germany with No Tuition Fees & No IELTS (2026/2027)
-- **Scheduled Date:** October 15, 2026
+- **Scheduled Date:** October 15, 2026 (Scheduled in Supabase)
 - **Slug:** `top-12-english-universities-germany-no-tuition-no-ielts-2026`
 - **Target Keywords:** tuition free universities in germany without ielts, study in germany in english for free, public universities germany moi letter accepted.
 - **Article Scope:**
@@ -95,7 +95,7 @@ This blueprint outlines the 12 targeted, high-intent SEO articles scheduled for 
   - Realistic cost overview: Semester contribution and blocked account preparation.
 
 #### Post 6: Erasmus Mundus Joint Masters 2026: Application Guide & Full Funding Checklist
-- **Scheduled Date:** October 17, 2026
+- **Scheduled Date:** October 17, 2026 (Scheduled in Supabase)
 - **Slug:** `erasmus-mundus-joint-masters-2026-application-guide-scholarships`
 - **Target Keywords:** erasmus mundus scholarship 2026 guide, how to apply erasmus mundus joint master, emjm scholarship requirements international students.
 - **Article Scope:**
