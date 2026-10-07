@@ -106,7 +106,7 @@ This blueprint outlines the 12 targeted, high-intent SEO articles scheduled for 
   - Key deadlines (November 2026 through February 2027).
 
 #### Post 7: Italy Regional Scholarships Explained: DSU, EDISU, ER.GO, and LazioDisco (2026)
-- **Scheduled Date:** October 19, 2026 (Draft Ready in `content_drafts/pillar2/`)
+- **Scheduled Date:** October 19, 2026 (Scheduled in Supabase)
 - **Slug:** `italy-regional-scholarships-dsu-edisu-ergo-laziodisco-2026`
 - **Target Keywords:** italy regional scholarships 2026, dsu vs edisu vs ergo, how to get scholarship in italy for international students, isee parificato guide.
 - **Article Scope:**
@@ -117,7 +117,7 @@ This blueprint outlines the 12 targeted, high-intent SEO articles scheduled for 
   - Embassy legalization and Apostille timeline for family income documents.
 
 #### Post 8: DAAD Scholarships 2026: Helmut-Schmidt, EPOS, and Research Grants Roadmap
-- **Scheduled Date:** October 21, 2026 (Draft Ready in `content_drafts/pillar2/`)
+- **Scheduled Date:** October 21, 2026 (Scheduled in Supabase)
 - **Slug:** `daad-scholarships-2026-helmut-schmidt-epos-research-grants`
 - **Target Keywords:** daad scholarship 2026 deadline, daad epos eligibility, daad helmut schmidt public policy scholarship, fully funded scholarship germany.
 - **Article Scope:**
@@ -132,7 +132,7 @@ This blueprint outlines the 12 targeted, high-intent SEO articles scheduled for 
 ### Cluster 3: Academic Admissions Strategy, Writing & Relocation Tactics
 
 #### Post 9: How to Cold Email Professors for Master's & PhD Funding (Templates That Get Replies)
-- **Scheduled Date:** October 23, 2026 (Draft Ready in `content_drafts/pillar2/`)
+- **Scheduled Date:** October 23, 2026 (Scheduled in Supabase)
 - **Slug:** `how-to-cold-email-professors-graduate-funding-templates`
 - **Target Keywords:** cold email professor for research assistantship, email template to professor for funded masters phd, how to reach out to professors for funding.
 - **Article Scope:**
@@ -143,7 +143,7 @@ This blueprint outlines the 12 targeted, high-intent SEO articles scheduled for 
   - Follow-up etiquette: timing and wording of secondary follow-ups.
 
 #### Post 10: Statement of Purpose (SOP) vs Personal Statement: Key Differences & Winning Examples
-- **Scheduled Date:** October 25, 2026 (Draft Ready in `content_drafts/pillar2/`)
+- **Scheduled Date:** October 25, 2026 (Scheduled in Supabase)
 - **Slug:** `statement-of-purpose-vs-personal-statement-differences-examples`
 - **Target Keywords:** statement of purpose vs personal statement difference, sop vs personal statement graduate school, how to write sop and personal statement.
 - **Article Scope:**
@@ -154,7 +154,7 @@ This blueprint outlines the 12 targeted, high-intent SEO articles scheduled for 
   - Introducing Abroaducate's AI SOP generator to streamline drafting and structure.
 
 #### Post 11: How to Prove Sufficient Financial Resources for a European Student Visa Without a Sponsor
-- **Scheduled Date:** October 27, 2026 (Draft Ready in `content_drafts/pillar2/`)
+- **Scheduled Date:** October 27, 2026 (Scheduled in Supabase)
 - **Slug:** `prove-financial-resources-european-student-visa-without-sponsor`
 - **Target Keywords:** proof of funds european student visa, blocked account without sponsor, how to prove financial resources student visa, student visa bank statement.
 - **Article Scope:**
@@ -167,7 +167,7 @@ This blueprint outlines the 12 targeted, high-intent SEO articles scheduled for 
   - Bank statement verification rules: seasoning periods, lump-sum scrutiny, and required documentation.
 
 #### Post 12: Top 10 Universities in the UK & Canada with Guaranteed Funding for International Graduate Students
-- **Scheduled Date:** October 29, 2026 (Draft Ready in `content_drafts/pillar2/`)
+- **Scheduled Date:** October 29, 2026 (Scheduled in Supabase)
 - **Slug:** `top-uk-canada-universities-guaranteed-funding-international-students`
 - **Target Keywords:** guaranteed funding masters canada, uk universities with full funding for international students, fully funded graduate programs canada uk.
 - **Article Scope:**
