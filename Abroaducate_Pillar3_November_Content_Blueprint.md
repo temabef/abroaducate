@@ -31,7 +31,7 @@ Between November and January, international prospective students actively submit
 ### Cluster 1: Flagship European Full-Ride Scholarships (Intake 2027 Deadlines)
 
 #### Post 1: Stipendium Hungaricum Scholarship 2027: Complete Application Guide & University Selection
-- **Scheduled Date:** November 2, 2026
+- **Scheduled Date:** November 2, 2026 (Scheduled in Supabase)
 - **Slug:** `stipendium-hungaricum-scholarship-application-guide-2027`
 - **Target Keywords:** stipendium hungaricum scholarship 2027, study in hungary fully funded, stipendium hungaricum requirements deadline.
 - **Article Scope:**
@@ -42,7 +42,7 @@ Between November and January, international prospective students actively submit
   - Natural Affiliate Links: ImmiTranslate (certified document translations), Grey.co.
 
 #### Post 2: VLIR-UOS Scholarships Belgium 2027: Fully Funded Master's Programs for International Students
-- **Scheduled Date:** November 4, 2026
+- **Scheduled Date:** November 4, 2026 (Scheduled in Supabase)
 - **Slug:** `vlir-uos-scholarships-belgium-fully-funded-masters-2027`
 - **Target Keywords:** vlir uos scholarship belgium 2027, study in belgium fully funded masters, vlir uos eligibility requirements.
 - **Article Scope:**
@@ -53,7 +53,7 @@ Between November and January, international prospective students actively submit
   - Natural Affiliate Links: ImmiTranslate (Apostille translation compliance), Amber Student (housing in Belgian university cities).
 
 #### Post 3: Turkiye Burslari Scholarship 2027: Roadmap, Eligibility, and Document Preparation
-- **Scheduled Date:** November 6, 2026
+- **Scheduled Date:** November 6, 2026 (Scheduled in Supabase)
 - **Slug:** `turkiye-burslari-scholarship-roadmap-eligibility-guide-2027`
 - **Target Keywords:** turkiye burslari scholarship 2027, turkey government scholarship application guide, turkiye burslari deadline eligibility.
 - **Article Scope:**
@@ -64,7 +64,7 @@ Between November and January, international prospective students actively submit
   - Natural Affiliate Links: ImmiTranslate (transcripts and diploma translation), Airalo (regional eSIM).
 
 #### Post 4: Swiss Government Excellence Scholarships (FCS): Eligibility, Supervisor Finding & Deadlines
-- **Scheduled Date:** November 8, 2026
+- **Scheduled Date:** November 8, 2026 (Scheduled in Supabase)
 - **Slug:** `swiss-government-excellence-scholarships-eligibility-application-guide`
 - **Target Keywords:** swiss government excellence scholarship 2027, fcs scholarship switzerland phd postdoc, eth zurich fully funded scholarship.
 - **Article Scope:**
@@ -79,7 +79,7 @@ Between November and January, international prospective students actively submit
 ### Cluster 2: US & Canadian Graduate Funding & Priority Application Deadlines
 
 #### Post 5: Top 10 US Universities with December Priority Deadlines for Full Graduate Funding (Fall 2027)
-- **Scheduled Date:** November 10, 2026
+- **Scheduled Date:** November 10, 2026 (Scheduled in Supabase)
 - **Slug:** `us-universities-december-priority-deadlines-full-graduate-funding`
 - **Target Keywords:** us graduate school december priority deadline, fully funded masters phd december deadline usa, university application deadlines fall 2027.
 - **Article Scope:**
@@ -89,7 +89,7 @@ Between November and January, international prospective students actively submit
   - Natural Affiliate Links: Abroaducate SOP tool, Grey.co.
 
 #### Post 6: How to Get a GRE/GMAT Waiver for US Graduate Programs (Email Templates & Requirements)
-- **Scheduled Date:** November 12, 2026
+- **Scheduled Date:** November 12, 2026 (Scheduled in Supabase)
 - **Slug:** `how-to-get-gre-gmat-waiver-us-graduate-programs-templates`
 - **Target Keywords:** gre waiver email template grad school, how to waive gre for masters in usa, gmat waiver request international students.
 - **Article Scope:**
@@ -197,17 +197,17 @@ Between November and January, international prospective students actively submit
 
 | # | Scheduled Date | Post Title | Slug | Status |
 | :---: | :---: | :--- | :--- | :---: |
-| 1 | Nov 2, 2026 | Stipendium Hungaricum Scholarship 2027: Complete Application Guide | `stipendium-hungaricum-scholarship-application-guide-2027` | Planned |
-| 2 | Nov 4, 2026 | VLIR-UOS Scholarships Belgium 2027: Fully Funded Master's Programs | `vlir-uos-scholarships-belgium-fully-funded-masters-2027` | Planned |
-| 3 | Nov 6, 2026 | Turkiye Burslari Scholarship 2027: Roadmap, Eligibility, and Document Preparation | `turkiye-burslari-scholarship-roadmap-eligibility-guide-2027` | Planned |
-| 4 | Nov 8, 2026 | Swiss Government Excellence Scholarships (FCS): Eligibility, Supervisor Finding & Deadlines | `swiss-government-excellence-scholarships-eligibility-application-guide` | Planned |
-| 5 | Nov 10, 2026 | Top 10 US Universities with December Priority Deadlines for Full Graduate Funding | `us-universities-december-priority-deadlines-full-graduate-funding` | Planned |
-| 6 | Nov 12, 2026 | How to Get a GRE/GMAT Waiver for US Graduate Programs (Email Templates & Requirements) | `how-to-get-gre-gmat-waiver-us-graduate-programs-templates` | Planned |
-| 7 | Nov 14, 2026 | Top 8 US Universities Offering Automatic Application Fee Waivers for Diversity Partnerships | `us-universities-automatic-application-fee-waivers-diversity-partnerships` | Planned |
-| 8 | Nov 16, 2026 | Master's vs. PhD Funding in the US: How Teaching & Research Assistantships Actually Work | `masters-vs-phd-funding-usa-teaching-research-assistantships-explained` | Planned |
-| 9 | Nov 18, 2026 | Studying in Austria in English: Public University Tuition (€726/Semester) & Admission Guide | `study-in-austria-english-tuition-fees-admission-guide-2027` | Planned |
-| 10 | Nov 20, 2026 | How to Study in France for Under €4,000/Year: English Master's at Public Universities | `study-in-france-low-tuition-english-masters-guide-2027` | Planned |
-| 11 | Nov 22, 2026 | Top 10 English-Taught Master's in Poland with Low Tuition & Easy Visa Process (2027) | `study-in-poland-english-masters-low-tuition-visa-guide-2027` | Planned |
-| 12 | Nov 24, 2026 | APS Certificate Explained for Germany: Requirements for Indian, Chinese & Vietnamese Students | `aps-certificate-germany-requirements-timeline-guide` | Planned |
-| 13 | Nov 26, 2026 | How to Transfer University Tuition & Proof of Funds Abroad Without Getting Blocked by Local Banks | `how-to-transfer-tuition-proof-of-funds-abroad-banking-guide` | Planned |
-| 14 | Nov 28, 2026 | International Student Health Insurance in Europe: Statutory vs. Private Insurance Guide (2027) | `international-student-health-insurance-europe-statutory-vs-private-guide` | Planned |
+| 1 | Nov 2, 2026 | Stipendium Hungaricum Scholarship 2027: Complete Application Guide | `stipendium-hungaricum-scholarship-application-guide-2027` | Scheduled |
+| 2 | Nov 4, 2026 | VLIR-UOS Scholarships Belgium 2027: Fully Funded Master's Programs | `vlir-uos-scholarships-belgium-fully-funded-masters-2027` | Scheduled |
+| 3 | Nov 6, 2026 | Turkiye Burslari Scholarship 2027: Roadmap, Eligibility, and Document Preparation | `turkiye-burslari-scholarship-roadmap-eligibility-guide-2027` | Scheduled |
+| 4 | Nov 8, 2026 | Swiss Government Excellence Scholarships (FCS): Eligibility, Supervisor Finding & Deadlines | `swiss-government-excellence-scholarships-eligibility-application-guide` | Scheduled |
+| 5 | Nov 10, 2026 | Top 10 US Universities with December Priority Deadlines for Full Graduate Funding | `us-universities-december-priority-deadlines-full-graduate-funding` | Scheduled |
+| 6 | Nov 12, 2026 | How to Get a GRE/GMAT Waiver for US Graduate Programs (Email Templates & Requirements) | `how-to-get-gre-gmat-waiver-us-graduate-programs-templates` | Scheduled |
+| 7 | Nov 14, 2026 | Top 8 US Universities Offering Automatic Application Fee Waivers for Diversity Partnerships | `us-universities-automatic-application-fee-waivers-diversity-partnerships` | Draft Staged |
+| 8 | Nov 16, 2026 | Master's vs. PhD Funding in the US: How Teaching & Research Assistantships Actually Work | `masters-vs-phd-funding-usa-teaching-research-assistantships-explained` | Draft Staged |
+| 9 | Nov 18, 2026 | Studying in Austria in English: Public University Tuition (€726/Semester) & Admission Guide | `study-in-austria-english-tuition-fees-admission-guide-2027` | Draft Staged |
+| 10 | Nov 20, 2026 | How to Study in France for Under €4,000/Year: English Master's at Public Universities | `study-in-france-low-tuition-english-masters-guide-2027` | Draft Staged |
+| 11 | Nov 22, 2026 | Top 10 English-Taught Master's in Poland with Low Tuition & Easy Visa Process (2027) | `study-in-poland-english-masters-low-tuition-visa-guide-2027` | Draft Staged |
+| 12 | Nov 24, 2026 | APS Certificate Explained for Germany: Requirements for Indian, Chinese & Vietnamese Students | `aps-certificate-germany-requirements-timeline-guide` | Draft Staged |
+| 13 | Nov 26, 2026 | How to Transfer University Tuition & Proof of Funds Abroad Without Getting Blocked by Local Banks | `how-to-transfer-tuition-proof-of-funds-abroad-banking-guide` | Draft Staged |
+| 14 | Nov 28, 2026 | International Student Health Insurance in Europe: Statutory vs. Private Insurance Guide (2027) | `international-student-health-insurance-europe-statutory-vs-private-guide` | Draft Staged |
