@@ -100,7 +100,7 @@ Between November and January, international prospective students actively submit
   - Natural Affiliate Links: ImmiTranslate (official GPA / transcript translation).
 
 #### Post 7: Top 8 US Universities Offering Automatic Application Fee Waivers for Diversity & Partner Programs
-- **Scheduled Date:** November 14, 2026
+- **Scheduled Date:** November 14, 2026 (Scheduled in Supabase)
 - **Slug:** `us-universities-automatic-application-fee-waivers-diversity-partnerships`
 - **Target Keywords:** graduate application fee waiver diversity pipeline, us universities fee waiver partner programs, free grad application international diversity.
 - **Article Scope:**
@@ -110,7 +110,7 @@ Between November and January, international prospective students actively submit
   - Natural Affiliate Links: Abroaducate SOP tool.
 
 #### Post 8: Master's vs. PhD Funding in the US: How Teaching & Research Assistantships Actually Work
-- **Scheduled Date:** November 16, 2026
+- **Scheduled Date:** November 16, 2026 (Scheduled in Supabase)
 - **Slug:** `masters-vs-phd-funding-usa-teaching-research-assistantships-explained`
 - **Target Keywords:** how graduate assistantships work usa, gta vs gra stipend masters phd, funded masters vs phd united states.
 - **Article Scope:**
@@ -125,7 +125,7 @@ Between November and January, international prospective students actively submit
 ### Cluster 3: Tuition-Free & Ultra-Low Tuition European Alternatives (Austria, France, Poland)
 
 #### Post 9: Studying in Austria in English: Public University Tuition (€726/Semester) & Admission Guide (2027)
-- **Scheduled Date:** November 18, 2026
+- **Scheduled Date:** November 18, 2026 (Scheduled in Supabase)
 - **Slug:** `study-in-austria-english-tuition-fees-admission-guide-2027`
 - **Target Keywords:** study in austria in english low tuition, austria public university fees international students, university of vienna english masters.
 - **Article Scope:**
@@ -136,7 +136,7 @@ Between November and January, international prospective students actively submit
   - Natural Affiliate Links: ImmiTranslate (official sworn translations meeting Austrian Embassy guidelines), Amber Student (housing in Vienna and Graz).
 
 #### Post 10: How to Study in France for Under €4,000/Year: English Master's at Public Universities
-- **Scheduled Date:** November 20, 2026
+- **Scheduled Date:** November 20, 2026 (Scheduled in Supabase)
 - **Slug:** `study-in-france-low-tuition-english-masters-guide-2027`
 - **Target Keywords:** study in france low tuition english masters, campus france application guide 2027, cheap universities in france for international students.
 - **Article Scope:**
@@ -146,7 +146,7 @@ Between November and January, international prospective students actively submit
   - Natural Affiliate Links: ImmiTranslate (certified French translation for Campus France dossiers), Amber Student, Airalo.
 
 #### Post 11: Top 10 English-Taught Master's in Poland with Low Tuition & Easy Visa Process (2027)
-- **Scheduled Date:** November 22, 2026
+- **Scheduled Date:** November 22, 2026 (Scheduled in Supabase)
 - **Slug:** `study-in-poland-english-masters-low-tuition-visa-guide-2027`
 - **Target Keywords:** study in poland in english low tuition, poland student visa requirements 2027, top universities in poland for international students.
 - **Article Scope:**
@@ -203,11 +203,11 @@ Between November and January, international prospective students actively submit
 | 4 | Nov 8, 2026 | Swiss Government Excellence Scholarships (FCS): Eligibility, Supervisor Finding & Deadlines | `swiss-government-excellence-scholarships-eligibility-application-guide` | Scheduled |
 | 5 | Nov 10, 2026 | Top 10 US Universities with December Priority Deadlines for Full Graduate Funding | `us-universities-december-priority-deadlines-full-graduate-funding` | Scheduled |
 | 6 | Nov 12, 2026 | How to Get a GRE/GMAT Waiver for US Graduate Programs (Email Templates & Requirements) | `how-to-get-gre-gmat-waiver-us-graduate-programs-templates` | Scheduled |
-| 7 | Nov 14, 2026 | Top 8 US Universities Offering Automatic Application Fee Waivers for Diversity Partnerships | `us-universities-automatic-application-fee-waivers-diversity-partnerships` | Draft Staged |
-| 8 | Nov 16, 2026 | Master's vs. PhD Funding in the US: How Teaching & Research Assistantships Actually Work | `masters-vs-phd-funding-usa-teaching-research-assistantships-explained` | Draft Staged |
-| 9 | Nov 18, 2026 | Studying in Austria in English: Public University Tuition (€726/Semester) & Admission Guide | `study-in-austria-english-tuition-fees-admission-guide-2027` | Draft Staged |
-| 10 | Nov 20, 2026 | How to Study in France for Under €4,000/Year: English Master's at Public Universities | `study-in-france-low-tuition-english-masters-guide-2027` | Draft Staged |
-| 11 | Nov 22, 2026 | Top 10 English-Taught Master's in Poland with Low Tuition & Easy Visa Process (2027) | `study-in-poland-english-masters-low-tuition-visa-guide-2027` | Draft Staged |
+| 7 | Nov 14, 2026 | Top 8 US Universities Offering Automatic Application Fee Waivers for Diversity Partnerships | `us-universities-automatic-application-fee-waivers-diversity-partnerships` | Scheduled |
+| 8 | Nov 16, 2026 | Master's vs. PhD Funding in the US: How Teaching & Research Assistantships Actually Work | `masters-vs-phd-funding-usa-teaching-research-assistantships-explained` | Scheduled |
+| 9 | Nov 18, 2026 | Studying in Austria in English: Public University Tuition (€726/Semester) & Admission Guide | `study-in-austria-english-tuition-fees-admission-guide-2027` | Scheduled |
+| 10 | Nov 20, 2026 | How to Study in France for Under €4,000/Year: English Master's at Public Universities | `study-in-france-low-tuition-english-masters-guide-2027` | Scheduled |
+| 11 | Nov 22, 2026 | Top 10 English-Taught Master's in Poland with Low Tuition & Easy Visa Process (2027) | `study-in-poland-english-masters-low-tuition-visa-guide-2027` | Scheduled |
 | 12 | Nov 24, 2026 | APS Certificate Explained for Germany: Requirements for Indian, Chinese & Vietnamese Students | `aps-certificate-germany-requirements-timeline-guide` | Draft Staged |
 | 13 | Nov 26, 2026 | How to Transfer University Tuition & Proof of Funds Abroad Without Getting Blocked by Local Banks | `how-to-transfer-tuition-proof-of-funds-abroad-banking-guide` | Draft Staged |
 | 14 | Nov 28, 2026 | International Student Health Insurance in Europe: Statutory vs. Private Insurance Guide (2027) | `international-student-health-insurance-europe-statutory-vs-private-guide` | Draft Staged |
