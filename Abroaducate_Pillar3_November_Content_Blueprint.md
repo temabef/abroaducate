@@ -160,7 +160,7 @@ Between November and January, international prospective students actively submit
 ### Cluster 4: Relocation Logistics, Financial Clearance & Visa Execution
 
 #### Post 12: APS Certificate Explained for Germany: Requirements for Indian, Chinese & Vietnamese Students
-- **Scheduled Date:** November 24, 2026
+- **Scheduled Date:** November 24, 2026 (Scheduled in Supabase)
 - **Slug:** `aps-certificate-germany-requirements-timeline-guide`
 - **Target Keywords:** aps certificate germany process, aps india verification processing time, how to get aps certificate for german student visa.
 - **Article Scope:**
@@ -171,7 +171,7 @@ Between November and January, international prospective students actively submit
   - Natural Affiliate Links: Expatrio (Value Package with special APS cashback/perks), ImmiTranslate.
 
 #### Post 13: How to Transfer University Tuition & Proof of Funds Abroad Without Getting Blocked by Local Banks
-- **Scheduled Date:** November 26, 2026
+- **Scheduled Date:** November 26, 2026 (Scheduled in Supabase)
 - **Slug:** `how-to-transfer-tuition-proof-of-funds-abroad-banking-guide`
 - **Target Keywords:** how to pay international university tuition from nigeria ghana, best way to fund german blocked account, international student money transfer guide.
 - **Article Scope:**
@@ -181,7 +181,7 @@ Between November and January, international prospective students actively submit
   - Natural Affiliate Links: Grey.co (opening virtual foreign bank accounts), Expatrio.
 
 #### Post 14: International Student Health Insurance in Europe: Statutory vs. Private Insurance Guide (2027)
-- **Scheduled Date:** November 28, 2026
+- **Scheduled Date:** November 28, 2026 (Scheduled in Supabase)
 - **Slug:** `international-student-health-insurance-europe-statutory-vs-private-guide`
 - **Target Keywords:** international student health insurance europe, statutory vs private health insurance germany student, student visa health insurance requirements.
 - **Article Scope:**
@@ -208,6 +208,6 @@ Between November and January, international prospective students actively submit
 | 9 | Nov 18, 2026 | Studying in Austria in English: Public University Tuition (€726/Semester) & Admission Guide | `study-in-austria-english-tuition-fees-admission-guide-2027` | Scheduled |
 | 10 | Nov 20, 2026 | How to Study in France for Under €4,000/Year: English Master's at Public Universities | `study-in-france-low-tuition-english-masters-guide-2027` | Scheduled |
 | 11 | Nov 22, 2026 | Top 10 English-Taught Master's in Poland with Low Tuition & Easy Visa Process (2027) | `study-in-poland-english-masters-low-tuition-visa-guide-2027` | Scheduled |
-| 12 | Nov 24, 2026 | APS Certificate Explained for Germany: Requirements for Indian, Chinese & Vietnamese Students | `aps-certificate-germany-requirements-timeline-guide` | Draft Staged |
-| 13 | Nov 26, 2026 | How to Transfer University Tuition & Proof of Funds Abroad Without Getting Blocked by Local Banks | `how-to-transfer-tuition-proof-of-funds-abroad-banking-guide` | Draft Staged |
-| 14 | Nov 28, 2026 | International Student Health Insurance in Europe: Statutory vs. Private Insurance Guide (2027) | `international-student-health-insurance-europe-statutory-vs-private-guide` | Draft Staged |
+| 12 | Nov 24, 2026 | APS Certificate Explained for Germany: Requirements for Indian, Chinese & Vietnamese Students | `aps-certificate-germany-requirements-timeline-guide` | Scheduled |
+| 13 | Nov 26, 2026 | How to Transfer University Tuition & Proof of Funds Abroad Without Getting Blocked by Local Banks | `how-to-transfer-tuition-proof-of-funds-abroad-banking-guide` | Scheduled |
+| 14 | Nov 28, 2026 | International Student Health Insurance in Europe: Statutory vs. Private Insurance Guide (2027) | `international-student-health-insurance-europe-statutory-vs-private-guide` | Scheduled |
