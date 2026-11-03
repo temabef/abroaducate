@@ -72,47 +72,55 @@ First-party Google Search Console data demonstrates that **US admissions, applic
   - Natural Affiliate Links: ImmiTranslate, Grey.co, Abroaducate SOP Builder.
 
 #### Post 5: Clemson University & Iowa State University: Graduate Application Fee Waiver Guide for International Students
-- **Scheduled Date:** December 10, 2026
+- **Scheduled Date:** December 10, 2026 (Scheduled in Supabase)
 - **Slug:** `clemson-iowa-state-graduate-application-fee-waiver-guide`
+- **Hero Image:** `https://i.ibb.co/QvK2CT0v/clemson-iowa-state-graduate-campus-hero-2027.jpg`
+- **Body Image:** `https://i.ibb.co/xStgHGkC/clemson-iowa-state-admissions-desk-2027.jpg`
 - **Target Keywords:** clemson university application fee waiver, iowa state university application fee waiver international students, clemson grad school fee waiver code.
 - **Article Scope:**
   - Direct targeting of GSC striking distance queries (Clemson at pos 9.4, Iowa State at pos 10.3).
   - Departmental info sessions, GEM/partner pipelines, and faculty fee waiver sponsorships.
-  - Natural Affiliate Links: Grey.co, ImmiTranslate.
+  - Natural Affiliate Links: Grey.co, ImmiTranslate, Abroaducate SOP Builder.
 
 ---
 
 ### Cluster 2: Alternative Qualifications & Low-GPA Admissions (High CTR)
 
 #### Post 6: Top 10 US Universities That Accept Second Class Lower (2:2 / Low GPA) for Funded Master's
-- **Scheduled Date:** December 12, 2026
+- **Scheduled Date:** December 12, 2026 (Scheduled in Supabase)
 - **Slug:** `us-universities-accepting-second-class-lower-low-gpa-funded-masters`
+- **Hero Image:** `https://i.ibb.co/B2nkZ922/second-class-lower-funded-masters-hero-2027.jpg`
+- **Body Image:** `https://i.ibb.co/sG3G1qD/second-class-lower-gpa-evaluation-desk-2027.jpg`
 - **Target Keywords:** us universities accepting 2:2 for masters with funding, low gpa graduate school full funding usa, can second class lower do masters in usa.
 - **Article Scope:**
   - Holistic admissions criteria in the US: how prior research, relevant work experience, and high quantitative GRE scores compensate for a 2.5–2.9 GPA or 2:2 degree.
   - 10 institutions with flexible GPA policies and verified assistantship access.
   - How to write an Addendum Explaining Extenuating Academic Circumstances.
-  - Natural Affiliate Links: Abroaducate SOP Builder, Preply.
+  - Natural Affiliate Links: Abroaducate SOP Builder, ImmiTranslate, Grey.co.
 
 #### Post 7: Top 8 US Universities with No GRE and No Application Fee (The Double Waiver Guide)
-- **Scheduled Date:** December 14, 2026
+- **Scheduled Date:** December 14, 2026 (Scheduled in Supabase)
 - **Slug:** `top-us-universities-no-gre-no-application-fee-international-students`
+- **Hero Image:** `https://i.ibb.co/3mNLCk13/no-gre-no-application-fee-hero-2027.jpg`
+- **Body Image:** `https://i.ibb.co/xq6vXHs8/no-gre-no-fee-zero-balance-desk-2027.jpg`
 - **Target Keywords:** us universities no gre no application fee, free graduate application without gre international students, masters in usa without gre and fee.
 - **Article Scope:**
   - Eliminating the $350 upfront barrier ($220 GRE + $100+ app fee per university).
   - 8 accredited institutions featuring permanent test-free policies and $0 application fees.
   - Verification of full assistantship eligibility without standardized tests.
-  - Natural Affiliate Links: ImmiTranslate, Grey.co.
+  - Natural Affiliate Links: ImmiTranslate, Grey.co, Abroaducate SOP Builder.
 
 #### Post 8: US Universities That Accept HND for Direct Master's Admission (2027 Guide)
-- **Scheduled Date:** December 16, 2026
+- **Scheduled Date:** December 16, 2026 (Scheduled in Supabase)
 - **Slug:** `us-universities-accepting-hnd-direct-masters-admission-2027`
+- **Hero Image:** `https://i.ibb.co/XZvZDgSd/hnd-masters-admission-hero-2027.jpg`
+- **Body Image:** `https://i.ibb.co/d0WZ7W8J/hnd-credential-evaluation-desk-2027.jpg`
 - **Target Keywords:** us universities accepting hnd for masters, hnd to masters in usa without wes, hnd equivalent in usa.
 - **Article Scope:**
   - Building on our high-performing HND post (760 impressions, 3.4% CTR).
   - Comprehensive list of US universities that accept Higher National Diploma (HND) holders directly into Master's programs.
   - WES course-by-course evaluation rules vs internal university credential evaluation.
-  - Natural Affiliate Links: ImmiTranslate (official HND transcript translation), Grey.co.
+  - Natural Affiliate Links: ImmiTranslate, Grey.co, Abroaducate SOP Builder.
 
 ---
 
@@ -189,10 +197,10 @@ First-party Google Search Console data demonstrates that **US admissions, applic
 | 2 | Dec 4, 2026 | University of Dayton Graduate Programs: How to Apply with $0 Application Fee | `university-of-dayton-graduate-application-fee-waiver-guide` | Scheduled |
 | 3 | Dec 6, 2026 | Rice University Graduate Application Fee Waiver: GCURS, Info Sessions & Engineering Codes | `rice-university-graduate-application-fee-waiver-guide` | Scheduled |
 | 4 | Dec 8, 2026 | Boston University Graduate Fee Waivers: Departmental Policies, Virtual Events & Eligibility | `boston-university-graduate-application-fee-waiver-guide` | Scheduled |
-| 5 | Dec 10, 2026 | Clemson University & Iowa State University: Graduate Application Fee Waiver Guide | `clemson-iowa-state-graduate-application-fee-waiver-guide` | Drafted (Hero Image Ready) |
-| 6 | Dec 12, 2026 | Top 10 US Universities That Accept Second Class Lower (2:2 / Low GPA) for Funded Master's | `us-universities-accepting-second-class-lower-low-gpa-funded-masters` | Drafted & Staged |
-| 7 | Dec 14, 2026 | Top 8 US Universities with No GRE and No Application Fee (The Double Waiver Guide) | `top-us-universities-no-gre-no-application-fee-international-students` | Drafted & Staged |
-| 8 | Dec 16, 2026 | US Universities That Accept HND for Direct Master's Admission (2027 Guide) | `us-universities-accepting-hnd-direct-masters-admission-2027` | Drafted & Staged |
+| 5 | Dec 10, 2026 | Clemson University & Iowa State University: Graduate Application Fee Waiver Guide | `clemson-iowa-state-graduate-application-fee-waiver-guide` | Scheduled |
+| 6 | Dec 12, 2026 | Top 10 US Universities That Accept Second Class Lower (2:2 / Low GPA) for Funded Master's | `us-universities-accepting-second-class-lower-low-gpa-funded-masters` | Scheduled |
+| 7 | Dec 14, 2026 | Top 8 US Universities with No GRE and No Application Fee (The Double Waiver Guide) | `top-us-universities-no-gre-no-application-fee-international-students` | Scheduled |
+| 8 | Dec 16, 2026 | US Universities That Accept HND for Direct Master's Admission (2027 Guide) | `us-universities-accepting-hnd-direct-masters-admission-2027` | Scheduled |
 | 9 | Dec 18, 2026 | Study in Finland 2027: Joint Application Window & 100% Tuition Fee Waivers | `study-in-finland-joint-application-tuition-waiver-scholarships-2027` | Drafted & Staged |
 | 10 | Dec 20, 2026 | Italian Regional Scholarships (DSU, ER.GO, ALiSEO): Free Tuition and €7,000/Year Stipend Guide | `italy-regional-scholarships-dsu-ergo-guide-2027` | Drafted & Staged |
 | 11 | Dec 22, 2026 | Sweden SI Global Scholarship 2027: How to Format Your Proof of Work & Leadership Documents | `sweden-si-global-scholarship-work-experience-leadership-guide-2027` | Drafted & Staged |
