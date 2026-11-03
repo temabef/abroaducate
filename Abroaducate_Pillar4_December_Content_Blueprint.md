@@ -127,65 +127,77 @@ First-party Google Search Console data demonstrates that **US admissions, applic
 ### Cluster 3: European High-Value Scholarships (Seasonal Dec/Jan/Feb Deadlines)
 
 #### Post 9: Study in Finland 2027: Joint Application Window & 100% Tuition Fee Waivers for International Students
-- **Scheduled Date:** December 18, 2026
+- **Scheduled Date:** December 18, 2026 (Scheduled in Supabase)
 - **Slug:** `study-in-finland-joint-application-tuition-waiver-scholarships-2027`
+- **Hero Image:** `https://i.ibb.co/rK0S9Ym9/finland-scholarships-hero-2027.jpg`
+- **Body Image:** `https://i.ibb.co/SDY8f6zY/finland-admissions-desk-2027.jpg`
 - **Target Keywords:** study in finland in english scholarship, finland joint application 2027 tuition fee waiver, studyinfo finland scholarship.
 - **Article Scope:**
   - The nationwide Finnish Joint Application window in early January (`Opintopolku / Studyinfo.fi`).
   - How universities like Aalto, University of Helsinki, and Tampere University grant automatic 50% to 100% tuition scholarships upon admission.
   - Student post-study work visa rights in Finland (up to 2 years).
-  - Natural Affiliate Links: ImmiTranslate, Amber Student.
+  - Natural Affiliate Links: ImmiTranslate, Expatrio, Grey.co, Abroaducate SOP Builder.
 
 #### Post 10: Italian Regional Scholarships (DSU, ER.GO, ALiSEO): Free Tuition and €7,000/Year Stipend Guide (2027)
-- **Scheduled Date:** December 20, 2026
+- **Scheduled Date:** December 20, 2026 (Scheduled in Supabase)
 - **Slug:** `italy-regional-scholarships-dsu-ergo-guide-2027`
+- **Hero Image:** `https://i.ibb.co/7dvL5nb0/italy-regional-scholarships-hero-2027.jpg`
+- **Body Image:** `https://i.ibb.co/gbQyHqCH/italy-isee-parificato-desk-2027.jpg`
 - **Target Keywords:** italy dsu scholarship guide 2027, ergo scholarship italy requirements, eni minds masters scholarship italy.
 - **Article Scope:**
   - Regional funding mechanisms across Tuscany, Emilia-Romagna, Liguria, and Lombardy.
   - Income and asset evaluation: ISEE Parificato documentation requirements.
-  - Natural Affiliate Links: ImmiTranslate (certified translation for family income declarations), Amber Student.
+  - Natural Affiliate Links: ImmiTranslate, Grey.co, Abroaducate SOP Builder.
 
 #### Post 11: Sweden SI Global Scholarship 2027: How to Format Your Proof of Work & Leadership Documents
-- **Scheduled Date:** December 22, 2026
+- **Scheduled Date:** December 22, 2026 (Scheduled in Supabase)
 - **Slug:** `sweden-si-global-scholarship-work-experience-leadership-guide-2027`
+- **Hero Image:** `https://i.ibb.co/q363393c/sweden-si-scholarship-hero-2027.jpg`
+- **Body Image:** `https://i.ibb.co/Xf3btrg3/sweden-si-leadership-desk-2027.jpg`
 - **Target Keywords:** swedish institute scholarship proof of work, si scholarship experience letter template, si global scholarship sweden 2027.
 - **Article Scope:**
   - The mandatory 3,000 hours of demonstrated work experience: how to calculate and certify hours across full-time, part-time, and volunteer roles.
   - Official SI work and leadership letter templates.
   - Submission timeline before the February SI portal deadline.
-  - Natural Affiliate Links: ImmiTranslate, Abroaducate SOP Builder.
+  - Natural Affiliate Links: ImmiTranslate, Grey.co, Abroaducate SOP Builder.
 
 ---
 
 ### Cluster 4: Financial Problem-Solvers (High-Intent Affiliate Converters)
 
 #### Post 12: Expatrio vs. Fintiba (2027 Comparison): Which German Blocked Account is Best for International Students?
-- **Scheduled Date:** December 24, 2026
+- **Scheduled Date:** December 24, 2026 (Scheduled in Supabase)
 - **Slug:** `expatrio-vs-fintiba-german-blocked-account-comparison-2027`
+- **Hero Image:** `https://i.ibb.co/N2LGK7HK/expatrio-vs-fintiba-hero-2027.jpg`
+- **Body Image:** `https://i.ibb.co/zV0BfWsn/expatrio-vs-fintiba-blocked-account-desk-2027.jpg`
 - **Target Keywords:** expatrio vs fintiba blocked account, best blocked account germany 2027, sperrkonto comparison expatrio fintiba.
 - **Article Scope:**
   - Direct head-to-head comparison: Setup fees, monthly account maintenance, incoming transfer tracking, and bundled statutory health insurance (TK vs DAK/Barmer).
   - Why the Expatrio Value Package offers superior value with its digital approval speed and APS fee cashback.
-  - Natural Affiliate Links: Expatrio (`https://www.expatrio.com?p=abroaducate123`).
+  - Natural Affiliate Links: Expatrio (`https://www.expatrio.com?p=abroaducate123`), ImmiTranslate, Grey.co.
 
 #### Post 13: How to Pay US University Application Fees & WES from Nigeria, Ghana & India Without Card Declines
-- **Scheduled Date:** December 26, 2026
+- **Scheduled Date:** December 26, 2026 (Scheduled in Supabase)
 - **Slug:** `how-to-pay-us-university-application-fees-wes-without-card-declines`
+- **Hero Image:** `https://i.ibb.co/PGWMndXC/how-to-pay-us-application-fees-hero-2027.jpg`
+- **Body Image:** `https://i.ibb.co/Gvn0FByx/virtual-card-education-payment-desk-2027.jpg`
 - **Target Keywords:** how to pay us university application fee from nigeria, paying wes fee without dollar card, pay slate application fee international card.
 - **Article Scope:**
   - Solving the persistent problem of central bank dollar limits ($20–$100/mo) and card transaction declines on Slate, ApplyWeb, and WES.
   - Creating and funding virtual USD debit cards with real US billing addresses.
-  - Natural Affiliate Links: Grey.co (`https://app.grey.co/auth/register?referral=IAUZLT`).
+  - Natural Affiliate Links: Grey.co (`https://app.grey.co/auth/register?referral=IAUZLT`), ImmiTranslate.
 
 #### Post 14: Certified Document Translations for US & European Visas: What Consulates Actually Accept
-- **Scheduled Date:** December 28, 2026
+- **Scheduled Date:** December 28, 2026 (Scheduled in Supabase)
 - **Slug:** `certified-document-translations-student-visas-consular-standards`
+- **Hero Image:** `https://i.ibb.co/whv6HX9C/certified-translations-consular-hero-2027.jpg`
+- **Body Image:** `https://i.ibb.co/84NLmxtk/certificate-of-accuracy-desk-2027.jpg`
 - **Target Keywords:** certified translation for student visa, certified academic transcript translation, certified birth certificate translation uscis embassy.
 - **Article Scope:**
   - Why notarized is not the same as certified: consular requirements for ATA-certified translators.
   - Country-by-country breakdown: US Embassy, German Consular missions, Campus France, and Italian missions.
   - Avoiding visa delays caused by amateur or uncertified translations.
-  - Natural Affiliate Links: ImmiTranslate (`https://immitranslate.com/?ref=543dj3rd`).
+  - Natural Affiliate Links: ImmiTranslate (`https://immitranslate.com/?ref=543dj3rd`), Grey.co, Expatrio.
 
 ---
 
@@ -201,9 +213,9 @@ First-party Google Search Console data demonstrates that **US admissions, applic
 | 6 | Dec 12, 2026 | Top 10 US Universities That Accept Second Class Lower (2:2 / Low GPA) for Funded Master's | `us-universities-accepting-second-class-lower-low-gpa-funded-masters` | Scheduled |
 | 7 | Dec 14, 2026 | Top 8 US Universities with No GRE and No Application Fee (The Double Waiver Guide) | `top-us-universities-no-gre-no-application-fee-international-students` | Scheduled |
 | 8 | Dec 16, 2026 | US Universities That Accept HND for Direct Master's Admission (2027 Guide) | `us-universities-accepting-hnd-direct-masters-admission-2027` | Scheduled |
-| 9 | Dec 18, 2026 | Study in Finland 2027: Joint Application Window & 100% Tuition Fee Waivers | `study-in-finland-joint-application-tuition-waiver-scholarships-2027` | Drafted & Staged |
-| 10 | Dec 20, 2026 | Italian Regional Scholarships (DSU, ER.GO, ALiSEO): Free Tuition and €7,000/Year Stipend Guide | `italy-regional-scholarships-dsu-ergo-guide-2027` | Drafted & Staged |
-| 11 | Dec 22, 2026 | Sweden SI Global Scholarship 2027: How to Format Your Proof of Work & Leadership Documents | `sweden-si-global-scholarship-work-experience-leadership-guide-2027` | Drafted & Staged |
-| 12 | Dec 24, 2026 | Expatrio vs. Fintiba (2027 Comparison): Which German Blocked Account is Best? | `expatrio-vs-fintiba-german-blocked-account-comparison-2027` | Drafted & Staged |
-| 13 | Dec 26, 2026 | How to Pay US University Application Fees & WES from Nigeria, Ghana & India Without Card Declines | `how-to-pay-us-university-application-fees-wes-without-card-declines` | Drafted & Staged |
-| 14 | Dec 28, 2026 | Certified Document Translations for US & European Visas: What Consulates Actually Accept | `certified-document-translations-student-visas-consular-standards` | Drafted & Staged |
+| 9 | Dec 18, 2026 | Study in Finland 2027: Joint Application Window & 100% Tuition Fee Waivers | `study-in-finland-joint-application-tuition-waiver-scholarships-2027` | Scheduled |
+| 10 | Dec 20, 2026 | Italian Regional Scholarships (DSU, ER.GO, ALiSEO): Free Tuition and €7,000/Year Stipend Guide | `italy-regional-scholarships-dsu-ergo-guide-2027` | Scheduled |
+| 11 | Dec 22, 2026 | Sweden SI Global Scholarship 2027: How to Format Your Proof of Work & Leadership Documents | `sweden-si-global-scholarship-work-experience-leadership-guide-2027` | Scheduled |
+| 12 | Dec 24, 2026 | Expatrio vs. Fintiba (2027 Comparison): Which German Blocked Account is Best? | `expatrio-vs-fintiba-german-blocked-account-comparison-2027` | Scheduled |
+| 13 | Dec 26, 2026 | How to Pay US University Application Fees & WES from Nigeria, Ghana & India Without Card Declines | `how-to-pay-us-university-application-fees-wes-without-card-declines` | Scheduled |
+| 14 | Dec 28, 2026 | Certified Document Translations for US & European Visas: What Consulates Actually Accept | `certified-document-translations-student-visas-consular-standards` | Scheduled |
