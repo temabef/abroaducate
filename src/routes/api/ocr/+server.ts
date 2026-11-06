@@ -20,25 +20,25 @@ export async function POST({ request }: RequestEvent) {
     
     // Try Tesseract first (better at extracting course codes and structured data)
     // with a timeout to prevent hanging
-    try {
-      console.log('got to the +server.ts tesseract (primary)');
+    // try {
+    //   console.log('got to the +server.ts tesseract (primary)');
       
-      const timeoutMs = 60000; // 60 second timeout
-      const tesseractPromise = tesseractOCR(file);
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Tesseract timeout')), timeoutMs)
-      );
+    //   const timeoutMs = 60000; // 60 second timeout
+    //   const tesseractPromise = tesseractOCR(file);
+    //   const timeoutPromise = new Promise((_, reject) => 
+    //     setTimeout(() => reject(new Error('Tesseract timeout')), timeoutMs)
+    //   );
       
-      const text = await Promise.race([tesseractPromise, timeoutPromise]) as string;
+    //   const text = await Promise.race([tesseractPromise, timeoutPromise]) as string;
      
-      if (text && text.trim().length >= 50) {
-        return json({ text, provider: 'tesseract' });
-      }
+    //   if (text && text.trim().length >= 50) {
+    //     return json({ text, provider: 'tesseract' });
+    //   }
       
-      console.warn('Tesseract returned insufficient text, falling back to Google Vision');
-    } catch (error: any) {
-      console.warn('Tesseract failed, falling back to Google Vision:', error.message);
-    }
+    //   console.warn('Tesseract returned insufficient text, falling back to Google Vision');
+    // } catch (error: any) {
+    //   console.warn('Tesseract failed, falling back to Google Vision:', error.message);
+    // }
     
     // Fallback to Google Vision if Tesseract fails or times out
     try {
