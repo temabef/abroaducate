@@ -452,16 +452,15 @@ return () => clearInterval(interval);
 					<a href="/scholarships/{s.id}" class="scholarship-card">
 						<div class="scholarship-top">
 							<span class="scholarship-badge"><GraduationCap size={12} /> Scholarship</span>
-							{#if s.amount}<span class="scholarship-amount">{s.amount}</span>{/if}
-						</div>
-						<h3 class="scholarship-title">{s.title}</h3>
+													</div>
+						<h3 class="scholarship-title" title={s.title}>{s.title}</h3>
 						<p class="scholarship-provider">{s.provider}</p>
 						<div class="scholarship-footer">
 							{#if s.deadline}
-								<span class="scholarship-deadline">Deadline: {new Date(s.deadline).toLocaleDateString()}</span>
+								<span class="scholarship-deadline">Deadline: {new Date(s.deadline).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
 							{/if}
 							{#if s.location}
-								<span class="scholarship-location">{s.location}</span>
+								<span class="scholarship-location" title={s.location}>{s.location}</span>
 							{/if}
 						</div>
 					</a>
@@ -1659,6 +1658,7 @@ return () => clearInterval(interval);
 	display: flex;
 	flex-direction: column;
 	gap: 0.6rem;
+	min-width: 0;
 }
 .scholarship-card:hover {
 	transform: translateY(-6px);
@@ -1668,8 +1668,12 @@ return () => clearInterval(interval);
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
+	gap: 0.75rem;
+	min-height: 1.75rem;
 }
 .scholarship-badge {
+	flex-shrink: 0;
+	white-space: nowrap;
 	display: inline-flex;
 	align-items: center;
 	gap: 0.3rem;
@@ -1682,26 +1686,31 @@ return () => clearInterval(interval);
 	text-transform: uppercase;
 	letter-spacing: 0.04em;
 }
-.scholarship-amount {
-	font-size: 0.84rem;
-	font-weight: 700;
-	color: var(--accent-green);
-}
 .scholarship-title {
 	font-family: 'Outfit', sans-serif;
 	font-size: 1rem;
 	font-weight: 700;
 	color: var(--brand-navy);
 	line-height: 1.4;
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 3;
+	line-clamp: 3;
+	overflow: hidden;
+	min-height: 4.2em;
 }
 .scholarship-provider {
 	font-size: 0.84rem;
 	color: var(--text-secondary);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 .scholarship-footer {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
+	gap: 0.75rem;
 	margin-top: auto;
 	padding-top: 0.75rem;
 	border-top: 1px solid var(--border-subtle);
@@ -1710,6 +1719,15 @@ return () => clearInterval(interval);
 }
 .scholarship-deadline {
 	font-weight: 500;
+	white-space: nowrap;
+	flex-shrink: 0;
+}
+.scholarship-location {
+	min-width: 0;
+	text-align: right;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 .scholarships-empty {
 	text-align: center;
