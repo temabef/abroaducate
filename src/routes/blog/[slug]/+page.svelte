@@ -10,6 +10,10 @@
   let post = $derived(data?.post ?? {} as any);
   let html = $derived(data?.html ?? '');
   let related = $derived(data?.related ?? []);
+  // Scheduled posts are often edited before they go live, so show the later of the two dates
+  let lastUpdated = $derived(
+    [post?.published_at, post?.updated_at].filter(Boolean).sort().at(-1) ?? ''
+  );
 
   let scrollProgress = $state(0);
   let headings = $state<{ id: string; text: string; level: number }[]>([]);
@@ -200,8 +204,9 @@
   description={post?.excerpt || (post?.title ? `Read ${post.title} on our study abroad blog` : 'Study abroad article')}
   image={post?.cover_image_url}
   schemaType="Article"
+  authorName="Saheed Kolawole"
   datePublished={post?.published_at}
-  dateModified={post?.updated_at}
+  dateModified={lastUpdated}
 />
 
 <article class="post-article">
@@ -268,12 +273,15 @@
         <div class="main-col">
           <!-- Author Block -->
           <div class="author-block">
-            <div class="author-avatar">
-              <span class="avatar-fallback">AB</span>
-            </div>
+            <img src="/images/saheed-kolawole-avatar.jpg" alt="Saheed Kolawole" class="author-avatar" width="44" height="44" />
             <div class="author-info">
-              <span class="author-name">Abroaducate Admissions Team</span>
-              <span class="author-role">Admissions & Scholarship Experts</span>
+              <span class="author-name">By Saheed Kolawole</span>
+              <span class="author-role">
+                Founder of Abroaducate · Studied in Europe
+                {#if lastUpdated}
+                  · Updated <time datetime={lastUpdated}>{formatDate(lastUpdated)}</time>
+                {/if}
+              </span>
             </div>
           </div>
 
@@ -944,18 +952,9 @@
   .author-avatar {
     width: 44px;
     height: 44px;
+    flex-shrink: 0;
     border-radius: 50%;
-    background: linear-gradient(135deg, #f97316, #fb923c);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 10px rgba(249, 115, 22, 0.2);
-  }
-  .avatar-fallback {
-    color: white;
-    font-weight: 700;
-    font-size: 0.9rem;
-    letter-spacing: 0.05em;
+    object-fit: cover;
   }
   .author-info {
     display: flex;

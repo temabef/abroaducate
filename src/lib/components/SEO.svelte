@@ -79,7 +79,10 @@
 				"mainEntityOfPage": { "@type": "WebPage", "@id": canonical },
 				...(datePublished ? { "datePublished": datePublished } : {}),
 				...(dateModified || datePublished ? { "dateModified": dateModified || datePublished } : {}),
-				"author": { "@type": "Organization", "name": authorName, "url": SITE },
+				"author":
+					authorName === 'Abroaducate'
+						? { "@type": "Organization", "name": authorName, "url": SITE }
+						: { "@type": "Person", "name": authorName, "jobTitle": "Founder", "worksFor": { "@type": "Organization", "name": "Abroaducate", "url": SITE } },
 				"publisher": {
 					"@type": "Organization",
 					"name": "Abroaducate",
