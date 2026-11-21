@@ -5,7 +5,6 @@ ChevronRight,
 Landmark,
 GraduationCap,
 BookOpen,
-Sparkles,
 Globe,
 Building2,
 ShieldCheck
@@ -233,6 +232,18 @@ function goToPrograms() {
 </section>
 {/if}
 
+<!-- ═══ MEET THE FOUNDER & MISSION ═══ -->
+<section class="section-founder" use:fadeUpOnScroll>
+	<div class="section-inner founder-inner">
+		<img src="/images/saheed-kolawole.jpg" alt="Saheed Kolawole, founder of Abroaducate" class="founder-portrait" loading="lazy" />
+		<p class="founder-quote">
+			“I built Abroaducate so no student has to pay an agency $3,000 to find a <span class="founder-accent">€0 tuition degree</span>,
+			win funding, or get through embassy requirements. Everything here comes from my own journey to Europe.”
+		</p>
+		<p class="founder-sign"><strong>Saheed Kolawole</strong> · Founder</p>
+	</div>
+</section>
+
 <!-- ═══ ESSENTIAL STUDENT RELOCATION & VISA SECTION ═══ -->
 <section class="section-relocation-home bg-slate-900 text-white py-20 px-6" use:fadeUpOnScroll>
 	<div class="max-w-6xl mx-auto">
@@ -339,30 +350,6 @@ function goToPrograms() {
 				<span>Explore Full International Student Relocation Toolkit (Translations, Banking, Housing)</span>
 				<ChevronRight size={16} />
 			</a>
-		</div>
-	</div>
-</section>
-
-<!-- ═══ MEET THE FOUNDER & MISSION ═══ -->
-<section class="section-founder" use:fadeUpOnScroll>
-	<div class="section-inner">
-		<div class="founder-card">
-			<img src="/images/saheed-kolawole.jpg" alt="Saheed Kolawole, founder of Abroaducate" class="founder-portrait" loading="lazy" />
-			<div class="founder-content">
-				<span class="founder-eyebrow"><Sparkles size={13} /> Our story</span>
-				<h2 class="founder-heading">
-					Studying in Europe should be <span class="founder-heading-accent">transparent and affordable</span> for everyone.
-				</h2>
-				<p class="founder-letter">
-					When I applied to study in Europe, I ran into $3,000+ agency fees, confusing portals and constant visa anxiety.
-					I built Abroaducate so no student has to pay a fortune to find a <strong>€0 tuition degree</strong>, win funding,
-					or get through embassy requirements. Every program and partner here comes from real experience.
-				</p>
-				<div class="founder-sign">
-					<span class="founder-name">Saheed Kolawole</span>
-					<span class="founder-title">Founder · Europe alum</span>
-				</div>
-			</div>
 		</div>
 	</div>
 </section>
@@ -885,19 +872,25 @@ function goToPrograms() {
 }
 .final-cta-actions {
 	display: flex;
+	align-items: center;
 	gap: 0.75rem;
 	justify-content: center;
 	flex-wrap: wrap;
+	margin-bottom: 1.25rem;
+}
+.final-cta-actions .btn-cta-orange {
+	margin-bottom: 0;
 }
 .btn-cta-ghost-light {
 	display: inline-flex;
 	align-items: center;
 	gap: 0.4rem;
-	padding: 0.95rem 1.75rem;
-	border-radius: 100px;
+	padding: calc(1rem - 1px) 2.5rem;
+	border-radius: 14px;
 	border: 1px solid rgba(255, 255, 255, 0.3);
 	color: #ffffff;
 	font-weight: 700;
+	font-size: 1.1rem;
 	text-decoration: none;
 	transition: background 0.2s;
 }
@@ -1280,102 +1273,43 @@ function goToPrograms() {
 }
 
 /* ═══════════════════════════════════════
-   FOUNDER & MISSION SECTION — light, compact
+   FOUNDER — simple centered note, no box
    ═══════════════════════════════════════ */
 .section-founder {
-	padding: 4.5rem 1.5rem;
-	background: linear-gradient(180deg, #fff7ed 0%, #ffffff 100%);
-}
-.founder-card {
-	max-width: 860px;
-	margin: 0 auto;
-	display: flex;
-	align-items: center;
-	gap: 2.5rem;
+	padding: 5rem 1.5rem;
 	background: #ffffff;
-	border: 1px solid #fed7aa;
-	border-radius: 1.75rem;
-	padding: 2.25rem 2.5rem;
-	box-shadow: 0 12px 40px rgba(249, 115, 22, 0.08);
+}
+.founder-inner {
+	max-width: 720px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	text-align: center;
+	gap: 1.25rem;
 }
 .founder-portrait {
-	width: 150px;
-	height: 150px;
-	flex-shrink: 0;
+	width: 88px;
+	height: 88px;
 	border-radius: 50%;
 	object-fit: cover;
 	object-position: top center;
-	border: 4px solid #ffedd5;
-	box-shadow: 0 0 0 2px #fdba74;
 }
-.founder-content {
-	display: flex;
-	flex-direction: column;
-	gap: 0.85rem;
-	text-align: left;
-}
-.founder-eyebrow {
-	display: inline-flex;
-	align-items: center;
-	gap: 0.4rem;
-	align-self: flex-start;
-	font-size: 0.72rem;
-	font-weight: 800;
-	text-transform: uppercase;
-	letter-spacing: 0.08em;
-	color: #ea580c;
-}
-.founder-heading {
+.founder-quote {
 	font-family: 'Outfit', sans-serif;
-	font-size: clamp(1.3rem, 2.2vw, 1.65rem);
-	font-weight: 800;
-	line-height: 1.3;
-	letter-spacing: -0.01em;
+	font-size: clamp(1.15rem, 2vw, 1.4rem);
+	font-weight: 600;
+	line-height: 1.55;
 	color: var(--brand-navy);
 }
-.founder-heading-accent {
-	color: #ea580c;
-}
-.founder-letter {
-	font-size: 0.93rem;
-	line-height: 1.7;
-	color: var(--text-secondary);
-}
-.founder-letter strong {
-	color: var(--brand-navy);
+.founder-accent {
+	color: var(--brand-orange);
 }
 .founder-sign {
-	display: flex;
-	flex-direction: column;
-	line-height: 1.3;
-}
-.founder-name {
-	font-weight: 800;
-	font-size: 0.9rem;
-	color: var(--brand-navy);
-}
-.founder-title {
-	font-size: 0.78rem;
+	font-size: 0.88rem;
 	color: var(--text-muted);
 }
-@media (max-width: 700px) {
-	.founder-card {
-		flex-direction: column;
-		text-align: center;
-		gap: 1.25rem;
-		padding: 1.75rem 1.25rem;
-	}
-	.founder-portrait {
-		width: 120px;
-		height: 120px;
-	}
-	.founder-content {
-		align-items: center;
-		text-align: center;
-	}
-	.founder-eyebrow {
-		align-self: center;
-	}
+.founder-sign strong {
+	color: var(--brand-navy);
 }
 
 @media (max-width: 480px) {
