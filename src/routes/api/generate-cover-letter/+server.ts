@@ -1,4 +1,5 @@
 import { json } from '@sveltejs/kit';
+import { enforceDailyAiLimit } from '$lib/comprehensive-usage-limits.server';
 import type { RequestHandler } from './$types';
 import { OPENAI_API_KEY } from '$env/static/private';
 import { z } from 'zod';
@@ -10,6 +11,10 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
     if (!session) {
         return json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    // Daily AI limit (shared across all AI tools)
+    const limited = await enforceDailyAiLimit(session.user.id, 'cover_letter_generation');
+    if (limited) return json(limited, { status: 403 });
     
     // Define schema for validation
     const coverLetterSchema = z.object({

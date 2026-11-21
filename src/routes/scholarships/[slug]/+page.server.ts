@@ -42,7 +42,7 @@ export const load: PageServerLoad = async ({ params, locals: { getSession, supab
   }
   
   // Fetch related scholarships (same field and level)
-  let relatedScholarships = [];
+  let relatedScholarships: any[] = [];
   try {
     const { data: relatedData } = await supabase
       .from('public_scholarships_decoded')
@@ -91,6 +91,17 @@ export const load: PageServerLoad = async ({ params, locals: { getSession, supab
     }
   }
 
+  // Stored win strategy is free for any signed-in user (no paid plans anymore).
+  let winStrategy: any = null;
+  if (session?.user?.id) {
+    const { data: row } = await supabaseServiceRole
+      .from('scholarship_win_strategies')
+      .select('strategy')
+      .eq('scholarship_id', scholarshipId)
+      .maybeSingle();
+    winStrategy = row?.strategy || null;
+  }
+
   // Return serializable data
   return {
     session,
@@ -99,29 +110,6 @@ export const load: PageServerLoad = async ({ params, locals: { getSession, supab
     relatedScholarships,
     userStrategy,
     userDocuments,
-    winStrategy: (async () => {
-      // Only return stored AI win strategy to paid users.
-      if (!session?.user?.id) return null;
-
-      const { data: subscription } = await supabaseServiceRole
-        .from('user_subscriptions')
-        .select('plan_type')
-        .eq('user_id', session.user.id)
-        .in('status', ['active', 'trialing'])
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      const planType = subscription?.plan_type || 'free';
-      if (planType === 'free') return null;
-
-      const { data: row } = await supabaseServiceRole
-        .from('scholarship_win_strategies')
-        .select('strategy, updated_at, model, version')
-        .eq('scholarship_id', scholarshipId)
-        .maybeSingle();
-
-      return row?.strategy || null;
-    })()
+    winStrategy
   };
 }; 

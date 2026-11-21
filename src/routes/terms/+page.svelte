@@ -149,8 +149,6 @@
 		<div class="footer-nav">
 			<a href="/privacy">Privacy Policy</a>
 			<span class="sep">&middot;</span>
-			<a href="/refund-policy">Refund Policy</a>
-			<span class="sep">&middot;</span>
 			<a href="/contact">Contact Support</a>
 		</div>
 

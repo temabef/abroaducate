@@ -41,7 +41,6 @@
 					<li>Educational background, nationality, and career goals</li>
 					<li>Documents you create or upload (SOPs, cover letters, personal statements)</li>
 					<li>University preferences and application tracking data</li>
-					<li>Payment information (processed securely through Stripe — we do not store card details)</li>
 				</ul>
 				<p>We also automatically collect device information (IP address, browser type), usage data (pages visited, features used), and analytics data via PostHog.</p>
 			</section>
@@ -74,7 +73,7 @@
 
 			<section>
 				<h2>4. Information Sharing and Disclosure</h2>
-				<p>We do not sell your personal information. We may share information with third-party service providers who help us operate the platform: Supabase (database and auth), OpenAI (AI processing), Stripe (payments), Customer.io (email), PostHog (analytics), and Vercel (hosting).</p>
+				<p>We do not sell your personal information. We may share information with third-party service providers who help us operate the platform: Supabase (database and auth), OpenAI (AI processing), Customer.io (email), Google Analytics and PostHog (analytics), Google AdSense (advertising), and Cloudflare (hosting). When you click a partner link (for example a blocked account or eSIM provider), that partner may receive referral information so we can earn a commission.</p>
 				<p>We may also share information when required by law, court order, or government request, or in connection with a merger or acquisition (with user notification).</p>
 			</section>
 
@@ -85,7 +84,6 @@
 					<li>Industry-standard encryption for data in transit and at rest</li>
 					<li>Secure authentication via Supabase (SOC 2 compliant infrastructure)</li>
 					<li>Row Level Security (RLS) on all database tables</li>
-					<li>PCI DSS compliant payment processing via Stripe</li>
 					<li>Regular security reviews and access controls</li>
 				</ul>
 			</section>
@@ -145,8 +143,6 @@
 		<!-- Footer nav -->
 		<div class="footer-nav">
 			<a href="/terms">Terms of Service</a>
-			<span class="sep">&middot;</span>
-			<a href="/refund-policy">Refund Policy</a>
 			<span class="sep">&middot;</span>
 			<a href="/contact">Contact Support</a>
 		</div>

@@ -73,14 +73,14 @@
 			Copilot Strategy
 		</h2>
 		<span class="text-xs font-bold uppercase tracking-wider px-3 py-1.5 rounded-full border bg-slate-800 text-slate-300 border-slate-700">
-			{aiWinStrategy ? 'Unlocked' : 'Free Preview'}
+			{aiWinStrategy ? 'Ready' : 'Free'}
 		</span>
 	</div>
 
 	{#if !aiWinStrategy}
 		<!-- Reveal button -->
 		<div class="rounded-2xl border border-orange-500/20 bg-orange-500/5 p-8 relative z-10">
-			<p class="text-xl text-white font-bold mb-4">Unlock the Strategy Board for this scholarship</p>
+			<p class="text-xl text-white font-bold mb-4">Get your free Strategy Board for this scholarship</p>
 			<ul class="text-slate-300 space-y-3 mb-8 text-lg">
 				<li class="flex items-center gap-3">
 					<svg class="w-6 h-6 text-emerald-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>

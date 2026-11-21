@@ -12,7 +12,6 @@
 	import FundingGuidance from '$lib/components/FundingGuidance.svelte';
 	import WorkAndStay from '$lib/components/WorkAndStay.svelte';
 	import SampleStrategyModal from '$lib/components/SampleStrategyModal.svelte';
-	import StrategyUsageCounter from '$lib/components/StrategyUsageCounter.svelte';
 
 	let { data } = $props();
 	let session = $derived(data.session);

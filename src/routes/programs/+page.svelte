@@ -5,7 +5,6 @@
 	import { onMount } from 'svelte';
 	import { getProgramDeadlineLifecycle, getProgramDeadlineSortValue } from '$lib/utils/programDeadlines';
 	import SampleStrategyModal from '$lib/components/SampleStrategyModal.svelte';
-	import StrategyUsageCounter from '$lib/components/StrategyUsageCounter.svelte';
 	import WelcomeOverlay from '$lib/components/WelcomeOverlay.svelte';
 
 	let { data }: { data: any } = $props();
@@ -213,7 +212,6 @@
 				<p class="strategy-banner-desc">Eligibility match, committee rubric, essay angles & action path — tailored to your profile. 100% Free on Abroaducate.</p>
 			</div>
 			<div class="strategy-banner-right">
-				<StrategyUsageCounter />
 				<button onclick={() => showSampleModal = true} class="strategy-banner-btn">
 					See Sample →
 				</button>

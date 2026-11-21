@@ -3,9 +3,13 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { PUBLIC_SUPABASE_URL } from '$env/static/public';
 import { SUPABASE_SERVICE_ROLE_KEY } from '$env/static/private';
 
-// COMPREHENSIVE USAGE LIMITS
-// Abroaducate is a 100% free platform supported by verified relocation partners.
-// All features are available to registered students without paywalls.
+// USAGE LIMITS
+// Abroaducate is 100% free. To keep AI costs predictable, every signed-in user gets
+// DAILY_AI_LIMIT AI actions per rolling 24 hours, shared across all AI tools
+// (document generation, reviews, edits, visa practice, win strategies...).
+// Each use is logged to ai_usage_log; the limit counts those rows.
+
+export const DAILY_AI_LIMIT = 20;
 
 export interface ComprehensiveUsageCheck {
 	allowed: boolean;
@@ -14,105 +18,6 @@ export interface ComprehensiveUsageCheck {
 	limit: number | null;
 	message?: string;
 }
-
-// 100% Free platform limits - all features unlocked
-const AI_FEATURE_LIMITS: Record<string, Record<string, number | null>> = {
-	free: {
-		// Document Generation - Unlimited for registered students
-		sop_generation: null,
-		cover_letter_generation: null,
-		personal_statement_generation: null,
-		academic_cv_generation: null,
-		total_documents: null,
-		
-		// AI Enhancement Features
-		reviews: null,
-		text_enhancements: null,
-		word_optimizations: null,
-		grammar_check: null,
-		plagiarism_checks: null,
-		tone_analysis: null,
-		inline_edits: null,
-		
-		// Cold Email Generator
-		cold_email_generation: null,
-		
-		// Visa Interview Practice
-		visa_interview_questions: null,
-		
-		// University Matching
-		university_matching: null,
-		university_queries: null,
-		
-		// Application Tracking
-		application_tracking: null,
-
-		// Scholarship intelligence
-		scholarship_win_strategy: null,
-		
-		// Document Checklist Limits
-		document_checklists: null,
-		checklist_progress: null,
-		
-		// Alternative names for compatibility
-		sop_review: null,
-		text_enhancement: null,
-		word_optimization: null,
-		plagiarism_check: null
-	},
-	professional: {
-		sop_generation: null,
-		cover_letter_generation: null,
-		personal_statement_generation: null,
-		academic_cv_generation: null,
-		total_documents: null,
-		reviews: null,
-		text_enhancements: null,
-		word_optimizations: null,
-		grammar_check: null,
-		plagiarism_checks: null,
-		tone_analysis: null,
-		inline_edits: null,
-		cold_email_generation: null,
-		visa_interview_questions: null,
-		university_matching: null,
-		university_queries: null,
-		application_tracking: null,
-		scholarship_win_strategy: null,
-		document_checklists: null,
-		checklist_progress: null,
-		sop_review: null,
-		text_enhancement: null,
-		word_optimization: null,
-		plagiarism_check: null
-	},
-	elite: {
-		sop_generation: null,
-		cover_letter_generation: null,
-		personal_statement_generation: null,
-		academic_cv_generation: null,
-		total_documents: null,
-		reviews: null,
-		text_enhancements: null,
-		word_optimizations: null,
-		grammar_check: null,
-		plagiarism_checks: null,
-		tone_analysis: null,
-		inline_edits: null,
-		cold_email_generation: null,
-		visa_interview_questions: null,
-		university_matching: null,
-		university_queries: null,
-		application_tracking: null,
-		scholarship_win_strategy: null,
-		document_checklists: null,
-		checklist_progress: null,
-		sop_review: null,
-		text_enhancement: null,
-		word_optimization: null,
-		plagiarism_check: null
-	}
-};
 
 /**
  * Creates a temporary, privileged Supabase client for secure server-side operations.
@@ -127,19 +32,58 @@ function createAdminClient(): SupabaseClient {
 }
 
 /**
- * Checks if a user can use a specific AI feature.
- * Abroaducate is 100% free — all features are unlocked with no paywalls.
+ * Checks whether a user still has AI actions left today (rolling 24h, all features combined).
+ * Fails open if the log can't be read, so a database hiccup never blocks students.
  */
 export async function checkComprehensiveUsageLimit(
-    userId: string,
-	featureSubtype: string
+	userId: string,
+	_featureSubtype: string
 ): Promise<ComprehensiveUsageCheck> {
+	const supabase = createAdminClient();
+	const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
+	const { count, error } = await supabase
+		.from('ai_usage_log')
+		.select('id', { count: 'exact', head: true })
+		.eq('user_id', userId)
+		.gte('created_at', since);
+
+	if (error) {
+		console.error('Error reading AI usage:', error);
+		return { allowed: true, planType: 'free', currentUsage: 0, limit: DAILY_AI_LIMIT };
+	}
+
+	const used = count ?? 0;
+	const allowed = used < DAILY_AI_LIMIT;
 	return {
-		allowed: true,
+		allowed,
 		planType: 'free',
-		currentUsage: 0,
-		limit: null
+		currentUsage: used,
+		limit: DAILY_AI_LIMIT,
+		message: allowed
+			? undefined
+			: `You've used all ${DAILY_AI_LIMIT} free AI actions for today. Your limit resets within 24 hours. Everything else on Abroaducate stays free.`
 	};
+}
+
+/**
+ * Check + log in one call, for endpoints that make exactly one AI call per request.
+ * Returns a 429 JSON body to send back when the user is over the limit, or null to proceed.
+ */
+export async function enforceDailyAiLimit(userId: string, featureSubtype: string) {
+	const check = await checkComprehensiveUsageLimit(userId, featureSubtype);
+	if (!check.allowed) {
+		return {
+			error: 'Daily limit reached',
+			message: check.message,
+			planType: check.planType,
+			currentUsage: check.currentUsage,
+			limit: check.limit,
+			upgradeRequired: true
+		};
+	}
+	await incrementComprehensiveUsage(userId, featureSubtype);
+	return null;
 }
 
 /**

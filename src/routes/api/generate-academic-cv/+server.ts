@@ -1,4 +1,5 @@
 import { json } from '@sveltejs/kit';
+import { enforceDailyAiLimit } from '$lib/comprehensive-usage-limits.server';
 import type { RequestHandler } from './$types';
 import { z } from 'zod';
 
@@ -8,6 +9,10 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
     if (!session) {
         return json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    // Daily AI limit (shared across all AI tools)
+    const limited = await enforceDailyAiLimit(session.user.id, 'academic_cv_generation');
+    if (limited) return json(limited, { status: 403 });
 
     // Define schema for validation
     const academicCvSchema = z.object({

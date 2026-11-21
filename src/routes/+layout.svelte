@@ -3,7 +3,7 @@
     import { invalidate, afterNavigate } from '$app/navigation';
 	import '../app.css';
 	import Navbar from '$lib/components/Navbar.svelte';
-	import GlobalUpgradeHandler from '$lib/components/GlobalUpgradeHandler.svelte';
+	import DailyLimitNotice from '$lib/components/DailyLimitNotice.svelte';
 	import SiteFooter from '$lib/components/SiteFooter.svelte';
 	import SupportChat from '$lib/components/SupportChat.svelte';
 	import { getAffiliatePartner } from '$lib/utils/affiliateLinks';
@@ -154,8 +154,8 @@
 
 <SiteFooter />
 
-<!-- Global upgrade handler - works everywhere -->
-<GlobalUpgradeHandler />
+<!-- Friendly notice when a user hits the daily AI limit -->
+<DailyLimitNotice />
 
 <!-- AI Support Chat — floating bottom-right -->
 <SupportChat {supabase} {session} />

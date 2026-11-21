@@ -429,9 +429,8 @@
 {#if showLimitModal}
     <div class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
         <div class="bg-white rounded-lg shadow-lg p-8 max-w-sm w-full text-center">
-            <h2 class="text-xl font-bold text-blue-700 mb-4">Visa Interview Practice Limit Reached</h2>
+            <h2 class="text-xl font-bold text-blue-700 mb-4">Daily practice limit reached</h2>
             <p class="mb-6 text-blue-900">{limitModalMessage}</p>
-            <a href="/pricing" class="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition mb-4">Upgrade Plan</a>
             <button onclick={closeLimitModal} class="w-full bg-gray-200 text-gray-800 px-4 py-2 rounded-lg font-medium hover:bg-gray-300 transition">Close</button>
         </div>
     </div>

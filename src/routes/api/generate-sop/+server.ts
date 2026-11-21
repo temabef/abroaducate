@@ -1,4 +1,5 @@
 import { json } from '@sveltejs/kit';
+import { enforceDailyAiLimit } from '$lib/comprehensive-usage-limits.server';
 import { OPENAI_API_KEY } from '$env/static/private';
 import type { RequestHandler } from './$types';
 import type { FormData, WorkExperience, Organization, CommunityService } from '$lib/types';
@@ -149,6 +150,10 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, getSes
     if (!session) {
         return json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    // Daily AI limit (shared across all AI tools)
+    const limited = await enforceDailyAiLimit(session.user.id, 'sop_generation');
+    if (limited) return json(limited, { status: 403 });
     
     // Security headers for API responses
     const securityHeaders = {

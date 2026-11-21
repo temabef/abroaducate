@@ -20,6 +20,15 @@ export const handle: Handle = async ({ event, resolve }) => {
     });
   }
 
+  // Paid plans were removed — send old subscription/billing URLs somewhere useful.
+  const p = event.url.pathname;
+  if (p === '/subscribe' || p.startsWith('/subscription') || p.startsWith('/billing')) {
+    return new Response(null, { status: 301, headers: { location: '/pricing' } });
+  }
+  if (p === '/refund-policy') {
+    return new Response(null, { status: 301, headers: { location: '/terms' } });
+  }
+
   // This restores the original, correct authentication client
   event.locals.supabase = createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
     cookies: {
