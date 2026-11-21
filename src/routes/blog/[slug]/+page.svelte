@@ -382,11 +382,6 @@
             </a>
           </div>
 
-          <!-- Desktop Sidebar Ad Unit -->
-          <div class="sidebar-card sidebar-ad-card" style="padding: 1rem 0.5rem; background: #f8fafc; border: 1px solid #e2e8f0;">
-            <BlogAdUnit slot="4565190252" format="auto" minHeight="250px" label="Sponsored" />
-          </div>
-
           <!-- Navigation -->
           <div class="sidebar-card">
             <h3 class="sidebar-heading">Navigation</h3>
@@ -878,9 +873,6 @@
     border: 1px solid #e2e8f0;
     border-radius: 1rem;
     padding: 1.5rem;
-  }
-  .sidebar-ad-card:has(ins[data-ad-status="unfilled"]) {
-    display: none !important;
   }
   .sidebar-heading {
     font-family: 'Outfit', sans-serif;

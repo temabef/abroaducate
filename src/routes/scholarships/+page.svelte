@@ -6,7 +6,6 @@
   import { analytics } from '$lib/utils/posthog';
   import QuickProfileModal from '$lib/components/QuickProfileModal.svelte';
   import { loadQuickProfile, type QuickProfile, gpaMidpoint } from '$lib/services/quickProfile';
-  import BlogAdUnit from '$lib/components/BlogAdUnit.svelte';
   import SEO from '$lib/components/SEO.svelte';
 
   let { data } = $props();
@@ -774,11 +773,6 @@
               >
                 Clear all filters
               </button>
-
-              <!-- Sidebar Sponsored Ad -->
-              <div class="mt-6 p-2 bg-slate-50 border border-slate-200 rounded-2xl overflow-hidden">
-                <BlogAdUnit slot="4565190252" format="auto" minHeight="250px" label="Sponsored" />
-              </div>
             </div>
           </aside>
 

@@ -1103,10 +1103,6 @@
                </div>
             </div>
 
-            <!-- Desktop-Only Sidebar Sponsored Ad Unit -->
-            <div class="hidden lg:block bg-white rounded-3xl p-4 border border-slate-200 shadow-sm overflow-hidden">
-              <BlogAdUnit slot="4565190252" format="auto" minHeight="250px" label="Sponsored" />
-            </div>
             
             {#if scholarship.program_name && scholarship.university_name}
               <!-- Supplementary block for grad program info if applicable -->
