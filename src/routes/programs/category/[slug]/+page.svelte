@@ -17,8 +17,8 @@
 		'@type': 'BreadcrumbList',
 		itemListElement: [
 			{ '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.abroaducate.com/' },
-			{ '@type': 'ListItem', position: 2, name: 'Degree Programs', item: 'https://www.abroaducate.com/programs' },
-			{ '@type': 'ListItem', position: 3, name: category.heading, item: `https://www.abroaducate.com/programs/category/${category.slug}` }
+			{ '@type': 'ListItem', position: 2, name: 'Degree Programs', item: 'https://abroaducate.com/programs' },
+			{ '@type': 'ListItem', position: 3, name: category.heading, item: `https://abroaducate.com/programs/category/${category.slug}` }
 		]
 	});
 
@@ -32,7 +32,7 @@
 			'@type': 'ListItem',
 			position: idx + 1,
 			name: `${p.program_name} - ${p.university_name}`,
-			url: `https://www.abroaducate.com/programs/${p.id}`
+			url: `https://abroaducate.com/programs/${p.id}`
 		}))
 	});
 </script>
@@ -40,7 +40,7 @@
 <SEO 
 	title={category.title}
 	description={category.metaDescription}
-	canonical={`https://www.abroaducate.com/programs/category/${category.slug}`}
+	canonical={`https://abroaducate.com/programs/category/${category.slug}`}
 	type="website"
 />
 

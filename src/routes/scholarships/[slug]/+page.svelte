@@ -10,6 +10,7 @@
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
   import AuthenticationFlow from '$lib/components/AuthenticationFlow.svelte';
+  import SEO from '$lib/components/SEO.svelte';
   import { formatCurrencyAmount, formatScholarshipText, decodeHtmlEntities } from '$lib/utils/htmlEntities';
   import { markdownToHtml } from '$lib/utils/markdownToHtml';
   import { subscriptionState } from '$lib/stores/subscription';
@@ -786,10 +787,18 @@
   }
 </script>
 
-<svelte:head>
-  <title>{decodeHtmlEntities(scholarship.title)} - Scholarship Details</title>
-  <meta name="description" content="{decodeHtmlEntities(scholarship.description)}" />
-</svelte:head>
+<SEO
+  title={`${decodeHtmlEntities(scholarship.title)} | Scholarship`}
+  description={(() => {
+    const d = decodeHtmlEntities(scholarship.description || '').replace(/\s+/g, ' ').trim();
+    const deadline = scholarship.deadline
+      ? ` Deadline: ${new Date(scholarship.deadline).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}.`
+      : '';
+    const base = d || `${decodeHtmlEntities(scholarship.title)} — eligibility, benefits and how to apply.`;
+    return (base.length > 150 - deadline.length ? base.slice(0, 147 - deadline.length).trimEnd() + '…' : base) + deadline;
+  })()}
+  canonical={`https://abroaducate.com/scholarships/${scholarship.id}`}
+/>
 
 <div class="min-h-screen bg-slate-50 pt-20 pb-12">
   {#if error}

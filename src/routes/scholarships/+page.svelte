@@ -7,7 +7,8 @@
   import QuickProfileModal from '$lib/components/QuickProfileModal.svelte';
   import { loadQuickProfile, type QuickProfile, gpaMidpoint } from '$lib/services/quickProfile';
   import BlogAdUnit from '$lib/components/BlogAdUnit.svelte';
-  
+  import SEO from '$lib/components/SEO.svelte';
+
   let { data } = $props();
   let { supabase, session } = $derived(data);
 
@@ -603,10 +604,11 @@
   }
 </script>
 
-<svelte:head>
-  <title>Scholarships - Abroaducate</title>
-  <meta name="description" content="Browse scholarships and funding opportunities." />
-</svelte:head>
+<SEO
+  title="Scholarships 2026–2027 for International Students | Abroaducate"
+  description="Browse fully funded and partial scholarships for international students — Master's, PhD and undergraduate funding in Europe and worldwide, updated daily with deadlines."
+  canonical="https://abroaducate.com/scholarships"
+/>
 
 <div class="discovery-layout">
 	<!-- HEADER: Page Title & Search -->
@@ -808,7 +810,25 @@
             </div>
 
         {#if isLoading}
-          <div class="py-20 flex justify-center"><div class="animate-spin rounded-full h-10 w-10 border-b-2 border-brand-navy"></div></div>
+          {#if data.initialScholarships?.length}
+            <!-- Server-rendered preview: crawlable links shown until the full directory loads -->
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+              {#each data.initialScholarships as s (s.id)}
+                <a href={`/scholarships/${s.id}`} class="program-card">
+                  <div class="p-5 flex flex-col h-full gap-2">
+                    {#if s.provider}<span class="text-xs font-semibold text-slate-500 tracking-wide uppercase truncate">{decodeHtmlEntities(s.provider)}</span>{/if}
+                    <h3 class="text-base font-bold text-slate-900 leading-snug line-clamp-3">{decodeHtmlEntities(s.title)}</h3>
+                    <div class="mt-auto pt-3 text-xs text-slate-500 flex justify-between gap-3">
+                      {#if s.deadline}<span class="whitespace-nowrap">Deadline: {new Date(s.deadline).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>{/if}
+                      {#if s.location}<span class="truncate">{s.location}</span>{/if}
+                    </div>
+                  </div>
+                </a>
+              {/each}
+            </div>
+          {:else}
+            <div class="py-20 flex justify-center"><div class="animate-spin rounded-full h-10 w-10 border-b-2 border-brand-navy"></div></div>
+          {/if}
         {:else if displayScholarships.length === 0}
           <div class="bg-white rounded-3xl border border-slate-200 p-16 text-center shadow-sm">
             <h3 class="text-xl font-bold text-slate-900 mb-2">No scholarships found</h3>

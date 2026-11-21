@@ -2,6 +2,7 @@ import { error, redirect, isRedirect, isHttpError } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import MarkdownIt from 'markdown-it';
 import sanitizeHtml from 'sanitize-html';
+import { tagAffiliateLinks } from '$lib/utils/affiliateLinks';
 
 const md = new MarkdownIt({
 	html: true,
@@ -127,7 +128,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		}
 
 		// Render the markdown content
-		const renderedContent = renderMarkdown(post.content);
+		const { html: renderedContent, hasAffiliateLinks } = tagAffiliateLinks(renderMarkdown(post.content));
 
 		// Fetch related posts — other published posts, most recent 4
 		const { data: relatedRows, error: relatedErr } = await supabase
@@ -145,6 +146,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 				content: renderedContent
 			},
 			related,
+			hasAffiliateLinks,
 			// SEO metadata
 			seo: {
 				title: post.title,

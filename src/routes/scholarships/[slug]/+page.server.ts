@@ -1,4 +1,4 @@
-import { error } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, locals: { getSession, supabase, supabaseServiceRole } }) => {
@@ -7,6 +7,13 @@ export const load: PageServerLoad = async ({ params, locals: { getSession, supab
   
   // Get the scholarship ID from the URL parameter
   const scholarshipId = params.slug;
+
+  // Old WordPress-era URLs (/scholarships/scholarship-foo) → strip the prefix
+  for (const prefix of ['scholarship-', 'funding-', 'grant-', 'fellowship-']) {
+    if (scholarshipId.startsWith(prefix)) {
+      throw redirect(301, `/scholarships/${scholarshipId.slice(prefix.length)}`);
+    }
+  }
   
   // Fetch the scholarship data using the decoded public view to ensure characters render correctly
   const { data: scholarship, error: scholarshipError } = await supabase

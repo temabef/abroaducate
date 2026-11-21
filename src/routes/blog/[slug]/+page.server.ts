@@ -1,6 +1,7 @@
 import type { PageServerLoad } from './$types';
 import { error, redirect } from '@sveltejs/kit';
 import { marked } from 'marked';
+import { tagAffiliateLinks } from '$lib/utils/affiliateLinks';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
   const supabase = locals.supabase;
@@ -36,7 +37,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
   const reading_time = Math.max(1, Math.round((post.content?.split(/\s+/).length || 0) / 200));
 
   // Simple markdown to HTML conversion
-  const html = renderMarkdown(post.content || '');
+  const { html, hasAffiliateLinks } = tagAffiliateLinks(renderMarkdown(post.content || ''));
 
   // Fetch related posts — only new posts (not WordPress-era), excluding current
   const { data: relatedRows } = await supabase
@@ -79,6 +80,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
       reading_time
     },
     html,
+    hasAffiliateLinks,
     related
   };
 };

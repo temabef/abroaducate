@@ -6,6 +6,7 @@
 	import GlobalUpgradeHandler from '$lib/components/GlobalUpgradeHandler.svelte';
 	import SiteFooter from '$lib/components/SiteFooter.svelte';
 	import SupportChat from '$lib/components/SupportChat.svelte';
+	import { getAffiliatePartner } from '$lib/utils/affiliateLinks';
     import { analytics } from '$lib/utils/posthog';
     import { subscriptionState } from '$lib/stores/subscription';
 
@@ -18,6 +19,29 @@
         if (sub.plan_type === 'free') return false;
         return ['active','trialing','past_due'].includes(sub.status) || sub.admin_override === true;
     }
+
+	// Track every affiliate link click site-wide (blog posts, toolkit, homepage cards) in GA4
+	// as an `affiliate_click` event with the partner and the page it came from.
+	onMount(() => {
+		const onClick = (e: MouseEvent) => {
+			const link = (e.target as Element | null)?.closest?.('a[href]') as HTMLAnchorElement | null;
+			if (!link) return;
+			const partner = link.dataset.affiliate || getAffiliatePartner(link.href);
+			if (!partner) return;
+			const gtag = (window as any).gtag;
+			if (typeof gtag === 'function') {
+				gtag('event', 'affiliate_click', {
+					partner,
+					link_url: link.href,
+					link_text: (link.textContent || '').trim().slice(0, 100),
+					page_path: window.location.pathname,
+					transport_type: 'beacon'
+				});
+			}
+		};
+		document.addEventListener('click', onClick, true);
+		return () => document.removeEventListener('click', onClick, true);
+	});
 
 	onMount(() => {
         // Unregister any legacy or conflicting service workers and delete stale navigation caches

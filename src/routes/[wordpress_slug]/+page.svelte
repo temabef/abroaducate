@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import SEO from '$lib/components/SEO.svelte';
-	
+	import AffiliateDisclosure from '$lib/components/AffiliateDisclosure.svelte';
+
 	export let data;
 	$: post = data?.post ?? {};
 	$: seo = data?.seo ?? {};
@@ -289,6 +290,9 @@
 			<div class="lg:flex lg:gap-8">
 				<!-- Main Content -->
 				<article class="lg:w-3/4 min-w-0">
+					{#if data?.hasAffiliateLinks}
+						<AffiliateDisclosure />
+					{/if}
 					<div class="blog-content w-full max-w-none">
 						{@html (() => {
 							try {

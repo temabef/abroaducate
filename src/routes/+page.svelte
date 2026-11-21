@@ -20,6 +20,7 @@ import AuthenticationFlow from '$lib/components/AuthenticationFlow.svelte';
 import SampleStrategyModal from '$lib/components/SampleStrategyModal.svelte';
 import StrategyUsageCounter from '$lib/components/StrategyUsageCounter.svelte';
 import IeltsPrepModal from '$lib/components/IeltsPrepModal.svelte';
+import SEO from '$lib/components/SEO.svelte';
 
 let { data } = $props();
 let { supabase, session } = $derived(data);
@@ -130,9 +131,11 @@ return () => clearInterval(interval);
 });
 </script>
 
-<svelte:head>
-	<title>Abroaducate — Study Abroad Affordably. Apply with Clarity.</title>
-</svelte:head>
+<SEO
+	title="Abroaducate — Study in Europe Tuition-Free | Scholarships & Guides"
+	description="Find 2,500+ tuition-free and affordable degree programs in Europe, the latest fully funded scholarships, and step-by-step guides for visas, blocked accounts and relocation. 100% free."
+	canonical="https://abroaducate.com/"
+/>
 
 <!-- ═══ HERO ═══ -->
 <section class="hero">

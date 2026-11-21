@@ -2,6 +2,7 @@
   import type { PageData } from './$types';
   import SEO from '$lib/components/SEO.svelte';
   import BlogAdUnit from '$lib/components/BlogAdUnit.svelte';
+  import AffiliateDisclosure from '$lib/components/AffiliateDisclosure.svelte';
   import { Twitter, Linkedin, Link2, ChevronRight, Calendar, Clock } from 'lucide-svelte';
   import { onMount } from 'svelte';
 
@@ -199,6 +200,8 @@
   description={post?.excerpt || (post?.title ? `Read ${post.title} on our study abroad blog` : 'Study abroad article')}
   image={post?.cover_image_url}
   schemaType="Article"
+  datePublished={post?.published_at}
+  dateModified={post?.updated_at}
 />
 
 <article class="post-article">
@@ -282,6 +285,9 @@
 
           <!-- Article Body with In-Article Ad -->
           <div class="article-body">
+            {#if data?.hasAffiliateLinks}
+              <AffiliateDisclosure />
+            {/if}
             <div class="prose prose-lg max-w-none">
               {@html contentParts.topHtml}
             </div>

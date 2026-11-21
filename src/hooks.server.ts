@@ -10,6 +10,16 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 export const handle: Handle = async ({ event, resolve }) => {
+  // One canonical host: send www traffic to the apex domain so Google doesn't index duplicates.
+  if (event.url.hostname === 'www.abroaducate.com') {
+    const target = new URL(event.url);
+    target.hostname = 'abroaducate.com';
+    return new Response(null, {
+      status: event.request.method === 'GET' || event.request.method === 'HEAD' ? 301 : 308,
+      headers: { location: target.toString() }
+    });
+  }
+
   // This restores the original, correct authentication client
   event.locals.supabase = createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
     cookies: {
