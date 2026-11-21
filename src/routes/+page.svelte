@@ -232,18 +232,6 @@ function goToPrograms() {
 </section>
 {/if}
 
-<!-- ═══ MEET THE FOUNDER & MISSION ═══ -->
-<section class="section-founder" use:fadeUpOnScroll>
-	<div class="section-inner founder-inner">
-		<img src="/images/saheed-kolawole.jpg" alt="Saheed Kolawole, founder of Abroaducate" class="founder-portrait" loading="lazy" />
-		<p class="founder-quote">
-			“I built Abroaducate so no student has to pay an agency $3,000 to find a <span class="founder-accent">€0 tuition degree</span>,
-			win funding, or get through embassy requirements. Everything here comes from my own journey to Europe.”
-		</p>
-		<p class="founder-sign"><strong>Saheed Kolawole</strong> · Founder</p>
-	</div>
-</section>
-
 <!-- ═══ ESSENTIAL STUDENT RELOCATION & VISA SECTION ═══ -->
 <section class="section-relocation-home bg-slate-900 text-white py-20 px-6" use:fadeUpOnScroll>
 	<div class="max-w-6xl mx-auto">
@@ -1270,46 +1258,6 @@ function goToPrograms() {
 		box-sizing: border-box;
 		box-shadow: 0 10px 30px rgba(15, 23, 42, 0.2);
 	}
-}
-
-/* ═══════════════════════════════════════
-   FOUNDER — simple centered note, no box
-   ═══════════════════════════════════════ */
-.section-founder {
-	padding: 5rem 1.5rem;
-	background: #ffffff;
-}
-.founder-inner {
-	max-width: 720px;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	text-align: center;
-	gap: 1.25rem;
-}
-.founder-portrait {
-	width: 88px;
-	height: 88px;
-	border-radius: 50%;
-	object-fit: cover;
-	object-position: top center;
-}
-.founder-quote {
-	font-family: 'Outfit', sans-serif;
-	font-size: clamp(1.15rem, 2vw, 1.4rem);
-	font-weight: 600;
-	line-height: 1.55;
-	color: var(--brand-navy);
-}
-.founder-accent {
-	color: var(--brand-orange);
-}
-.founder-sign {
-	font-size: 0.88rem;
-	color: var(--text-muted);
-}
-.founder-sign strong {
-	color: var(--brand-navy);
 }
 
 @media (max-width: 480px) {
